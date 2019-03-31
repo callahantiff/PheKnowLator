@@ -52,15 +52,22 @@ env.bak/
 .idea/*
 .python-version
 
-# other documents
-resources/Other/*
-scripts/python/drafts/*
-resources/ontologies/drafts/*
-resources/ontologies/v1.0.0/catalog-v001.xml
+# other documents and/or data
 resources/endpoints/*
 resources/graphs/applications/*
+resources/graphs/v1.0.0/ALL_KG_res_df
+resources/graphs/v1.0.0/ALL_KG_res_tsne.npy
+resources/graphs/v1.0.0/class_instance_map.json
+resources/graphs/v1.0.0/KG_triples_ints_map.json
+resources/ontologies/*
+resources/Other/*
+resources/rdf_data/*
+resources/text_files/*
+
 scripts/python/test.py
+scripts/python/drafts/*
 
 # mkdocs documentation
 /site
 =
+
