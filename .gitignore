@@ -24,8 +24,10 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+__init__.py
 
 # Unit test / coverage reports
+tests/*
 htmlcov/
 .tox/
 .coverage
@@ -54,11 +56,11 @@ env.bak/
 resources/Other/*
 scripts/python/drafts/*
 resources/ontologies/drafts/*
-resources/ontologies/catalog-v100.xml
+resources/ontologies/v1.0.0/catalog-v001.xml
 resources/endpoints/*
 resources/graphs/applications/*
+scripts/python/test.py
 
 # mkdocs documentation
 /site
 =
-
