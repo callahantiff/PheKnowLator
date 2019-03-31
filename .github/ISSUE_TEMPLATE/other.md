@@ -1,9 +1,9 @@
 ---
 name: Other
-about: All other types of issues
+about: All other issues
 title: Other
-labels: ''
-assignees: ''
+labels: other
+assignees: callahantiff
 
 ---
 

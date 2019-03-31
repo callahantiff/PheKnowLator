@@ -1,9 +1,9 @@
 ---
 name: Project Organization Tasks
-about: Help organize project organization tasks
+about: Add a task related to the organization of the project
 title: 'TODO - Project Organization: short description of needed task'
-labels: TODO:Project Organization
-assignees: ''
+labels: project organization
+assignees: callahantiff
 
 ---
 

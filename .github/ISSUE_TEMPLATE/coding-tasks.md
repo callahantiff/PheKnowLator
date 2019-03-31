@@ -1,9 +1,9 @@
 ---
-name: Coding tasks
-about: Help organize requests for new code
-title: 'TODO - Coding: short description of needed code'
-labels: TODO:Coding
-assignees: ''
+name: Coding Tasks
+about: Make requests to edit existing code or create new code
+title: 'Coding: short description of needed code'
+labels: coding
+assignees: callahantiff
 
 ---
 
