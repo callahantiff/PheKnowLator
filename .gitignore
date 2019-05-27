@@ -75,3 +75,11 @@ scripts/python/drafts/*
 /site
 =
 
+resources/graphs/ignacio_edges/new_aopwiki_triples.txt
+resources/graphs/ignacio_edges/new_uniprot_reactome_complex_triples.txt
+resources/graphs/ignacio_edges/new_uniprot_reactome_pathway_nonIEA_triples.txt
+resources/graphs/ignacio_edges/new_uniprot_reactome_reaction_nonIEA_triples.txt
+resources/graphs/ignacio_edges/new_uniprot_triples.txt
+resources/graphs/ignacio_edges/tc_ig_combined_edges.owl
+resources/graphs/ignacio_edges/hp_doid_chebi_go.merged.owl
+resources/graphs/ignacio_edges/catalog-v001.xml
