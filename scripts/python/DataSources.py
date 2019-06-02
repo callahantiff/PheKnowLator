@@ -4,6 +4,7 @@
 ##########################################################################################
 
 
+import datetime
 import gzip
 import io
 import os.path
@@ -11,8 +12,7 @@ import requests
 # import subprocess
 
 from abc import ABCMeta, abstractmethod
-import datetime
-from owlready2 import *
+from owlready2 import subprocess
 
 
 class DataSource(object):
@@ -65,8 +65,14 @@ class DataSource(object):
         """Gets the data sources parsed from input text file"""
         return self.source_list
 
-    def url_download(self):
-        """Downloads each source from a list and writes the downloaded file to a directory."""
+    def url_download(self, download_type):
+        """Downloads each source from a list and writes the downloaded file to a directory.
+
+        Args:
+            download_type: A string that is used to indicate whether or not the ontologies should be downloaded with
+            imported ontologies ('imports').
+
+        """
         pass
 
     def get_data_files(self):
@@ -190,13 +196,17 @@ class OntData(DataSource):
             else:
                 raise Exception('ERROR: Not all URLs were formatted properly')
 
-    def url_download(self):
+    def url_download(self, download_type):
         """Takes a string representing a file path/name to a text file as an argument. The function assumes
         that each item in the input file list is an URL to an OWL/OBO ontology. For each URL, the referenced ontology is
         downloaded, and used as input to an OWLTools command line argument (
         https://github.com/owlcollab/owltools/wiki/Extract-Properties-Command), which facilitates the download and
         saving of ontologies imported by the primary ontology. The function will save the downloaded ontology + imported
         ontologies.
+
+        Args:
+            download_type: A string that is used to indicate whether or not the ontologies should be downloaded with
+            imported ontologies ('imports').
 
         Returns:
             source_list: A list, where each item in the list represents an ontology via URL.
@@ -205,7 +215,9 @@ class OntData(DataSource):
             An exception is raised if any of the URLs passed as command line arguments fails to return data.
 
         """
-        print('\n' + '#' * 100 + '\n Downloading/Processing Ontology: {}'.format(self.data_type) + '\n')
+
+        file_loc = './resources/ontologies/'
+        print('\n' + '#' * 100 + '\n Downloading Ontology Data: {0} to {1}'.format(self.data_type, file_loc) + '\n')
 
         i = 0
         for i in range(0, len(self.source_list)):
@@ -213,20 +225,30 @@ class OntData(DataSource):
             file_prefix = source.split('/')[-1].split('.')[0]
             print('Downloading: {}'.format(str(file_prefix)))
 
-            try:
-                subprocess.check_call(['./resources/lib/owltools',
-                                       str(source),
-                                       '--merge-import-closure',
-                                       '-o',
-                                       './resources/ontologies/'
-                                       + str(file_prefix) + '_with_imports.owl'])
+            if download_type == 'imports':
 
-                self.data_files.append('./resources/ontologies/' + str(file_prefix) + '_with_imports.owl')
+                try:
+                    subprocess.check_call(['./resources/lib/owltools',
+                                           str(source),
+                                           '--merge-import-closure',
+                                           '-o',
+                                           './resources/ontologies/'
+                                           + str(file_prefix) + '_with_imports.owl'])
 
-            except subprocess.CalledProcessError as error:
-                print(error.output)
+                    self.data_files.append('./resources/ontologies/' + str(file_prefix) + '_with_imports.owl')
 
+                except subprocess.CalledProcessError as error:
+                    print(error.output)
+            else:
+                try:
+                    subprocess.check_call(['./resources/lib/owltools',
+                                           str(source),
+                                           '-o',
+                                           './resources/ontologies/'
+                                           + str(file_prefix) + '_without_imports.owl'])
 
+                except subprocess.CalledProcessError as error:
+                    print(error.output)
 
         # CHECK - all URLs returned a data file
         if len(self.source_list) != i + 1:
@@ -239,10 +261,14 @@ class Data(DataSource):
         """"A string representing the type of data being processed."""
         return 'Instance Data'
 
-    def url_download(self):
+    def url_download(self, download_type):
         """Takes a string representing a file path/name to a text file as an argument. The function assumes that
     each item in the input file list is a valid URL. For each URL, the referenced data source is downloaded and the
     output is written to a specific directory and named according to the string included in the URL.
+
+    Args:
+        download_type: A string that is used to indicate whether or not the ontologies should be downloaded with
+        imported ontologies ('imports'). Within this subclass, this argument is currently ignored.
 
     Returns:
         source_list: A list, where each item in the list represents a data source.
@@ -252,7 +278,8 @@ class Data(DataSource):
 
     """
 
-        print('\n' + '#' * 100 + '\n DownloadingInstance Data Source: {}'.format(str(self.data_type)) + '\n')
+        file_loc = './resources/text_files/'
+        print('\n' + '#' * 100 + '\n Downloading Instance Data: {0} to {1}'.format(self.data_type, file_loc) + '\n')
 
         i = 0
         for i in range(0, len(self.source_list)):
