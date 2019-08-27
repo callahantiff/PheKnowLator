@@ -59,21 +59,22 @@ Running the code shown above will initiate the process of building a knowledge, 
 **Download Data**
  - <u>Download Ontologies</u>: Downloads ontologies with or without imports from the `ontology_source_list.txt` file.
   Once the ontology has downloaded, metadata information from each ontology will be saved to `ontology_source_metadata.txt`, which is located within the `resources/ontologies` directory.
- - <u>Download Class Data</u>: Downloads data from the `class_source_list.txt` file. Once 
+ - <u>Download Class Data</u>: Downloads data that is used to create connections between ontology concepts treated as
+  classes and instance data from the `class_source_list.txt` file. Once 
     the data has downloaded, metadata information from each source will be saved to `class_source_metadata.txt`, which is located within the `resources/text_files` directory. 
  - <u>Download Instance Data</u>: Downloads data from the `instance_source_list.txt` file. Once the data has downloaded, metadata information from each source will be saved to `instance_source_metadata.txt`, which is located within the `resources/text_files` directory.   
 
 **Create Edge Lists**  
  - Create edges between classes and instances of classes.  
- - Create  edges between instances of classes and data.  
+ - Create edges between instances of classes and instances of data.  
 
 **Build Knowledge Graph**  
- - Merge ontologies used as classes.  
- - Add class-instance and instance-instance edges to merged ontologies.  
- - Remove disjointness axioms.  
- - Deductively close knowledge graph using Elk reasoner.    
- - Write original edges to local directory.  
- - Convert original edges to integers and write to local directory.
+1. Merge ontologies used as classes.  
+2. Add class-instance and instance-instance edges to merged ontologies.  
+3. Remove disjointness axioms.  
+4. Deductively close knowledge graph using [Elk reasoner](https://www.cs.ox.ac.uk/isg/tools/ELK/).    
+5. Write edges (as triples) to local directory.  
+6. Convert original edges to integers and write to local directory (required input format for generating embeddings).
 
 **Generate Mechanism Embeddings**  
  - A [modified](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) version of the [DeepWalk 
