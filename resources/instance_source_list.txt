@@ -1,6 +1,3 @@
-http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-http://ctdbase.org/reports/CTD_chem_pathways_enriched.tsv.gz
-http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
 http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
 http://ctdbase.org/reports/CTD_diseases_pathways.tsv.gz
 https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
