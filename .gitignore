@@ -68,7 +68,7 @@ resources/Other/*
 resources/rdf_data/*
 resources/text_files/*
 
-scripts/python/test.py
+scripts/python/drafts/test.py
 scripts/python/drafts/*
 
 # mkdocs documentation
