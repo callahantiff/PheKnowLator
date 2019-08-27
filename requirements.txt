@@ -6,7 +6,7 @@ gensim==0.10.2
 Owlready2==0.4
 psutil>=2.1.1
 rdflib>=4.2.1
-requests==2.18.4
+requests>=2.20.0
 SPARQLWrapper==1.8.0
 scipy==0.15.1
 six>=1.7.3
