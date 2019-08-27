@@ -9,9 +9,11 @@ import gzip
 import io
 import os.path
 import requests
-# import subprocess
+import shutil
+import urllib.request as request
 
 from abc import ABCMeta, abstractmethod
+from contextlib import closing
 from owlready2 import subprocess
 
 
@@ -43,6 +45,10 @@ class DataSource(object):
     def get_data_type(self):
         """Function returns the input value for data type"""
         return self.data_type
+
+    def get_data_path(self):
+        """Function returns the file path to data"""
+        return self.data_path
 
     def file_parser(self):
         """Verifies a file contains data and then outputs a list where each item is a line from the
@@ -95,15 +101,20 @@ class DataSource(object):
             source = self.data_files[i]
 
             # get vars for metadata file
-            file_info = requests.head(self.source_list[i])
+            try:
+                file_info = requests.head(self.source_list[i])
 
-            if 'modified' in [x.lower() for x in file_info.headers.keys()]:
-                mod_info = file_info.headers['modified'][0]
-            elif 'Last-Modified' in [x.lower() for x in file_info.headers.keys()]:
-                mod_info = file_info.headers['Last-Modified'][0]
-            elif 'Date' in [x.lower() for x in file_info.headers.keys()]:
-                mod_info = file_info.headers['Date']
-            else:
+                if 'modified' in [x.lower() for x in file_info.headers.keys()]:
+                    mod_info = file_info.headers['modified'][0]
+                elif 'Last-Modified' in [x.lower() for x in file_info.headers.keys()]:
+                    mod_info = file_info.headers['Last-Modified'][0]
+                elif 'Date' in [x.lower() for x in file_info.headers.keys()]:
+                    mod_info = file_info.headers['Date']
+                else:
+                    mod_info = datetime.datetime.now().strftime('%a, %d %b %Y %X GMT')
+
+            # for ftp downloads that don't have header info
+            except requests.exceptions.InvalidSchema:
                 mod_info = datetime.datetime.now().strftime('%a, %d %b %Y %X GMT')
 
             # reformat date
@@ -189,7 +200,7 @@ class OntData(DataSource):
             source_list = list(filter(None, [row.strip() for row in open(self.data_path).read().split('\n')]))
 
             # CHECK - all sources have correct URL
-            valid_sources = [url for url in source_list if 'purl.obolibrary.org/obo' in url]
+            valid_sources = [url for url in source_list if 'purl.obolibrary.org/obo' in url or 'owl' in url]
 
             if len(source_list) == len(valid_sources):
                 self.source_list = source_list
@@ -216,8 +227,8 @@ class OntData(DataSource):
 
         """
 
-        file_loc = './resources/ontologies/'
-        print('\n' + '#' * 100 + '\n Downloading Ontology Data: {0} to {1}'.format(self.data_type, file_loc) + '\n')
+        file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/ontologies/'
+        print('\n' + '#' * 100 + '\n Downloading Ontology Data: {0} to "{1}"'.format(self.data_type, file_loc) + '\n')
 
         i = 0
         for i in range(0, len(self.source_list)):
@@ -225,7 +236,7 @@ class OntData(DataSource):
             file_prefix = source.split('/')[-1].split('.')[0]
             print('Downloading: {}'.format(str(file_prefix)))
 
-            if download_type == 'imports':
+            if download_type == 'imports' and 'purl' in source:
 
                 try:
                     subprocess.check_call(['./resources/lib/owltools',
@@ -239,7 +250,8 @@ class OntData(DataSource):
 
                 except subprocess.CalledProcessError as error:
                     print(error.output)
-            else:
+
+            elif download_type != 'imports' and 'purl' in source:
                 try:
                     subprocess.check_call(['./resources/lib/owltools',
                                            str(source),
@@ -247,8 +259,19 @@ class OntData(DataSource):
                                            './resources/ontologies/'
                                            + str(file_prefix) + '_without_imports.owl'])
 
+                    self.data_files.append('./resources/ontologies/' + str(file_prefix) + '_without_imports.owl')
+
                 except subprocess.CalledProcessError as error:
                     print(error.output)
+
+            else:
+                filename = './resources/ontologies/' + str(file_prefix) + '.owl'
+
+                with closing(request.urlopen(source)) as r:
+                    with open(filename, 'wb') as f:
+                        shutil.copyfileobj(r, f)
+
+                self.data_files.append('./resources/ontologies/' + str(file_prefix) + '.owl')
 
         # CHECK - all URLs returned a data file
         if len(self.source_list) != i + 1:
@@ -278,8 +301,8 @@ class Data(DataSource):
 
     """
 
-        file_loc = './resources/text_files/'
-        print('\n' + '#' * 100 + '\n Downloading Instance Data: {0} to {1}'.format(self.data_type, file_loc) + '\n')
+        file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/text_files/'
+        print('\n' + '#' * 100 + '\n Downloading Instance Data: {0} to "{1}"'.format(self.data_type, file_loc) + '\n')
 
         i = 0
         for i in range(0, len(self.source_list)):
