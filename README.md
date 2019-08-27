@@ -1,4 +1,4 @@
-# PheKnowLater
+## PheKnowLater
 
 A repository for developing methods to facilitate clinically and biologically meaningful translations between human and rodent phenotypes. Deatiled information regarding this project can be found on the associated [Wiki](https://github.com/callahantiff/PheKnowLater/wiki).
 This repository uses Semantic Web technologies to build a biomedical knowledge graph using [Open Biomedical Ontologies](http://www.obofoundry.org/) and other sources of open biomedical data. The resulting knowledge graph is designed to provide the user with mechanistic connections between sets of user-specified entities.
@@ -14,22 +14,49 @@ This repository contains more than just code, it provides a detailed and transpa
 #### Accessing Code and Results
 All code and results for each releases will be accessible through the project [Wiki](https://github.com/callahantiff/PheKnowLator/wiki), under the releases tab.
 
-______
+_____
 ### Getting Started
+
+To build the knowledge graph run the `main.py` file. This file will perform the following tasks:
+**Download Data**
+ - <u>Download Ontologies</u>: Downloads ontologies with or without imports from the `ontology_source_list.txt` file.
+  Once the ontology has downloaded, metadata information from each ontology will be saved to `ontology_source_metadata.txt`, which is located within the `resources/ontologies` directory.
+ - <u>Download Class Data</u>: Downloads data from the `class_source_list.txt` file. Once 
+    the data has downloaded, metadata information from each source will be saved to `class_source_metadata.txt`, which is located within the `resources/text_files` directory. 
+ - <u>Download Instance Data</u>: Downloads data from the `instance_source_list.txt` file. Once the data has downloaded, metadata information from each source will be saved to `instance_source_metadata.txt`, which is located within the `resources/text_files` directory.   
+
+**Create Edge Lists**  
+ - Create edges between classes and instances of classes.  
+ - Create  edges between instances of classes and data.  
+
+**Build Knowledge Graph**  
+ - Merge ontologies used as classes.  
+ - Add class-instance and instance-instance edges to merged ontologies.  
+ - Remove disjointness axioms.  
+ - Deductively close knowledge graph using Elk reasoner.    
+ - Write original edges to local directory.  
+ - Convert original edges to integers and write to local directory.
+
+**Generate Mechanism Embeddings**  
+ - Run modified DeepWalk algorithm over 
+
+<br>
+
+#### Installation  
 
 To use run, download zip file or fork the project repository. Additional instructions can be found under [*Installation*](#installation). For the program to run successfully the prerequisites must be satisfied.
 
+#### Prerequisites
 
-### Prerequisites
-
-This program was written on a system running OS X Sierra. Successful execution of this program requires Python version 2.7.
+This program was written on a system running OS X Sierra. Successful execution of this program requires Python version 3.6.
 
   * Python
     * Version 3.6
     * Modules are described under [*Installation*](#Installation)
 
+<br>
 
-### Installation
+#### Installation
 
 To install and execute the program designate the cloned project folder as the current working directory. Place any outside files within the working directory prior to executing the program.
 
@@ -37,7 +64,9 @@ To install and execute the program designate the cloned project folder as the cu
 pip install -r requirements.txt
 ```
 
-## Constructing the Knowledge Graph
+<br>
+
+#### Running Code
 
 Running program from the command line by:
 
@@ -58,21 +87,12 @@ optional arguments:
   -i INST, --inst INST  name/path to text file containing instance sources
 ```
 
-## Contributing
+### Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/callahantiff/open-bio-graph/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://github.com/callahantiff/pheknowlator/blob/master/CONTRIBUTING.md) for details on 
+our code of conduct, and the process for submitting pull requests to us.
 
-<!--## Versioning-->
 
-<!--We use [SemVer](http://semver.org/) for versioning.-->
+### License
 
-## Testing
-We are in the process of developing tests for each module. We will create documentation as they are created.
-
-## License
-
-This project is licensed under 3-Clause BSD License - see the [LICENSE.md](https://github.com/callahantiff/open-bio-graph/blob/master/LICENSE) file for details.
-
-<!--## Acknowledgments-->
-
-<!--* README was generated from a modified markdown template originally created by **Billie Thompson [PurpleBooth](https://github.com/PurpleBooth)**.-->
+This project is licensed under 3-Clause BSD License - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.
