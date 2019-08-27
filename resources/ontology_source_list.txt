@@ -1,4 +1,4 @@
 http://purl.obolibrary.org/obo/hp.owl
 http://purl.obolibrary.org/obo/go.owl
 http://purl.obolibrary.org/obo/doid.owl
-http://purl.obolibrary.org/obo/chebi.owl
+ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
