@@ -1,3 +1,4 @@
+tqdm
 argparse>=1.2.1
 Cython>=0.20.2
 futures>=2.1.6
