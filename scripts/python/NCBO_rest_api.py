@@ -33,12 +33,11 @@ def gets_json_results_from_api_call(url):
 
     try:
         # to ease rate limiting sleep for random amount of time between 10-60 seconds
-        time.sleep(random.randint(5, 10))
         opener = urllib.request.build_opener()
 
     except HTTPError:
-        # pause for 2 minutes and try again
-        time.sleep(60)
+        # pause for 1 minutes and try again
+        time.sleep(15)
         opener = urllib.request.build_opener()
 
     # fetch data
