@@ -31,11 +31,17 @@ This program was written on a system running OS X Sierra. Successful execution o
 
 #### Installation
 
+**Requirements:**  
 To install and execute the program designate the cloned project folder as the current working directory. Place any outside files within the working directory prior to executing the program.
 
 ```
 pip install -r requirements.txt
 ```
+
+<br>
+
+**Dependencies:**  
+This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to `resources/lib/` prior to running `main.py`.
 
 <br>
 
@@ -70,9 +76,10 @@ Running the code shown above will initiate the process of building a knowledge, 
  - <u>Download Instance Data</u>: Downloads data from the `instance_source_list.txt` file. Once the data has downloaded, metadata information from each source will be saved to `instance_source_metadata.txt`, which is located within the `resources/text_files` directory.   
 
 **Create Edge Lists**  
- - Run `python/NCBO_rest_api.py` script first. This will generate a text file that contains mappings between CHEBI 
- and MESH identifiers. This script, when run from the command line will ask you enter two ontologies (`source1=MESH`,
-  `source2=CHEBI`) and the name of a file for the data, which is written to `resources/text_files/`.
+ - Run `python/NCBO_rest_api.py` script first. Note, that you will need to create an account with [BioPortal](http://basic-formal-ontology.org/) and place your API key in `resources/bioportal_api_key.txt`. 
+   - When run from the command line, you will be asked to enter two ontologies (`source1=MESH`, `source2=CHEBI`).
+   - This will generate a text file that contains mappings between identifiers from two ontologies specified and write the results to `resources/data_maps/source1_source2_map.txt`.  
+
  - Create edges between classes and instances of classes.  
  - Create edges between instances of classes and instances of data.  
 
