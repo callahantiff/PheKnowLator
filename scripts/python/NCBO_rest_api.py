@@ -6,7 +6,6 @@
 import glob
 import json
 import os
-import random
 import shutil
 import time
 import urllib.error
@@ -36,8 +35,9 @@ def gets_json_results_from_api_call(url):
         opener = urllib.request.build_opener()
 
     except HTTPError:
+
         # pause for 1 minutes and try again
-        time.sleep(15)
+        time.sleep(10)
         opener = urllib.request.build_opener()
 
     # fetch data
@@ -94,57 +94,52 @@ def extracts_mapping_data(source1, source2, file_out):
     api_results = gets_json_results_from_api_call(ont_source)
 
     # enable batch processing
-    total_pages = range(1, api_results['pageCount'] - 1)
-    n = round(len(total_pages)/float(1000))
-    batches = [total_pages[i::n] for i in range(1000)]
+    total_pages = list(range(1, api_results['pageCount'] + 1))
+    n = 1000 if len(total_pages) > 5000 else 100
+    batches = [total_pages[i:i + n] for i in range(0, len(total_pages), n)]
 
-    for batch in tqdm(range(0, len(batches) - 1)):
+    for batch in tqdm(range(0, len(batches))):
         unique_edges = set()
 
         # iterate over results
         for page in tqdm(batches[batch]):
-            page_url = 'http://data.bioontology.org/ontologies/{source}/mappings/?page={page}'.format(source=source2,
-                                                                                                      page=page + 1)
-            content = gets_json_results_from_api_call(page_url)
+            content = gets_json_results_from_api_call(ont_source + '?page={page}'.format(page=page))
 
             for result in content['collection']:
                 if source2 in result['classes'][1]['links']['ontology']:
                     unique_edges.add((result['classes'][0]['@id'], result['classes'][1]['@id']))
 
         # write out results
-        writes_data_to_file(file_out + '_{batch_num}'.format(batch_num=batch), unique_edges)
+        writes_data_to_file(file_out + '_{batch_num}'.format(batch_num=batch) + '.txt', unique_edges)
 
     return None
 
 
 def main():
 
-    # get info
+    # get user info for sources to map
     source1 = input('Enter ontology source 1: ')
     source2 = input('Enter ontology source 2: ')
 
     # run API call in batches + save data
     file_path = 'resources/data_maps/'
+    file_name = '{source1}_{source2}_MAP'.format(source1=source1.upper(), source2=source2.upper())
     temp_directory = file_path + 'temp'
+    write_location = file_path + file_name + '.txt'
 
-    # make temp directory to store batches
+    # create temp directory to store batches
     os.mkdir(temp_directory)
-    file_out = file_path + '{source1}_{source2}_MAP.txt'.format(source1=source1.upper(), source2=source2.upper())
 
     # run program to map identifiers between source1 and source2
-    extracts_mapping_data(source1, source2, file_out)
+    extracts_mapping_data(source1, source2, temp_directory + '/' + file_name)
 
     # concatenate batch data into single file
     print('\n' + '=' * 50)
     print('Concatenating Batch-Processed Data')
     print('=' * 50 + '\n')
 
-    with open(file_path, 'wb') as outfile:
+    with open(write_location, 'wb') as outfile:
         for filename in glob.glob(temp_directory + '/*.txt'):
-
-            # don't want to copy the output into the output
-            if filename == file_path:
-                continue
 
             with open(filename, 'rb') as readfile:
                 shutil.copyfileobj(readfile, outfile)
