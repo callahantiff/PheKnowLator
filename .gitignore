@@ -13,13 +13,14 @@ scripts/*.pyc
 # data
 /resources/archive/
 /resources/class_data/
+/resources/data_maps/
 /resources/graphs/
 /resources/instance_data/
 /resources/kr_model/
 /resources/ontologies/
 
 # releases
-/resources/v1.0.0/*
+/resources/releases/
 
 # API keys/passwords
 /resources/bioportal_api_key.txt
