@@ -4,11 +4,13 @@
 
 # import needed libraries
 import json
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
 from tqdm import tqdm
+from urllib.error import HTTPError
 
 
 def gets_json_results_from_api_call(url):
@@ -19,9 +21,23 @@ def gets_json_results_from_api_call(url):
 
     Return:
         A json-formatted file of API results.
+
+    Raises:
+        An exception is raised if a 500 HTTP server-side code is raised.
     """
     opener = urllib.request.build_opener()
     opener.addheaders = [('Authorization', 'apikey token=' + open('resources/Other/bioportal_api_key.txt').read())]
+
+    try:
+        return json.loads(opener.open(url).read())
+
+    except HTTPError:
+
+        # pause for 15 seconds and try again
+        time.sleep(15)
+
+        opener = urllib.request.build_opener()
+        opener.addheaders = [('Authorization', 'apikey token=' + open('resources/Other/bioportal_api_key.txt').read())]
 
     return json.loads(opener.open(url).read())
 
