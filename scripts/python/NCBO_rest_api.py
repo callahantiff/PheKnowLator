@@ -80,13 +80,19 @@ def writes_data_to_file(file_out, results):
 
 def main():
 
+    # get info
+    source1 = input('Enter ontology source 1: ')
+    source2 = input('Enter ontology source 2: ')
+    filename = input('What would you like this file to be called?: ')
+
     # run API call
     print('RUNNING API CALL\n')
-    results = extracts_mapping_data('MESH', 'CHEBI')
+    results = extracts_mapping_data(source1, source2)
 
     # save data
     print('WRITING DATA TO FILE\n')
-    writes_data_to_file('./resources/text_files/CHEBI_MESH_map.txt', results)
+    file_out = './resources/text_files/{filename}.txt'.format(filename=filename)
+    writes_data_to_file(file_out, results)
 
 
 if __name__ == '__main__':
