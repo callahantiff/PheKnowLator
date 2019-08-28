@@ -3,26 +3,26 @@
 # Distribution/packaging/Environments
 __pycache__/
 __init__.py
-.idea/*
+.idea/
 scripts/python/*.pyc
 scripts/*.pyc
 
 # scripts
-scripts/python/drafts/*
+/scripts/python/drafts/*
 
 # data
-resources/archive/*
-resources/class_data/*
-resources/graphs/*
-resources/instance_data/*
-resources/kr_model/*
-resources/ontologies/*
+/resources/archive/
+/resources/class_data/
+/resources/graphs/
+/resources/instance_data/
+/resources/kr_model/
+/resources/ontologies/
 
 # releases
-resources/v1.0.0/*
+/resources/v1.0.0/*
 
 # API keys/passwords
 /resources/bioportal_api_key.txt
 
 # external libraries
-resources/lib/*
+/resources/lib/
