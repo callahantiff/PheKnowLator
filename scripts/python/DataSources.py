@@ -40,20 +40,20 @@ class DataSource(object):
     def __init__(self, data_path):
         self.data_path = data_path
         self.data_type = data_path.split('/')[-1].split('.')[0]
-        self.source_list = []
-        self.data_files = []
+        self.source_list = {}
+        self.data_files = {}
         self.metadata = []
 
-    def gets_data_path(self):
-        """Function returns the file path to data"""
-
-        return self.data_path
+    # def gets_data_path(self):
+    #     """Function returns the file path to data"""
+    #
+    #     return self.data_path
 
     def parses_resource_file(self):
         """Verifies a file contains data and then outputs a list where each item is a line from the input text file.
 
         Returns:
-            source_list (list): A list, where each item represents a data source from the input text file.
+            source_list (dict): A dictionary, where the key is the type of data and the value is the file path or url.
 
         Raises:
             An exception is raised if the input file is empty.
@@ -66,12 +66,13 @@ class DataSource(object):
             raise Exception('ERROR: input file: {} is empty'.format(self.data_path))
 
         else:
-            self.source_list = list(filter(None, [row.strip() for row in open(self.data_path).read().split('\n')]))
-
-    def gets_list_of_source_data(self):
-        """Gets a list of the data sources parsed from input text file"""
-
-        return self.source_list
+            self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip() for row in open(
+                                self.data_path).read().split('\n')}
+    #
+    # def gets_list_of_source_data(self):
+    #     """Gets a list of the data sources parsed from input text file"""
+    #
+    #     return self.source_list
 
     def downloads_data_from_url(self, download_type):
         """Downloads each source from a list and writes the downloaded file to a directory.
@@ -83,10 +84,10 @@ class DataSource(object):
 
         pass
 
-    def gets_list_of_data_files(self):
-        """Gets the list of data sources with file path"""
-
-        return self.data_files
+    # def gets_list_of_data_files(self):
+    #     """Gets the list of data sources with file path"""
+    #
+    #     return self.data_files
 
     def generates_source_metadata(self):
         """Extracts and stores metadata for imported data sources. Metadata includes the date of download,
@@ -104,7 +105,7 @@ class DataSource(object):
 
         self.metadata.append(['#' + str(datetime.datetime.utcnow().strftime('%a %b %d %X UTC %Y')) + ' \n'])
 
-        for i in tqdm(range(0, len(self.data_files))):
+        for i in tqdm(self.data_files.keys()):
             source = self.data_files[i]
 
             # get vars for metadata file
@@ -141,10 +142,12 @@ class DataSource(object):
 
             self.metadata.append(source_metadata)
 
-    def gets_source_metadata(self):
-        """Prints a list of data source metadata"""
-
         return self.metadata
+
+    # def gets_source_metadata(self):
+    #     """Prints a list of data source metadata"""
+    #
+    #     return self.metadata
 
     def writes_source_metadata_locally(self):
         """Generates a text file that stores metadata for the data sources that it imports.
@@ -158,7 +161,7 @@ class DataSource(object):
         print('=' * 100 + '\n')
 
         # open file to write to and specify output location
-        write_loc_part1 = str('/'.join(self.data_files[0].split('/')[:-1]) + '/')
+        write_loc_part1 = str('/'.join(list(self.data_files.values())[1].split('/')[:-1]) + '/')
         write_loc_part2 = str('_'.join(self.data_type.split('_')[:-1]))
         write_location = write_loc_part1 + write_loc_part2 + '_metadata.txt'
 
@@ -217,10 +220,11 @@ class OntData(DataSource):
             raise Exception('ERROR: input file: {} is empty'.format(self.data_path))
 
         else:
-            source_list = list(filter(None, [row.strip() for row in open(self.data_path).read().split('\n')]))
+            source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip() for row in open(
+                           self.data_path).read().split('\n')}
 
             # CHECK
-            valid_sources = [url for url in source_list if 'purl.obolibrary.org/obo' in url or 'owl' in url]
+            valid_sources = [url for url in source_list.values() if 'purl.obolibrary.org/obo' in url or 'owl' in url]
 
             if len(source_list) == len(valid_sources):
                 self.source_list = source_list
@@ -254,11 +258,8 @@ class OntData(DataSource):
         print('Downloading Ontology Data: {0} to "{1}"'.format(self.data_type, file_loc))
         print('=' * 100 + '\n')
 
-        # set counter
-        i = 0
-
         # process data
-        for i in tqdm(range(0, len(self.source_list))):
+        for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]
             file_prefix = source.split('/')[-1].split('.')[0]
             print('\n' + 'Downloading: {}'.format(str(file_prefix)) + '\n')
@@ -272,7 +273,7 @@ class OntData(DataSource):
                                            './resources/ontologies/'
                                            + str(file_prefix) + '_with_imports.owl'])
 
-                    self.data_files.append('./resources/ontologies/' + str(file_prefix) + '_with_imports.owl')
+                    self.data_files[i] = './resources/ontologies/' + str(file_prefix) + '_with_imports.owl'
 
                 except subprocess.CalledProcessError as error:
                     print(error.output)
@@ -285,7 +286,7 @@ class OntData(DataSource):
                                            './resources/ontologies/'
                                            + str(file_prefix) + '_without_imports.owl'])
 
-                    self.data_files.append('./resources/ontologies/' + str(file_prefix) + '_without_imports.owl')
+                    self.data_files[i] = './resources/ontologies/' + str(file_prefix) + '_without_imports.owl'
 
                 except subprocess.CalledProcessError as error:
                     print(error.output)
@@ -297,10 +298,10 @@ class OntData(DataSource):
                     with open(filename, 'wb') as f:
                         shutil.copyfileobj(r, f)
 
-                self.data_files.append('./resources/ontologies/' + str(file_prefix) + '.owl')
+                self.data_files[i] = './resources/ontologies/' + str(file_prefix) + '.owl'
 
         # CHECK
-        if len(self.source_list) != i + 1:
+        if len(self.source_list) != len(self.data_files):
             raise Exception('ERROR: Not all URLs returned a data file')
 
 
@@ -309,7 +310,7 @@ class Data(DataSource):
     def gets_data_type(self):
         """"A string representing the type of data being processed."""
 
-        return 'Instance Data'
+        return 'Edge Data'
 
     def downloads_data_from_url(self, download_type):
         """Takes a string representing a file path/name to a text file as an argument. The function assumes that
@@ -328,21 +329,18 @@ class Data(DataSource):
         """
 
         # set location where to write data
-        file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/text_files/'
+        file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/edge_data/'
 
         print('\n' + '=' * 100)
         print('Downloading Ontology Data: {0} to "{1}"'.format(self.data_type, file_loc))
         print('=' * 100 + '\n')
 
-        # set counter
-        i = 0
-
-        for i in tqdm(range(0, len(self.source_list))):
+        for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]
             file_prefix = source.split('/')[-1].split('.')[0]
             print('\n' + 'Downloading ' + str(file_prefix) + '\n')
 
-            self.data_files.append('./resources/text_files/' + str(file_prefix) + '.txt')
+            self.data_files[i] = './resources/edge_data/' + str(file_prefix) + '.txt'
 
             # verify endpoint and download data -- checks whether downloaded data is compressed
             if '.gz' in source:
@@ -353,11 +351,11 @@ class Data(DataSource):
                 content = io.BytesIO(response.content).read()
 
             # write downloaded file to directory
-            filename = './resources/text_files/' + str(file_prefix) + '.txt'
+            filename = './resources/edge_data/' + str(file_prefix) + '.txt'
             file = open(filename, 'w')
             file.write(str(content))
             file.close()
 
         # CHECK
-        if len(self.source_list) != i + 1:
+        if len(self.source_list) != len(self.data_files):
             raise Exception('ERROR: Not all URLs returned a data file')
