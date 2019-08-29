@@ -1,7 +1,5 @@
-disease-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations
-.monthly/lastStableBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
-gene-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations
-.monthly/lastStableBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_genes_to_phenotype.txt
+disease-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
+gene-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_genes_to_phenotype.txt
 chemical-gene, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
 gene-go, http://geneontology.org/gene-associations/goa_human.gaf.gz
 pathway-go, https://reactome.org/download/current/gene_association.reactome.gz

@@ -12,10 +12,9 @@ scripts/*.pyc
 
 # data
 /resources/archive/
-/resources/class_data/
 /resources/data_maps/
+/resources/edge_data/
 /resources/graphs/
-/resources/instance_data/
 /resources/kr_model/
 /resources/ontologies/
 
