@@ -41,13 +41,14 @@ pip install -r requirements.txt
 <br>
 
 **Dependencies:**  
-This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to `resources/lib/` prior to running `main.py`.
-
+- This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to `resources/lib/` prior to running `main.py`.  
+- This code also depends on four documents in order to run successfully. For information on what's included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).   
 <br>
 
 #### Running Code
 
-Running program from the command line by:
+This program can be run using a Jupyter Notebook ([`main.ipynb`](https://github.com/callahantiff/pheknowlator/blob/master/main.ipynb)) or via the command line by running program from the 
+command line by:
 
 ```
 python3 Main.py -h

@@ -26,3 +26,4 @@ scripts/*.pyc
 
 # external libraries
 /resources/lib/
+.ipynb_checkpoints/main-checkpoint.ipynb
