@@ -43,6 +43,7 @@ pip install -r requirements.txt
 **Dependencies:**  
 - This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to `resources/lib/` prior to running `main.py`.  
 - This code also depends on four documents in order to run successfully. For information on what's included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).   
+
 <br>
 
 #### Running Code
@@ -67,7 +68,7 @@ optional arguments:
   -i INST, --inst INST  name/path to text file containing instance sources
 ```   
 
-Running the code shown above will initiate the process of building a knowledge, which includes the following tasks:  
+Running the code shown above will initiate the process of building a knowledge graph, which includes the following tasks:  
 **Download Data**
  - <u>Download Ontologies</u>: Downloads ontologies with or without imports from the `ontology_source_list.txt` file.
   Once the ontology has downloaded, metadata information from each ontology will be saved to `ontology_source_metadata.txt`, which is located within the `resources/ontologies` directory.
