@@ -44,11 +44,6 @@ class DataSource(object):
         self.data_files = {}
         self.metadata = []
 
-    # def gets_data_path(self):
-    #     """Function returns the file path to data"""
-    #
-    #     return self.data_path
-
     def parses_resource_file(self):
         """Verifies a file contains data and then outputs a list where each item is a line from the input text file.
 
@@ -58,6 +53,7 @@ class DataSource(object):
         Raises:
             An exception is raised if the input file is empty.
         """
+
         print('\n' + '=' * 100)
         print('Checking file containing data resources')
         print('=' * 100 + '\n')
@@ -68,11 +64,6 @@ class DataSource(object):
         else:
             self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip() for row in open(
                                 self.data_path).read().split('\n')}
-    #
-    # def gets_list_of_source_data(self):
-    #     """Gets a list of the data sources parsed from input text file"""
-    #
-    #     return self.source_list
 
     def downloads_data_from_url(self, download_type):
         """Downloads each source from a list and writes the downloaded file to a directory.
@@ -83,11 +74,6 @@ class DataSource(object):
         """
 
         pass
-
-    # def gets_list_of_data_files(self):
-    #     """Gets the list of data sources with file path"""
-    #
-    #     return self.data_files
 
     def generates_source_metadata(self):
         """Extracts and stores metadata for imported data sources. Metadata includes the date of download,
@@ -135,7 +121,7 @@ class DataSource(object):
             # add metadata for each source as nested list
             source_metadata = ['DOWNLOAD_URL= {}'.format(str(self.source_list[i])),
                                'DOWNLOAD_DATE= {}'.format(str(datetime.datetime.now().strftime('%m/%d/%Y'))),
-                               'FILE_SIZE_IN_BYTES= {}'.format(str(os.stat(source).st_size)),
+                               'FILE_SIZE_IN_BYTES= {}'.format(str(os.stat(self.data_files[i]).st_size)),
                                'FILE_AGE_IN_DAYS= {}'.format(str(diff_date)),
                                'DOWNLOADED_FILE_LOCATION= {}'.format(str(source)),
                                'FILE_LAST_MOD_DATE= {}'.format(str(mod_date))]
@@ -143,11 +129,6 @@ class DataSource(object):
             self.metadata.append(source_metadata)
 
         return self.metadata
-
-    # def gets_source_metadata(self):
-    #     """Prints a list of data source metadata"""
-    #
-    #     return self.metadata
 
     def writes_source_metadata_locally(self):
         """Generates a text file that stores metadata for the data sources that it imports.
@@ -171,7 +152,7 @@ class DataSource(object):
         print('Writing ' + str(self.data_type) + ' metadata \n')
 
         # write data
-        for i in tqdm(range(1, len(self.metadata))):
+        for i in tqdm(range(1, len(self.data_files.keys()))):
             source = self.metadata[i]
 
             outfile.write(str(source[0]) + '\n')
@@ -251,6 +232,7 @@ class OntData(DataSource):
         Raises:
             An exception is raised if any of the URLs passed as command line arguments fails to return data.
         """
+
         # set location where to write data
         file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/ontologies/'
 
@@ -338,9 +320,11 @@ class Data(DataSource):
         for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]
             file_prefix = source.split('/')[-1].split('.')[0]
-            print('\n' + 'Downloading ' + str(file_prefix) + '\n')
+            print('\n')
+            print('Downloading: {edge} - {source}\n'.format(edge=i, source=file_prefix))
 
-            self.data_files[i] = './resources/edge_data/' + str(file_prefix) + '.txt'
+            file_name = input('Enter file name (i.e. chemical-gene_ctd_class_evidence.txt): ')
+            self.data_files[i] = './resources/edge_data/' + file_name
 
             # verify endpoint and download data -- checks whether downloaded data is compressed
             if '.gz' in source:
@@ -351,8 +335,7 @@ class Data(DataSource):
                 content = io.BytesIO(response.content).read()
 
             # write downloaded file to directory
-            filename = './resources/edge_data/' + str(file_prefix) + '.txt'
-            file = open(filename, 'w')
+            file = open('./resources/edge_data/' + file_name, 'w')
             file.write(str(content))
             file.close()
 
