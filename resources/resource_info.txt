@@ -13,6 +13,6 @@ gene-gocc|;;|class|RO_0001025|http://purl.uniprot.org/geneid/|http://purl.obolib
 gene-phenotype|;;|class|RO_0002200|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|n|t|0;3|None|None|None
 gene-pathway|-;;R-HSA-|instance|RO_0000056|http://purl.uniprot.org/geneid/|https://reactome.org/content/detail/|n|t|0;1|0:./resources/edge_data/gene-go_goa_class_data.txt|None|5;==;Homo sapiens
 pathway-disease|;;|instance|RO_0003302|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|n|t|1;0|1:disease-dbxref-map|None|1;.startswith('R-HSA-');
-pathway-gobp|;R-HSA-;|class|BFO_0000051|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
-pathway-gomf|;R-HSA-;|class|BFO_0000025|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
-pathway-gocc|;R-HSA-;|class|BFO_0002180|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
+pathway-gobp|REACTOME:;R-HSA-;|class|BFO_0000051|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
+pathway-gomf|REACTOME:;R-HSA-;|class|BFO_0000025|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
+pathway-gocc|REACTOME:;R-HSA-;|class|BFO_0002180|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
