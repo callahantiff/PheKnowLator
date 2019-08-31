@@ -6,7 +6,6 @@
 import glob
 import json
 import os
-import shutil
 import time
 import urllib.error
 import urllib.parse
@@ -35,9 +34,8 @@ def gets_json_results_from_api_call(url):
         opener = urllib.request.build_opener()
 
     except HTTPError:
-
         # pause for 1 minutes and try again
-        time.sleep(10)
+        time.sleep(30)
         opener = urllib.request.build_opener()
 
     # fetch data
@@ -61,7 +59,6 @@ def writes_data_to_file(file_out, results):
     print('Writing results to {location}'.format(location=file_out))
     print('=' * 50 + '\n')
 
-    # write location + open file
     outfile = open(file_out, 'w')
 
     for res in results:
@@ -95,21 +92,21 @@ def extracts_mapping_data(source1, source2, file_out):
 
     # enable batch processing
     total_pages = list(range(1, api_results['pageCount'] + 1))
-    n = 1000 if len(total_pages) > 5000 else 100
+    n = 500 if len(total_pages) > 5000 else 100
     batches = [total_pages[i:i + n] for i in range(0, len(total_pages), n)]
 
     for batch in tqdm(range(0, len(batches))):
         unique_edges = set()
 
-        # iterate over results
+        # iterate over each page of results
         for page in tqdm(batches[batch]):
+            time.sleep(5)
             content = gets_json_results_from_api_call(ont_source + '?page={page}'.format(page=page))
 
             for result in content['collection']:
                 if source2 in result['classes'][1]['links']['ontology']:
                     unique_edges.add((result['classes'][0]['@id'], result['classes'][1]['@id']))
 
-        # write out results
         writes_data_to_file(file_out + '_{batch_num}'.format(batch_num=batch) + '.txt', unique_edges)
 
     return None
@@ -125,7 +122,6 @@ def main():
     file_path = 'resources/data_maps/'
     file_name = '{source1}_{source2}_MAP'.format(source1=source1.upper(), source2=source2.upper())
     temp_directory = file_path + 'temp'
-    write_location = file_path + file_name + '.txt'
 
     # create temp directory to store batches
     os.mkdir(temp_directory)
@@ -138,14 +134,18 @@ def main():
     print('Concatenating Batch-Processed Data')
     print('=' * 50 + '\n')
 
-    with open(write_location, 'wb') as outfile:
+    write_location = file_path + file_name + '.txt'
+
+    with open(write_location, 'w') as outfile:
         for filename in glob.glob(temp_directory + '/*.txt'):
+            file_data = list(filter(None, open(filename, 'r').read().split('\n')))
 
-            with open(filename, 'rb') as readfile:
-                shutil.copyfileobj(readfile, outfile)
+            for line in file_data:
+                mesh = '_'.join(line.split('\t')[0].split('/')[-2:])
+                chebi = line.split('\t')[1].split('/')[-1]
+                outfile.write(mesh + '\t' + chebi + '\n')
 
-    # delete temp directory
-    os.remove(temp_directory)
+    outfile.close()
 
 
 if __name__ == '__main__':
