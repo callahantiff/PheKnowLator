@@ -1,5 +1,3 @@
-gene-pathway, http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
-pathway-disease, http://ctdbase.org/reports/CTD_diseases_pathways.tsv.gz
+gene-pathway, https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
+pathway-disease, https://reactome.org/download/current/Reactome2OMIM.txt
 gene-gene, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
-gene-disease, http://ctdbase.org/reports/CTD_genes_diseases.csv.gz
-protein-gene_map, https://string-db.org/mapping_files/entrez/human.entrez_2_string.2018.tsv.gz
