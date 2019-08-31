@@ -41,25 +41,27 @@ pip install -r requirements.txt
 <br>
 
 **Dependencies:**  
-- This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to `resources/lib/` prior to running `main.py`.  
-- This code also depends on four documents in order to run successfully. For information on what's included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).   
+- [x] ‼ **Important:** This code also depends on four documents in order to run successfully. For information on 
+what's 
+included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).
+- [x] This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to 
+`resources/lib/` prior to running `main.py`.  
+   
 
 <br>
 
 #### Running Code
 
-This program can be run using a Jupyter Notebook ([`main.ipynb`](https://github.com/callahantiff/pheknowlator/blob/master/main.ipynb)) or via the command line by running program from the 
-command line by:
+- This program can be run using a Jupyter Notebook ([`main.ipynb`](https://github.com/callahantiff/pheknowlator/blob/master/main.ipynb)) 
+- This program can be also be run from the command line ([`main.py`](https://github.com/callahantiff/pheknowlator/blob/master/main.py)) by:
 
 ```
 python3 Main.py -h
 
 usage: Main.py [-h] -o ONTS -c CLS -i INST
 
-OpenBioGraph: This program builds a biomedical knowledge graph using Open
-Biomedical Ontologies and other sources of open biomedical data. Built on
-Semantic Web Technologies, the programs takes the inputs specified below and
-outputs
+PheKnowLator: This program builds a biomedical knowledge graph using Open
+Biomedical Ontologies and linked open data. The programs takes the following arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -68,8 +70,8 @@ optional arguments:
   -i INST, --inst INST  name/path to text file containing instance sources
 ```   
 
-Running the code shown above will initiate the process of building a knowledge graph, which includes the following tasks:  
-**Download Data**
+#### Workflow   
+**STEP 1: Download Data**
  - <u>Download Ontologies</u>: Downloads ontologies with or without imports from the `ontology_source_list.txt` file.
   Once the ontology has downloaded, metadata information from each ontology will be saved to `ontology_source_metadata.txt`, which is located within the `resources/ontologies` directory.
  - <u>Download Class Data</u>: Downloads data that is used to create connections between ontology concepts treated as
@@ -77,7 +79,7 @@ Running the code shown above will initiate the process of building a knowledge g
     the data has downloaded, metadata information from each source will be saved to `class_source_metadata.txt`, which is located within the `resources/text_files` directory. 
  - <u>Download Instance Data</u>: Downloads data from the `instance_source_list.txt` file. Once the data has downloaded, metadata information from each source will be saved to `instance_source_metadata.txt`, which is located within the `resources/text_files` directory.   
 
-**Create Edge Lists**  
+**STEP 2: Create Edge Lists**  
  - Run `python/NCBO_rest_api.py` script first. Note, that you will need to create an account with [BioPortal](http://basic-formal-ontology.org/) and place your API key in `resources/bioportal_api_key.txt`. 
    - When run from the command line, you will be asked to enter two ontologies (`source1=MESH`, `source2=CHEBI`).
    - This will generate a text file that contains mappings between identifiers from two ontologies specified and write the results to `resources/data_maps/source1_source2_map.txt`.  
@@ -85,7 +87,7 @@ Running the code shown above will initiate the process of building a knowledge g
  - Create edges between classes and instances of classes.  
  - Create edges between instances of classes and instances of data.  
 
-**Build Knowledge Graph**  
+**STEP 4: Build Knowledge Graph**  
 1. Merge ontologies used as classes.  
 2. Add class-instance and instance-instance edges to merged ontologies.  
 3. Remove disjointness axioms.  
@@ -93,7 +95,7 @@ Running the code shown above will initiate the process of building a knowledge g
 5. Write edges (as triples) to local directory.  
 6. Convert original edges to integers and write to local directory (required input format for generating embeddings).
 
-**Generate Mechanism Embeddings**  
+**STEP 5: Generate Mechanism Embeddings**  
  - A [modified](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) version of the [DeepWalk 
  algorithm]() was implemented to generate molecular mechanism embeddings from the biomedical knowledge graph. 
 
