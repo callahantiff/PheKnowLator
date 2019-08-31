@@ -1,20 +1,22 @@
-##########################################################################################
-# EdgeDictionary.py
-# Purpose: script to create edge lists for each downloaded source
-# version 1.0.0
-# date: 11.12.2017
-# Python 3.6.2
-##########################################################################################
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 
 # import needed libraries
+import codecs
+import csv
+import re
 import urllib
 
+from copy import deepcopy
 from rdflib import Graph
 from tqdm import tqdm
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+
+# TODO: currently using eval() to handle filtering of downloaded data, should consider replacing this in a future
+#  release.
 
 class EdgeList(object):
     """Class creates edge lists based off data type.
@@ -26,75 +28,178 @@ class EdgeList(object):
     source, that contains a dictionary of edge relations
 
     Args:
-        data_files: a list that contains the full file path and name of each downloaded data source
-        data_type: a string containing the type of data sources
-        source_info: a dictionary where the keys represent edges between entities and the
-        edges: a dictionary where the keys are sources and the values are entities for a certain edge type
+        data_files (dict): a list that contains the full file path and name of each downloaded data source.
+        source_file (str): A string containing the filepath to resource information.
 
     """
 
-    def __init__(self, data_files, data_type, source_info, edges=None):
-        if edges is None:
-            edges = dict()
+    def __init__(self, data_files, source_file):
 
         self.data_files = data_files
-        self.data_type = data_type
-        self.source_info = {x.split(', ')[0]: x.split(', ')[1:] for x in
-                            open(source_info).read().split('\n')}
-        self.edges = edges
+        self.source_file = source_file
 
-    def get_data_files(self):
-        """Function returns the list of data sources with file path"""
-        return self.data_files
+        # convert to dictionary
+        self.source_info = dict()
+
+        for line in open(source_file).read().split('\n'):
+            line_data = ['"{}"'.format(x.strip()) for x in list(csv.reader([line], delimiter='|', quotechar='"'))[0]]
+
+            self.source_info[line_data[0].strip('"').strip("'")] = {}
+            self.source_info[line_data[0].strip('"').strip("'")]['source_labels'] = line_data[1].strip('"').strip("'")
+            self.source_info[line_data[0].strip('"').strip("'")]['data_type'] = line_data[2].strip('"').strip("'")
+            self.source_info[line_data[0].strip('"').strip("'")]['relation'] = line_data[3].strip('"').strip("'")
+            self.source_info[line_data[0].strip('"').strip("'")]['uri'] = (line_data[4].strip('"').strip("'"),
+                                                                           line_data[5].strip('"').strip("'"))
+            self.source_info[line_data[0].strip('"').strip("'")]['file_splitter'] = line_data[6].strip('"').strip("'")
+            self.source_info[line_data[0].strip('"').strip("'")]['line_splitter'] = line_data[7].strip('"').strip("'")
+            self.source_info[line_data[0].strip('"').strip("'")]['columns'] = line_data[8].strip('"').strip("'")
+            self.source_info[line_data[0].strip('"').strip("'")]['map'] = line_data[9].strip('"').strip("'")
+            self.source_info[line_data[0].strip('"').strip("'")]['evidence'] = line_data[10].strip('"').strip("'")
+            self.source_info[line_data[0].strip('"').strip("'")]['filter'] = line_data[11].strip('"').strip("'")
+            self.source_info[line_data[0].strip('"').strip("'")]['edge_list'] = []
 
     @staticmethod
-    def api_access(entity):
-        """Function takes a list of entities to search against the API. The Uniprot API
-        (http://www.uniprot.org/help/api_idmapping) takes a list of uniprot proteins and returns a list of human Entrez
-        gene ids. The CTD API takes a list of genes, diseases, or chemicals and returns a list of pathways, chemicals,
-        or genes (depending on the input entity)
+    def filters_data(edge_data, splitter, data_filter):
+        """Function takes a list of data and then applies a user-input filter to process the data.
 
         Args:
-            entity (str): entity to search against the API
+            edge_data (list): A list of data results.
+            splitter (str): A string containing a character to split a row data into columns.
+            data_filter (str): A string containing information that is used to filter results.
 
-        Returns:
-            results (list): a list of pathways, chemicals, or genes (depending on the input entity)
+        Return:
+            A list of filtered results.
+
         """
-        proteins = list(set([x.split('\\t')[1] for x in open(entity).read().split('!')[-1].split('\\n')[1:]]))
 
-        params = {
-            'from': 'ACC+ID',
-            'to': 'P_ENTREZGENEID',
-            'format': 'tab',
-            'query': ' '.join(proteins)
-        }
+        filtered_data = []
 
-        data = urllib.parse.urlencode(params).encode('utf-8')
-        requests = urllib.request.Request('https://www.uniprot.org/uploadlists/', data)
-        results = urllib.request.urlopen(requests).read().decode('utf-8')
+        for line in edge_data:
+            split_line = ['"{}"'.format(x) for x in list(csv.reader([line], delimiter=splitter, quotechar='"'))[0]]
 
-        # CHECK - all URLs returned an data file
-        if len(results) == 0:
-            raise Exception('ERROR: API returned no data')
-        else:
-            return results
+            if len(split_line) > 1 and '.' not in data_filter:
+                statement = '{} {} "{}"'.format(split_line[int(data_filter.split(';')[0])],
+                                                data_filter.split(';')[1],
+                                                data_filter.split(';')[2])
+                if eval(statement):
+                    filtered_data.append(line)
+
+            elif len(split_line) > 1 and '.' in data_filter:
+                statement = '{}{}'.format(split_line[int(data_filter.split(';')[0])], data_filter.split(';')[1])
+
+                if eval(statement):
+                    filtered_data.append(line)
+
+        return filtered_data
 
     @staticmethod
-    def ont_access(ontology):
+    def formats_column_labels(line_data, columns, src_label):
+        """Function takes a single row of data input as a list and then extracts and re-labels specific columns from
+        that row.
+
+        Args:
+            line_data (list): A list representing a single row of data.
+            columns (str): A string containing the columns to extract from the line of data (e.g. "1;2").
+            src_label (str): A string which contains source labels to append to extracted columns.
+
+        Returns:
+            A list of extracted and processed edges.
+
+        """
+
+        # format labels
+        src_split = src_label.split(';')[0] if src_label.split(';')[0] != '' else None
+        source1 = src_label.split(';')[1] if src_label.split(';')[1] != '' else src_label.split(';')[1]
+        source2 = src_label.split(';')[2] if src_label.split(';')[2] != '' else src_label.split(';')[2]
+
+        # update data using formatted labels
+        edge1 = source1 + re.sub(r'9606.|' + source1, '', line_data[int(columns.split(';')[0])].split(src_split)[-1])
+        edge2 = source2 + re.sub(r'9606.|' + source2, '', line_data[int(columns.split(';')[1])].split(src_split)[-1])
+
+        return edge1.replace(':', '_'), edge2.replace(':', '_')
+
+    def processes_edge_data(self, data, file_split, line_split, columns, evidence, data_filter, src_label):
+        """Function process a data set and uses the user input to generate a nested list where each nested list
+        represents an edge.
+
+        Args:
+            data (str): A string containing a filepath for a data set.
+            file_split (str): A string containing a character to split a string into rows of data.
+            line_split (str): A string containing a character to split a row data into columns.
+            columns (str): A string containing the columns to extract from the line of data (e.g. "1;2").
+            evidence (str): A string containing information that is used to filter results.
+            data_filter (str): A string containing information that is used to filter results.
+            src_label (str): A string which contains source labels to append to extracted columns.
+
+        Returns:
+            A list, where each list.
+
+        Raises:
+            An exception is raised if after processing the edges, no data is returned.
+        """
+
+        edges = []
+        splitter = '\t' if 't' in line_split else " " if ' ' in line_split else line_split
+
+        # read in data with properly file splitter
+        if '!' in file_split or '#' in file_split:
+            decoded_data = codecs.decode(open(data).read().split(file_split)[-1], 'unicode_escape')
+            edge_data = decoded_data.split('\n')[1:]
+
+        else:
+            decoded_data = codecs.decode(open(data).read(), 'unicode_escape')
+            split = '\n' if 'n' in file_split else ' '
+            edge_data = decoded_data.split(split)[1:]
+
+        # perform filtering
+        if 'None' not in data_filter:
+            edge_data = self.filters_data(edge_data, splitter, data_filter)
+
+        # perform evidence filtering
+        if 'None' not in evidence:
+            edge_data = self.filters_data(edge_data, splitter, evidence)
+
+        # filter to specific columns
+        for line in edge_data:
+            if len(line) > 1:
+                # re-format and clean up quoted-text
+                line = ['"{}"'.format(x) for x in list(csv.reader([line], delimiter=splitter, quotechar='"'))[0]]
+                line_data = [x.strip('"').strip("'") for x in line]
+
+                # format labels
+                labeled_edges = self.formats_column_labels(line_data, columns, src_label)
+
+                edges.append(['_'.join(list(filter(None, labeled_edges[0].split('_')))),
+                              '_'.join(list(filter(None, labeled_edges[1].split('_'))))])
+
+        # check that there is data
+        if len(edges) <= 1:
+            raise Exception('ERROR: Something went wrong when processing data')
+
+        else:
+            return edges
+
+
+    @staticmethod
+    def queries_ontologies(data_file):
         """Takes a string representing a path/file name to an ontology. The function uses the RDFLib library
         and creates a graph. The graph is then queried to return all classes and their database cross-references. The
         function returns a list of query results
 
         Args:
-            ontology (str): entity to search against the API
+            data_file (str): A filepath pointing to an ontology saved in an '.owl' file.
 
          Returns:
-                query (list): a list of results returned from querying the graph
-            """
+            A dictionary of results returned from mapping identifiers.
+
+        Raises:
+            An exception is raised if the generated dictionary does not have the same number of entries as the
+            ontology graph.
+         """
 
         # read in ontology as graph
         graph = Graph()
-        graph.parse(ontology)
+        graph.parse(data_file)
 
         # query graph to get all cross-referenced sources
         results = graph.query(
@@ -106,337 +211,218 @@ class EdgeList(object):
                             "owl": 'http://www.w3.org/2002/07/owl#',
                             "oboInOwl": 'http://www.geneontology.org/formats/oboInOwl#'})
 
+        # convert results to dictionary
+        ont_results = {}
+        for res in list(results):
+            if str(res[0]).split(':')[-1] in ont_results.keys():
+                ont_results[str(res[0]).split(':')[-1]].append(str(res[1]))
+
+            else:
+                ont_results[str(res[0]).split(':')[-1]] = [str(res[1])]
+
         # CHECK - all URLs returned an data file
-        if len(list(results)) == 0:
+        if len(list(ont_results)) == 0:
             raise Exception('ERROR: Query returned no data')
         else:
-            return results
+            return ont_results
 
-    def get_edge_dics(self):
-        """Function takes a list of file names and paths to each input data source. For each data source a dictionary
-        of edges is created. This edge list is added to a dictionary that is keyed by data source
-
-        Returns:
-            edges (dict): a dictionary of edge lists by data source (key: file name/path, values: edge list)
-
-        """
-
-        for source in self.data_files:
-
-            if 'class' in self.data_type:
-                print('Processing Class Edge List')
-                print('Creating edge dictionary for: ' + str(source.split('/')[-1]) + '\n')
-
-                # get gene ontology edges
-                if 'go' in source.lower() or 'gene_association' in source.lower():
-                    self.edges[source] = self.go_edges(source)
-
-                # get human phenotype ontology edges
-                if 'disease' in source.lower() or 'phenotype' in source.lower():
-                    self.edges[source] = self.hp_edges(source)
-
-            if 'instance' in self.data_type:
-                print('Processing Instance Edge List')
-                print('Creating edge dictionary for: ' + str(source.split('/')[-1]) + '\n')
-
-                # get gene ontology edges
-                self.edges[source] = self.inst_edges(source)
-
-        return self.edges
-
-    def go_edges(self, source):
-        """Function takes a string containing a file name and path and a dictionary containing important information
-        knowledge graph (e.g., relation, node prefixes). The function outputs a dictionary of edges
+    @staticmethod
+    def queries_uniprot_api(data_file):
+        """Searches a list of entities against the Uniprot API (uniprot.org/help/api_idmapping).
 
         Args:
-            source (str): a file name and path
+            data_file (str): A filepath containing data to map.
 
         Returns:
-            source_edges (dict): dict where keys are tuples (GO id, relation) and values are Entrez gene ids or
-            reactome pathway ids
+            A dictionary of results returned from mapping identifiers.
 
+        Raises:
+            An exception is raised if the generated dictionary does not have the same number of rows as the what was
+            returned by the API.
         """
-        source_edges = {}
+        proteins = list(set([x.split('\\t')[1] for x in open(data_file).read().split('!')[-1].split('\\n')[1:]]))
+        params = {'from': 'ACC+ID', 'to': 'P_ENTREZGENEID', 'format': 'tab', 'query': ' '.join(proteins)}
 
-        # for creating entrez - go ontology edges
-        if 'go' in source.lower():  # entrez - go
-            results = self.api_access(source)  # get entrez gene_id mapping to uniprot ids
-            id_map = map_results(results, source)
+        data = urllib.parse.urlencode(params).encode('utf-8')
+        requests = urllib.request.Request('https://www.uniprot.org/uploadlists/', data)
+        results = urllib.request.urlopen(requests).read().decode('utf-8')
 
-            for line in tqdm(open(source).read().split('\\n')[:-1]):
-                if "\\t" in line:
-                    if line.split('\\t')[1] in id_map.keys():
-                        value = []
-                        key = id_map[line.split('\\t')[1]]
-                        val = str(line.split('\\t')[4]).replace(':', '_')
-                        data_type = str(line.split('\\t')[8])
+        # convert results to dictionary
+        api_results = {}
+        for res in results.split('\n')[1:-1]:
+            res_row = res.split('\t')
+            if str(res_row[0]) in api_results.keys():
+                api_results[str(res_row[0])].append('http://purl.uniprot.org/geneid/' + str(res_row[1]))
 
-                        # add relation term + entity labels
-                        if data_type == 'P':
-                            value = [self.source_info['gene-gobp'][1] + x for x in key]
-                            key = tuple([self.source_info['gene-gobp'][2] + val,
-                                         self.source_info['gene-gobp'][0]])
-                        if data_type == 'F':
-                            value = [self.source_info['gene-gomf'][1] + x for x in key]
-                            key = tuple([self.source_info['gene-gomf'][2] + val,
-                                         self.source_info['gene-gomf'][0]])
-                        if data_type == 'C':
-                            value = [self.source_info['gene-gocc'][1] + x for x in key]
-                            key = tuple([self.source_info['gene-gocc'][2] + val,
-                                         self.source_info['gene-gocc'][0]])
+            else:
+                api_results[str(res_row[0])] = ['http://purl.uniprot.org/geneid/' + str(res_row[1])]
 
-                        if key in source_edges.keys():
-                            source_edges[key] |= set(value)
-                        else:
-                            source_edges[key] = set(value)
-
-        # for creating pathway - go ontology edges
+        # CHECK - all URLs returned an data file
+        if len(api_results) == 0:
+            raise Exception('ERROR: API returned no data')
         else:
-            for line in tqdm(open(source).read().split('\\n')[:-1]):
-                if "\\t" in line and line.split('\\t')[12] == 'taxon:9606':
-                    value = []
-                    val = line.split('\\t')[5].split(':')[1]
-                    key = str(line.split('\\t')[4]).replace(':', '_')
-                    data_type = str(line.split('\\t')[8])
+            return api_results
 
-                    # add relation term + entity labels
-                    if data_type == 'P':
-                        value = [self.source_info['react-gobp'][1] + val]
-                        key = tuple([self.source_info['react-gobp'][2] + key,
-                                     self.source_info['react-gobp'][0]])
-                    if data_type == 'F':
-                        value = [self.source_info['react-gomf'][1] + val]
-                        key = tuple([self.source_info['react-gomf'][2] + key,
-                                     self.source_info['react-gomf'][0]])
-                    if data_type == 'C':
-                        value = [self.source_info['react-gocc'][1] + val]
-                        key = tuple([self.source_info['react-gocc'][2] + key,
-                                     self.source_info['react-gocc'][0]])
-
-                    if key in source_edges.keys():
-                        source_edges[key] |= set(value)
-                    else:
-                        source_edges[key] = set(value)
-
-        return source_edges
-
-    def hp_edges(self, source):
-        """Function takes a string containing a file name and path and a dictionary containing important information
-        knowledge graph (e.g., relation, node prefixes). The function outputs a dictionary of edges
+    @staticmethod
+    def queries_txt_file(data_file):
+        """Reads in a file containing two columns of data and converts it to a dictionary.
 
         Args:
-            source (str): a file name and path
-
-        Returns:
-            source_edges (dict): dictionary where keys are tuples (HP id, relation) and values are Entrez gene ids or
-            DOID ids
-
-        """
-        source_edges = {}
-
-        # for creating disease - human phenotype ontology edges
-        if 'disease' in source.lower():
-            results = self.ont_access("./resources/ontologies/doid_with_imports.owl")  # HP - DOID mapping
-            id_map = map_results(results, source)
-
-            # create initial mapping from HP ids to disease ids (e.g., OMIM, Orphanet)
-            hp_dis = {}
-            for entity in tqdm(open(source).read().split('\\n')[:-1]):
-                if '\\t' in entity:
-                    dis = str(entity.split('\\t')[0])
-                    key = str(entity.split('\\t')[3])
-
-                    if dis in hp_dis.keys():
-                        hp_dis[dis].add(key)
-                    else:
-                        hp_dis[dis] = {key}
-
-            # using the query results from DOID DbXref to convert diseases to DOID
-            for key, value in tqdm(hp_dis.items()):
-                if 'ORPHA' in key:
-                    key = key.replace("ORPHA:", "ORDO:")
-                else:
-                    key = key
-
-                if key in id_map.keys():
-                    match = value
-                    dis = id_map[key][0]
-                    data_type = self.source_info['doid-hp'][0]
-
-                    for i in match:
-                        key = tuple([self.source_info['doid-hp'][1] + str(i).replace(":", "_"), data_type])
-
-                        if key in source_edges.keys():
-                            source_edges[key].add(dis)
-                        else:
-                            source_edges[key] = {dis}
-
-        else:
-            # for creating entrez - human phenotype ontology edges
-            for entity in tqdm(open(source).read().split('\\n')[:-1]):
-                if '\\t' in entity:
-                    gene = self.source_info['gene-hp'][1] + str(entity.split('\\t')[0])
-                    key = str(entity.split('\\t')[3]).replace(':', '_')
-                    data_type = self.source_info['gene-hp'][0]
-                    key = tuple([self.source_info['gene-hp'][2] + str(key), data_type])
-
-                    if key in source_edges.keys():
-                        source_edges[key].add(gene)
-                    else:
-                        source_edges[key] = {gene}
-
-        return source_edges
-
-    def inst_edges(self, source):
-        """Function takes a string containing a file name and path and a dictionary containing important information
-        knowledge graph (e.g., relation, node prefixes). The function outputs a dictionary of edges
-
-        Args:
-            source (str): a file name and path
+            data_file (str): A filepath containing data to map.
 
         Return:
-            source_edges (dict): dictionary where keys are tuples (id, relation) and values are ids
+            A dictionary of results returned from mapping identifiers.
 
+        Raises:
+            An exception is raised if the generated dictionary does not have the same number of rows as the input file.
         """
-        source_edges = {}
-        data_type = []
 
-        # find source type information
-        if 'chem_gene' in source:
-            data_type = self.source_info['chemical-gene']
-        if 'chem_pathway' in source:
-            data_type = self.source_info['chemical-pathway']
-        if 'chemicals_diseases' in source:
-            data_type = self.source_info['chemical-disease']
-        if 'genes_pathways' in source:
-            data_type = self.source_info['gene-pathway']
-        if 'diseases_pathways' in source:
-            data_type = self.source_info['pathway-disease']
+        results = open(data_file).readlines()
 
-        # create dictionaries
-        if '9606' in source:
-            data_type = self.source_info['gene-gene']
-            string_entrez = {}
+        # convert results to dictionary
+        file_results = {}
 
-            for entry in tqdm(open('./resources/text_files/human.txt').read().split('\\n')[:-1]):
-                if '\\t' in entry:
-                    value = data_type[1] + str(entry.split('\\t')[1])
-                    key = str(entry.split('\\t')[-1])
+        for res in results[:-1]:
+            key = str(res.split('\t')[0].split('_')[-1])
 
-                    if key in string_entrez.keys():
-                        string_entrez[key].add(value)
-                    else:
-                        string_entrez[key] = {value}
+            if key in file_results.keys():
+                file_results[key].append(str(res.split('\t')[1].strip('\n')))
 
-            # create dictionary (key: gene, values: gene)
-            for line in tqdm(open(source).read().split('\\n')[:-1]):
-                if '9606' in line:
-                    if line.split(' ')[2] > '699':
-                        if line.split(' ')[0] in string_entrez.keys() and line.split(' ')[1] in string_entrez.keys():
-                            key = tuple([list(string_entrez[line.split(' ')[0]])[0], data_type[0]])
-                            gene = list(string_entrez[line.split(' ')[1]])[0]
+            else:
+                file_results[key] = [str(res.split('\t')[1].strip('\n'))]
 
-                            if key in source_edges.keys():
-                                source_edges[key].add(gene)
-                            else:
-                                source_edges[key] = {gene}
-
-        elif 'diseases' in source and 'pathways' not in source:
-            results = EdgeList.ont_access("./resources/ontologies/doid_with_imports.owl")  # HP - DOID mapping
-            id_map = map_results(results, source)
-
-            for line in tqdm(open(source).read().split('\\n')[:-1]):
-                if "#" not in line:
-                    if str(line.split('\\t')[4]) in id_map.keys():
-                        key = tuple([data_type[1] + line.split('\\t')[1], data_type[0]])
-                        value = id_map[str(line.split('\\t')[4])][0]
-
-                        if key in source_edges.keys():
-                            source_edges[key].add(value)
-                        else:
-                            source_edges[key] = {value}
-
-        elif 'diseases_pathways' in source:
-            # get doid dictionary
-            results = EdgeList.ont_access("./resources/ontologies/doid_with_imports.owl")  # HP - DOID mapping
-            id_map = map_results(results, source)
-
-            for line in tqdm(open(source).read().split('\\n')[:-1]):
-                if "#" not in line and 'REACT' in line:
-                    if str(line.split('\\t')[1]) in id_map.keys():
-                        key = tuple([data_type[1] + line.split('\\t')[3].split(':')[-1], data_type[0]])
-                        value = id_map[str(line.split('\\t')[1])][0]
-
-                        if key in source_edges.keys():
-                            source_edges[key].add(value)
-                        else:
-                            source_edges[key] = {value}
-
-        elif 'genes_pathways' in source:
-            for line in tqdm(open(source).read().split('\\n')[:-1]):
-                if "#" not in line and 'REACT' in line:
-                    key = tuple([data_type[1] + line.split('\\t')[1], data_type[0]])
-                    value = str(data_type[2]) + str(line.split('\\t')[3]).replace('REACT:', '')
-
-                    if key in source_edges.keys():
-                        source_edges[key].add(value)
-                    else:
-                        source_edges[key] = {value}
-
-        elif 'chem_gene' in source:
-            for line in tqdm(open(source).read().split('\\n')[:-1]):
-                if "\\t" in line and '9606' in line:
-                    key = tuple([data_type[1] + line.split('\\t')[1], data_type[0]])
-                    value = str(data_type[2]) + str(line.split('\\t')[4]).replace(':', '_')
-
-                    if key in source_edges.keys():
-                        source_edges[key].add(value)
-                    else:
-                        source_edges[key] = {value}
+        # CHECK - all URLs returned an data file
+        if len(results) == 0:
+            raise Exception('ERROR: dictionary missing results')
 
         else:
-            for line in tqdm(open(source).read().split('\\n')[:-1]):
-                if "\\t" in line and 'REACT' in line:
-                    key = tuple([data_type[1] + line.split('\\t')[1], data_type[0]])
-                    value = str(data_type[2]) + str(line.split('\\t')[4]).replace('REACT:', '')
+            return file_results
 
-                    if key in source_edges.keys():
-                        source_edges[key].add(value)
-                    else:
-                        source_edges[key] = {value}
+    def gets_edge_information(self, map_source, loc, edge_type):
+        """Uses information about an edge type to identify the appropriate source to map.
 
-        return source_edges
+        NOTE. Since CHEBI does not have dbXRef mappings to MESH, that the current code has logic to point to the
+        MESH-CHEBI_MAP.txt if the edge type contains 'chemical'. If CHEBI adds MESH then this logic can change.
 
+        Args:
+            map_source (str): A string naming the mapping source to use for mapping.
+            loc (int): An integer representing an index.
+            edge_type: A string naming the type of edge.
 
-def map_results(results, source):
-    """Function takes a list of lists representing the results returned from pinging an AP or querying an ontology
-    and creates a dictionary where the item being mapped to is the value and the item being mapped is the value
+        Returns:
+            A dictionary of mapped identifiers.
+        """
 
-    Args:
-        results (str): a list of lists of the results returned from pinging an API or querying an ontology
-        source (str): a file name and path
+        # specify mapping task dictionary
+        map_task = {'dbxref': self.queries_ontologies, 'goa': self.queries_uniprot_api, 'txt': self.queries_txt_file}
 
-    Returns:
-        id_mapping (dict): a dictionary where the keys and values are bio entities
+        try:
+            edge = edge_type.split('-')[loc]
+            data_loc = map_source if edge == 'chemical' else self.data_files[edge]
 
-    """
-    id_mapping = {}
+        except KeyError:
+            data_loc = map_source
 
-    # write results to a dictionary
-    if 'disease' in source.lower():
-        # for data returned from querying an ontology
-        for entry in list(results):
-            if entry[0] in id_mapping.keys():
-                id_mapping[str(entry[0])].append(str(entry[1]))
+        return map_task[[key for key in map_task.keys() if key in map_source][0]](data_loc)
+
+    def maps_identifiers(self, edges, edge_type, edge_loc, map_source):
+        """Maps identifiers in an edge list to a specified resource.
+
+        Args:
+            edges (list): A nested list where each list represents an edge.
+            edge_type (str): A string naming the type of edge.
+            edge_loc (list): A list of strings that represent integers.å
+            map_source (list): A string naming the mapping source to use for mapping.
+
+        Returns:
+            A dictionary containing information on all of the processed edge types.
+
+        Raises:
+            An exception is raised if after mapping tthe identifiers, no data is returned.
+        """
+
+        map2 = updated_edges = []
+
+        # copy edge list - done bc we are using 'pop' to remove edges
+        edge_data = deepcopy(edges)
+
+        # get dictionary of mapped identifiers
+        if len(edge_loc) > 1:
+            map1 = self.gets_edge_information(map_source[int(edge_loc[0])], int(edge_loc[0]), edge_type)
+            map2 = self.gets_edge_information(map_source[int(edge_loc[1])], int(edge_loc[1]), edge_type)
+
+        else:
+            map1 = self.gets_edge_information(map_source[0], int(edge_loc[0]), edge_type)
+
+        # create edge lists
+        for edge in edge_data:
+            if len(edge_loc) > 1:
+                map_edge1 = edge[0].split('_')[-1]
+                map_edge2 = edge[1].split('_')[-1]
+                mapped1 = map1[map_edge1.split('_')[-1]] if map_edge1.split('_')[-1] in map1.keys() else ''
+                mapped2 = map2[map_edge2.split('_')[-1]] if map_edge2.split('_')[-1] in map2.keys() else ''
+
             else:
-                id_mapping[str(entry[0])] = [str(entry[1])]
-    else:
-        # for data returned from querying an API
-        for entry in results.split('\n')[:-1]:
-            if 'From' not in entry:
-                if entry.split('\t')[0] in id_mapping.keys():
-                    id_mapping[str(entry.split('\t')[0])].append(str(entry.split('\t')[1]))
-                else:
-                    id_mapping[str(entry.split('\t')[0])] = [str(entry.split('\t')[1])]
+                map_edge1 = edge.pop(int(edge_loc[0])).split('_')[-1]
+                map_edge2 = edge[0]
+                mapped1 = map1[map_edge1.split('_')[-1]] if map_edge1.split('_')[-1] in map1.keys() else ''
+                mapped2 = [map_edge2]
 
-    return id_mapping
+            for mapped_i in mapped1:
+                for mapped_j in mapped2:
+                    cleaned_edge = [None, None]
+                    cleaned_edge[int(edge_loc[0])] = mapped_i.split('/')[-1]
+                    cleaned_edge[abs(1 - int(edge_loc[0]))] = mapped_j.split('/')[-1]
+
+                    # add updated edge
+                    updated_edges.append(cleaned_edge)
+
+        # check that there is data
+        if len(updated_edges) <= 1:
+            raise Exception('ERROR: Something went wrong when mapping identifiers')
+
+        else:
+            return updated_edges
+
+    def creates_knowledge_graph_edges(self):
+        """Generates edge lists for each edge type in an input dictionary.
+
+        Returns:
+            A dictionary that contains all of the master information for each edge type resource.
+
+        """
+
+        for edge_type in tqdm(self.source_info.keys()):
+
+            print('\n\n' + '=' * 50)
+            print('Processing Edge: {0}'.format(edge_type))
+            print('=' * 50 + '\n')
+
+            # edge_type = 'pathway-gobp'
+
+            # step 1: read in, process, and filter data
+            print('Cleaning Edges')
+
+            clean_data = self.processes_edge_data(self.data_files[edge_type],
+                                                  self.source_info[edge_type]['file_splitter'],
+                                                  self.source_info[edge_type]['line_splitter'],
+                                                  self.source_info[edge_type]['columns'],
+                                                  self.source_info[edge_type]['evidence'],
+                                                  self.source_info[edge_type]['filter'],
+                                                  self.source_info[edge_type]['source_labels'])
+
+            # step 2: map identifiers + add proper source labels
+            print('Mapping Identifiers and Updating Edge List\n')
+
+            if self.source_info[edge_type]['map'] == 'None':
+                self.source_info[edge_type]['edge_list'] = clean_data
+
+            else:
+                edge_loc = [i for j in self.source_info[edge_type]['map'].split(';') for i in j.split(':')][0::2]
+                map_source = [i for j in self.source_info[edge_type]['map'].split(';') for i in j.split(':')][1::2]
+                mapped_data = self.maps_identifiers(clean_data, edge_type, edge_loc, map_source)
+
+                # add results back to dict
+                self.source_info[edge_type]['edge_list'] = mapped_data
+
+        return None
