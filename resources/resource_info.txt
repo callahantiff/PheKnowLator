@@ -1,15 +1,12 @@
-chemical-gene|;MESH_;|class-instance|RO_0002434|http://purl.obolibrary.org/obo/|http://purl.uniprot.org/geneid/|#|t|1;
-4|0:./resources/data_maps/MESH_CHEBI_MAP.txt|None|7;==;9606
+chemical-gene|;MESH_;|class-instance|RO_0002434|http://purl.obolibrary.org/obo/|http://purl.uniprot.org/geneid/|#|t|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt|None|7;==;9606
 chemical-go|;MESH_;|class-class|RO_0003302|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt|None|7;==;9606
 chemical-pathway|-;CHEBI_;R-HSA-|class-instance|RO_0000056|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|n|t|0;1|None|4;!=;IEA|5;==;Homo sapiens
 chemical-disease|;MESH_;|class-instance|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|t|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt;1:disease-dbxref-map|5;!=;' '|None
-disease-gobp|;;|instance-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;
-1|0:disease-dbxref-map|None|None
+disease-gobp|;;|instance-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;1|0:disease-dbxref-map|None|None
 disease-gomf|;;|instance-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;1|0:disease-dbxref-mapf|None|None
 disease-gocc|;;|instance-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;1|0:disease-dbxref-map|None|None
 disease-phenotype|;;|instance-class|RO_0002452|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|n|t|0;3|0:disease-dbxref-map|None|None
-gene-gene|.;;|instance-instance|RO_0002434|http://purl.uniprot.org/geneid/|http://purl.uniprot.org/geneid/|n|' '|0;1|0:
-./resources/data_maps/STRING_ENTREZ_MAP.txt;1:./resources/data_maps/STRING_ENTREZ_MAP.txt|2;>=;700|None
+gene-gene|.;;|instance-instance|RO_0002434|http://purl.uniprot.org/geneid/|http://purl.uniprot.org/geneid/|n|' '|0;1|0:./resources/data_maps/STRING_ENTREZ_MAP.txt;1:./resources/data_maps/STRING_ENTREZ_MAP.txt|2;>=;700|None
 gene-gobp|;;|instance-class|BFO_0000056|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/edge_data/gene-go_goa_class_data.txt|6;!=;IEA|12;==;taxon:9606
 gene-gomf|;;|instance-class|RO_0000085|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/edge_data/gene-go_goa_class_data.txt|6;!=;IEA|12;==;taxon:9606
 gene-gocc|;;|instance-class|RO_0001025|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/edge_data/gene-go_goa_class_data.txt|6;!=;IEA|12;==;taxon:9606
