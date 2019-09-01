@@ -1,18 +1,21 @@
-chemical-gene|;MESH_;|class|RO_0002434|http://purl.obolibrary.org/obo/|http://purl.uniprot.org/geneid/|#|t|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt|None|7;==;9606
-chemical-go|;MESH_;|class|RO_0003302|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt|None|7;==;9606
-chemical-pathway|-;CHEBI_;R-HSA-|class|RO_0000056|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|n|t|0;1|None|4;!=;IEA|5;==;Homo sapiens
-chemical-disease|;MESH_;|class|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|t|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt;1:disease-dbxref-map|5;!=;' '|None
-disease-gobp|;;|class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;1|0:disease-dbxref-map|None|None
-disease-gomf|;;|class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;1|0:disease-dbxref-mapf|None|None
-disease-gocc|;;|class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;1|0:disease-dbxref-map|None|None
-disease-phenotype|;;|class|RO_0002452|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|n|t|0;3|0:disease-dbxref-map|None|None
-gene-gene|.;;|instance|RO_0002434|http://purl.uniprot.org/geneid/|http://purl.uniprot.org/geneid/|n|' '|0;1|0:./resources/data_maps/STRING_ENTREZ_MAP.txt;1:./resources/data_maps/STRING_ENTREZ_MAP.txt|2;>=;700|None
-gene-gobp|;;|class|BFO_0000056|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/edge_data/gene-go_goa_class_data.txt|6;!=;IEA|12;==;taxon:9606
-gene-gomf|;;|class|RO_0000085|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/edge_data/gene-go_goa_class_data.txt|6;!=;IEA|12;==;taxon:9606
-gene-gocc|;;|class|RO_0001025|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/edge_data/gene-go_goa_class_data.txt|6;!=;IEA|12;==;taxon:9606
-gene-phenotype|;;|class|RO_0002200|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|n|t|0;3|None|None|None
-gene-pathway|-;;R-HSA-|instance|RO_0000056|http://purl.uniprot.org/geneid/|https://reactome.org/content/detail/|n|t|0;1|0:./resources/edge_data/gene-go_goa_class_data.txt|None|5;==;Homo sapiens
-pathway-disease|;;|instance|RO_0003302|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|n|t|1;0|1:disease-dbxref-map|None|1;.startswith('R-HSA-');
-pathway-gobp|REACTOME:;R-HSA-;|class|BFO_0000051|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
-pathway-gomf|REACTOME:;R-HSA-;|class|BFO_0000025|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
-pathway-gocc|REACTOME:;R-HSA-;|class|BFO_0002180|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
+chemical-gene|;MESH_;|class-instance|RO_0002434|http://purl.obolibrary.org/obo/|http://purl.uniprot.org/geneid/|#|t|1;
+4|0:./resources/data_maps/MESH_CHEBI_MAP.txt|None|7;==;9606
+chemical-go|;MESH_;|class-class|RO_0003302|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt|None|7;==;9606
+chemical-pathway|-;CHEBI_;R-HSA-|class-instance|RO_0000056|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|n|t|0;1|None|4;!=;IEA|5;==;Homo sapiens
+chemical-disease|;MESH_;|class-instance|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|t|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt;1:disease-dbxref-map|5;!=;' '|None
+disease-gobp|;;|instance-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;
+1|0:disease-dbxref-map|None|None
+disease-gomf|;;|instance-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;1|0:disease-dbxref-mapf|None|None
+disease-gocc|;;|instance-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|,|3;1|0:disease-dbxref-map|None|None
+disease-phenotype|;;|instance-class|RO_0002452|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|n|t|0;3|0:disease-dbxref-map|None|None
+gene-gene|.;;|instance-instance|RO_0002434|http://purl.uniprot.org/geneid/|http://purl.uniprot.org/geneid/|n|' '|0;1|0:
+./resources/data_maps/STRING_ENTREZ_MAP.txt;1:./resources/data_maps/STRING_ENTREZ_MAP.txt|2;>=;700|None
+gene-gobp|;;|instance-class|BFO_0000056|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/edge_data/gene-go_goa_class_data.txt|6;!=;IEA|12;==;taxon:9606
+gene-gomf|;;|instance-class|RO_0000085|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/edge_data/gene-go_goa_class_data.txt|6;!=;IEA|12;==;taxon:9606
+gene-gocc|;;|instance-class|RO_0001025|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/edge_data/gene-go_goa_class_data.txt|6;!=;IEA|12;==;taxon:9606
+gene-phenotype|;;|instance-class|RO_0002200|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|n|t|0;3|None|None|None
+gene-pathway|-;;R-HSA-|instance-instance|RO_0000056|http://purl.uniprot.org/geneid/|https://reactome.org/content/detail/|n|t|0;1|0:./resources/edge_data/gene-go_goa_class_data.txt|None|5;==;Homo sapiens
+pathway-disease|;;|instance-instance|RO_0003302|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|n|t|1;0|1:disease-dbxref-map|None|1;.startswith('R-HSA-');
+pathway-gobp|REACTOME:;R-HSA-;|instance-class|BFO_0000051|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
+pathway-gomf|REACTOME:;R-HSA-;|instance-class|BFO_0000025|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606
+pathway-gocc|REACTOME:;R-HSA-;|instance-class|BFO_0002180|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|5;4|None|None|12;==;taxon:9606

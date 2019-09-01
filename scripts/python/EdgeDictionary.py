@@ -41,22 +41,22 @@ class EdgeList(object):
         # convert to dictionary
         self.source_info = dict()
 
-        for line in open(source_file).read().split('\n'):
-            line_data = ['"{}"'.format(x.strip()) for x in list(csv.reader([line], delimiter='|', quotechar='"'))[0]]
+        for row in open(source_file).read().split('\n'):
+            cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
 
-            self.source_info[line_data[0].strip('"').strip("'")] = {}
-            self.source_info[line_data[0].strip('"').strip("'")]['source_labels'] = line_data[1].strip('"').strip("'")
-            self.source_info[line_data[0].strip('"').strip("'")]['data_type'] = line_data[2].strip('"').strip("'")
-            self.source_info[line_data[0].strip('"').strip("'")]['relation'] = line_data[3].strip('"').strip("'")
-            self.source_info[line_data[0].strip('"').strip("'")]['uri'] = (line_data[4].strip('"').strip("'"),
-                                                                           line_data[5].strip('"').strip("'"))
-            self.source_info[line_data[0].strip('"').strip("'")]['file_splitter'] = line_data[6].strip('"').strip("'")
-            self.source_info[line_data[0].strip('"').strip("'")]['line_splitter'] = line_data[7].strip('"').strip("'")
-            self.source_info[line_data[0].strip('"').strip("'")]['columns'] = line_data[8].strip('"').strip("'")
-            self.source_info[line_data[0].strip('"').strip("'")]['map'] = line_data[9].strip('"').strip("'")
-            self.source_info[line_data[0].strip('"').strip("'")]['evidence'] = line_data[10].strip('"').strip("'")
-            self.source_info[line_data[0].strip('"').strip("'")]['filter'] = line_data[11].strip('"').strip("'")
-            self.source_info[line_data[0].strip('"').strip("'")]['edge_list'] = []
+            self.source_info[cols[0].strip('"').strip("'")] = {}
+            self.source_info[cols[0].strip('"').strip("'")]['source_labels'] = cols[1].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['data_type'] = cols[2].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['edge_relation'] = cols[3].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['uri'] = (cols[4].strip('"').strip("'"),
+                                                                      cols[5].strip('"').strip("'"))
+            self.source_info[cols[0].strip('"').strip("'")]['row_splitter'] = cols[6].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['column_splitter'] = cols[7].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['column_indicies'] = cols[8].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['identifier_maps'] = cols[9].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['evidence_criteria'] = cols[10].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['filter_criteria'] = cols[11].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['edge_list'] = []
 
     @staticmethod
     def filters_data(edge_data, splitter, data_filter):
@@ -178,7 +178,6 @@ class EdgeList(object):
 
         else:
             return edges
-
 
     @staticmethod
     def queries_ontologies(data_file):
@@ -398,28 +397,30 @@ class EdgeList(object):
             print('Processing Edge: {0}'.format(edge_type))
             print('=' * 50 + '\n')
 
-            # edge_type = 'pathway-gobp'
-
             # step 1: read in, process, and filter data
             print('Cleaning Edges')
 
             clean_data = self.processes_edge_data(self.data_files[edge_type],
-                                                  self.source_info[edge_type]['file_splitter'],
-                                                  self.source_info[edge_type]['line_splitter'],
-                                                  self.source_info[edge_type]['columns'],
-                                                  self.source_info[edge_type]['evidence'],
-                                                  self.source_info[edge_type]['filter'],
+                                                  self.source_info[edge_type]['row_splitter'],
+                                                  self.source_info[edge_type]['column_splitter'],
+                                                  self.source_info[edge_type]['column_indicies'],
+                                                  self.source_info[edge_type]['evidence_criteria'],
+                                                  self.source_info[edge_type]['filter_criteria'],
                                                   self.source_info[edge_type]['source_labels'])
 
             # step 2: map identifiers + add proper source labels
             print('Mapping Identifiers and Updating Edge List\n')
 
-            if self.source_info[edge_type]['map'] == 'None':
+            if self.source_info[edge_type]['identifier_maps'] == 'None':
                 self.source_info[edge_type]['edge_list'] = clean_data
 
             else:
-                edge_loc = [i for j in self.source_info[edge_type]['map'].split(';') for i in j.split(':')][0::2]
-                map_source = [i for j in self.source_info[edge_type]['map'].split(';') for i in j.split(':')][1::2]
+                edge_loc = [i for j in self.source_info[edge_type]['identifier_maps'].split(';')
+                            for i in j.split(':')][0::2]
+
+                map_source = [i for j in self.source_info[edge_type]['identifier_maps'].split(';')
+                              for i in j.split(':')][1::2]
+
                 mapped_data = self.maps_identifiers(clean_data, edge_type, edge_loc, map_source)
 
                 # add results back to dict
