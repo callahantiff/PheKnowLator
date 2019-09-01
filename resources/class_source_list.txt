@@ -13,4 +13,3 @@ disease-gobp, http://ctdbase.org/reports/CTD_Phenotype-Disease_biological_proces
 disease-gocc, http://ctdbase.org/reports/CTD_Phenotype-Disease_cellular_component_associations.csv.gz
 disease-gomf, http://ctdbase.org/reports/CTD_Phenotype-Disease_molecular_function_associations.csv.gz
 chemical-go, http://ctdbase.org/reports/CTD_pheno_term_ixns.csv.gz
-chebi-mesh-map, https://www.dropbox.com/GraduateSchool/PhD/LabWork/PheKnowLator/resources/data_map/MESH_CHEBI_MAP.txt
