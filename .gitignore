@@ -17,6 +17,7 @@ scripts/*.pyc
 /resources/graphs/
 /resources/kr_model/
 /resources/ontologies/
+/resources/*.json
 
 # releases
 /resources/releases/
