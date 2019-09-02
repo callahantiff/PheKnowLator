@@ -282,17 +282,13 @@ class EdgeList(object):
         file_results = {}
 
         for res in results[:-1]:
-            i = str(res.split('\t')[0].split('_')[-1])
-            j = str(res.split('\t')[1].strip('\n'))
-            keys = [i] if '|' not in i else i.split('|')
-            vals = [j] if '|' not in j else j.split('|')
-
-            for key in keys:
-                for val in vals:
+            for key in str(res.split('\t')[0].split('_')[-1].split('/')[-1]).split('|'):
+                for val in str(res.split('\t')[1].strip('\n').split('/')[-1]).split('|'):
                     if key in file_results.keys():
-                        file_results[key].append(val.split('/')[-1])
+                        file_results[key].append(val)
+
                     else:
-                        file_results[key] = [val.split('/')[-1]]
+                        file_results[key] = [val]
 
         # CHECK - all URLs returned an data file
         if len(results) == 0:
