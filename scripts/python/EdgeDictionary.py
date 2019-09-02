@@ -282,13 +282,17 @@ class EdgeList(object):
         file_results = {}
 
         for res in results[:-1]:
-            key = str(res.split('\t')[0].split('_')[-1])
+            i = str(res.split('\t')[0].split('_')[-1])
+            j = str(res.split('\t')[1].strip('\n'))
+            keys = [i] if '|' not in i else i.split('|')
+            vals = [j] if '|' not in j else j.split('|')
 
-            if key in file_results.keys():
-                file_results[key].append(str(res.split('\t')[1].strip('\n')))
-
-            else:
-                file_results[key] = [str(res.split('\t')[1].strip('\n'))]
+            for key in keys:
+                for val in vals:
+                    if key in file_results.keys():
+                        file_results[key].append(val.split('/')[-1])
+                    else:
+                        file_results[key] = [val.split('/')[-1]]
 
         # CHECK - all URLs returned an data file
         if len(results) == 0:
@@ -337,7 +341,7 @@ class EdgeList(object):
             A dictionary containing information on all of the processed edge types.
 
         Raises:
-            An exception is raised if after mapping tthe identifiers, no data is returned.
+            An exception is raised if after mapping the identifiers, no data is returned.
         """
 
         map2 = updated_edges = []
