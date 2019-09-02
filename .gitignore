@@ -14,7 +14,7 @@ scripts/*.pyc
 /resources/archive/
 /resources/data_maps/
 /resources/edge_data/
-/resources/graphs/
+/resources/knowledge_graphs/
 /resources/kr_model/
 /resources/ontologies/
 /resources/*.json
