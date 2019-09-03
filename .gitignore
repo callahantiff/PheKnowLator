@@ -6,12 +6,10 @@ __init__.py
 .idea/
 scripts/python/*.pyc
 scripts/*.pyc
-
-# scripts
-/scripts/python/drafts/*
+.ipynb_checkpoints/main-checkpoint.ipynb
 
 # data
-/resources/archive/
+/resources/archive.zip
 /resources/data_maps/
 /resources/edge_data/
 /resources/knowledge_graphs/
@@ -27,4 +25,3 @@ scripts/*.pyc
 
 # external libraries
 /resources/lib/
-.ipynb_checkpoints/main-checkpoint.ipynb
