@@ -130,7 +130,7 @@ def main():
                            ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl')
 
     # STEP 5: remove metadata nodes
-    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed._ELKowl'),
+    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl'),
                            ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_ELK_Closed_NoMetadataNodes.owl',
                            ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
 

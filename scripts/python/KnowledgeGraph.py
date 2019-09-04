@@ -234,12 +234,14 @@ def removes_metadata_nodes(graph, output, iri_mapper):
             if any(x for x in edge[0::2] if str(x) in iri_map.keys()):
                 if str(edge[2]) in iri_map.keys() and 'ns#type' not in str(edge[1]):
                     update_graph.add((edge[0], edge[1], URIRef(iri_map[str(edge[2])])))
+
                 else:
-                    update_graph.add((URIRef(iri_map[str(edge[0])]), edge[0], edge[2]))
+                    update_graph.add((URIRef(iri_map[str(edge[0])]), edge[1], edge[2]))
 
             elif not any(str(x) for x in edge[0::2] if '#' in str(x)):
-                if not any(str(x) for x in edge if 'ns#type' in str(x)):
+                if not any(str(x) for x in edge if ('ns#type' in str(x)) or ('PheKnowLator' in str(x))):
                     update_graph.add(edge)
+
             else:
                 pass
 
