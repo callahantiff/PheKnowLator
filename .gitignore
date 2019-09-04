@@ -8,7 +8,7 @@ scripts/python/*.pyc
 scripts/*.pyc
 .ipynb_checkpoints/main-checkpoint.ipynb
 
-# data
+# data and scripts
 /resources/archive.zip
 /resources/data_maps/
 /resources/edge_data/
@@ -16,6 +16,7 @@ scripts/*.pyc
 /resources/kr_model/
 /resources/ontologies/
 /resources/*.json
+scripts/bash/KG.sh
 
 # releases
 /resources/releases/
@@ -25,3 +26,4 @@ scripts/*.pyc
 
 # external libraries
 /resources/lib/
+/walking-rdf-and-owl-master/
