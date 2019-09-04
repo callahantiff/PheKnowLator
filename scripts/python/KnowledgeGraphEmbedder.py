@@ -6,7 +6,7 @@
 import subprocess
 
 
-def runs_deepwalk_embedder(input_loc, output_loc, workers, dimensions, window, walks, walk_length):
+def runs_deepwalk(input_loc, output_loc, workers, dimensions, window, walks, walk_length):
     """Performs path embedding of a knowledge graph edge list using the DeepWalk algorithm.
 
     Args:

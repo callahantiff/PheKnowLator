@@ -145,9 +145,29 @@ def main():
     # set file path
     embed_path = './resources/embeddings/'
 
-    runs_deepwalk_embedder(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                           embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings.txt',
-                           63, 512, 10, 100, 20)
+    runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_128_10_100_40.txt',
+                  workers=63,
+                  dimensions=128,
+                  window=10,
+                  walks=100,
+                  walk_length=40)
+
+    runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_256_10_100_40.txt',
+                  workers=63,
+                  dimensions=256,
+                  window=10,
+                  walks=100,
+                  walk_length=40)
+
+    runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_512_10_100_40.txt',
+                  workers=63,
+                  dimensions=512,
+                  window=10,
+                  walks=100,
+                  walk_length=40)
 
 
 if __name__ == '__main__':
