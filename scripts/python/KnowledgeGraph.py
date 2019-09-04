@@ -1,225 +1,190 @@
-##########################################################################################
-# KnowledgeGraph.py
-# Purpose: script to create a RDF knowledge graph using classes and instances
-# version 1.0.0
-# date: 11.12.2017
-# Python 3.6.2
-##########################################################################################
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 
 # import needed libraries
 import json
+import subprocess
+import uuid
+
 from rdflib import Namespace
 from rdflib import Graph
 from rdflib.namespace import RDF
 from rdflib import URIRef
-import subprocess
-import uuid
+from tqdm import tqdm
 
 
+def merges_ontologies(ontology_list):
+    """Takes a list of lists, where the each nested list contains a pair of ontologies and a file path. Using the
+    OWLTools API, each pair of ontologies is merged and saved locally to provied file path.
 
-def OntologyMerger(ont1, ont2, output):
-    """Function takes two strings as arguments which contain the names and location to ontology files. The function
-    then merges the ontologies using a call to the OWLTools command line (
-    https://github.com/owlcollab/owltools/wiki/Extract-Properties-Command). The resulting graph is then written to the
-    location as specified by the input argument. Currently the function only merges two ontologies - this can be
-    modified
+    Args:
+        ontology_list (list): A nested list
 
-    :param
-        ont1 (str): name and file path to location of ontology
-
-        ont2 (str): name and file path to location of ontology
-
-        output (str): name and file path to write results to
-
-    :return:
-        the merged ontologies are output to the location specified in input arguments
-
+    Returns:
+        None.
     """
-    print('Merging the following ontologies: ' + str(ont1) + ', ' + str(ont2))
 
-    # set command line argument
-    try:
-        subprocess.check_call(['./resources/lib/owltools',
-                               str(ont1),
-                               str(ont2),
-                               '--merge-support-ontologies',
-                               '-o',
-                               str(output) + '_merged.owl'])
+    for ont in tqdm(ontology_list):
+        print('\nMerging Ontologies: {ont1}, {ont2}\n'.format(ont1=ont[0].split('/')[-1],
+                                                              ont2=ont[1].split('/')[-1]))
 
-    except subprocess.CalledProcessError as error:
-        print(error.output)
+        try:
+            subprocess.check_call(['./resources/lib/owltools',
+                                   str(ont[0]),
+                                   str(ont[1]),
+                                   '--merge-support-ontologies',
+                                   '-o',
+                                   str(ont[2]) + '_merged.owl'])
+
+        except subprocess.CalledProcessError as error:
+            print(error.output)
 
 
+def creates_knowledge_graph_edges(edge_dict, data_type, graph, output_loc, kg_class_iri_map=None):
+    """Takes a nested dictionary of edge lists creates and adds new edges.
 
-def classEdges(edge_dict, graph_output, input_graph, iri_map_output):
-    """Function takes a nested dictionary of edge lists by data source and uses it to create add instance-instance
-    edges to a rdflib knowledge graph. The function also takes three strings indicating where the resulting graph should
-    be saved, name and file path to write out class instance iri-class identifier map as well as what graph to read in
-    and add edges to. Once all edges have been added the input graph, the graph is serialized and saved to the
-    location specified by the input arguments
+    If the data_type is 'class' two types of edges are created: (1) instance of class and (2) class instance to
+    instance. The instance of the class is also added to a dictionary that maps the class instance to its class.
 
-    :param
-        edge_dict: a nested dictionary of edge lists by data source
+    If the data_type is not 'class' then a single edge is created.
 
-        output (str): name and file path to write out results
+    Args:
+        edge_dict (dict): a nested dictionary of edge lists by data source
+        data_type (str): A string naming the data type (i.e. class or other)
+        graph (class): An rdflib graph
+        output_loc (str): Name and file path to write knowledge graph to
+        kg_class_iri_map (dict): An empty dictionary that is used to store the mapping between a class and its instance
 
-        input_graph (str): name and file path to graph input
-
-        iri_map_output (str): name and file path to write out class instance iri-class identifier map
-
-    :return:
-        graph (graph): an rdflib graph is output to the location specified in input arguments
-
+    Returns:
+        An rdflib graph is returned and written to the location specified in input arguments
     """
-    print('Adding instance of class and class instance-instance relations to graph \n')
 
-    # initialize graphs
-    graph = Graph()
-    graph.parse(input_graph)
+    # define namespaces
+    class_inst_ns = Namespace('https://github.com/callahantiff/PheKnowLator/obo/ext/')
+    obo = Namespace('http://purl.obolibrary.org/obo/')
 
-    # namespace
-    kg_edges = Namespace("http://ccp.ucdenver.edu/obo/ext/")
-    OBO = Namespace("http://purl.obolibrary.org/obo/")
+    # get number of starting edges
+    start_edges = len(graph)
+    start_nodes = len(set([str(node) for edge in list(graph) for node in edge[0::2]]))
+
+    # print message
+    if data_type == 'class':
+        print('\n' + '=' * len('Creating Instances of Classes and Class-Instance Edges\n'))
+        print('Creating Instances of Classes and Class-Instance Edges')
+        print('=' * len('Creating Instances of Classes and Class-Instance Edges\n') + '\n')
+    else:
+        print('\n' + '=' * len('Creating Instance-Instance and Class-Class Edges'))
+        print('Creating Instance-Instance and Class-Class Edges')
+        print('=' * len('Creating Instance-Instance and Class-Class Edges\n') + '\n')
 
     # loop over classes to create instances
-    KG_class_iri_map = {}
+    for source in tqdm(edge_dict):
+        for edge in edge_dict[source]['edge_list']:
+            if data_type == 'class':
+                class_loc = edge_dict[source]['data_type'].split('-').index('class')
+                inst_loc = edge_dict[source]['data_type'].split('-').index('instance')
 
-    for source, edges in edge_dict.items():
-        print('Adding edges for: ' + str(source) + '\n')
+                # add uuid for class-instance to dictionary - but check if one has been created first
+                if str(edge_dict[source]['uri'][class_loc] + edge[class_loc]) in kg_class_iri_map.keys():
+                    ont_class_iri = kg_class_iri_map[str(edge_dict[source]['uri'][class_loc] + edge[class_loc])]
+                else:
+                    ont_class_iri = class_inst_ns + str(uuid.uuid4())
+                    kg_class_iri_map[str(edge_dict[source]['uri'][class_loc] + edge[class_loc])] = ont_class_iri
 
-        for key, value in edges.items():
-            ont_class = key[0]
-            relation = key[1]
-
-            for i in list(value):
-                # add uuid class instance to dictionary
-                ont_class_iri = str(uuid.uuid4())
-                KG_class_iri_map[ont_class_iri] = ont_class
-
-                # add relation between class + instance of class
-                class_individual = URIRef(kg_edges + ont_class_iri)
-                entity = URIRef(i)
-
-                # print(class_individual, RDF.type, URIRef(ont_class))
-                # print(entity, URIRef(str(OBO) + str(relation)), class_individual)
-                graph.add((class_individual, RDF.type, URIRef(ont_class)))
+                # add instance of class
+                graph.add((URIRef(ont_class_iri),
+                           RDF.type,
+                           URIRef(str(edge_dict[source]['uri'][class_loc] + edge[class_loc]))))
 
                 # add relation between instance of class and instance
-                graph.add((entity, URIRef(str(OBO) + str(relation)), class_individual))
+                graph.add((URIRef(ont_class_iri),
+                           URIRef(str(obo + edge_dict[source]['edge_relation'])),
+                           URIRef(str(edge_dict[source]['uri'][inst_loc] + edge[inst_loc]))))
 
+            else:
+                # add instance-instance and class-class edges
+                graph.add((URIRef(str(edge_dict[source]['uri'][0] + edge[0])),
+                           URIRef(str(obo + edge_dict[source]['edge_relation'])),
+                           URIRef(str(edge_dict[source]['uri'][1] + edge[1]))))
+
+    # get node and edge count
+    end_edges = len(graph)
+    end_nodes = len(set([str(node) for edge in list(graph) for node in edge[0::2]]))
+    print('\nKG started with {s1}, {s2} nodes/edges and ended with {s3}, {s4} nodes/edges\n'.format(s1=start_nodes,
+                                                                                                    s2=start_edges,
+                                                                                                    s3=end_nodes,
+                                                                                                    s4=end_edges))
     # serialize graph
-    graph.serialize(destination=graph_output, format='xml')
+    graph.serialize(destination=output_loc, format='xml')
 
     # write iri dictionary to file
-    with open(iri_map_output, "w") as fp:
-        json.dump(KG_class_iri_map, fp)
+    if kg_class_iri_map is not None:
+        with open('.' + output_loc.split('.')[1] + '_ClassInstanceMap.json', 'w') as filepath:
+            json.dump(kg_class_iri_map, filepath)
 
     return graph
 
 
+def removes_disointness_axioms(graph, output):
+    """Queries an RDFLib graph object to identify and remove all disjoint axioms.
 
+    Args:
+        graph (graph): An RDFlib graph object with disjoint axioms
+        output (str): A string naming a file path to write out results
 
-def instanceEdges(graph, edge_dict, output):
-    """Function takes a nested dictionary of edge lists by data source and uses it to create add instance-instance
-    edges to a rdflib knowledge graph. The function also takes a string indicating where the resulting graph should
-    be saved. Once all edges have been added to the input graph, the graph is serialized and saved to the location
-    specified by the input arguments
-
-    :param
-        graph (graph): a rdflib graph
-
-        edge_dict: a nested dictionary of edge lists by data source
-
-        output (str): name and file path to write out results
-
-    :return:
-        graph (graph): an rdflib graph is output to the location specified in input arguments
-
+    Returns:
+        None.
     """
-    print('Adding instance-instance relations to graph \n')
 
-    # namespace
-    OBO = Namespace("http://purl.obolibrary.org/obo/")
-
-    for source, edges in edge_dict.items():
-        print(str(source) + '\n')
-
-        for key, value in edges.items():
-            ont_class = URIRef(key[0])
-            relation = key[1]
-
-            for i in list(value):
-                entity = URIRef(i)
-
-                # print(ont_class, URIRef(str(OBO) + str(relation)), entity)
-                # add relation between instance and instance
-                graph.add((ont_class, URIRef(str(OBO) + str(relation)), entity))
-
-    # serialize graph
-    graph.serialize(destination= output, format='xml')
-
-    return graph
-
-
-
-def removeDisointness(graph, output):
-    """Function takes an rdflib graph object and queries it to identify disjoint axioms. The function also takes a
-    string indicating where the resulting graph should be saved. The function then removes all triples that are
-    disjoint. The graph is then serialized and saved to the location specified by the input arguments
-
-    :param
-        graph (graph): a rdflib graph object with disjoint axioms
-
-        output (str): name and file path to write out results
-
-    :return:
-        graph (graph): a rdflib graph object without disjoint axioms
-
-    """
-    print('Removing disjoint axioms \n')
+    print('\n\n' + '=' * len('Removing Disjoint Axioms'))
+    print('Removing Disjointness Axioms')
+    print('=' * len('Removing Disjoint Axioms') + '\n')
 
     # query graph to find disjoint axioms
-    OWL = Namespace("http://www.w3.org/2002/07/owl#")
-    results = graph.query(
-                """SELECT DISTINCT ?source ?c
-                   WHERE {
-                      ?c rdf:type owl:Class .
-                      ?c owl:disjointWith ?source .}
-                   """, initNs={"rdf": 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                                "owl": 'http://www.w3.org/2002/07/owl#',
-                                "oboInOwl": 'http://www.geneontology.org/formats/oboInOwl#'})
+    owl = Namespace("http://www.w3.org/2002/07/owl#")
 
-    print('There are ' + str(len(list(results))) + ' disjointness axioms')
+    results = graph.query(
+        """SELECT DISTINCT ?source ?c
+           WHERE {
+              ?c rdf:type owl:Class .
+              ?c owl:disjointWith ?source .}
+           """, initNs={"rdf": 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                        "owl": 'http://www.w3.org/2002/07/owl#',
+                        "oboInOwl": 'http://www.geneontology.org/formats/oboInOwl#'})
+
+    print('Identified and Removed {disjoint} Disjointness Axioms\n'.format(disjoint=len(list(results))))
 
     # remove disjoint axioms
-    graph.remove((None, URIRef(str(OWL) + 'disjointWith'), None))
+    graph.remove((None, URIRef(str(owl) + 'disjointWith'), None))
+
+    # get node and edge count
+    edge_count = len(graph)
+    node_count = len(set([str(node) for edge in list(graph) for node in edge[0::2]]))
+    print('\nKG ended with {node} nodes and {edge} edges\n'.format(node=node_count, edge=edge_count))
 
     # serialize graph
     graph.serialize(destination=output, format='xml')
 
+    return None
 
 
-def CloseGraph(graph, reasoner, output):
-    """Function takes a string that represents a file path/file storing an RDF graph, a string indicating the name of a
-    reasoner, and a string indicating where the resulting graph should be saved. With this input the function
-    accesses OWLTools via a command line argument (
-    https://github.com/owlcollab/owltools/wiki/Extract-Properties-Command) and runs the elk reasoner to check the
-    consistency of the graph as well as to assert implied links. The resulting graph is then serialized and saved to
-    the location specified by the input arguments
+def closes_knowledge_graph(graph, reasoner, output):
+    """Use OWLTools via the command line and to run reasoners to deductively close an input graph. The resulting
+    graph is then serialized.
 
-    :param
-        graph (str): a file path/file storing an RDF graph
+    Args:
+        graph (str): A file path/file storing an RDF graph
+        reasoner (str): A string indicating the type of reasoner that should be used
+        output (str): A string containing the name and file path to write out results
 
-        reasoner (str): a string indicating the type of reasoner that should be used
-
-        output (str): name and file path to write out results
-
-    :return:
-        results of running reasoner are serialized and saved to the location specified by the input arguments
-
+    Returns:
+        None.
     """
-    print('Deductively closing the graph using the ' + str(reasoner) + ' reasoner \n')
+
+    print('\n\n' + '=' * len('Closing Knowledge Graph using the {reasoner} Reasoner'.format(reasoner=reasoner.upper())))
+    print('Closing Knowledge Graph using the {reasoner} Reasoner'.format(reasoner=reasoner.upper()))
+    print('=' * len('Closing Knowledge Graph using the {reasoner} Reasoner'.format(reasoner=reasoner.upper())))
 
     # set command line argument
     try:
@@ -229,138 +194,125 @@ def CloseGraph(graph, reasoner, output):
                                '--run-reasoner',
                                '--assert-implied',
                                '-o',
-                               str(output) + '_elk.owl'])
+                               './' + str(output).split('.')[1] + '_Closed_' + str(reasoner).upper() + '.owl'])
 
     except subprocess.CalledProcessError as error:
         print(error.output)
 
+    return None
 
-def KGEdgeList(input_graph, output, iri_mapper):
-    """Function takes as inputs a file/path to RDF graph, a a file/path to class instance iri-class identifier map,
-    and a file/path specifying a location to write serialized results to. With these inputs the function queries the
-    graph to identify only those subjects, objects, and predicates that are RDfResources. From this filtered the
-    output, the results are further reduced to remove any triples that are: class
-    instance-rdf:Type-owl:NamedIndividual or instance-rdf:Type-owl:Class
 
-    :param
-        input_graph (str): a file path/file storing an RDF graph
+def removes_metadata_nodes(graph, output, iri_mapper):
+    """Queries the RDFLib graph object to identify only those subjects, objects, and predicates that are
+    RDfResources. From this filtered output, the results are further reduced to remove any triples that are: class
+    instance-rdf:Type-owl:NamedIndividual or instance-rdf:Type-owl:Class.
 
-        output (str): name and file path to write out results
+    Args:
+        graph (graph): An RDFlib graph object with disjoint axioms.
+        output (str): A string containing the name and file path to write out results.
+        iri_mapper (str): A string naming the location of the class instance iri-class identifier map.
 
-        iri_mapper: name and file path to read in class instance iri-class identifier map
-
-    :return:
-        updated graph is serialized and saved to the location specified by the input arguments
-
+    Returns:
+        An rdflib graph with metadata nodes removed is returned and written to the location specified in input
+        arguments.
     """
-    print('Creating edge list of triples in graph  \n')
 
-    # read in dictionary to map iris
-    with open() as json_data:
-        iri_map = json.load(json_data)
+    print('\n\n' + '=' * len('Removing Metadata Nodes'))
+    print('Removing Metadata Nodes')
+    print('=' * len('Removing Metadata Nodes') + '\n')
 
-    # build graph from ELK reasoner results
-    graph = Graph()
-    graph.parse(input_graph)
-
-    # loop over the triples and only keep those that are RDF resources
-    results_uri = graph.query(
-        """SELECT DISTINCT ?s ?p ?o
-           WHERE {
-              ?s ?p ?o .
-              filter IsIRI(?s)  .
-              filter IsIRI(?p)  .
-              filter IsIRI(?o)  .
-              
-              # identify class-class instance relations - rdflib does not have minus
-              # minus { ?s rdf:type owl:NamedIndividual .
-              # ?s rdf:type ?c .
-              # ?c rdf:type owl:Class .}
-              }
-           """, initNs={"rdf": 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                        "owl": 'http://www.w3.org/2002/07/owl#',
-                        "rdfs": 'http://www.w3.org/2000/01/rdf-schema#'})
+    # read in and reverse dictionary to map iris back to labels
+    iri_map = {val: key for (key, val) in json.load(open(iri_mapper)).items()}
 
     # from those triples with URI, remove triples that are about instances of classes
     update_graph = Graph()
 
     # loop over results and add eligible edges to new graph
-    for s in results_uri:
-        if 'ccp.ucdenver' in s[0] and 'ns#type' in s[1]:
-            pass
-        else:
-            if s[2].split('/')[-1] in iri_map.keys():
-                update_graph.add((URIRef(s[0]), URIRef(s[1]), URIRef(iri_map[s[2].split('/')[-1]])))
+    for edge in tqdm(list(graph)):
+        if not any(str(x) for x in edge if not str(x).startswith('http')):
+
+            if any(x for x in edge[0::2] if str(x) in iri_map.keys()):
+                if str(edge[2]) in iri_map.keys() and 'ns#type' not in str(edge[1]):
+                    update_graph.add((edge[0], edge[1], URIRef(iri_map[str(edge[2])])))
+                else:
+                    update_graph.add((URIRef(iri_map[str(edge[0])]), edge[0], edge[2]))
+
+            elif not any(str(x) for x in edge[0::2] if '#' in str(x)):
+                if not any(str(x) for x in edge if 'ns#type' in str(x)):
+                    update_graph.add(edge)
             else:
-                update_graph.add((URIRef(s[0]), URIRef(s[1]), URIRef(s[2])))
+                pass
 
-    # CHECK - verify we get the number of edges that we would expect to get
-    # ASSUMPTION: there are two triples per class-instance we want to remove
-    if len(update_graph) != len(results_uri) - (len(iri_map)*2):
-        raise Exception('ERROR: The number of triples is incorrect!')
-    else:
-        # serialize graph to n-triples
-        update_graph.serialize(destination=output, format='nt')
+    # get node and edge count
+    edge_count = len(update_graph)
+    node_count = len(set([str(node) for edge in list(update_graph) for node in edge[0::2]]))
+    print('\nKG has {node} nodes and {edge} edges\n'.format(node=node_count, edge=edge_count))
+
+    # serialize edges
+    update_graph.serialize(destination=output, format='xml')
+
+    return update_graph
 
 
+def maps_str_to_int(graph, output_trip_ints, output_map):
+    """Converts nodes with string labels to integers and saves this mapping to a dictionary. Two text files are saved
+    locally, the original labeled edges and edges with the labels replaced by integers.
 
-def NodeMapper(input_graph, output_trip_ints, output_map):
-    """Function takes as inputs a file/path to RDF graph, a file/path to write node-integer identifier map,
-    and a file/path specifying a location to write integer edges to. The function converts node labels to integers
-    and stores a mapping back to the node labels for future use. The function writes out the node-integer mapping
-    file as well as the triples (as integers) to a location specified by input arguments
+    Args:
+        graph (graph): An rdflib graph is returned and written to the location specified in input arguments.
+        output_trip_ints (str): A string naming the name and file path to write out results.
+        output_map (str): A string naming the name and file path to write out results.
 
-    :param
-        input_graph (str): a file path/file storing an RDF graph
-
-        output_trip_ints (str): name and file path to write out results
-
-        output_map (str): name and file path to write out results
-
-    :return:
-        updated edges and edge map are saved to the location specified by the input arguments
-
+    Returns:
+        None.
     """
+
+    print('\n\n' + '=' * len('Mapping Integer Node Labels to String Label'))
+    print('Mapping Integer Node Labels to String Label')
+    print('=' * len('Mapping Integer Node Labels to String Label') + '\n')
+
     # create dictionary for mapping and list to write edges to
-    triple_mapper = {}
+    node_map = {}
     update_graph_ints = []
 
-    # build graph from input file
-    graph = Graph()
-    graph.parse(input_graph)
+    # build graph from input file and set int counter
+    node_counter = 0
 
     # open file to write to
-    outfile = open(output_trip_ints, "w")
+    out1 = open(output_trip_ints, 'w')
+    out2 = open('_'.join(output_trip_ints.split('_')[:-1]) + '_Labels.txt', 'w')
 
-    # counter to generate ints
-    counter = 0
-
-    for edge in graph:
-        print(edge)
-        if edge[0] not in triple_mapper:
-            counter += 1
-            triple_mapper[edge[0]] = counter
-        if edge[1] not in triple_mapper:
-            counter += 1
-            triple_mapper[edge[1]] = counter
-        if edge[2] not in triple_mapper:
-            counter += 1
-            triple_mapper[edge[2]] = counter
+    for edge in tqdm(graph):
+        if str(edge[0]) not in node_map:
+            node_counter += 1
+            node_map[str(edge[0])] = node_counter
+        if str(edge[1]) not in node_map:
+            node_counter += 1
+            node_map[str(edge[1])] = node_counter
+        if str(edge[2]) not in node_map:
+            node_counter += 1
+            node_map[str(edge[2])] = node_counter
 
         # convert edge labels to ints
-        update_graph_ints.append([triple_mapper[edge[0]], triple_mapper[edge[1]], triple_mapper[edge[2]]])
+        update_graph_ints.append([node_map[str(edge[0])], node_map[str(edge[1])], node_map[str(edge[2])]])
 
         # write edge to text file
-        outfile.write('%d' % triple_mapper[edge[0]] + '\t' + '%d' % triple_mapper[edge[1]] + '\t' +
-                         '%d' % triple_mapper[edge[2]] + '\n')
+        out1.write('%d' % node_map[str(edge[0])] + '\t' +
+                   '%d' % node_map[str(edge[1])] + '\t' +
+                   '%d' % node_map[str(edge[2])] + '\n')
+
+        out2.write(str(edge[0]) + '\t' + str(edge[1]) + '\t' + str(edge[2]) + '\n')
+
     # close file
-    outfile.close()
+    out1.close()
+    out2.close()
 
     # CHECK - verify we get the number of edges that we would expect to get
     if len(graph) != len(update_graph_ints):
         raise Exception('ERROR: The number of triples is incorrect!')
     else:
-        # write iri dictionary to file
-        with open(output_map, "w") as fp:
-            json.dump(triple_mapper, fp)
+        # write string-tto-int dictionary to file
+        with open(output_map, 'w') as fp:
+            json.dump(node_map, fp)
 
+    return None
