@@ -16,7 +16,6 @@ scripts/*.pyc
 /resources/kr_model/
 /resources/ontologies/
 /resources/*.json
-scripts/bash/KG.sh
 
 # releases
 /resources/releases/
