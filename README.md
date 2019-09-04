@@ -101,7 +101,12 @@ optional arguments:
    - ‼ **Note:** This library depends on the C++ Boost library and Boost Threadpool. In order to properly install
     these libraries on an OSX system, there are two important changes that will need to be made:  
       - Change `TIME_UTC` to `TIME_UTC_` in the `boost/threadpool/task_adaptors.hpp`.  - Change the `-lboost_thread
-      ` argument to `-lboost_thread-mt` in the `walking-rdf-and-owl-master/Makefile`
+      ` argument to `-lboost_thread-mt` in the `walking-rdf-and-owl-master/Makefile` 
+      - To troubleshoot incompatability issues between Deepwalk and Gensim, run tthe following in this order:  
+        - `pip uninstall gensim`  
+        - `pip uninstall deepwalk`  
+        - `pip install gensim==0.10.2` 
+        - `pip install deepwalk`  
 
 <br>
 
