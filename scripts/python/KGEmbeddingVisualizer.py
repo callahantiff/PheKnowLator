@@ -41,8 +41,7 @@ def processes_integer_labeled_embeddings(embedding, node_label_dict, node_list):
         node = node_label_dict[int(row.split(' ')[0])]
 
         for node_label in node_list:
-            if node.startswith(node_label) or node in node_label:
-                print(node)
+            if node.split('/')[-1].startswith(node_label) or node_label in node:
                 embedding_info.append([node_label, node, [float(x) for x in row.strip('\n').split(' ')[1:]]])
 
     return embedding_info

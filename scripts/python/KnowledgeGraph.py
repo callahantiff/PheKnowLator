@@ -188,13 +188,13 @@ def closes_knowledge_graph(graph, reasoner, output):
 
     # set command line argument
     try:
-        subprocess.check_call(['resources/lib/owltools',
+        subprocess.check_call(['./resources/lib/owltools',
                                str(graph),
                                '--reasoner ' + str(reasoner),
                                '--run-reasoner',
                                '--assert-implied',
                                '-o',
-                               './' + str(output).split('.')[1] + '_Closed_' + str(reasoner).upper() + '.owl'])
+                               '.' + str(output).split('.')[1] + '_Closed_' + str(reasoner).upper() + '.owl'])
 
     except subprocess.CalledProcessError as error:
         print(error.output)
