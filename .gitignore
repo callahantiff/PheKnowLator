@@ -1,77 +1,29 @@
 # Created by .ignore support plugin (hsz.mobi)
-### Python template
 
-# Byte-compiled / optimized / DLL files
+# Distribution/packaging/Environments
 __pycache__/
-*.py[cod]
-*$py.class
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 __init__.py
+.idea/
+scripts/python/*.pyc
+scripts/*.pyc
+.ipynb_checkpoints/main-checkpoint.ipynb
 
-# Unit test / coverage reports
-tests/*
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
+# data and scripts
+/resources/archive.zip
+/resources/data_maps/
+/resources/edge_data/
+/resources/knowledge_graphs/
+/resources/kr_model/
+/resources/ontologies/
+/resources/*.json
+/resources/embeddings/*
 
-# Sphinx documentation
-docs/_build/
+# releases
+/resources/releases/
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-.idea/*
-.python-version
+# API keys/passwords
+/resources/bioportal_api_key.txt
 
-# other documents and/or data
-resources/endpoints/*
-resources/graphs/applications/*
-resources/graphs/v1.0.0/ALL_KG_res_df
-resources/graphs/v1.0.0/ALL_KG_res_tsne.npy
-resources/graphs/v1.0.0/class_instance_map.json
-resources/graphs/v1.0.0/KG_triples_ints_map.json
-resources/graphs/v1.0.0/KG_triples.txt
-resources/graphs/v1.0.0/out_label.txt
-resources/graphs/v1.0.0/KG_triples_ints.txt
-resources/graphs/v1.0.0/out.txt
-resources/ontologies/*
-resources/Other/*
-resources/rdf_data/*
-resources/text_files/*
-
-scripts/python/test.py
-scripts/python/drafts/*
-
-# mkdocs documentation
-/site
-=
-
+# external libraries
+/resources/lib/
+/walking-rdf-and-owl-master/

@@ -1,5 +1,15 @@
-http://geneontology.org/gene-associations/goa_human.gaf.gz
-https://reactome.org/download/current/gene_association.reactome
-http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_genes_to_phenotype.txt
-http://compbio.charite.de/jenkins/job/hpo.annotations
-.monthly/lastStableBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
+disease-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
+gene-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_genes_to_phenotype.txt
+chemical-gene, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
+gene-gobp, http://geneontology.org/gene-associations/goa_human.gaf.gz
+gene-gomf, http://geneontology.org/gene-associations/goa_human.gaf.gz
+gene-gocc, http://geneontology.org/gene-associations/goa_human.gaf.gz
+pathway-gobp, https://reactome.org/download/current/gene_association.reactome.gz
+pathway-gomf, https://reactome.org/download/current/gene_association.reactome.gz
+pathway-gocc, https://reactome.org/download/current/gene_association.reactome.gz
+chemical-pathway, https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
+chemical-disease, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
+disease-gobp, http://ctdbase.org/reports/CTD_Phenotype-Disease_biological_process_associations.csv.gz
+disease-gocc, http://ctdbase.org/reports/CTD_Phenotype-Disease_cellular_component_associations.csv.gz
+disease-gomf, http://ctdbase.org/reports/CTD_Phenotype-Disease_molecular_function_associations.csv.gz
+chemical-go, http://ctdbase.org/reports/CTD_pheno_term_ixns.csv.gz
