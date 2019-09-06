@@ -2,6 +2,8 @@
 
 A repository for developing methods to facilitate clinically and biologically meaningful translations between human and rodent phenotypes. Detailed information regarding this project can be found on the associated [Wiki](https://github.com/callahantiff/PheKnowLater/wiki).
 
+<img src="https://zenodo.org/badge/DOI/10.5281/zenodo.3401437.svg"> 
+
 **This is a Reproducible Research Repository:** This repository contains more than just code, it provides a detailed and transparent narrative of our research process. For detailed information on how we use GitHub as a reproducible research platform, click [here](https://github.com/callahantiff/Abra-Collaboratory/wiki/Using-GitHub-as-a-Reproducible-Research-Platform).
 
 <img src="https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg?style=flat-square" alt="git-AbraCollaboratory"> 
@@ -15,7 +17,7 @@ A repository for developing methods to facilitate clinically and biologically me
 ### Releases  
 All code and output for each release are free to download, see [Wiki](https://github.com/callahantiff/PheKnowLator/wiki) for full release archive.  
 
-**Current Release:** [v1.0.0](https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0). Data and code can be directly downloaded [here](https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0#generated-output)
+**Current Release:** [v2.0.0](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0). Data and code can be directly downloaded [here](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0#generated-output)
 
 *** 
 
