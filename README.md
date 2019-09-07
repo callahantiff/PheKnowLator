@@ -1,6 +1,6 @@
 ## PheKnowLater
 
-A repository for developing methods to facilitate clinically and biologically meaningful translations between human and rodent phenotypes. Detailed information regarding this project can be found on the associated [Wiki](https://github.com/callahantiff/PheKnowLater/wiki).
+A repository for building biomedical knowledge graphs of human disease mechanisms. Detailed information regarding this project can be found on the associated[Wiki](https://github.com/callahantiff/PheKnowLater/wiki).
 
 <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.3401437.svg"> 
 
