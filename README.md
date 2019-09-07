@@ -121,4 +121,4 @@ our code of conduct, and the process for submitting pull requests to us.
 
 ### License
 
-This project is licensed under 3-Clause BSD License - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.
+This project is licensed under Apache License 2.0 - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.
