@@ -1,7 +1,7 @@
 ## PheKnowLater
 
-A repository for building biomedical knowledge graphs of human disease mechanisms. Detailed information regarding
- this project can be found on the associated[Wiki](https://github.com/callahantiff/PheKnowLater/wiki).
+
+A repository for building biomedical knowledge graphs of human disease mechanisms. Detailed information regarding this project can be found on the associated [Wiki](https://github.com/callahantiff/PheKnowLater/wiki).
 
 **This is a Reproducible Research Repository:** This repository contains more than just code, it provides a detailed and transparent narrative of our research process. For detailed information on how we use GitHub as a reproducible research platform, click [here](https://github.com/callahantiff/Abra-Collaboratory/wiki/Using-GitHub-as-a-Reproducible-Research-Platform).
 
@@ -120,4 +120,4 @@ our code of conduct, and the process for submitting pull requests to us.
 
 ### License
 
-This project is licensed under 3-Clause BSD License - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.
+This project is licensed under Apache License 2.0 - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.
