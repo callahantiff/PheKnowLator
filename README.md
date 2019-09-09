@@ -93,10 +93,12 @@ optional arguments:
 2. Add class-instance and instance-instance edges to merged ontologies.  
 3. Remove disjointness axioms.  
 4. Deductively close knowledge graph using [Elk reasoner](https://www.cs.ox.ac.uk/isg/tools/ELK/).    
-5. Write edges (as triples) to local directory.  
-6. Convert original edges to integers and write to local directory (required input format for generating embeddings).
+5. Remove edges that are not clinically meaningful.  
+6. Write edges (as triples) to local directory.  
+7. Convert original edges to integers and write to local directory (required input format for generating embeddings).
 
 **STEP 4: Generate Mechanism Embeddings**  
+ -  The [DeepWalk algorithm](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) was implemented to generate molecular mechanism embeddings from the biomedical knowledge graph. 
  - A [modified](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) version of the [DeepWalk 
  algorithm](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) was implemented to generate molecular mechanism embeddings from the biomedical knowledge graph. 
    - ‼ **Note:** This library depends on the [C++ Boost library](https://www.pyimagesearch.com/2015/04/27/installing-boost-and-boost-python-on-osx-with-homebrew/) and [Boost Threadpool Header Files](http://threadpool.sourceforge.net/). For the Headers, the sub-directory called `Boost` at the top-level of the `walking-rdf-and-owl-master` directory. In order to compile and run `Deepwalk-RDF`, there are a few important changes that will need to be made:  

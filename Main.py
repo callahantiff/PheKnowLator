@@ -61,8 +61,35 @@ def main():
     # CREATE EDGE LISTS #
     #####################
 
+    cls_data_files = {'chemical-disease': './resources/edge_data/chemical_disease_ctd_class_data.txt',
+                      'chemical-gene': './resources/edge_data/chemical-gene_ctd_class_data.txt',
+                      'chemical-go': './resources/edge_data/chemical-go_ctd_class_data.txt',
+                      'chemical-pathway': './resources/edge_data/chemical-pathway_reactome_class_data.txt',
+                      'disease-gobp': './resources/edge_data/disease-gobp_ctd_class_data.txt',
+                      'disease-gocc': './resources/edge_data/disease-gocc_ctd_class_data.txt',
+                      'disease-gomf': './resources/edge_data/disease-gomf_ctd_class_data.txt',
+                      'disease-phenotype': './resources/edge_data/disease-phenotype_hp_class_data.txt',
+                      'gene-gobp': './resources/edge_data/gene-go_goa_class_data.txt',
+                      'gene-gomf': './resources/edge_data/gene-go_goa_class_data.txt',
+                      'gene-gocc': './resources/edge_data/gene-go_goa_class_data.txt',
+                      'gene-phenotype': './resources/edge_data/gene-phenotype_hp_class_data.txt',
+                      'pathway-gobp': './resources/edge_data/pathway-go_reactome_class_data.txt',
+                      'pathway-gomf': './resources/edge_data/pathway-go_reactome_class_data.txt',
+                      'pathway-gocc': './resources/edge_data/pathway-go_reactome_class_data.txt'}
+
+    inst_data_files = {'gene-gene': './resources/edge_data/gene-gene_string_instance_data.txt',
+                       'gene-pathway': './resources/edge_data/gene-pathway_reactome_instance_data.txt',
+                       'pathway-disease': './resources/edge_data/pathway-disease_reactome_instance_data.txt'}
+
+    ontologies = {'disease': './resources/ontologies/doid_with_imports.owl',
+                  'phenotype': './resources/ontologies/hp_with_imports.owl',
+                  'go': './resources/ontologies/go_with_imports.owl',
+                  'chemical': './resources/ontologies/chebi_lite.owl'}
+
+    combined_edges = dict(dict(cls_data_files, **inst_data_files), **ontologies)
+
     # STEP 1: create master resource dictionary
-    combined_edges = dict(dict(cls.data_files, **inst.data_files), **ont.data_files)
+    # combined_edges = [dict(dict(]cls.data_files, **inst.data_files), **ont.data_files)
     master_edges = scripts.python.EdgeDictionary.EdgeList(combined_edges, './resources/resource_info.txt')
     master_edges.creates_knowledge_graph_edges()
 
@@ -108,36 +135,36 @@ def main():
         else:
             other_edges[edge] = master_edges[edge]
 
-    # create class-instance edges
+    # create class-instance edges (1577751, 4725125 nodes/edges)
     class_kg = creates_knowledge_graph_edges(class_edges,
                                              'class',
                                              Graph().parse(merged_onts + 'PheKnowLator_v2_MergedOntologies_BioKG.owl'),
-                                             ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG.owl',
+                                             ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2.owl',
                                              kg_class_iri_map={})
 
-    # create instance-instance and class-class edges
+    # create instance-instance and class-class edges (1580322, 7509493 nodes/edges)
     class_inst_kg = creates_knowledge_graph_edges(other_edges,
                                                   'other',
                                                   class_kg,
-                                                  ont_kg + 'PheKnowLator_v2_Full_BioKG.owl')
+                                                  ont_kg + 'PheKnowLator_v2_Full_BioKG2.owl')
 
-    # STEP 3: remove disjoint axioms
-    removes_disointness_axioms(class_inst_kg, ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness.owl')
+    # STEP 3: remove disjoint axioms (333; 1580322 nodes and 7509147 edges)
+    removes_disointness_axioms(class_inst_kg, ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness.owl')
 
     # STEP 4: deductively close graph
-    closes_knowledge_graph(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness.owl',
+    closes_knowledge_graph(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness.owl',
                            'elk',
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl')
+                           ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl')
 
-    # STEP 5: remove metadata nodes
-    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl'),
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_ELK_Closed_NoMetadataNodes.owl',
-                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
+    # STEP 5: remove metadata nodes (258646 nodes and 4283686 edges)
+    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl'),
+                           ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl',
+                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2_ClassInstanceMap.json')
 
     # STEP 6: convert triples to ints
-    maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_ELK_Closed_NoMetadataNodes.owl'),
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG_Triples_Integer_Labels_Map.json')
+    maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl'),
+                    ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+                    ont_kg + 'PheKnowLator_v2_Full_BioKG2_Triples_Integer_Labels_Map.json')
 
     ##############################
     # KNOWLEDGE GRAPH EMBEDDINGS #
@@ -146,7 +173,7 @@ def main():
     embed_path = './resources/embeddings/'
 
     runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_128_10_100_40.txt',
+                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_128_10_50_20.txt',
                   workers=63,
                   dimensions=128,
                   window=10,
@@ -154,7 +181,7 @@ def main():
                   walk_length=40)
 
     runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_256_10_100_40.txt',
+                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_256_10_50_20.txt',
                   workers=63,
                   dimensions=256,
                   window=10,
@@ -162,7 +189,7 @@ def main():
                   walk_length=40)
 
     runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_512_10_100_40.txt',
+                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_512_10_50_20.txt',
                   workers=63,
                   dimensions=512,
                   window=10,
