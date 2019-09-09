@@ -97,8 +97,8 @@ optional arguments:
 6. Convert original edges to integers and write to local directory (required input format for generating embeddings).
 
 **STEP 4: Generate Mechanism Embeddings**  
- - A [modified](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) version of the [DeepWalk 
- algorithm](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) was implemented to generate molecular mechanism embeddings from the biomedical knowledge graph. 
+ - [DeepWalk algorithm](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) was implemented to generate molecular mechanism embeddings from the biomedical knowledge graph.  
+ - We have also implemented a [modified](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) version of the [DeepWalk algorithm](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) was implemented to generate molecular mechanism embeddings from the biomedical knowledge graph. 
    - ‼ **Note:** This library depends on the [C++ Boost library](https://www.pyimagesearch.com/2015/04/27/installing-boost-and-boost-python-on-osx-with-homebrew/) and [Boost Threadpool Header Files](http://threadpool.sourceforge.net/). For the Headers, the sub-directory called `Boost` at the top-level of the `walking-rdf-and-owl-master` directory. In order to compile and run `Deepwalk-RDF`, there are a few important changes that will need to be made:  
       - Change `TIME_UTC` to `TIME_UTC_` in the `boost/threadpool/task_adaptors.hpp`.  
       - Change the `-lboost_thread` argument to `-lboost_thread-mt` in the `walking-rdf-and-owl-master/Makefile` 
