@@ -27,3 +27,4 @@ scripts/*.pyc
 # external libraries
 /resources/lib/
 /walking-rdf-and-owl-master/
+resources/resource_info_updated.txt
