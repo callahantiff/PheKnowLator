@@ -13,6 +13,8 @@ from rdflib.namespace import RDF
 from rdflib import URIRef
 from tqdm import tqdm
 
+from external_libraries.deepwalk_c_master.deepwalk.cli import *
+
 
 def merges_ontologies(ontology_list):
     """Takes a list of lists, where the each nested list contains a pair of ontologies and a file path. Using the
@@ -309,6 +311,9 @@ def maps_str_to_int(graph, output_trip_ints, output_map):
     # close file
     out1.close()
     out2.close()
+
+    # write bcsr file for input to deepwalk-c
+    process('edgelist', None, True, '\t', output_trip_ints, output_trip_ints.split('.')[0] + '_.bcsr')
 
     # CHECK - verify we get the number of edges that we would expect to get
     if len(graph) != len(update_graph_ints):

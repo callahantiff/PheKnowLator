@@ -157,14 +157,24 @@ def main():
                            ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl')
 
     # STEP 5: remove metadata nodes (258646 nodes and 4283686 edges)
-    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl'),
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl',
-                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2_ClassInstanceMap.json')
+    # removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl'),
+    #                        ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl',
+    #                        ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2_ClassInstanceMap.json')
+    #
+    # # STEP 6: convert triples to ints
+    # maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl'),
+    #                 ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+    #                 ont_kg + 'PheKnowLator_v2_Full_BioKG2_Triples_Integer_Labels_Map.json')
+
+    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG.owl'),
+                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Full_NoMetadataNodes.owl',
+                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
 
     # STEP 6: convert triples to ints
-    maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl'),
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG2_Triples_Integer_Labels_Map.json')
+    maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_NoMetadataNodes.owl'),
+                    ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Full_Triples_Integers.txt',
+                    ont_kg + 'PheKnowLator_v2_Full_BioKG_Full_Triples_Integer_Labels_Map.json')
+
 
     ##############################
     # KNOWLEDGE GRAPH EMBEDDINGS #
@@ -172,29 +182,15 @@ def main():
     # set file path
     embed_path = './resources/embeddings/'
 
-    runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+    runs_deepwalk(input=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
                   output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_128_10_50_20.txt',
-                  workers=63,
-                  dimensions=128,
+                  threads=100,
+                  dim=128,
+                  nwalks=100,
+                  walklen=20,
                   window=10,
-                  walks=100,
-                  walk_length=40)
-
-    runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_256_10_50_20.txt',
-                  workers=63,
-                  dimensions=256,
-                  window=10,
-                  walks=100,
-                  walk_length=40)
-
-    runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_512_10_50_20.txt',
-                  workers=63,
-                  dimensions=512,
-                  window=10,
-                  walks=100,
-                  walk_length=40)
+                  nprwalks=100,
+                  lr=0.01)
 
 
 if __name__ == '__main__':
