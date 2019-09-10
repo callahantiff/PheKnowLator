@@ -300,10 +300,11 @@ def maps_str_to_int(graph, output_trip_ints, output_map):
 
         # write edge to text file
         out1.write('%d' % node_map[str(edge[0])] + '\t' +
-                   '%d' % node_map[str(edge[1])] + '\t' +
+                   # '%d' % node_map[str(edge[1])] + '\t' +
                    '%d' % node_map[str(edge[2])] + '\n')
 
-        out2.write(str(edge[0]) + '\t' + str(edge[1]) + '\t' + str(edge[2]) + '\n')
+        # out2.write(str(edge[0]) + '\t' + str(edge[1]) + '\t' + str(edge[2]) + '\n')
+        out2.write(str(edge[0]) + '\t' + str(edge[2]) + '\n')
 
     # close file
     out1.close()

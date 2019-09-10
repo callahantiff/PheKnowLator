@@ -17,6 +17,7 @@ scripts/*.pyc
 /resources/ontologies/
 /resources/*.json
 /resources/embeddings/*
+Untitled*
 
 # releases
 /resources/releases/
@@ -28,3 +29,4 @@ scripts/*.pyc
 /resources/lib/
 /walking-rdf-and-owl-master/
 resources/resource_info_updated.txt
+external_libraries/*
