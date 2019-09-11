@@ -61,35 +61,35 @@ def main():
     # CREATE EDGE LISTS #
     #####################
 
-    cls_data_files = {'chemical-disease': './resources/edge_data/chemical_disease_ctd_class_data.txt',
-                      'chemical-gene': './resources/edge_data/chemical-gene_ctd_class_data.txt',
-                      'chemical-go': './resources/edge_data/chemical-go_ctd_class_data.txt',
-                      'chemical-pathway': './resources/edge_data/chemical-pathway_reactome_class_data.txt',
-                      'disease-gobp': './resources/edge_data/disease-gobp_ctd_class_data.txt',
-                      'disease-gocc': './resources/edge_data/disease-gocc_ctd_class_data.txt',
-                      'disease-gomf': './resources/edge_data/disease-gomf_ctd_class_data.txt',
-                      'disease-phenotype': './resources/edge_data/disease-phenotype_hp_class_data.txt',
-                      'gene-gobp': './resources/edge_data/gene-go_goa_class_data.txt',
-                      'gene-gomf': './resources/edge_data/gene-go_goa_class_data.txt',
-                      'gene-gocc': './resources/edge_data/gene-go_goa_class_data.txt',
-                      'gene-phenotype': './resources/edge_data/gene-phenotype_hp_class_data.txt',
-                      'pathway-gobp': './resources/edge_data/pathway-go_reactome_class_data.txt',
-                      'pathway-gomf': './resources/edge_data/pathway-go_reactome_class_data.txt',
-                      'pathway-gocc': './resources/edge_data/pathway-go_reactome_class_data.txt'}
+    # cls_data_files = {'chemical-disease': './resources/edge_data/chemical_disease_ctd_class_data.txt',
+    #                   'chemical-gene': './resources/edge_data/chemical-gene_ctd_class_data.txt',
+    #                   'chemical-go': './resources/edge_data/chemical-go_ctd_class_data.txt',
+    #                   'chemical-pathway': './resources/edge_data/chemical-pathway_reactome_class_data.txt',
+    #                   'disease-gobp': './resources/edge_data/disease-gobp_ctd_class_data.txt',
+    #                   'disease-gocc': './resources/edge_data/disease-gocc_ctd_class_data.txt',
+    #                   'disease-gomf': './resources/edge_data/disease-gomf_ctd_class_data.txt',
+    #                   'disease-phenotype': './resources/edge_data/disease-phenotype_hp_class_data.txt',
+    #                   'gene-gobp': './resources/edge_data/gene-go_goa_class_data.txt',
+    #                   'gene-gomf': './resources/edge_data/gene-go_goa_class_data.txt',
+    #                   'gene-gocc': './resources/edge_data/gene-go_goa_class_data.txt',
+    #                   'gene-phenotype': './resources/edge_data/gene-phenotype_hp_class_data.txt',
+    #                   'pathway-gobp': './resources/edge_data/pathway-go_reactome_class_data.txt',
+    #                   'pathway-gomf': './resources/edge_data/pathway-go_reactome_class_data.txt',
+    #                   'pathway-gocc': './resources/edge_data/pathway-go_reactome_class_data.txt'}
+    #
+    # inst_data_files = {'gene-gene': './resources/edge_data/gene-gene_string_instance_data.txt',
+    #                    'gene-pathway': './resources/edge_data/gene-pathway_reactome_instance_data.txt',
+    #                    'pathway-disease': './resources/edge_data/pathway-disease_reactome_instance_data.txt'}
+    #
+    # ontologies = {'disease': './resources/ontologies/doid_with_imports.owl',
+    #               'phenotype': './resources/ontologies/hp_with_imports.owl',
+    #               'go': './resources/ontologies/go_with_imports.owl',
+    #               'chemical': './resources/ontologies/chebi_lite.owl'}
 
-    inst_data_files = {'gene-gene': './resources/edge_data/gene-gene_string_instance_data.txt',
-                       'gene-pathway': './resources/edge_data/gene-pathway_reactome_instance_data.txt',
-                       'pathway-disease': './resources/edge_data/pathway-disease_reactome_instance_data.txt'}
-
-    ontologies = {'disease': './resources/ontologies/doid_with_imports.owl',
-                  'phenotype': './resources/ontologies/hp_with_imports.owl',
-                  'go': './resources/ontologies/go_with_imports.owl',
-                  'chemical': './resources/ontologies/chebi_lite.owl'}
-
-    combined_edges = dict(dict(cls_data_files, **inst_data_files), **ontologies)
+    # combined_edges = dict(dict(cls_data_files, **inst_data_files), **ontologies)
 
     # STEP 1: create master resource dictionary
-    # combined_edges = [dict(dict(]cls.data_files, **inst.data_files), **ont.data_files)
+    combined_edges = dict(dict(cls.data_files, **inst.data_files), **ont.data_files)
     master_edges = scripts.python.EdgeDictionary.EdgeList(combined_edges, './resources/resource_info.txt')
     master_edges.creates_knowledge_graph_edges()
 
@@ -156,25 +156,15 @@ def main():
                            'elk',
                            ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl')
 
-    # STEP 5: remove metadata nodes (258646 nodes and 4283686 edges)
-    # removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl'),
-    #                        ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl',
-    #                        ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2_ClassInstanceMap.json')
-    #
-    # # STEP 6: convert triples to ints
-    # maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl'),
-    #                 ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-    #                 ont_kg + 'PheKnowLator_v2_Full_BioKG2_Triples_Integer_Labels_Map.json')
-
-    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG.owl'),
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Full_NoMetadataNodes.owl',
-                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
+    # STEP 5: remove metadata nodes (258646 nodes and 4283686 edges/KG has 258528 nodes and 4247302 edges)
+    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl'),
+                           ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl',
+                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2_ClassInstanceMap.json')
 
     # STEP 6: convert triples to ints
-    maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_NoMetadataNodes.owl'),
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Full_Triples_Integers.txt',
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG_Full_Triples_Integer_Labels_Map.json')
-
+    maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl'),
+                    ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+                    ont_kg + 'PheKnowLator_v2_Full_BioKG2_Triples_Integer_Labels_Map.json')
 
     ##############################
     # KNOWLEDGE GRAPH EMBEDDINGS #
@@ -182,8 +172,8 @@ def main():
     # set file path
     embed_path = './resources/embeddings/'
 
-    runs_deepwalk(input=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_128_10_50_20.txt',
+    runs_deepwalk(input_file=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+                  output_file=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_128_10_50_20.txt',
                   threads=100,
                   dim=128,
                   nwalks=100,
@@ -191,6 +181,8 @@ def main():
                   window=10,
                   nprwalks=100,
                   lr=0.01)
+
+    # convert binary compressed sparse row (BCSR) graph formatted embeddings into
 
 
 if __name__ == '__main__':

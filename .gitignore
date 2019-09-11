@@ -9,7 +9,7 @@ scripts/*.pyc
 .ipynb_checkpoints/main-checkpoint.ipynb
 
 # data and scripts
-/resources/archive.zip
+/resources/releases/archive.zip
 /resources/data_maps/
 /resources/edge_data/
 /resources/knowledge_graphs/

@@ -1,3 +1,2 @@
 gene-pathway, https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
-pathway-disease, https://www.dropbox.com/s/0r32bn2ji4m6x6n/pathway-disease_reactome_instance_data.txt?dl=0
 gene-gene, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
