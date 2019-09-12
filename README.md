@@ -22,23 +22,18 @@ All code and output for each release are free to download, see [Wiki](https://gi
 
 ### Getting Started
 
-- This program requires Python version 3.6. To install required modules, run the following:  
+**Dependencies:**  
+- [x] This program requires Python version 3.6. To install required modules, run the following:  
 
     ```
     pip install -r requirements.txt
     ``` 
 
-- Biomedical Knowledge graph embeddings are generated using [n1-standard1](https://cloud.google.com/compute/vm-instance-pricing#n1_predefined) Google Compute VMs.  
-
-<br>
-
-**Dependencies:**  
+- [x] Biomedical Knowledge graph embeddings are generated using [n1-standard1](https://cloud.google.com/compute/vm-instance-pricing#n1_predefined) Google Compute VMs.  
 - [x] ‼ **Important:** This code also depends on four documents in order to run successfully. For information on 
-what's 
-included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).
+what's included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).  
 - [x] This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to 
 `resources/lib/` prior to running `main.py`.  
-- 
    
 
 <br>
