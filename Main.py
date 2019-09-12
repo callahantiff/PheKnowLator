@@ -4,6 +4,7 @@
 
 # import needed libraries
 import argparse
+import glob
 
 import scripts.python.DataSources
 import scripts.python.EdgeDictionary
@@ -182,7 +183,16 @@ def main():
                   nprwalks=100,
                   lr=0.01)
 
-    # convert binary compressed sparse row (BCSR) graph formatted embeddings into
+    # read in embeddings to convert from binary compressed sparse row (BCSR) into numpy array
+    # not closed graphs
+    processes_embedded_nodes(glob.glob('./resources/embeddings/*_NotClosed_*.out'),
+                             glob.glob('./resources/knowledge_graphs/kg_not_closed/*Triples_Integers.txt')[0],
+                             glob.glob('./resources/knowledge_graphs/kg_not_closed/*.json')[0])
+
+    # closed graphs
+    processes_embedded_nodes(glob.glob('./resources/embeddings/*_Closed_*.out'),
+                             glob.glob('./resources/knowledge_graphs/kg_closed/*Triples_Integers.txt')[0],
+                             glob.glob('./resources/knowledge_graphs/kg_closed/*.json')[0])
 
 
 if __name__ == '__main__':
