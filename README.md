@@ -98,10 +98,9 @@ optional arguments:
 7. Convert original edges to integers and write to local directory (required input format for generating embeddings).
 
 **STEP 4: Generate Mechanism Embeddings**  
- -  The [DeepWalk algorithm-C](https://github.com/xgfs/deepwalk-c) was implemented to
-  generate molecular mechanism embeddings from the biomedical knowledge graph. 
- - A [modified](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) version of the [DeepWalk
-  algorithm](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) was implemented to generate molecular mechanism embeddings from the biomedical knowledge graph. 
+To create estimates of modlecular mechanisms, we embed knowledge graph information extracted by [DeepWalk](https://github.com/phanein/deepwalk). This repository contains code to run two versions of the [original method](http://www.perozzi.net/publications/14_kdd_deepwalk.pdf) developed by [Bryan Perozzi](https://github.com/phanein):    
+ -  [`DeepWalk algorithm-C`](https://github.com/xgfs/deepwalk-c): an implementation of the original algorithm in C++ (with some improvements to speed up initialize the hierarchical softmax tree that was developed by [Anton Tsitsulin](https://github.com/xgfs).  
+ - [`DeepWalk-RDF`](https://github.com/bio-ontology-research-group/walking-rdf-and-owl): an extension of the original algorithm that also embeds graph edges; developed by [the Bio-Ontology Research Group](https://github.com/bio-ontology-research-group/walking-rdf-and-owl).  
    - ‼ **Note:** This library depends on the [C++ Boost library](https://www.pyimagesearch.com/2015/04/27/installing
    -boost-and-boost-python-on-osx-with-homebrew/) and [Boost Threadpool Header Files](http://threadpool.sourceforge
    .net/). For the Headers, the sub-directory called `Boost` at the top-level of the `walking-rdf-and-owl-master
