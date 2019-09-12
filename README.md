@@ -22,22 +22,13 @@ All code and output for each release are free to download, see [Wiki](https://gi
 
 ### Getting Started
 
-This program was written on a system running OS X Sierra. Successful execution of this program requires Python version 3.6.
+- This program requires Python version 3.6. To install required modules, run the following:  
 
-  * Python
-    * Version 3.6
-    * Modules are described under [*Installation*](#Installation)
+    ```
+    pip install -r requirements.txt
+    ``` 
 
-<br>
-
-#### Installation
-
-**Requirements:**  
-To install and execute the program designate the cloned project folder as the current working directory. Place any outside files within the working directory prior to executing the program.
-
-```
-pip install -r requirements.txt
-```
+- Biomedical Knowledge graph embeddings are generated using [n1-standard1](https://cloud.google.com/compute/vm-instance-pricing#n1_predefined) Google Compute VMs.  
 
 <br>
 
@@ -47,6 +38,7 @@ what's
 included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).
 - [x] This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to 
 `resources/lib/` prior to running `main.py`.  
+- 
    
 
 <br>
