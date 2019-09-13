@@ -118,7 +118,7 @@ class EdgeList(object):
 
         return edge1.replace(':', '_'), edge2.replace(':', '_')
 
-    def processes_edge_data(self, data, file_split, line_split, columns, evidence, data_filter, src_label):
+    def processes_edge_data(data, file_split, line_split, columns, evidence, data_filter, src_label):
         """Function process a data set and uses the user input to generate a nested list where each nested list
         represents an edge.
 
@@ -153,11 +153,11 @@ class EdgeList(object):
 
         # perform filtering
         if 'None' not in data_filter:
-            edge_data = self.filters_data(edge_data, splitter, data_filter)
+            edge_data = filters_data(edge_data, splitter, data_filter)
 
         # perform evidence filtering
         if 'None' not in evidence:
-            edge_data = self.filters_data(edge_data, splitter, evidence)
+            edge_data = filters_data(edge_data, splitter, evidence)
 
         # filter to specific columns
         for line in edge_data:
@@ -167,7 +167,7 @@ class EdgeList(object):
                 line_data = [x.strip('"').strip("'") for x in line]
 
                 # format labels
-                labeled_edges = self.formats_column_labels(line_data, columns, src_label)
+                labeled_edges = formats_column_labels(line_data, columns, src_label)
 
                 edges.append(['_'.join(list(filter(None, labeled_edges[0].split('_')))),
                               '_'.join(list(filter(None, labeled_edges[1].split('_'))))])
@@ -330,7 +330,7 @@ class EdgeList(object):
         Args:
             edges (list): A nested list where each list represents an edge.
             edge_type (str): A string naming the type of edge.
-            edge_loc (list): A list of strings that represent integers.å
+            edge_loc (list): A list of strings that represent integers.
             map_source (list): A string naming the mapping source to use for mapping.
 
         Returns:
@@ -383,6 +383,7 @@ class EdgeList(object):
         else:
             return updated_edges
 
+    @property
     def creates_knowledge_graph_edges(self):
         """Generates edge lists for each edge type in an input dictionary.
 
@@ -400,13 +401,13 @@ class EdgeList(object):
             # step 1: read in, process, and filter data
             print('Cleaning Edges')
 
-            clean_data = self.processes_edge_data(self.data_files[edge_type],
-                                                  self.source_info[edge_type]['row_splitter'],
-                                                  self.source_info[edge_type]['column_splitter'],
-                                                  self.source_info[edge_type]['column_indicies'],
-                                                  self.source_info[edge_type]['evidence_criteria'],
-                                                  self.source_info[edge_type]['filter_criteria'],
-                                                  self.source_info[edge_type]['source_labels'])
+            clean_data = processes_edge_data(data_files[edge_type],
+                                                 source_info[edge_type]['row_splitter'],
+                                                  source_info[edge_type]['column_splitter'],
+                                                  source_info[edge_type]['column_indicies'],
+                                                  source_info[edge_type]['evidence_criteria'],
+                                                  source_info[edge_type]['filter_criteria'],
+                                                  source_info[edge_type]['source_labels'])
 
             # step 2: map identifiers + add proper source labels
             print('Mapping Identifiers and Updating Edge List\n')
@@ -414,6 +415,28 @@ class EdgeList(object):
             if self.source_info[edge_type]['identifier_maps'] == 'None':
                 self.source_info[edge_type]['edge_list'] = clean_data
 
+            elif 'MERGE' in self.source_info[edge_type]['identifier_maps']:
+
+                # find node to merge and clean text for filtering
+                merge_file = self.source_info[edge_type]['identifier_maps'].split(';')
+                node_loc = [i for i, s in enumerate(merge_file) if 'MERGE' in s][0]
+                node_text = merge_file[node_loc].strip('MERGE:')
+
+                # filter and look for matching edges
+                merge_cleaned = [re.sub(r'\W+', '_', x) for x in self.queries_txt_file(node_text).keys()]
+                matched = set([x[node_loc] for x in clean_data]).intersection(set(merge_cleaned))
+
+                # update master dictionary values
+                cleaned_data = [x for x in clean_data if x[node_loc] in list(matched)]
+                self.source_info[edge_type]['edge_list'] = cleaned_data
+                edge_loc = self.source_info[edge_type]['identifier_maps'].split(';')[0].split(':')[0:1]
+                map_source = self.source_info[edge_type]['identifier_maps'].split(';')[0].split(':')[1:]
+
+                # map identifiers
+                self.source_info[edge_type]['edge_list'] = self.maps_identifiers(clean_data,
+                                                                                 edge_type,
+                                                                                 edge_loc,
+                                                                                 map_source)
             else:
                 edge_loc = [i for j in self.source_info[edge_type]['identifier_maps'].split(';')
                             for i in j.split(':')][0::2]
@@ -421,9 +444,18 @@ class EdgeList(object):
                 map_source = [i for j in self.source_info[edge_type]['identifier_maps'].split(';')
                               for i in j.split(':')][1::2]
 
-                mapped_data = self.maps_identifiers(clean_data, edge_type, edge_loc, map_source)
+                # map identifiers
+                self.source_info[edge_type]['edge_list'] = self.maps_identifiers(clean_data,
+                                                                                 edge_type,
+                                                                                 edge_loc,
+                                                                                 map_source)
 
-                # add results back to dict
-                self.source_info[edge_type]['edge_list'] = mapped_data
+            # get stats to print
+            n0 = len(set([x[0] for x in self.source_info[edge_type]['edge_list']]))
+            n1 = len(set([x[1] for x in self.source_info[edge_type]['edge_list']]))
+            link = len(self.source_info[edge_type]['edge_list'])
+            print('\n\n' + '=' * 50)
+            print('Processed Edge: {0} (nodes:{1}; edge:{2}; nodes:{3})'.format(edge_type, n0, link, n1))
+            print('=' * 50 + '\n')
 
         return None

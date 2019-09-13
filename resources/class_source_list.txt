@@ -1,6 +1,5 @@
 chemical-disease, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
 chemical-gene, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-chemical-go, http://ctdbase.org/reports/CTD_pheno_term_ixns.csv.gz
 chemical-pathway, https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
 disease-gobp, http://ctdbase.org/reports/CTD_Phenotype-Disease_biological_process_associations.csv.gz
 disease-gocc, http://ctdbase.org/reports/CTD_Phenotype-Disease_cellular_component_associations.csv.gz
@@ -10,7 +9,6 @@ gene-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/la
 gene-gobp, http://geneontology.org/gene-associations/goa_human.gaf.gz
 gene-gomf, http://geneontology.org/gene-associations/goa_human.gaf.gz
 gene-gocc, http://geneontology.org/gene-associations/goa_human.gaf.gz
-pathway-disease, https://www.dropbox.com/s/0r32bn2ji4m6x6n/pathway-disease_reactome_instance_data.txt?dl=0
 pathway-gobp, https://reactome.org/download/current/gene_association.reactome.gz
 pathway-gomf, https://reactome.org/download/current/gene_association.reactome.gz
 pathway-gocc, https://reactome.org/download/current/gene_association.reactome.gz
