@@ -34,9 +34,11 @@ All code and output for each release are free to download, see [Wiki](https://gi
 what's included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).  
 - [x] This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to 
 `resources/lib/` prior to running `main.py`.  
-   
 
 <br>
+
+**Data Sources:** This knowledge graph is constructed from the following public data sources, which we are very grateful for 🙏 🙇‍♀ . See the [current release](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0) for information on each data source.
+
 
 #### Running Code
 
