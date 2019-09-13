@@ -118,7 +118,7 @@ class EdgeList(object):
 
         return edge1.replace(':', '_'), edge2.replace(':', '_')
 
-    def processes_edge_data(data, file_split, line_split, columns, evidence, data_filter, src_label):
+    def processes_edge_data(self, data, file_split, line_split, columns, evidence, data_filter, src_label):
         """Function process a data set and uses the user input to generate a nested list where each nested list
         represents an edge.
 
@@ -153,11 +153,11 @@ class EdgeList(object):
 
         # perform filtering
         if 'None' not in data_filter:
-            edge_data = filters_data(edge_data, splitter, data_filter)
+            edge_data = self.filters_data(edge_data, splitter, data_filter)
 
         # perform evidence filtering
         if 'None' not in evidence:
-            edge_data = filters_data(edge_data, splitter, evidence)
+            edge_data = self.filters_data(edge_data, splitter, evidence)
 
         # filter to specific columns
         for line in edge_data:
@@ -167,7 +167,7 @@ class EdgeList(object):
                 line_data = [x.strip('"').strip("'") for x in line]
 
                 # format labels
-                labeled_edges = formats_column_labels(line_data, columns, src_label)
+                labeled_edges = self.formats_column_labels(line_data, columns, src_label)
 
                 edges.append(['_'.join(list(filter(None, labeled_edges[0].split('_')))),
                               '_'.join(list(filter(None, labeled_edges[1].split('_'))))])
@@ -401,13 +401,13 @@ class EdgeList(object):
             # step 1: read in, process, and filter data
             print('Cleaning Edges')
 
-            clean_data = processes_edge_data(data_files[edge_type],
-                                                 source_info[edge_type]['row_splitter'],
-                                                  source_info[edge_type]['column_splitter'],
-                                                  source_info[edge_type]['column_indicies'],
-                                                  source_info[edge_type]['evidence_criteria'],
-                                                  source_info[edge_type]['filter_criteria'],
-                                                  source_info[edge_type]['source_labels'])
+            clean_data = self.processes_edge_data(self.data_files[edge_type],
+                                                  self.source_info[edge_type]['row_splitter'],
+                                                  self.source_info[edge_type]['column_splitter'],
+                                                  self.source_info[edge_type]['column_indicies'],
+                                                  self.source_info[edge_type]['evidence_criteria'],
+                                                  self.source_info[edge_type]['filter_criteria'],
+                                                  self.source_info[edge_type]['source_labels'])
 
             # step 2: map identifiers + add proper source labels
             print('Mapping Identifiers and Updating Edge List\n')

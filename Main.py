@@ -62,33 +62,6 @@ def main():
     # CREATE EDGE LISTS #
     #####################
 
-    # cls_data_files = {'chemical-disease': './resources/edge_data/chemical_disease_ctd_class_data.txt',
-    #                   'chemical-gene': './resources/edge_data/chemical-gene_ctd_class_data.txt',
-    #                   'chemical-go': './resources/edge_data/chemical-go_ctd_class_data.txt',
-    #                   'chemical-pathway': './resources/edge_data/chemical-pathway_reactome_class_data.txt',
-    #                   'disease-gobp': './resources/edge_data/disease-gobp_ctd_class_data.txt',
-    #                   'disease-gocc': './resources/edge_data/disease-gocc_ctd_class_data.txt',
-    #                   'disease-gomf': './resources/edge_data/disease-gomf_ctd_class_data.txt',
-    #                   'disease-phenotype': './resources/edge_data/disease-phenotype_hp_class_data.txt',
-    #                   'gene-gobp': './resources/edge_data/gene-go_goa_class_data.txt',
-    #                   'gene-gomf': './resources/edge_data/gene-go_goa_class_data.txt',
-    #                   'gene-gocc': './resources/edge_data/gene-go_goa_class_data.txt',
-    #                   'gene-phenotype': './resources/edge_data/gene-phenotype_hp_class_data.txt',
-    #                   'pathway-gobp': './resources/edge_data/pathway-go_reactome_class_data.txt',
-    #                   'pathway-gomf': './resources/edge_data/pathway-go_reactome_class_data.txt',
-    #                   'pathway-gocc': './resources/edge_data/pathway-go_reactome_class_data.txt'}
-    #
-    # inst_data_files = {'gene-gene': './resources/edge_data/gene-gene_string_instance_data.txt',
-    #                    'gene-pathway': './resources/edge_data/gene-pathway_reactome_instance_data.txt',
-    #                    'pathway-disease': './resources/edge_data/pathway-disease_reactome_instance_data.txt'}
-    #
-    # ontologies = {'disease': './resources/ontologies/doid_with_imports.owl',
-    #               'phenotype': './resources/ontologies/hp_with_imports.owl',
-    #               'go': './resources/ontologies/go_with_imports.owl',
-    #               'chemical': './resources/ontologies/chebi_lite.owl'}
-
-    # combined_edges = dict(dict(cls_data_files, **inst_data_files), **ontologies)
-
     # STEP 1: create master resource dictionary
     combined_edges = dict(dict(cls.data_files, **inst.data_files), **ont.data_files)
     master_edges = scripts.python.EdgeDictionary.EdgeList(combined_edges, './resources/resource_info.txt')
@@ -197,3 +170,10 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+ (nodes:16955; edge:157344; nodes:12206)
+gene-gomf (nodes:16916; edge:163504; nodes:4183)
+gene-gocc (nodes:17844; edge:158801; nodes:1735)
+gene - phenotype(nodes: 4073; edge: 150653;nodes: 7464)
+gene-pathway (nodes:10528; edge:121191; nodes:2234)
+pathway-disease (nodes:692; edge:5767; nodes:2555)
