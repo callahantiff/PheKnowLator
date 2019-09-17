@@ -109,36 +109,45 @@ def main():
         else:
             other_edges[edge] = master_edges[edge]
 
-    # create class-instance edges (1577751, 4725125 nodes/edges)
-    class_kg = creates_knowledge_graph_edges(class_edges,
-                                             'class',
+    # create class-instance edges
+    class_kg = creates_knowledge_graph_edges(class_edges,  'class',
                                              Graph().parse(merged_onts + 'PheKnowLator_v2_MergedOntologies_BioKG.owl'),
                                              ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2.owl',
                                              kg_class_iri_map={})
 
-    # create instance-instance and class-class edges (1580322, 7509493 nodes/edges)
-    class_inst_kg = creates_knowledge_graph_edges(other_edges,
-                                                  'other',
-                                                  class_kg,
-                                                  ont_kg + 'PheKnowLator_v2_Full_BioKG2.owl')
+    # create instance-instance and class-class edges
+    class_inst_kg = creates_knowledge_graph_edges(other_edges, 'other', class_kg,
+                                                  ont_kg + 'PheKnowLator_v2_Full_BioKG.owl')
 
-    # STEP 3: remove disjoint axioms (333; 1580322 nodes and 7509147 edges)
-    removes_disointness_axioms(class_inst_kg, ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness.owl')
+    # STEP 3: remove disjoint axioms
+    removes_disointness_axioms(class_inst_kg, ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness.owl')
 
     # STEP 4: deductively close graph
-    closes_knowledge_graph(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness.owl',
+    closes_knowledge_graph(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness.owl',
                            'elk',
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl')
+                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl')
 
-    # STEP 5: remove metadata nodes (258646 nodes and 4283686 edges/KG has 258528 nodes and 4247302 edges)
-    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK.owl'),
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl',
-                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2_ClassInstanceMap.json')
+    # STEP 5: remove metadata node
+    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl'),
+                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_NoMetadataNodes.owl',
+                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
+
+    # NOT CLOSED
+    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness.owl'),
+                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_NotClosed_NoMetadataNodes.owl',
+                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
 
     # STEP 6: convert triples to ints
-    maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_ELK_Closed_NoMetadataNodes.owl'),
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG2_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG2_Triples_Integer_Labels_Map.json')
+    maps_str_to_int(Graph().parse(ont_kg +
+                                  'kg_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_NoMetadataNodes.owl'),
+                    ont_kg + 'kg_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+                    ont_kg + 'kg_closed/PheKnowLator_v2_Full_BioKG_Closed_ELK_Triples_Integer_Labels_Map.json')
+
+    maps_str_to_int(Graph().parse(ont_kg +
+                                  'kg_not_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_NotClosed_NoMetadataNodes'
+                                  '.owl'),
+                    ont_kg + 'kg_not_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_NotClosed_Triples_Integers.txt',
+                    ont_kg + 'kg_not_closed/PheKnowLator_v2_Full_BioKG_NotClosed_Triples_Integer_Labels_Map.json')
 
     ##############################
     # KNOWLEDGE GRAPH EMBEDDINGS #
@@ -171,9 +180,10 @@ def main():
 if __name__ == '__main__':
     main()
 
- (nodes:16955; edge:157344; nodes:12206)
-gene-gomf (nodes:16916; edge:163504; nodes:4183)
-gene-gocc (nodes:17844; edge:158801; nodes:1735)
-gene - phenotype(nodes: 4073; edge: 150653;nodes: 7464)
-gene-pathway (nodes:10528; edge:121191; nodes:2234)
-pathway-disease (nodes:692; edge:5767; nodes:2555)
+pathways = []
+for edge in list(y):
+    if 'geneid' in str(edge[0]):
+        # print(str(edge[0]), str(edge[1]), str(edge[2]))
+        pathways.append([str(edge[0]), str(edge[1]), str(edge[2])])
+    if 'geneid' in str(edge[2]):
+        pathways.append([str(edge[0]), str(edge[1]), str(edge[2])])

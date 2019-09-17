@@ -73,7 +73,6 @@ def processes_embedded_nodes(file_list, original_edges, kg_node_int_label_map):
             10 - window
             100 - # random walks for HSM tree
             001 - learning rate (with '.' removed)
-
     Args:
         file_list (lst): A list of file paths.
         original_edges (str): A string naming the filepath to the original edge list.
@@ -87,6 +86,7 @@ def processes_embedded_nodes(file_list, original_edges, kg_node_int_label_map):
 
     # iterate over the embedding files and convert the data to numpy array
     for file in tqdm(file_list):
+        print(file)
 
         print('\nProcessing Embedding File: {0}'.format(file.split('/')[-1]))
 
@@ -101,7 +101,7 @@ def processes_embedded_nodes(file_list, original_edges, kg_node_int_label_map):
         original_embeddings = np.fromfile(file, np.float32).reshape(len(original_nodes), dim)
 
         # re-order embeddings and write to drive
-        out_loc = open('.' + file.split('.')[1] + '_formatted.txt', 'w')
+        out_loc = open('./' + file.split('.')[1] + '_formatted.txt', 'w')
 
         for nodes in sorted(list(dict(zip(sorted(map(int, original_nodes)), range(len(original_nodes)))).items())):
             out_loc.write(node_labeler[nodes[0]] + '\t' + str(list(original_embeddings[nodes[1]])).strip('[|]') + '\n')

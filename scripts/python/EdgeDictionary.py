@@ -76,19 +76,26 @@ class EdgeList(object):
 
         for line in edge_data:
             split_line = ['"{}"'.format(x) for x in list(csv.reader([line], delimiter=splitter, quotechar='"'))[0]]
+            meets_criteria = []
 
-            if len(split_line) > 1 and '.' not in data_filter:
-                statement = '{} {} "{}"'.format(split_line[int(data_filter.split(';')[0])],
-                                                data_filter.split(';')[1],
-                                                data_filter.split(';')[2])
-                if eval(statement):
-                    filtered_data.append(line)
+            for criteria in data_filter.split('::'):
+                if len(split_line) > 1 and '.' not in criteria:
+                    statement = '{} {} "{}"'.format(split_line[int(criteria.split(';')[0])],
+                                                    criteria.split(';')[1],
+                                                    criteria.split(';')[2])
+                    if eval(statement):
+                        meets_criteria.append(line)
 
-            elif len(split_line) > 1 and '.' in data_filter:
-                statement = '{}{}'.format(split_line[int(data_filter.split(';')[0])], data_filter.split(';')[1])
+                # filtering using str.startswith()
+                elif len(split_line) > 1 and '.' in criteria:
+                    statement = '{}{}'.format(split_line[int(criteria.split(';')[0])], criteria.split(';')[1])
 
-                if eval(statement):
-                    filtered_data.append(line)
+                    if eval(statement):
+                        meets_criteria.append(line)
+
+            # verify that line matches on all filtering criteria
+            if len(meets_criteria) == len(data_filter.split('::')):
+                filtered_data.append(''.join(set(meets_criteria)))
 
         return filtered_data
 
@@ -383,7 +390,7 @@ class EdgeList(object):
         else:
             return updated_edges
 
-    @property
+    # @property
     def creates_knowledge_graph_edges(self):
         """Generates edge lists for each edge type in an input dictionary.
 
@@ -415,28 +422,6 @@ class EdgeList(object):
             if self.source_info[edge_type]['identifier_maps'] == 'None':
                 self.source_info[edge_type]['edge_list'] = clean_data
 
-            elif 'MERGE' in self.source_info[edge_type]['identifier_maps']:
-
-                # find node to merge and clean text for filtering
-                merge_file = self.source_info[edge_type]['identifier_maps'].split(';')
-                node_loc = [i for i, s in enumerate(merge_file) if 'MERGE' in s][0]
-                node_text = merge_file[node_loc].strip('MERGE:')
-
-                # filter and look for matching edges
-                merge_cleaned = [re.sub(r'\W+', '_', x) for x in self.queries_txt_file(node_text).keys()]
-                matched = set([x[node_loc] for x in clean_data]).intersection(set(merge_cleaned))
-
-                # update master dictionary values
-                cleaned_data = [x for x in clean_data if x[node_loc] in list(matched)]
-                self.source_info[edge_type]['edge_list'] = cleaned_data
-                edge_loc = self.source_info[edge_type]['identifier_maps'].split(';')[0].split(':')[0:1]
-                map_source = self.source_info[edge_type]['identifier_maps'].split(';')[0].split(':')[1:]
-
-                # map identifiers
-                self.source_info[edge_type]['edge_list'] = self.maps_identifiers(clean_data,
-                                                                                 edge_type,
-                                                                                 edge_loc,
-                                                                                 map_source)
             else:
                 edge_loc = [i for j in self.source_info[edge_type]['identifier_maps'].split(';')
                             for i in j.split(':')][0::2]
@@ -454,8 +439,8 @@ class EdgeList(object):
             n0 = len(set([x[0] for x in self.source_info[edge_type]['edge_list']]))
             n1 = len(set([x[1] for x in self.source_info[edge_type]['edge_list']]))
             link = len(self.source_info[edge_type]['edge_list'])
-            print('\n\n' + '=' * 50)
+            print('\n\n' + '=' * 75)
             print('Processed Edge: {0} (nodes:{1}; edge:{2}; nodes:{3})'.format(edge_type, n0, link, n1))
-            print('=' * 50 + '\n')
+            print('=' * 75 + '\n')
 
         return None

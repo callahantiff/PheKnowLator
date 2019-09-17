@@ -313,13 +313,13 @@ def maps_str_to_int(graph, output_trip_ints, output_map):
     out2.close()
 
     # write bcsr file for input to deepwalk-c
-    process('edgelist', None, True, '\t', output_trip_ints, output_trip_ints.split('.')[1] + '_.bcsr')
+    process('edgelist', None, 'directed', '\t', output_trip_ints, output_trip_ints.split('.')[0] + '.bcsr')
 
     # CHECK - verify we get the number of edges that we would expect to get
     if len(graph) != len(update_graph_ints):
         raise Exception('ERROR: The number of triples is incorrect!')
     else:
-        # write string-tto-int dictionary to file
+        # write string-to-int dictionary to file
         with open(output_map, 'w') as fp:
             json.dump(node_map, fp)
 

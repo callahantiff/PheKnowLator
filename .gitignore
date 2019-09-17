@@ -18,6 +18,7 @@ scripts/*.pyc
 /resources/*.json
 /resources/embeddings/*
 Untitled*
+./scripts/python/scratch.py
 
 # releases
 /resources/releases/
