@@ -1,4 +1,4 @@
-## PheKnowLater
+## PheKnowLator
 
 
 A repository for building biomedical knowledge graphs of human disease mechanisms. Detailed information regarding this project can be found on the associated [Wiki](https://github.com/callahantiff/PheKnowLater/wiki).
