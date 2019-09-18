@@ -37,7 +37,7 @@ what's included in these documents, see the [Wiki](https://github.com/callahanti
 
 <br>
 
-**Data Sources:** This knowledge graph is constructed from the following public data sources, which we are very grateful for 🙏 🙇‍♀ . See the [current release](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0) for information on each data source.
+**Data Sources:** This knowledge graph is constructed from the following public data sources, which we are very grateful for 🙏 🙇‍♀ . See our [data source documentation](https://github.com/callahantiff/PheKnowLator/wiki/Data-Sources) for information on the data we use.
 
 
 #### Running Code
