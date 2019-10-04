@@ -118,7 +118,7 @@ our code of conduct, and the process for submitting pull requests to us.
 This project is licensed under Apache License 2.0 - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.
 
 
-**Citing thie Work:**  
+**Citing this Work:**  
 ```
 @misc{callahan_tj_2019_3401437,
   author       = {Callahan, TJ},
