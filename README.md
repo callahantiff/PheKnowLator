@@ -1,7 +1,6 @@
 ## PheKnowLator
 
-A repository for building biomedical knowledge graphs of human disease mechanisms. Detailed information regarding this project can be found on the associated [Wiki](https://github.com/callahantiff/PheKnowLater/wiki).
-
+A repository for building biomedical knowledge graphs of human disease mechanisms. Detailed information regarding this project can be found on the associated [Wiki](https://github.com/callahantiff/PheKnowLater/wiki).  
 <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.3401437.svg"> 
 
 **This is a Reproducible Research Repository:** This repository contains more than just code, it provides a detailed and transparent narrative of our research process. For detailed information on how we use GitHub as a reproducible research platform, click [here](https://github.com/callahantiff/Abra-Collaboratory/wiki/Using-GitHub-as-a-Reproducible-Research-Platform).
@@ -23,34 +22,23 @@ All code and output for each release are free to download, see [Wiki](https://gi
 
 ### Getting Started
 
-This program was written on a system running OS X Sierra. Successful execution of this program requires Python version 3.6.
-
-  * Python
-    * Version 3.6
-    * Modules are described under [*Installation*](#Installation)
-
-<br>
-
-#### Installation
-
-**Requirements:**  
-To install and execute the program designate the cloned project folder as the current working directory. Place any outside files within the working directory prior to executing the program.
-
-```
-pip install -r requirements.txt
-```
-
-<br>
-
 **Dependencies:**  
+- [x] This program requires Python version 3.6. To install required modules, run the following:  
+
+    ```
+    pip install -r requirements.txt
+    ``` 
+
+- [x] Biomedical Knowledge graph embeddings are generated using [n1-standard1](https://cloud.google.com/compute/vm-instance-pricing#n1_predefined) Google Compute VMs.  
 - [x] ‼ **Important:** This code also depends on four documents in order to run successfully. For information on 
-what's 
-included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).
+what's included in these documents, see the [Wiki](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies).  
 - [x] This program depends on the [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to 
 `resources/lib/` prior to running `main.py`.  
-   
 
 <br>
+
+**Data Sources:** This knowledge graph is constructed from the following public data sources, which we are very grateful for 🙏 🙇‍♀ . See our [data source documentation](https://github.com/callahantiff/PheKnowLator/wiki/Data-Sources) for information on the data we use.
+
 
 #### Running Code
 
@@ -94,6 +82,19 @@ optional arguments:
 2. Add class-instance and instance-instance edges to merged ontologies.  
 3. Remove disjointness axioms.  
 4. Deductively close knowledge graph using [Elk reasoner](https://www.cs.ox.ac.uk/isg/tools/ELK/).    
+5. Remove edges that are not clinically meaningful.  
+6. Write edges (as triples) to local directory.  
+7. Convert original edges to integers and write to local directory (required input format for generating embeddings).
+
+**STEP 4: Generate Mechanism Embeddings**  
+To create estimates of modlecular mechanisms, we embed knowledge graph information extracted by [DeepWalk](https://github.com/phanein/deepwalk). This repository contains code to run two versions of the [original method](http://www.perozzi.net/publications/14_kdd_deepwalk.pdf) developed by [Bryan Perozzi](https://github.com/phanein):    
+ -  [`DeepWalk algorithm-C`](https://github.com/xgfs/deepwalk-c): an implementation of the original algorithm in C++ (with some improvements to speed up initialize the hierarchical softmax tree that was developed by [Anton Tsitsulin](https://github.com/xgfs).  
+ - [`DeepWalk-RDF`](https://github.com/bio-ontology-research-group/walking-rdf-and-owl): an extension of the original algorithm that also embeds graph edges; developed by [the Bio-Ontology Research Group](https://github.com/bio-ontology-research-group/walking-rdf-and-owl).  
+   - ‼ **Note:** This library depends on the [C++ Boost library](https://www.pyimagesearch.com/2015/04/27/installing
+   -boost-and-boost-python-on-osx-with-homebrew/) and [Boost Threadpool Header Files](http://threadpool.sourceforge
+   .net/). For the Headers, the sub-directory called `Boost` at the top-level of the `walking-rdf-and-owl-master
+   ` directory. In order to compile and run `Deepwalk-RDF` on OSX, there are a few important changes that will need
+    to be made:  
 5. Write edges (as triples) to local directory.  
 6. Convert original edges to integers and write to local directory (required input format for generating embeddings).
 
@@ -103,7 +104,7 @@ optional arguments:
    - ‼ **Note:** This library depends on the [C++ Boost library](https://www.pyimagesearch.com/2015/04/27/installing-boost-and-boost-python-on-osx-with-homebrew/) and [Boost Threadpool Header Files](http://threadpool.sourceforge.net/). For the Headers, the sub-directory called `Boost` at the top-level of the `walking-rdf-and-owl-master` directory. In order to compile and run `Deepwalk-RDF`, there are a few important changes that will need to be made:  
       - Change `TIME_UTC` to `TIME_UTC_` in the `boost/threadpool/task_adaptors.hpp`.  
       - Change the `-lboost_thread` argument to `-lboost_thread-mt` in the `walking-rdf-and-owl-master/Makefile` 
-      - To troubleshoot incompatability issues between Deepwalk and Gensim, run tthe following in this order:  
+      - To troubleshoot incompatability issues between Deepwalk and Gensim, run the following in this order:  
         - `pip uninstall gensim`  
         - `pip uninstall deepwalk`  
         - `pip install gensim==0.10.2` 
@@ -121,4 +122,17 @@ our code of conduct, and the process for submitting pull requests to us.
 
 ### License
 
-This project is licensed under Apache License 2.0 - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.
+This project is licensed under Apache License 2.0 - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.  
+
+
+**Citing this Work:**  
+```
+@misc{callahan_tj_2019_3401437,
+  author       = {Callahan, TJ},
+  title        = {PheKnowLator},
+  month        = mar,
+  year         = 2019,
+  doi          = {10.5281/zenodo.3401437},
+  url          = {https://doi.org/10.5281/zenodo.3401437}
+}
+```   

@@ -9,7 +9,7 @@ scripts/*.pyc
 .ipynb_checkpoints/main-checkpoint.ipynb
 
 # data and scripts
-/resources/archive.zip
+/resources/releases/archive.zip
 /resources/data_maps/
 /resources/edge_data/
 /resources/knowledge_graphs/
@@ -17,6 +17,8 @@ scripts/*.pyc
 /resources/ontologies/
 /resources/*.json
 /resources/embeddings/*
+Untitled*
+./scripts/python/scratch.py
 
 # releases
 /resources/releases/
@@ -27,3 +29,5 @@ scripts/*.pyc
 # external libraries
 /resources/lib/
 /walking-rdf-and-owl-master/
+resources/resource_info_updated.txt
+external_libraries/*

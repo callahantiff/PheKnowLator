@@ -4,6 +4,7 @@
 
 # import needed libraries
 import argparse
+import glob
 
 import scripts.python.DataSources
 import scripts.python.EdgeDictionary
@@ -109,16 +110,13 @@ def main():
             other_edges[edge] = master_edges[edge]
 
     # create class-instance edges
-    class_kg = creates_knowledge_graph_edges(class_edges,
-                                             'class',
+    class_kg = creates_knowledge_graph_edges(class_edges,  'class',
                                              Graph().parse(merged_onts + 'PheKnowLator_v2_MergedOntologies_BioKG.owl'),
-                                             ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG.owl',
+                                             ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2.owl',
                                              kg_class_iri_map={})
 
     # create instance-instance and class-class edges
-    class_inst_kg = creates_knowledge_graph_edges(other_edges,
-                                                  'other',
-                                                  class_kg,
+    class_inst_kg = creates_knowledge_graph_edges(other_edges, 'other', class_kg,
                                                   ont_kg + 'PheKnowLator_v2_Full_BioKG.owl')
 
     # STEP 3: remove disjoint axioms
@@ -129,15 +127,27 @@ def main():
                            'elk',
                            ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl')
 
-    # STEP 5: remove metadata nodes
+    # STEP 5: remove metadata node
     removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl'),
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_ELK_Closed_NoMetadataNodes.owl',
+                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_NoMetadataNodes.owl',
+                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
+
+    # NOT CLOSED
+    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness.owl'),
+                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_NotClosed_NoMetadataNodes.owl',
                            ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
 
     # STEP 6: convert triples to ints
-    maps_str_to_int(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_ELK_Closed_NoMetadataNodes.owl'),
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                    ont_kg + 'PheKnowLator_v2_Full_BioKG_Triples_Integer_Labels_Map.json')
+    maps_str_to_int(Graph().parse(ont_kg +
+                                  'kg_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_NoMetadataNodes.owl'),
+                    ont_kg + 'kg_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+                    ont_kg + 'kg_closed/PheKnowLator_v2_Full_BioKG_Closed_ELK_Triples_Integer_Labels_Map.json')
+
+    maps_str_to_int(Graph().parse(ont_kg +
+                                  'kg_not_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_NotClosed_NoMetadataNodes'
+                                  '.owl'),
+                    ont_kg + 'kg_not_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_NotClosed_Triples_Integers.txt',
+                    ont_kg + 'kg_not_closed/PheKnowLator_v2_Full_BioKG_NotClosed_Triples_Integer_Labels_Map.json')
 
     ##############################
     # KNOWLEDGE GRAPH EMBEDDINGS #
@@ -145,30 +155,35 @@ def main():
     # set file path
     embed_path = './resources/embeddings/'
 
-    runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_128_10_100_40.txt',
-                  workers=63,
-                  dimensions=128,
+    runs_deepwalk(input_file=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
+                  output_file=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_128_10_50_20.txt',
+                  threads=100,
+                  dim=128,
+                  nwalks=100,
+                  walklen=20,
                   window=10,
-                  walks=100,
-                  walk_length=40)
+                  nprwalks=100,
+                  lr=0.01)
 
-    runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_256_10_100_40.txt',
-                  workers=63,
-                  dimensions=256,
-                  window=10,
-                  walks=100,
-                  walk_length=40)
+    # read in embeddings to convert from binary compressed sparse row (BCSR) into numpy array
+    # not closed graphs
+    processes_embedded_nodes(glob.glob('./resources/embeddings/*_NotClosed_*.out'),
+                             glob.glob('./resources/knowledge_graphs/kg_not_closed/*Triples_Integers.txt')[0],
+                             glob.glob('./resources/knowledge_graphs/kg_not_closed/*.json')[0])
 
-    runs_deepwalk(input_loc=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_loc=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_512_10_100_40.txt',
-                  workers=63,
-                  dimensions=512,
-                  window=10,
-                  walks=100,
-                  walk_length=40)
+    # closed graphs
+    processes_embedded_nodes(glob.glob('./resources/embeddings/*_Closed_*.out'),
+                             glob.glob('./resources/knowledge_graphs/kg_closed/*Triples_Integers.txt')[0],
+                             glob.glob('./resources/knowledge_graphs/kg_closed/*.json')[0])
 
 
 if __name__ == '__main__':
     main()
+
+pathways = []
+for edge in list(y):
+    if 'geneid' in str(edge[0]):
+        # print(str(edge[0]), str(edge[1]), str(edge[2]))
+        pathways.append([str(edge[0]), str(edge[1]), str(edge[2])])
+    if 'geneid' in str(edge[2]):
+        pathways.append([str(edge[0]), str(edge[1]), str(edge[2])])

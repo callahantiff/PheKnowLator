@@ -76,19 +76,26 @@ class EdgeList(object):
 
         for line in edge_data:
             split_line = ['"{}"'.format(x) for x in list(csv.reader([line], delimiter=splitter, quotechar='"'))[0]]
+            meets_criteria = []
 
-            if len(split_line) > 1 and '.' not in data_filter:
-                statement = '{} {} "{}"'.format(split_line[int(data_filter.split(';')[0])],
-                                                data_filter.split(';')[1],
-                                                data_filter.split(';')[2])
-                if eval(statement):
-                    filtered_data.append(line)
+            for criteria in data_filter.split('::'):
+                if len(split_line) > 1 and '.' not in criteria:
+                    statement = '{} {} "{}"'.format(split_line[int(criteria.split(';')[0])],
+                                                    criteria.split(';')[1],
+                                                    criteria.split(';')[2])
+                    if eval(statement):
+                        meets_criteria.append(line)
 
-            elif len(split_line) > 1 and '.' in data_filter:
-                statement = '{}{}'.format(split_line[int(data_filter.split(';')[0])], data_filter.split(';')[1])
+                # filtering using str.startswith()
+                elif len(split_line) > 1 and '.' in criteria:
+                    statement = '{}{}'.format(split_line[int(criteria.split(';')[0])], criteria.split(';')[1])
 
-                if eval(statement):
-                    filtered_data.append(line)
+                    if eval(statement):
+                        meets_criteria.append(line)
+
+            # verify that line matches on all filtering criteria
+            if len(meets_criteria) == len(data_filter.split('::')):
+                filtered_data.append(''.join(set(meets_criteria)))
 
         return filtered_data
 
@@ -330,7 +337,7 @@ class EdgeList(object):
         Args:
             edges (list): A nested list where each list represents an edge.
             edge_type (str): A string naming the type of edge.
-            edge_loc (list): A list of strings that represent integers.å
+            edge_loc (list): A list of strings that represent integers.
             map_source (list): A string naming the mapping source to use for mapping.
 
         Returns:
@@ -383,6 +390,7 @@ class EdgeList(object):
         else:
             return updated_edges
 
+    # @property
     def creates_knowledge_graph_edges(self):
         """Generates edge lists for each edge type in an input dictionary.
 
@@ -421,9 +429,18 @@ class EdgeList(object):
                 map_source = [i for j in self.source_info[edge_type]['identifier_maps'].split(';')
                               for i in j.split(':')][1::2]
 
-                mapped_data = self.maps_identifiers(clean_data, edge_type, edge_loc, map_source)
+                # map identifiers
+                self.source_info[edge_type]['edge_list'] = self.maps_identifiers(clean_data,
+                                                                                 edge_type,
+                                                                                 edge_loc,
+                                                                                 map_source)
 
-                # add results back to dict
-                self.source_info[edge_type]['edge_list'] = mapped_data
+            # get stats to print
+            n0 = len(set([x[0] for x in self.source_info[edge_type]['edge_list']]))
+            n1 = len(set([x[1] for x in self.source_info[edge_type]['edge_list']]))
+            link = len(self.source_info[edge_type]['edge_list'])
+            print('\n\n' + '=' * 75)
+            print('Processed Edge: {0} (nodes:{1}; edge:{2}; nodes:{3})'.format(edge_type, n0, link, n1))
+            print('=' * 75 + '\n')
 
         return None
