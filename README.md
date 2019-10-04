@@ -1,7 +1,7 @@
 ## PheKnowLator
 
-
-A repository for building biomedical knowledge graphs of human disease mechanisms. Detailed information regarding this project can be found on the associated [Wiki](https://github.com/callahantiff/PheKnowLater/wiki).
+A repository for building biomedical knowledge graphs of human disease mechanisms. Detailed information regarding this project can be found on the associated [Wiki](https://github.com/callahantiff/PheKnowLater/wiki).  
+<img src="https://zenodo.org/badge/DOI/10.5281/zenodo.3401437.svg"> 
 
 **This is a Reproducible Research Repository:** This repository contains more than just code, it provides a detailed and transparent narrative of our research process. For detailed information on how we use GitHub as a reproducible research platform, click [here](https://github.com/callahantiff/Abra-Collaboratory/wiki/Using-GitHub-as-a-Reproducible-Research-Platform).
 
@@ -16,7 +16,7 @@ A repository for building biomedical knowledge graphs of human disease mechanism
 ### Releases  
 All code and output for each release are free to download, see [Wiki](https://github.com/callahantiff/PheKnowLator/wiki) for full release archive.  
 
-**Current Release:** [v1.0.0](https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0). Data and code can be directly downloaded [here](https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0#generated-output)
+**Current Release:** [v2.0.0](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0). Data and code can be directly downloaded [here](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0#generated-output)
 
 *** 
 
@@ -95,6 +95,13 @@ To create estimates of modlecular mechanisms, we embed knowledge graph informati
    .net/). For the Headers, the sub-directory called `Boost` at the top-level of the `walking-rdf-and-owl-master
    ` directory. In order to compile and run `Deepwalk-RDF` on OSX, there are a few important changes that will need
     to be made:  
+5. Write edges (as triples) to local directory.  
+6. Convert original edges to integers and write to local directory (required input format for generating embeddings).
+
+**STEP 4: Generate Mechanism Embeddings**  
+ - A [modified](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) version of the [DeepWalk 
+ algorithm](https://github.com/bio-ontology-research-group/walking-rdf-and-owl) was implemented to generate molecular mechanism embeddings from the biomedical knowledge graph. 
+   - ‼ **Note:** This library depends on the [C++ Boost library](https://www.pyimagesearch.com/2015/04/27/installing-boost-and-boost-python-on-osx-with-homebrew/) and [Boost Threadpool Header Files](http://threadpool.sourceforge.net/). For the Headers, the sub-directory called `Boost` at the top-level of the `walking-rdf-and-owl-master` directory. In order to compile and run `Deepwalk-RDF`, there are a few important changes that will need to be made:  
       - Change `TIME_UTC` to `TIME_UTC_` in the `boost/threadpool/task_adaptors.hpp`.  
       - Change the `-lboost_thread` argument to `-lboost_thread-mt` in the `walking-rdf-and-owl-master/Makefile` 
       - To troubleshoot incompatability issues between Deepwalk and Gensim, run the following in this order:  
@@ -115,7 +122,7 @@ our code of conduct, and the process for submitting pull requests to us.
 
 ### License
 
-This project is licensed under Apache License 2.0 - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.
+This project is licensed under Apache License 2.0 - see the [LICENSE.md](https://github.com/callahantiff/pheknowlator/blob/master/LICENSE) file for details.  
 
 
 **Citing this Work:**  
@@ -128,5 +135,4 @@ This project is licensed under Apache License 2.0 - see the [LICENSE.md](https:/
   doi          = {10.5281/zenodo.3401437},
   url          = {https://doi.org/10.5281/zenodo.3401437}
 }
-```
-
+```   
