@@ -1,5 +1,8 @@
 phenotype, http://purl.obolibrary.org/obo/hp.owl
 go, http://purl.obolibrary.org/obo/go.owl
 disease, http://purl.obolibrary.org/obo/doid.owl
-vaccine, http://purl.obolibrary.org/obo/vo.owl
+vaccine, https://github.com/vaccineontology/VO/blob/master/src/VO_merged.owl
 chemical, ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
+cell, http://purl.obolibrary.org/obo/cl.owl
+anatomy, http://purl.obolibrary.org/obo/uberon/ext.owl
+protein, http://purl.obolibrary.org/obo/pro.owl
