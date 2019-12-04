@@ -1,0 +1,78 @@
+#Thu Aug 29 23:09:09 UTC 2019 
+DOWNLOAD_URL= http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 10665122
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/disease-phenotype_hp_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_genes_to_phenotype.txt
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 7030138
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-phenotype_hp_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 379253415
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-gene_ctd_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://geneontology.org/gene-associations/goa_human.gaf.gz
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 89088823
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-go_goa_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= https://reactome.org/download/current/gene_association.reactome.gz
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 13655189
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/pathway-go_reactome_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 30023966
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-pathway_reactome_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 639708376
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical_disease_ctd_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://ctdbase.org/reports/CTD_Phenotype-Disease_biological_process_associations.csv.gz
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 212054393
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/disease-gobp_ctd_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://ctdbase.org/reports/CTD_Phenotype-Disease_cellular_component_associations.csv.gz
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 11410307
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/disease-gocc_ctd_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://ctdbase.org/reports/CTD_Phenotype-Disease_molecular_function_associations.csv.gz
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 20999306
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/disease-gomf_ctd_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://ctdbase.org/reports/CTD_pheno_term_ixns.csv.gz
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 130386590
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-go_ctd_class_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+

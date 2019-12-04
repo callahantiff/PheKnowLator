@@ -1,0 +1,29 @@
+#Thu Aug 29 19:27:35 UTC 2019 
+DOWNLOAD_URL= http://purl.obolibrary.org/obo/hp.owl
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 91182371
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/ontologies/hp_with_imports.owl
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://purl.obolibrary.org/obo/go.owl
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 165071844
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/ontologies/go_with_imports.owl
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://purl.obolibrary.org/obo/doid.owl
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 25117530
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/ontologies/doid_with_imports.owl
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= http://purl.obolibrary.org/obo/vo.owl
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 7679633
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/ontologies/vo_with_imports.owl
+FILE_LAST_MOD_DATE= 08/29/2019
+

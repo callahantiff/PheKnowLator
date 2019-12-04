@@ -1,0 +1,22 @@
+#Thu Aug 29 23:13:40 UTC 2019 
+DOWNLOAD_URL= https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 102676966
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-pathway_ctd_instance_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= https://reactome.org/download/current/Reactome2OMIM.txt
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 16591444
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/pathway-disease_reactome_instance_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
+DOWNLOAD_URL= https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
+DOWNLOAD_DATE= 08/29/2019
+FILE_SIZE_IN_BYTES= 552694375
+FILE_AGE_IN_DAYS= 0
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-gene_string_instance_data.txt
+FILE_LAST_MOD_DATE= 08/29/2019
+
