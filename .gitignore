@@ -19,6 +19,14 @@ scripts/*.pyc
 /resources/embeddings/*
 Untitled*
 ./scripts/python/scratch.py
+# ignoring resource preparation files and metadata information
+!/resources/class_source_list.txt
+!/resources/instance_source_list.txt
+!/resources/ontology_source_list.txt
+!/resources/resource_info.txt
+!/resources/ontologies/ontology_source_metadata.txt
+!/resources/edge_data/class_source_metadata.txt
+!/resources/edge_data/instance_source_metadata.txt
 
 # releases
 /resources/releases/
