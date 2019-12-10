@@ -129,24 +129,6 @@ def main():
     # run program to map identifiers between source1 and source2
     extracts_mapping_data(source1, source2, temp_directory + '/' + file_name)
 
-    # concatenate batch data into single file
-    print('\n' + '=' * 50)
-    print('Concatenating Batch-Processed Data')
-    print('=' * 50 + '\n')
-
-    write_location = file_path + file_name + '.txt'
-
-    with open(write_location, 'w') as outfile:
-        for filename in glob.glob(temp_directory + '/*.txt'):
-            file_data = list(filter(None, open(filename, 'r').read().split('\n')))
-
-            for line in file_data:
-                mesh = '_'.join(line.split('\t')[0].split('/')[-2:])
-                chebi = line.split('\t')[1].split('/')[-1]
-                outfile.write(mesh + '\t' + chebi + '\n')
-
-    outfile.close()
-
 
 if __name__ == '__main__':
     main()
