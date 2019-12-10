@@ -7,6 +7,7 @@ __init__.py
 scripts/python/*.pyc
 scripts/*.pyc
 .ipynb_checkpoints/main-checkpoint.ipynb
+scripts/python/.ipynb_checkpoints/*
 
 # data and scripts
 /resources/releases/archive.zip
