@@ -19,4 +19,5 @@ chemical-gene, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
 chemical-disease, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
 disease-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
 gene-protein,https://www.dropbox.com/s/fh3up0clkd43kwt/UNIPROT_PROTEIN_CODING_GENES.txt?dl=0
-gene-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_genes_to_phenotype.txt
+gene-phenotype, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
+gene-disease, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
