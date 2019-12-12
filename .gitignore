@@ -11,7 +11,7 @@ scripts/python/.ipynb_checkpoints/*
 
 # data and scripts
 /resources/releases/archive.zip
-/resources/data_maps/
+/resources/processed_data/
 /resources/edge_data/*
 /resources/knowledge_graphs/
 /resources/kr_model/
