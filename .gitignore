@@ -7,7 +7,8 @@ __init__.py
 scripts/python/*.pyc
 scripts/*.pyc
 .ipynb_checkpoints/main-checkpoint.ipynb
-scripts/python/.ipynb_checkpoints/*
+.ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
+scripts/python/.ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
 
 # data and scripts
 /resources/releases/archive.zip
@@ -20,6 +21,7 @@ scripts/python/.ipynb_checkpoints/*
 /resources/embeddings/*
 Untitled*
 ./scripts/python/scratch.py
+
 # ignoring resource preparation files and metadata information
 !/resources/ontologies/ontology_source_metadata.txt
 !/resources/edge_data/class_source_metadata.txt
