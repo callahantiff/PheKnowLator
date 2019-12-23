@@ -3,17 +3,16 @@
 
 # import needed libraries
 import ftplib
-# import glob
 import gzip
 import os
-# import pandas
+import pandas as pd
 import re
 import requests
 import shutil
 
 from contextlib import closing
 from io import BytesIO
-# from tqdm import tqdm
+from tqdm import tqdm
 from urllib.request import urlopen
 from zipfile import ZipFile
 
@@ -142,7 +141,7 @@ def data_downloader(url: str, write_location: str, filename: str = ''):
 
     # zipped data
     if '.zip' in url:
-        zipped_url_download(url, file)
+        zipped_url_download(url, write_location)
 
     elif '.gz' in url:
         if 'ftp' in url:
@@ -180,13 +179,12 @@ def data_processor(filepath: str, row_splitter: str, column_list: list, output_n
         None.
     """
 
-    # read in data
     data = open(filepath).readlines()
 
     # process and write out data
     with open(write_location + '{filename}'.format(filename=output_name), 'w') as outfile:
 
-        for line in data:
+        for line in tqdm(data):
             subj = line.split(row_splitter)[column_list[0]]
             obj = line.split(row_splitter)[column_list[1]]
 
@@ -196,3 +194,98 @@ def data_processor(filepath: str, row_splitter: str, column_list: list, output_n
                         outfile.write(i.strip() + '\t' + j.strip() + '\n')
 
     outfile.close()
+
+
+# function to create a label dictionary
+def label_dict(label_data: pd.DataFrame, name_col: str, des_col: str, syn_col: str, filter_col: str = None,
+               filter_var: str = None):
+    """Function takes a Pandas DataFrame and using several user-provided vars, it parses the data and returns a
+    dictionary.
+
+    Args:
+        label_data: A Pandas DataFrame of data attributes.
+        name_col: A string containing the name of a column containing attribute names.
+        des_col: A string containing the name of a column containing attribute names.
+        syn_col: A string containing the name of a column containing attribute names.
+        filter_col: A string containing the name of column to use as dictionary key.
+        filter_var: A string containing a variable to filter the filter_col data by.
+
+    Returns:
+        A dictionary where the keys are the user-passed var filter_col and values are a pipe delimited string where the
+        first item is the user-passed var name_col and the second item is the user_passed var des_col. An example
+        entry from the returned dictionary is: {'ENSG00000121410': ['A1BG | alpha-1-B glycoprotein']}
+    """
+
+    data_attributes = {}
+
+    # create dictionary to store label data
+    for idx, row in tqdm(label_data.iterrows(), total=label_data.shape[0]):
+
+        if filter_var is not None:
+            if filter_var in row[filter_col]:
+                for x in row[filter_col].split('|'):
+                    if filter_var in x:
+                        if x.split(':')[-1] in data_attributes:
+                            data_attributes[x.split(':')[-1]].append(row[name_col] + ' | ' + row[des_col] + ' | ' +
+                                                                     row[syn_col])
+                        else:
+                            data_attributes[x.split(':')[-1]] = [row[name_col] + ' | ' + row[des_col] + ' | ' +
+                                                                 row[syn_col]]
+        else:
+            if row[filter_col] in data_attributes:
+                data_attributes[row[filter_col]].append(row[name_col] + ' | ' + row[des_col] + ' | ' +
+                                                        row[syn_col])
+            else:
+                data_attributes[row[filter_col]] = [row[name_col] + ' | ' + row[des_col] + ' | ' +
+                                                    row[syn_col]]
+
+    return data_attributes
+
+
+def label_attributes(data: pd.DataFrame, label_dic: dict, key_col1: str, key_col2: str = None):
+    """Function takes a Pandas DataFrame of variable identifiers and obtains corresponding names and descriptions for
+    the variables. The names and descriptions are returned as a list of lists, where the first list contains variable
+    names and the second contains variable descriptions.
+
+    Args:
+        data: A Pandas DataFrame containing variable identifiers.
+        label_dic: A dictionary where the keys are variable identifiers and the
+        key_col1: A string containing the name of the column for data identifiers needing attributes.
+        key_col2: A string containing the name of the column for secondary data identifiers. The secondary identifier
+            maps to the first identifier many:one and is used in situations where the first identifier fails to retrieve
+            attribute information. For example, if we are mapping ensembl transcripts, we will use the ensembl gene
+            identifier column as the primary identifier. Each ensembl gene maps to one or more ensembl transcripts.
+            Sometimes the ensembl gene will not contain attribute information, but one of its corresponding emsembl
+            transcripts does. by adding ensembl transcripts that have mapped to the label_dic, we are able to mapped
+            all entries.
+
+    Returns:
+        A list of lists, where the first list contains variable names and the second contains variable descriptions.
+    """
+
+    # create lists to hold results
+    names, description, synonyms = [], [], []
+
+    # add labels to primary data file
+    for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
+
+        if row[key_col1] in label_dic.keys():
+            names.append(label_dic[row[key_col1]][0].split(' | ')[0])
+            description.append(label_dic[row[key_col1]][0].split(' | ')[1])
+            synonyms.append(label_dic[row[key_col1]][0].split(' | ')[-1])
+
+            if key_col2 is not None:
+                label_dic[row[key_col2]] = label_dic[row[key_col1]]
+
+        else:
+            if key_col2 is not None and row[key_col2] in label_dic.keys():
+                names.append(label_dic[row[key_col2]][0].split(' | ')[0])
+                description.append(label_dic[row[key_col2]][0].split(' | ')[1])
+                synonyms.append(label_dic[row[key_col2]][0].split(' | ')[-1])
+
+            else:
+                names.append(None)
+                description.append(None)
+                synonyms.append(None)
+
+    return names, description, synonyms
