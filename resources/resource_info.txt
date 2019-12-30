@@ -1,0 +1,30 @@
+rna-cell|;;|instance-class|RO_0001025|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|http://purl.obolibrary.org/obo/|n|t|0;2|0:./resources/processed_data/ENSEMBL_GENE_ENSEMBL_TRANSCRIPT_MAP.txt;1:./resource/processed_data/HPA_TISSUE_CELL_MAP.txt|3;>;0|None
+rna-anatomy|;;|instance-class|RO_0001025|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|http://purl.obolibrary.org/obo/|n|t|0;2|0:./resources/processed_data/ENSEMBL_GENE_ENSEMBL_TRANSCRIPT_MAP.txt;1:./resource/processed_data/HPA_TISSUE_CELL_MAP.txt|3;>;0|None
+rna-protein|;;|instance-class|RO_0002513|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|http://purl.obolibrary.org/obo/|n|t|0;0|0:./resources/processed_data/ENSEMBL_GENE_ENSEMBL_TRANSCRIPT_MAP.txt;1:./resource/processed_data/ENSEMBL_GENE_PRO_ONTOLOGY_MAP.txt|3;>;0|None
+protein-protein|;;|class-class|RO_0002436|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|n|' '|0;1|0:./resource/processed_data/STRING_PRO_ONTOLOGY_MAP.txt;1:./resource/processed_data/STRING_PRO_ONTOLOGY_MAP.txt|2;>=;700|None
+protein-gobp|:;;GO_|class-class|RO_0000056|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|8;==;P::12;==;taxon:9606
+protein-gomf|:;;GO_|class-class|RO_0000085|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|8;==;F::12;==;taxon:9606
+protein-gocc|:;;GO_|class-class|RO_0001025|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|!|t|1;4|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|8;==;C::12;==;taxon:9606
+protein-complex|;;|class-instance|RO_0002436|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|n|t|0;1|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|None
+protein-cofactor|;;|class-class|RO_0002436|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|n|t|0;1|None|None|None|None
+protein-catalyst|;;|class-class|RO_0002436|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|n|t|0;1|None|None|None|None
+protein-reaction|;;|class-instance|RO_0000056|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|n|t|0;1|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|6;==;'Homo sapiens'|./resources/edge_data/UniProt2ReactomeReactions.txt;1:3;;
+protein-pathway|;;|class-instance|RO_0000056|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|n|t|0;1|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|6;==;'Homo sapiens'
+gobp-pathway|:;;GO_|class-instance|RO_0009501|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|!|t|3;4|None|None|8;==;P::12;==;taxon:9606::5;.startswith('REACTOME');
+pathway-gomf|:;GO_;|instance-class|RO_0000085|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|4;3|None|None|8;==;F::12;==;taxon:9606::5;.startswith('REACTOME');
+pathway-gocc|:;GO_;|instance-class|RO_0002180|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|!|t|4;3|None|None|8;==;C::12;==;taxon:9606::5;.startswith('REACTOME');
+complex-complex|;;|instance-instance|RO_0002436|https://reactome.org/content/detail/|https://reactome.org/content/detail/|n|t|0;1|None|None|None
+complex-pathway|;;|instance-instance|RO_0000056|https://reactome.org/content/detail/|https://reactome.org/content/detail/|n|t|0;1|None|None|None
+chemical-complex|;;|class-instance|RO_0002436|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|n|t|0;1|None|None|None
+chemical-reaction|;;|class-instance|RO_0002436|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|n|t|0;1|None|None|5;==;Homo sapiens
+chemical-pathway|;CHEBI_;|class-instance|RO_0000056|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|n|t|0;1|None|None|5;==;Homo sapiens
+chemical-gene|;MESH_;|class-instance|RO_0002434|http://purl.obolibrary.org/obo/|http://purl.uniprot.org/geneid/|#|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt|None|7;==;9606
+chemical-disease|;;|class-class|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/DISEASE_DOID_MAP.txt|5;!=;' '|None
+chemical-phenotype|;;|class-class|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/DISEASE_HPO_MAP.txt|5;!=;' '|None
+disease-phenotype|;;|class-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|n|t|0;3|0:./resources/processed_data/DISEASE_DOID_MAP.txt|None|None|None
+gene-protein|;;|instance-class|RO_0002205|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|n|t|0;1|None|None|None
+gene-gene|;;|instance-instance|RO_0002435|http://purl.uniprot.org/geneid/|http://purl.uniprot.org/geneid/|n|t|0;1|0:./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt;1:./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt|3;>;0|None
+gene-phenotype|;;|instance-class|RO_0003302|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|n|t|0;4|1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|10;>=;0.70|None
+gene-disease|;;|instance-class|RO_0003302|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|n|t|0;4|1:./resources/processed_data/DISEASE_DOID_MAP.txt|10;>=;0.70|None
+gene-rna|;;|instance-instance|RO_0002511|http://purl.uniprot.org/geneid/|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|n|t|0:1|None|None|None
+variant-gene|;;|instance-instance|RO_0002566|https://www.ncbi.nlm.nih.gov/snp/rs|http://purl.uniprot.org/geneid/|n|t|9:3|None|6;.startswith('Pathogenic');|9;!=;-1
