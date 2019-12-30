@@ -26,6 +26,9 @@ Untitled*
 !/resources/ontologies/ontology_source_metadata.txt
 !/resources/edge_data/class_source_metadata.txt
 !/resources/edge_data/instance_source_metadata.txt
+./resources/normal_class_source_list.txt
+./resources/normal_instance_source_list.txt
+./resources/normal_resource_info_list.txt
 
 # releases
 /resources/releases/
