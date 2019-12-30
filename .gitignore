@@ -20,7 +20,7 @@ scripts/python/.ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
 /resources/*.json
 /resources/embeddings/*
 Untitled*
-./scripts/python/scratch.py
+scripts/python/scratch.py
 
 # ignoring resource preparation files and metadata information
 !/resources/ontologies/ontology_source_metadata.txt
