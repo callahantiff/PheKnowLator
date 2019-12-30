@@ -16,6 +16,10 @@ from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
 
+# disable chained assignment warning
+# rationale: https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
+pandas.options.mode.chained_assignment = None
+
 
 # functions to download data
 def url_download(url: str, write_location: str, filename: str):
