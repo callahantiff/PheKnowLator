@@ -3,7 +3,6 @@
 
 
 # import needed libraries
-import glob
 import json
 import os
 import time
