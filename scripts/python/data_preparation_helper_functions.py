@@ -4,15 +4,15 @@
 # import needed libraries
 import ftplib
 import gzip
+import numpy
 import os
-import pandas as pd
+import pandas
 import re
 import requests
 import shutil
 
 from contextlib import closing
 from io import BytesIO
-from tqdm import tqdm
 from urllib.request import urlopen
 from zipfile import ZipFile
 
@@ -159,133 +159,106 @@ def data_downloader(url: str, write_location: str, filename: str = ''):
             url_download(url, write_location, file)
 
 
-# function to reformat data files
-def data_processor(filepath: str, row_splitter: str, column_list: list, output_name: str, write_location: str,
-                   line_splitter: str = ''):
-    """Reads in a file using input file path and reduces the file to only include specific columns specified by the
-    input var. The reduced file is then saved as a text file and written to the `/resources/processed_data' directory.
+# function to explode nested DataFrames
+def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str = 'None', preserve_idx: bool = False):
+    """Function takes a Pandas DataFrame containing a mix of nested and un-nested data and un-nests the data by
+    expanding each column in a user-defined list. This function is a modification of the explode function provided in
+    the following stack overflow post:
+    https://stackoverflow.com/questions/12680754/split-explode-pandas-dataframe-string-entry-to-separate-rows.
+    The original function was unable to handle multiple columns which expand to different lengths. The modification
+    treats the user-provided column list as a stack and recursively un-nests each column.
 
     Args:
-        filepath: A string that points to the location of a temp mapping file that needs to be processed.
-        row_splitter: A string that contains a character used to split rows.
-        column_list: A list that contains two numbers, which correspond to indices in the input data file and
-                     which appear in the order of write preference.
-        output_name: A string naming the processed data file.
-        write_location: A string that points to a file directory.
-        line_splitter: A character used to separate multiple data points from a string. Defaults to an empty
-                       string which is used to indicate the string contains a single value.
+        df: a Pandas DataFrame containing nested columns
+        lst_cols: a list of columns to unnest
+        splitter: a character delimiter used in nested columns
+        fill_value: a string value to fill empty cell values with
+        preserve_idx: whether or not thee original index should be preserved or reset
 
-    Return:
-        None.
+    Returns: an exploded Pandas DataFrame
+
     """
 
-    data = open(filepath).readlines()
+    if not lst_cols:
+        return df
 
-    # process and write out data
-    with open(write_location + '{filename}'.format(filename=output_name), 'w') as outfile:
+    else:
 
-        for line in tqdm(data):
-            subj = line.split(row_splitter)[column_list[0]]
-            obj = line.split(row_splitter)[column_list[1]]
+        # pop column to process off the stack
+        lst = [lst_cols.pop()]
 
-            if subj != '' and obj != '':
-                for i in [subj.split(line_splitter) if line_splitter != '' else [subj]][0]:
-                    for j in [obj.split(line_splitter) if line_splitter != '' else [obj]][0]:
-                        outfile.write(i.strip() + '\t' + j.strip() + '\n')
+        # convert string columns to list
+        df[lst[0]] = df[lst[0]].apply(lambda x: [j for j in x.split(splitter) if j != ''])
 
-    outfile.close()
+        # all columns except `lst_cols`
+        idx_cols = df.columns.difference(lst)
+
+        # calculate lengths of lists
+        lens = df[lst[0]].str.len()
+
+        # preserve original index values
+        idx = numpy.repeat(df.index.values, lens)
+
+        # create "exploded" DF
+        res = (pandas.DataFrame({
+            col: numpy.repeat(df[col].values, lens)
+            for col in idx_cols},
+            index=idx).assign(**{col: numpy.concatenate(df.loc[lens > 0, col].values)
+                                 for col in lst}))
+
+        # append those rows that have empty lists
+        if (lens == 0).any():
+            # at least one list in cells is empty
+            res = (res.append(df.loc[lens == 0, idx_cols], sort=False).fillna(fill_value))
+
+        # revert the original index order
+        res = res.sort_index()
+
+        # reset index if requested
+        if not preserve_idx:
+            res = res.reset_index(drop=True)
+
+        # return columns in original order
+        res = res[list(df)]
+
+        return explode(res, lst_cols, splitter)
 
 
-# function to create a label dictionary
-def label_dict(label_data: pd.DataFrame, name_col: str, des_col: str, syn_col: str, filter_col: str = None,
-               filter_var: str = None):
-    """Function takes a Pandas DataFrame and using several user-provided vars, it parses the data and returns a
-    dictionary.
+# human disease and phenotype ontology identifiers mapping
+def mesh_finder(data: pandas.DataFrame, x_id: str, id_type: str, id_dic: dict):
+    """Function takes a Pandas DataFrame, a dictionary, and an id and updates the dictionary by searching additional
+    identifiers linked to the id.
 
     Args:
-        label_data: A Pandas DataFrame of data attributes.
-        name_col: A string containing the name of a column containing attribute names.
-        des_col: A string containing the name of a column containing attribute names.
-        syn_col: A string containing the name of a column containing attribute names.
-        filter_col: A string containing the name of column to use as dictionary key.
-        filter_var: A string containing a variable to filter the filter_col data by.
+        data: a Pandas DataFrame containing columns of identifiers
+        x_id: a string containing a MeSH or OMIM identifier
+        id_type: a string containing the types of the identifier
+        id_dic: a dictionary where the keys are CUI and MeSH identifiers and the values are lists of DO and HPO
+            identifiers
 
     Returns:
-        A dictionary where the keys are the user-passed var filter_col and values are a pipe delimited string where the
-        first item is the user-passed var name_col and the second item is the user_passed var des_col. An example
-        entry from the returned dictionary is: {'ENSG00000121410': ['A1BG | alpha-1-B glycoprotein']}
+        None
+
     """
 
-    data_attributes = {}
+    for x in list(data.loc[data['code'] == x_id]['diseaseId']):
+        for idx, row in data.loc[data['diseaseId'] == x].iterrows():
 
-    # create dictionary to store label data
-    for idx, row in tqdm(label_data.iterrows(), total=label_data.shape[0]):
+            if id_type + x_id in id_dic.keys():
+                if row['vocabulary'] == 'HPO' and row['code'].replace('HP:', 'HP_') not in id_dic[id_type + x_id]:
+                    id_dic[id_type + x_id].append(row['code'].replace('HP:', 'HP_'))
 
-        if filter_var is not None:
-            if filter_var in row[filter_col]:
-                for x in row[filter_col].split('|'):
-                    if filter_var in x:
-                        if x.split(':')[-1] in data_attributes:
-                            data_attributes[x.split(':')[-1]].append(row[name_col] + ' | ' + row[des_col] + ' | ' +
-                                                                     row[syn_col])
-                        else:
-                            data_attributes[x.split(':')[-1]] = [row[name_col] + ' | ' + row[des_col] + ' | ' +
-                                                                 row[syn_col]]
-        else:
-            if row[filter_col] in data_attributes:
-                data_attributes[row[filter_col]].append(row[name_col] + ' | ' + row[des_col] + ' | ' +
-                                                        row[syn_col])
-            else:
-                data_attributes[row[filter_col]] = [row[name_col] + ' | ' + row[des_col] + ' | ' +
-                                                    row[syn_col]]
-
-    return data_attributes
-
-
-def label_attributes(data: pd.DataFrame, label_dic: dict, key_col1: str, key_col2: str = None):
-    """Function takes a Pandas DataFrame of variable identifiers and obtains corresponding names and descriptions for
-    the variables. The names and descriptions are returned as a list of lists, where the first list contains variable
-    names and the second contains variable descriptions.
-
-    Args:
-        data: A Pandas DataFrame containing variable identifiers.
-        label_dic: A dictionary where the keys are variable identifiers and the
-        key_col1: A string containing the name of the column for data identifiers needing attributes.
-        key_col2: A string containing the name of the column for secondary data identifiers. The secondary identifier
-            maps to the first identifier many:one and is used in situations where the first identifier fails to retrieve
-            attribute information. For example, if we are mapping ensembl transcripts, we will use the ensembl gene
-            identifier column as the primary identifier. Each ensembl gene maps to one or more ensembl transcripts.
-            Sometimes the ensembl gene will not contain attribute information, but one of its corresponding emsembl
-            transcripts does. by adding ensembl transcripts that have mapped to the label_dic, we are able to mapped
-            all entries.
-
-    Returns:
-        A list of lists, where the first list contains variable names and the second contains variable descriptions.
-    """
-
-    # create lists to hold results
-    names, description, synonyms = [], [], []
-
-    # add labels to primary data file
-    for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
-
-        if row[key_col1] in label_dic.keys():
-            names.append(label_dic[row[key_col1]][0].split(' | ')[0])
-            description.append(label_dic[row[key_col1]][0].split(' | ')[1])
-            synonyms.append(label_dic[row[key_col1]][0].split(' | ')[-1])
-
-            if key_col2 is not None:
-                label_dic[row[key_col2]] = label_dic[row[key_col1]]
-
-        else:
-            if key_col2 is not None and row[key_col2] in label_dic.keys():
-                names.append(label_dic[row[key_col2]][0].split(' | ')[0])
-                description.append(label_dic[row[key_col2]][0].split(' | ')[1])
-                synonyms.append(label_dic[row[key_col2]][0].split(' | ')[-1])
+                if row['vocabulary'] == 'DO' and 'DOID_' + row['code'] not in id_dic[id_type + x_id]:
+                    id_dic[id_type + x_id].append('DOID_' + row['code'])
 
             else:
-                names.append(None)
-                description.append(None)
-                synonyms.append(None)
+                if row['vocabulary'] == 'HPO' or row['vocabulary'] == 'DO':
+                    id_dic[id_type + x_id] = []
 
-    return names, description, synonyms
+                    if row['vocabulary'] == 'HPO' and row['code'].replace('HP:', 'HP_') not in id_dic[id_type + x_id]:
+                        id_dic[id_type + x_id].append(row['code'].replace('HP:', 'HP_'))
+
+                    if row['vocabulary'] == 'DO' and 'DOID_' + row['code'] not in id_dic[id_type + x_id]:
+                        id_dic[id_type + x_id].append('DOID_' + row['code'])
+
+    return None
