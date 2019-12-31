@@ -1,22 +1,31 @@
-#Thu Aug 29 23:13:40 UTC 2019 
-DOWNLOAD_URL= https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
-DOWNLOAD_DATE= 08/29/2019
-FILE_SIZE_IN_BYTES= 102676966
-FILE_AGE_IN_DAYS= 0
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-pathway_ctd_instance_data.txt
-FILE_LAST_MOD_DATE= 08/29/2019
+#Tue Dec 31 20:35:45 UTC 2019 
+DOWNLOAD_URL= https://www.dropbox.com/s/sojaq8u3hwfw4jz/REACTOME_COMPLEX_COMPLEX.txt?dl=1
+DOWNLOAD_DATE= 12/31/2019
+FILE_SIZE_IN_BYTES= 1879424
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/complex-complex_REACTOME_COMPLEX_COMPLEX.txt
+FILE_LAST_MOD_DATE= 12/31/2019
 
-DOWNLOAD_URL= https://reactome.org/download/current/Reactome2OMIM.txt
-DOWNLOAD_DATE= 08/29/2019
-FILE_SIZE_IN_BYTES= 16591444
-FILE_AGE_IN_DAYS= 0
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/pathway-disease_reactome_instance_data.txt
-FILE_LAST_MOD_DATE= 08/29/2019
+DOWNLOAD_URL= https://reactome.org/download/current/Complex_2_Pathway_human.txt
+DOWNLOAD_DATE= 12/31/2019
+FILE_SIZE_IN_BYTES= 844121
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/complex-pathway_Complex_2_Pathway_human.txt
+FILE_LAST_MOD_DATE= 12/31/2019
 
-DOWNLOAD_URL= https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
-DOWNLOAD_DATE= 08/29/2019
-FILE_SIZE_IN_BYTES= 552694375
-FILE_AGE_IN_DAYS= 0
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-gene_string_instance_data.txt
-FILE_LAST_MOD_DATE= 08/29/2019
+DOWNLOAD_URL= http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
+DOWNLOAD_DATE= 12/31/2019
+FILE_SIZE_IN_BYTES= 270656653
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-gene_COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
+FILE_LAST_MOD_DATE= 12/31/2019
+
+DOWNLOAD_URL= https://www.dropbox.com/s/8n1isqytlz2z1g6/ENSEMBL_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
+DOWNLOAD_DATE= 12/31/2019
+FILE_SIZE_IN_BYTES= 10840267
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-rna_ENSEMBL_GENE_ENSEMBL_TRANSCRIPT_MAP.txt
+FILE_LAST_MOD_DATE= 12/31/2019
+
+DOWNLOAD_URL= ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz
+DOWNLOAD_DATE= 12/31/2019
+FILE_SIZE_IN_BYTES= 46677634
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/variant-gene_variant_summary.txt
+FILE_LAST_MOD_DATE= 12/31/2019
 
