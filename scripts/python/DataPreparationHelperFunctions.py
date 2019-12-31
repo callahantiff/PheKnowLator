@@ -31,13 +31,12 @@ def url_download(url: str, write_location: str, filename: str):
         filename: A string containing a filepath for where to write data to.
 
     Return:
-        None.
+        None
+
     """
     print('Downloading data file')
 
     r = requests.get(url, allow_redirects=True)
-
-    # save results
     open(write_location + '{filename}'.format(filename=filename), 'wb').write(r.content)
 
 
@@ -50,7 +49,8 @@ def ftp_url_download(url: str, write_location: str, filename: str):
         filename: A string containing a filepath for where to write data to.
 
     Return:
-        None.
+        None
+
     """
     print('Downloading data from ftp server')
 
@@ -59,29 +59,31 @@ def ftp_url_download(url: str, write_location: str, filename: str):
             shutil.copyfileobj(r, f)
 
 
-def gzipped_ftp_url_download(url: str, write_location: str):
+def gzipped_ftp_url_download(url: str, write_location: str, filename: str):
     """Downloads a gzipped file from an ftp server.
 
     Args:
         url: A string that points to the location of a temp mapping file that needs to be processed.
         write_location: A string that points to a file directory.
+        filename: A string containing a filepath for where to write data to.
 
     Return:
-        None.
+        None
+
     """
 
     # get ftp server info
     server = url.replace('ftp://', '').split('/')[0]
     directory = '/'.join(url.replace('ftp://', '').split('/')[1:-1])
-    file = url.replace('ftp://', '').split('/')[-1]
-    write_loc = write_location + '{filename}'.format(filename=file)
+    # file = url.replace('ftp://', '').split('/')[-1]
+    write_loc = write_location + '{filename}'.format(filename=filename)
 
     # download ftp gzipped file
     print('Downloading gzipped data from ftp server')
     with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
         ftp.login()
         ftp.cwd(directory)
-        ftp.retrbinary('RETR {}'.format(file), fid.write)
+        ftp.retrbinary('RETR {}'.format(filename), fid.write)
 
     # read in gzipped file,uncompress, and write to directory
     print('Decompressing and writing gzipped data')
@@ -93,21 +95,31 @@ def gzipped_ftp_url_download(url: str, write_location: str):
     os.remove(write_loc)
 
 
-def zipped_url_download(url: str, write_location: str):
+def zipped_url_download(url: str, write_location: str, filename: str = ''):
     """Downloads a zipped file from a URL.
 
     Args:
         url: A string that points to the location of a temp mapping file that needs to be processed.
         write_location: A string that points to a file directory.
+        filename: A string containing a filepath for where to write data to.
 
     Return:
-        None.
+        None
+
     """
     print('Downloading zipped data file')
 
-    with urlopen(url) as zip_data:
-        with ZipFile(BytesIO(zip_data.read())) as zip_file:
-            zip_file.extractall(write_location[:-1])
+    if filename == '':
+        with requests.get(url, allow_redirects=True) as zip_data:
+            with ZipFile(BytesIO(zip_data.content)) as zip_file:
+                zip_file.extractall(write_location[:-1])
+
+    else:
+        response = requests.get(url)
+        content = BytesIO(response.content).read()
+        file = open(write_location + filename, 'w')
+        file.write(str(content))
+        file.close()
 
 
 def gzipped_url_download(url: str, write_location: str, filename: str):
@@ -119,12 +131,13 @@ def gzipped_url_download(url: str, write_location: str, filename: str):
         filename: A string containing a filepath for where to write data to.
 
     Return:
-        None.
+        None
+
     """
     print('Downloading gzipped data file')
 
     with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
-        outfile.write(gzip.decompress(urlopen(url).read()))
+        outfile.write(gzip.decompress(requests.get(url, allow_redirects=True).content))
 
 
 # function to download data from a URL
@@ -137,7 +150,8 @@ def data_downloader(url: str, write_location: str, filename: str = ''):
         filename: A string containing a filepath for where to write data to.
 
     Return:
-        None.
+        None
+
     """
 
     # get filename from url
@@ -145,11 +159,11 @@ def data_downloader(url: str, write_location: str, filename: str = ''):
 
     # zipped data
     if '.zip' in url:
-        zipped_url_download(url, write_location)
+        zipped_url_download(url, write_location, file)
 
     elif '.gz' in url:
         if 'ftp' in url:
-            gzipped_ftp_url_download(url, write_location)
+            gzipped_ftp_url_download(url, write_location, file)
         else:
             gzipped_url_download(url, write_location, file)
 
@@ -179,7 +193,8 @@ def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str
         fill_value: a string value to fill empty cell values with
         preserve_idx: whether or not thee original index should be preserved or reset
 
-    Returns: an exploded Pandas DataFrame
+    Returns:
+        An exploded Pandas DataFrame
 
     """
 
