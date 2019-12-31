@@ -1,4 +1,4 @@
-#Tue Dec 31 20:36:24 UTC 2019 
+#Tue Dec 31 21:55:53 UTC 2019 
 DOWNLOAD_URL= http://purl.obolibrary.org/obo/hp.owl
 DOWNLOAD_DATE= 12/31/2019
 FILE_SIZE_IN_BYTES= 82406199
@@ -38,6 +38,6 @@ FILE_LAST_MOD_DATE= 12/31/2019
 DOWNLOAD_URL= https://www.dropbox.com/s/6ux85agl95ja3wx/human_pro_closed.owl?dl=1
 DOWNLOAD_DATE= 12/31/2019
 FILE_SIZE_IN_BYTES= 43793715
-DOWNLOADED_FILE_LOCATION= ./resources/ontologies/human_pro_closed_without_imports.owl
+DOWNLOADED_FILE_LOCATION= ./resources/ontologies/human_pro_closed_with_imports.owl
 FILE_LAST_MOD_DATE= 12/31/2019
 
