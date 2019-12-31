@@ -113,17 +113,13 @@ def zipped_url_download(url: str, write_location: str, filename: str = ''):
     """
     print('Downloading zipped data file')
 
-    if filename == '':
-        with requests.get(url, allow_redirects=True) as zip_data:
-            with ZipFile(BytesIO(zip_data.content)) as zip_file:
-                zip_file.extractall(write_location[:-1])
+    with requests.get(url, allow_redirects=True) as zip_data:
+        with ZipFile(BytesIO(zip_data.content)) as zip_file:
+            zip_file.extractall(write_location[:-1])
 
-    else:
-        response = requests.get(url)
-        content = BytesIO(response.content).read()
-        file = open(write_location + filename, 'w')
-        file.write(str(content))
-        file.close()
+    # change filename
+    if filename != '':
+        os.rename(write_location + re.sub('.gz|.zip', '', url.split('/')[-1]), write_location + filename)
 
 
 def gzipped_url_download(url: str, write_location: str, filename: str):
