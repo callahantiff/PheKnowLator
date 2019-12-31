@@ -75,15 +75,15 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str):
     # get ftp server info
     server = url.replace('ftp://', '').split('/')[0]
     directory = '/'.join(url.replace('ftp://', '').split('/')[1:-1])
-    # file = url.replace('ftp://', '').split('/')[-1]
-    write_loc = write_location + '{filename}'.format(filename=filename)
+    file = url.replace('ftp://', '').split('/')[-1]
+    write_loc = write_location + '{filename}'.format(filename=file)
 
     # download ftp gzipped file
     print('Downloading gzipped data from ftp server')
     with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
         ftp.login()
         ftp.cwd(directory)
-        ftp.retrbinary('RETR {}'.format(filename), fid.write)
+        ftp.retrbinary('RETR {}'.format(file), fid.write)
 
     # read in gzipped file,uncompress, and write to directory
     print('Decompressing and writing gzipped data')
@@ -91,8 +91,12 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str):
         with open(write_loc.replace('.gz', ''), 'wb') as f:
             f.write(fid_in.read())
 
-    # remove gzipped file
-    os.remove(write_loc)
+    # change filename
+    if filename != '':
+        os.rename(write_loc, write_location + filename)
+
+    # remove gzipped and original files
+    os.remove(re.sub('.gz|.zip|\?.*', '', write_loc))
 
 
 def zipped_url_download(url: str, write_location: str, filename: str = ''):
