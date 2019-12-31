@@ -1,5 +1,5 @@
-complex-complex, https://www.dropbox.com/s/sojaq8u3hwfw4jz/REACTOME_COMPLEX_COMPLEX.txt?dl=0
+complex-complex, https://www.dropbox.com/s/sojaq8u3hwfw4jz/REACTOME_COMPLEX_COMPLEX.txt?dl=1
 complex-pathway, https://reactome.org/download/current/Complex_2_Pathway_human.txt
 gene-gene, http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
-gene-rna, https://www.dropbox.com/s/8n1isqytlz2z1g6/ENSEMBL_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=0
+gene-rna, https://www.dropbox.com/s/8n1isqytlz2z1g6/ENSEMBL_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
 variant-gene, ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz
