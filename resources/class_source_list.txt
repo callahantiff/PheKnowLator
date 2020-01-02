@@ -15,9 +15,9 @@ pathway-gocc, https://reactome.org/download/current/gene_association.reactome.gz
 chemical-complex, https://www.dropbox.com/s/qoetjt0vfy6qb3y/REACTOME_CHEMICAL_COMPLEX.txt?dl=1
 chemical-reaction, https://reactome.org/download/current/ChEBI2ReactomeReactions.txt
 chemical-pathway, https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
-chemical-gene, http://ctdbase.org/reports/CTD_chem_gene_ixns.csv.gz
-chemical-disease, http://ctdbase.org/reports/CTD_chemicals_diseases.csv.gz
-chemical-phenotype, http://ctdbase.org/reports/CTD_chemicals_diseases.csv.gz
+chemical-gene, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
+chemical-disease, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
+chemical-phenotype, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
 disease-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
 gene-protein, https://www.dropbox.com/s/79ce6oe68jt72ph/PROTEIN_CODING_GENES_PROTEINS.txt?dl=1
 gene-phenotype, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
