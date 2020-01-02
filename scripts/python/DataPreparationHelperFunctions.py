@@ -93,10 +93,10 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str):
 
     # change filename
     if filename != '':
-        os.rename(write_loc, write_location + filename)
+        os.rename(re.sub('.gz|.zip', '', write_loc), write_location + filename)
 
     # remove gzipped and original files
-    os.remove(re.sub('.gz|.zip|\?.*', '', write_loc))
+    os.remove(write_loc)
 
 
 def zipped_url_download(url: str, write_location: str, filename: str = ''):
