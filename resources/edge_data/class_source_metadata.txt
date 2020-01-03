@@ -1,4 +1,4 @@
-#Fri Jan 03 18:38:03 UTC 2020 
+#Fri Jan 03 22:04:54 UTC 2020 
 DOWNLOAD_URL= https://www.proteinatlas.org/download/rna_tissue_consensus.tsv.zip
 DOWNLOAD_DATE= 01/03/2020
 FILE_SIZE_IN_BYTES= 45652773
@@ -121,8 +121,22 @@ FILE_LAST_MOD_DATE= 01/03/2020
 DOWNLOAD_URL= http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
 DOWNLOAD_DATE= 01/03/2020
 FILE_SIZE_IN_BYTES= 376049981
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-rna_CTD_chem_gene_ixns.tsv
+EDGE TYPE= chemical-rna
+FILE_LAST_MOD_DATE= 01/03/2020
+
+DOWNLOAD_URL= http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
+DOWNLOAD_DATE= 01/03/2020
+FILE_SIZE_IN_BYTES= 376049981
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-gene_CTD_chem_gene_ixns.tsv
 EDGE TYPE= chemical-gene
+FILE_LAST_MOD_DATE= 01/03/2020
+
+DOWNLOAD_URL= http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
+DOWNLOAD_DATE= 01/03/2020
+FILE_SIZE_IN_BYTES= 376049981
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-protein_CTD_chem_gene_ixns.tsv
+EDGE TYPE= chemical-protein
 FILE_LAST_MOD_DATE= 01/03/2020
 
 DOWNLOAD_URL= http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
