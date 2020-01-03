@@ -36,7 +36,7 @@ def url_download(url: str, write_location: str, filename: str):
     """
     print('Downloading data file')
 
-    r = requests.get(url, allow_redirects=True)
+    r = requests.get(url, allow_redirects=True, verify=False)
     open(write_location + '{filename}'.format(filename=filename), 'wb').write(r.content)
 
 
@@ -137,7 +137,7 @@ def gzipped_url_download(url: str, write_location: str, filename: str):
     print('Downloading gzipped data file')
 
     with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
-        outfile.write(gzip.decompress(requests.get(url, allow_redirects=True).content))
+        outfile.write(gzip.decompress(requests.get(url, allow_redirects=True, verify=False).content))
 
 
 # function to download data from a URL
