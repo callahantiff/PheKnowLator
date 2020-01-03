@@ -1,5 +1,5 @@
 rna-anatomy, https://www.proteinatlas.org/download/rna_tissue_consensus.tsv.zip
-rna-protein, https://www.proteinatlas.org/download/rna_tissue_consensus.tsv.zip
+rna-protein, https://www.dropbox.com/s/ckrw11nfyu6a08c/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt?dl=1
 protein-protein, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
 protein-gobp, http://geneontology.org/gene-associations/goa_human.gaf.gz
 protein-gomf, http://geneontology.org/gene-associations/goa_human.gaf.gz
