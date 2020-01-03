@@ -114,6 +114,7 @@ class DataSource(object):
                                'DOWNLOAD_DATE= {}'.format(str(datetime.datetime.now().strftime('%m/%d/%Y'))),
                                'FILE_SIZE_IN_BYTES= {}'.format(str(os.stat(self.data_files[i]).st_size)),
                                'DOWNLOADED_FILE_LOCATION= {}'.format(str(source)),
+                               'EDGE TYPE= {}'.format(i),
                                'FILE_LAST_MOD_DATE= {}'.format(str(mod_date))]
 
             self.metadata.append(source_metadata)
@@ -143,6 +144,7 @@ class DataSource(object):
             outfile.write(str(self.metadata[i][2]) + '\n')
             outfile.write(str(self.metadata[i][3]) + '\n')
             outfile.write(str(self.metadata[i][4]) + '\n')
+            outfile.write(str(self.metadata[i][5]) + '\n')
             outfile.write('\n')
 
         outfile.close()
