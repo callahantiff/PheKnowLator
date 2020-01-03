@@ -1,145 +1,169 @@
-#Thu Jan 02 02:37:46 UTC 2020 
+#Fri Jan 03 04:47:03 UTC 2020 
 DOWNLOAD_URL= https://www.proteinatlas.org/download/rna_tissue_consensus.tsv.zip
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 45652773
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/rna-anatomy_rna_tissue_consensus.tsv
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= rna-anatomy
+FILE_LAST_MOD_DATE= 01/02/2020
 
-DOWNLOAD_URL= https://www.proteinatlas.org/download/rna_tissue_consensus.tsv.zip
-DOWNLOAD_DATE= 01/01/2020
-FILE_SIZE_IN_BYTES= 45652773
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/rna-protein_rna_tissue_consensus.tsv
-FILE_LAST_MOD_DATE= 01/01/2020
+DOWNLOAD_URL= https://www.dropbox.com/s/ckrw11nfyu6a08c/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt?dl=1
+DOWNLOAD_DATE= 01/02/2020
+FILE_SIZE_IN_BYTES= 2211079
+DOWNLOADED_FILE_LOCATION= ./resources/edge_data/rna-protein_ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt
+EDGE TYPE= rna-protein
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 540934917
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/protein-protein_9606.protein.links.v11.0.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= protein-protein
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= http://geneontology.org/gene-associations/goa_human.gaf.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 83559355
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/protein-gobp_goa_human.gaf
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= protein-gobp
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= http://geneontology.org/gene-associations/goa_human.gaf.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 83559355
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/protein-gomf_goa_human.gaf
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= protein-gomf
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= http://geneontology.org/gene-associations/goa_human.gaf.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 83559355
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/protein-gocc_goa_human.gaf
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= protein-gocc
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://www.dropbox.com/s/7meu0cdz1mrnsz7/REACTOME_PROTEIN_COMPLEX.txt?dl=1
-DOWNLOAD_DATE= 01/01/2020
-FILE_SIZE_IN_BYTES= 7596151
+DOWNLOAD_DATE= 01/02/2020
+FILE_SIZE_IN_BYTES= 1902652
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/protein-complex_REACTOME_PROTEIN_COMPLEX.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= protein-complex
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://www.dropbox.com/s/ij9t89botd8nmmj/UNIPROT_PROTEIN_COFACTOR.txt?dl=1
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 100843
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/protein-cofactor_UNIPROT_PROTEIN_COFACTOR.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= protein-cofactor
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://www.dropbox.com/s/pvopvs0iq8x3oq2/UNIPROT_PROTEIN_CATALYST.txt?dl=1
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 1084475
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/protein-catalyst_UNIPROT_PROTEIN_CATALYST.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= protein-catalyst
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://reactome.org/download/current/UniProt2ReactomeReactions.txt
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 94802840
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/protein-reaction_UniProt2ReactomeReactions.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= protein-reaction
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 107205734
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/protein-pathway_UniProt2Reactome_All_Levels.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= protein-pathway
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://reactome.org/download/current/gene_association.reactome.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 12199709
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gobp-pathway_gene_association.reactome
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= gobp-pathway
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://reactome.org/download/current/gene_association.reactome.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 12199709
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/pathway-gomf_gene_association.reactome
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= pathway-gomf
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://reactome.org/download/current/gene_association.reactome.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 12199709
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/pathway-gocc_gene_association.reactome
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= pathway-gocc
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://www.dropbox.com/s/qoetjt0vfy6qb3y/REACTOME_CHEMICAL_COMPLEX.txt?dl=1
-DOWNLOAD_DATE= 01/01/2020
-FILE_SIZE_IN_BYTES= 463803
+DOWNLOAD_DATE= 01/02/2020
+FILE_SIZE_IN_BYTES= 143628
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-complex_REACTOME_CHEMICAL_COMPLEX.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= chemical-complex
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://reactome.org/download/current/ChEBI2ReactomeReactions.txt
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 26202491
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-reaction_ChEBI2ReactomeReactions.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= chemical-reaction
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 29633871
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-pathway_ChEBI2Reactome_All_Levels.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= chemical-pathway
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 376049981
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-gene_CTD_chem_gene_ixns.tsv
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= chemical-gene
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 603088758
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-disease_CTD_chemicals_diseases.tsv
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= chemical-disease
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 603088758
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/chemical-phenotype_CTD_chemicals_diseases.tsv
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= chemical-phenotype
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 10751300
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/disease-phenotype_ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= disease-phenotype
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://www.dropbox.com/s/79ce6oe68jt72ph/PROTEIN_CODING_GENES_PROTEINS.txt?dl=1
-DOWNLOAD_DATE= 01/01/2020
-FILE_SIZE_IN_BYTES= 1378641
+DOWNLOAD_DATE= 01/02/2020
+FILE_SIZE_IN_BYTES= 637379
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-protein_PROTEIN_CODING_GENES_PROTEINS.txt
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= gene-protein
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 11055467
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-phenotype_curated_gene_disease_associations.tsv
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= gene-phenotype
+FILE_LAST_MOD_DATE= 01/02/2020
 
 DOWNLOAD_URL= https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
-DOWNLOAD_DATE= 01/01/2020
+DOWNLOAD_DATE= 01/02/2020
 FILE_SIZE_IN_BYTES= 11055467
 DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-disease_curated_gene_disease_associations.tsv
-FILE_LAST_MOD_DATE= 01/01/2020
+EDGE TYPE= gene-disease
+FILE_LAST_MOD_DATE= 01/02/2020
 
