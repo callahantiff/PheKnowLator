@@ -1,22 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 # import needed libraries
-import codecs
 import csv
+import pandas
 import re
-import urllib
 
-from copy import deepcopy
-from rdflib import Graph
 from tqdm import tqdm
-from urllib.parse import urlencode
-from urllib.request import urlopen
-
 
 # TODO: currently using eval() to handle filtering of downloaded data, should consider replacing this in a future
 #  release.
+
 
 class EdgeList(object):
     """Class creates edge lists based off data type.
@@ -28,12 +22,12 @@ class EdgeList(object):
     source, that contains a dictionary of edge relations
 
     Args:
-        data_files (dict): a list that contains the full file path and name of each downloaded data source.
-        source_file (str): A string containing the filepath to resource information.
+        data_files: a list that contains the full file path and name of each downloaded data source.
+        source_file: a string containing the filepath to resource information.
 
     """
 
-    def __init__(self, data_files, source_file):
+    def __init__(self, data_files: dict, source_file: str):
 
         self.data_files = data_files
         self.source_file = source_file
@@ -52,345 +46,255 @@ class EdgeList(object):
                                                                       cols[5].strip('"').strip("'"))
             self.source_info[cols[0].strip('"').strip("'")]['row_splitter'] = cols[6].strip('"').strip("'")
             self.source_info[cols[0].strip('"').strip("'")]['column_splitter'] = cols[7].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['column_indicies'] = cols[8].strip('"').strip("'")
+            self.source_info[cols[0].strip('"').strip("'")]['column_idx'] = cols[8].strip('"').strip("'")
             self.source_info[cols[0].strip('"').strip("'")]['identifier_maps'] = cols[9].strip('"').strip("'")
             self.source_info[cols[0].strip('"').strip("'")]['evidence_criteria'] = cols[10].strip('"').strip("'")
             self.source_info[cols[0].strip('"').strip("'")]['filter_criteria'] = cols[11].strip('"').strip("'")
             self.source_info[cols[0].strip('"').strip("'")]['edge_list'] = []
 
     @staticmethod
-    def filters_data(edge_data, splitter, data_filter):
-        """Function takes a list of data and then applies a user-input filter to process the data.
+    def identify_header(path: str, sep: str, rows: int = 5, threshold: float = 0.9):
+        """Compares the similarity of a Pandas DataFrame read in with and without a header to determine whether or
+        not the data frame should be built with a header or not. This function was modified from a Stack Overflow
+        post: https://stackoverflow.com/questions/40193388/how-to-check-if-a-csv-has-a-header-using-python/40193509
 
         Args:
-            edge_data (list): A list of data results.
-            splitter (str): A string containing a character to split a row data into columns.
-            data_filter (str): A string containing information that is used to filter results.
+            path: A filepath to a data file.
+            sep: A character specifying how the data is delimited.
+            rows: The number of rows to compare.
+            threshold: A threshold used to determine the similarity between the data with and without the header.
+
+        Returns:
+            if the similarity is grater than the threshold, then None is returned, otherwise 0 is returned
+
+        """
+
+        df_with_header = pandas.read_csv(path, header='infer', nrows=rows, delimiter=sep)
+        df_without_header = pandas.read_csv(path, header=None, nrows=rows, delimiter=sep)
+
+        # detect similarity
+        sim = (df_with_header.dtypes.values == df_without_header.dtypes.values).mean()
+
+        if sim > threshold:
+            return None
+
+        else:
+            return 0
+
+    def data_reader(self, data_filepath: str, file_splitter: str = '\n', line_splitter: str = 't'):
+        """Takes a filepath pointing to data source and reads it into a Pandas DataFrame using information in the
+        file and line splitter variables.
+
+        Args:
+            data_filepath: Filepath to data.
+            file_splitter: Character to split data, used when a file contains metadata information.
+            line_splitter: Character used to split rows into columns.
 
         Return:
-            A list of filtered results.
+            A Pandas DataFrame containing the data from the data_filepath.
+
+        Raises:
+            An exception is raised if the Pandas DataFrame contains at least 2 columns and more than 10 rows.
 
         """
 
-        filtered_data = []
+        # identify line splitter
+        splitter = '\t' if 't' in line_splitter else " " if ' ' in line_splitter else line_splitter
 
-        for line in edge_data:
-            split_line = ['"{}"'.format(x) for x in list(csv.reader([line], delimiter=splitter, quotechar='"'))[0]]
-            meets_criteria = []
+        # read in data
+        if '!' in file_splitter or '#' in file_splitter:
+            # ASSUMPTION: assumes data is read in without a header
+            decoded_data = open(data_filepath).read().split(file_splitter)[-1]
+            edge_data = pandas.DataFrame([x.split(splitter) for x in decoded_data.split('\n') if x != ''])
 
-            for criteria in data_filter.split('::'):
-                if len(split_line) > 1 and '.' not in criteria:
-                    statement = '{} {} "{}"'.format(split_line[int(criteria.split(';')[0])],
-                                                    criteria.split(';')[1],
-                                                    criteria.split(';')[2])
-                    if eval(statement):
-                        meets_criteria.append(line)
+        else:
+            # determine if file contains a header
+            header = self.identify_header(data_filepath, splitter, 5, 0.9)
+            edge_data = pandas.read_csv(data_filepath, header=header, delimiter=splitter, low_memory=False)
 
-                # filtering using str.startswith()
-                elif len(split_line) > 1 and '.' in criteria:
-                    statement = '{}{}'.format(split_line[int(criteria.split(';')[0])], criteria.split(';')[1])
+        # CHECK - verify data
+        if len(list(edge_data)) >= 2 and len(edge_data) > 10:
+            return edge_data.dropna(inplace=False)
 
-                    if eval(statement):
-                        meets_criteria.append(line)
-
-            # verify that line matches on all filtering criteria
-            if len(meets_criteria) == len(data_filter.split('::')):
-                filtered_data.append(''.join(set(meets_criteria)))
-
-        return filtered_data
+        else:
+            raise Exception('ERROR: Data could not be properly read in')
 
     @staticmethod
-    def formats_column_labels(line_data, columns, src_label):
-        """Function takes a single row of data input as a list and then extracts and re-labels specific columns from
-        that row.
+    def filter_data(edge_data: pandas.DataFrame, filter_criteria: str, evidence_criteria: str):
+        """Applies a set of filtering and/or evidence criteria to specific columns in a Pandas DataFrame and returns a
+        filtered DataFrame.
 
         Args:
-            line_data (list): A list representing a single row of data.
-            columns (str): A string containing the columns to extract from the line of data (e.g. "1;2").
-            src_label (str): A string which contains source labels to append to extracted columns.
+            edge_data: A Pandas DataFrame.
+            filter_criteria: A '::' delimited string; each delimited item is a set of filtering criteria.
+            evidence_criteria: A '::' delimited string; each delimited item is a set of mapping criteria.
 
         Returns:
-            A list of extracted and processed edges.
+            A filtered Pandas DataFrame.
+
+        Raises:
+            An exception is raised if the Pandas DataFrame contains at least 2 columns and more than 10 rows.
 
         """
 
-        # format labels
-        src_split = src_label.split(';')[0] if src_label.split(';')[0] != '' else None
-        source1 = src_label.split(';')[1] if src_label.split(';')[1] != '' else src_label.split(';')[1]
-        source2 = src_label.split(';')[2] if src_label.split(';')[2] != '' else src_label.split(';')[2]
-
-        # update data using formatted labels
-        edge1 = source1 + re.sub(r'9606.|' + source1, '', line_data[int(columns.split(';')[0])].split(src_split)[-1])
-        edge2 = source2 + re.sub(r'9606.|' + source2, '', line_data[int(columns.split(';')[1])].split(src_split)[-1])
-
-        return edge1.replace(':', '_'), edge2.replace(':', '_')
-
-    def processes_edge_data(self, data, file_split, line_split, columns, evidence, data_filter, src_label):
-        """Function process a data set and uses the user input to generate a nested list where each nested list
-        represents an edge.
-
-        Args:
-            data (str): A string containing a filepath for a data set.
-            file_split (str): A string containing a character to split a string into rows of data.
-            line_split (str): A string containing a character to split a row data into columns.
-            columns (str): A string containing the columns to extract from the line of data (e.g. "1;2").
-            evidence (str): A string containing information that is used to filter results.
-            data_filter (str): A string containing information that is used to filter results.
-            src_label (str): A string which contains source labels to append to extracted columns.
-
-        Returns:
-            A list, where each list.
-
-        Raises:
-            An exception is raised if after processing the edges, no data is returned.
-        """
-
-        edges = []
-        splitter = '\t' if 't' in line_split else " " if ' ' in line_split else line_split
-
-        # read in data with properly file splitter
-        if '!' in file_split or '#' in file_split:
-            decoded_data = codecs.decode(open(data).read().split(file_split)[-1], 'unicode_escape')
-            edge_data = decoded_data.split('\n')[1:]
+        if filter_criteria == 'None' and evidence_criteria == 'None':
+            return edge_data
 
         else:
-            decoded_data = codecs.decode(open(data).read(), 'unicode_escape')
-            split = '\n' if 'n' in file_split else ' '
-            edge_data = decoded_data.split(split)[1:]
+            map_filter_criteria = filter_criteria + '::' + evidence_criteria
 
-        # perform filtering
-        if 'None' not in data_filter:
-            edge_data = self.filters_data(edge_data, splitter, data_filter)
+            for crit in [x for x in map_filter_criteria.split('::') if x != 'None']:
+                col = list(edge_data)[int(crit.split(';')[0])]
 
-        # perform evidence filtering
-        if 'None' not in evidence:
-            edge_data = self.filters_data(edge_data, splitter, evidence)
+                try:
+                    if type(float(crit.split(';')[2])) is float or type(int(crit.split(';')[2])) is int:
+                        if type(float(crit.split(';')[2])) is float:
+                            edge_data[col] = edge_data[col].astype(float)
 
-        # filter to specific columns
-        for line in edge_data:
-            if len(line) > 1:
-                # re-format and clean up quoted-text
-                line = ['"{}"'.format(x) for x in list(csv.reader([line], delimiter=splitter, quotechar='"'))[0]]
-                line_data = [x.strip('"').strip("'") for x in line]
+                        else:
+                            edge_data[col] = edge_data[col].astype(int)
 
-                # format labels
-                labeled_edges = self.formats_column_labels(line_data, columns, src_label)
+                        statement = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2])
 
-                edges.append(['_'.join(list(filter(None, labeled_edges[0].split('_')))),
-                              '_'.join(list(filter(None, labeled_edges[1].split('_'))))])
-
-        # check that there is data
-        if len(edges) <= 1:
-            raise Exception('ERROR: Something went wrong when processing data')
-
-        else:
-            return edges
-
-    @staticmethod
-    def queries_ontologies(data_file):
-        """Takes a string representing a path/file name to an ontology. The function uses the RDFLib library
-        and creates a graph. The graph is then queried to return all classes and their database cross-references. The
-        function returns a list of query results
-
-        Args:
-            data_file (str): A filepath pointing to an ontology saved in an '.owl' file.
-
-         Returns:
-            A dictionary of results returned from mapping identifiers.
-
-        Raises:
-            An exception is raised if the generated dictionary does not have the same number of entries as the
-            ontology graph.
-         """
-
-        # read in ontology as graph
-        graph = Graph()
-        graph.parse(data_file)
-
-        # query graph to get all cross-referenced sources
-        results = graph.query(
-            """SELECT DISTINCT ?source ?c
-               WHERE {
-                  ?c rdf:type owl:Class .
-                  ?c oboInOwl:hasDbXref ?source .}
-               """, initNs={"rdf": 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                            "owl": 'http://www.w3.org/2002/07/owl#',
-                            "oboInOwl": 'http://www.geneontology.org/formats/oboInOwl#'})
-
-        # convert results to dictionary
-        ont_results = {}
-        for res in list(results):
-            if str(res[0]).split(':')[-1] in ont_results.keys():
-                ont_results[str(res[0]).split(':')[-1]].append(str(res[1]))
-
-            else:
-                ont_results[str(res[0]).split(':')[-1]] = [str(res[1])]
-
-        # CHECK - all URLs returned an data file
-        if len(list(ont_results)) == 0:
-            raise Exception('ERROR: Query returned no data')
-        else:
-            return ont_results
-
-    @staticmethod
-    def queries_uniprot_api(data_file):
-        """Searches a list of entities against the Uniprot API (uniprot.org/help/api_idmapping).
-
-        Args:
-            data_file (str): A filepath containing data to map.
-
-        Returns:
-            A dictionary of results returned from mapping identifiers.
-
-        Raises:
-            An exception is raised if the generated dictionary does not have the same number of rows as the what was
-            returned by the API.
-        """
-        proteins = list(set([x.split('\\t')[1] for x in open(data_file).read().split('!')[-1].split('\\n')[1:]]))
-        params = {'from': 'ACC+ID', 'to': 'P_ENTREZGENEID', 'format': 'tab', 'query': ' '.join(proteins)}
-
-        data = urllib.parse.urlencode(params).encode('utf-8')
-        requests = urllib.request.Request('https://www.uniprot.org/uploadlists/', data)
-        results = urllib.request.urlopen(requests).read().decode('utf-8')
-
-        # convert results to dictionary
-        api_results = {}
-        for res in results.split('\n')[1:-1]:
-            res_row = res.split('\t')
-            if str(res_row[0]) in api_results.keys():
-                api_results[str(res_row[0])].append('http://purl.uniprot.org/geneid/' + str(res_row[1]))
-
-            else:
-                api_results[str(res_row[0])] = ['http://purl.uniprot.org/geneid/' + str(res_row[1])]
-
-        # CHECK - all URLs returned an data file
-        if len(api_results) == 0:
-            raise Exception('ERROR: API returned no data')
-        else:
-            return api_results
-
-    @staticmethod
-    def queries_txt_file(data_file):
-        """Reads in a file containing two columns of data and converts it to a dictionary.
-
-        Args:
-            data_file (str): A filepath containing data to map.
-
-        Return:
-            A dictionary of results returned from mapping identifiers.
-
-        Raises:
-            An exception is raised if the generated dictionary does not have the same number of rows as the input file.
-        """
-
-        results = open(data_file).readlines()
-
-        # convert results to dictionary
-        file_results = {}
-
-        for res in results[:-1]:
-            for key in str(res.split('\t')[0].split('_')[-1].split('/')[-1]).split('|'):
-                for val in str(res.split('\t')[1].strip('\n').split('/')[-1]).split('|'):
-                    if key in file_results.keys():
-                        file_results[key].append(val)
+                except ValueError:
+                    if '(' in crit.split(';')[1]:
+                        statement = '{}{}'.format('x', crit.split(';')[1])
 
                     else:
-                        file_results[key] = [val]
+                        statement = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
 
-        # CHECK - all URLs returned an data file
-        if len(results) == 0:
-            raise Exception('ERROR: dictionary missing results')
+                edge_data = edge_data.loc[edge_data[col].apply(lambda x: eval(statement))]
 
-        else:
-            return file_results
-
-    def gets_edge_information(self, map_source, loc, edge_type):
-        """Uses information about an edge type to identify the appropriate source to map.
-
-        NOTE. Since CHEBI does not have dbXRef mappings to MESH, that the current code has logic to point to the
-        MESH-CHEBI_MAP.txt if the edge type contains 'chemical'. If CHEBI adds MESH then this logic can change.
-
-        Args:
-            map_source (str): A string naming the mapping source to use for mapping.
-            loc (int): An integer representing an index.
-            edge_type: A string naming the type of edge.
-
-        Returns:
-            A dictionary of mapped identifiers.
-        """
-
-        # specify mapping task dictionary
-        map_task = {'dbxref': self.queries_ontologies, 'goa': self.queries_uniprot_api, 'txt': self.queries_txt_file}
-
-        try:
-            edge = edge_type.split('-')[loc]
-            data_loc = map_source if edge == 'chemical' else self.data_files[edge]
-
-        except KeyError:
-            data_loc = map_source
-
-        return map_task[[key for key in map_task.keys() if key in map_source][0]](data_loc)
-
-    def maps_identifiers(self, edges, edge_type, edge_loc, map_source):
-        """Maps identifiers in an edge list to a specified resource.
-
-        Args:
-            edges (list): A nested list where each list represents an edge.
-            edge_type (str): A string naming the type of edge.
-            edge_loc (list): A list of strings that represent integers.
-            map_source (list): A string naming the mapping source to use for mapping.
-
-        Returns:
-            A dictionary containing information on all of the processed edge types.
-
-        Raises:
-            An exception is raised if after mapping the identifiers, no data is returned.
-        """
-
-        map2 = updated_edges = []
-
-        # copy edge list - done bc we are using 'pop' to remove edges
-        edge_data = deepcopy(edges)
-
-        # get dictionary of mapped identifiers
-        if len(edge_loc) > 1:
-            map1 = self.gets_edge_information(map_source[int(edge_loc[0])], int(edge_loc[0]), edge_type)
-            map2 = self.gets_edge_information(map_source[int(edge_loc[1])], int(edge_loc[1]), edge_type)
-
-        else:
-            map1 = self.gets_edge_information(map_source[0], int(edge_loc[0]), edge_type)
-
-        # create edge lists
-        for edge in edge_data:
-            if len(edge_loc) > 1:
-                map_edge1 = edge[0].split('_')[-1]
-                map_edge2 = edge[1].split('_')[-1]
-                mapped1 = map1[map_edge1.split('_')[-1]] if map_edge1.split('_')[-1] in map1.keys() else ''
-                mapped2 = map2[map_edge2.split('_')[-1]] if map_edge2.split('_')[-1] in map2.keys() else ''
+            # CHECK - verify data
+            if len(list(edge_data)) >= 2 and len(edge_data) > 10:
+                return edge_data
 
             else:
-                map_edge1 = edge.pop(int(edge_loc[0])).split('_')[-1]
-                map_edge2 = edge[0]
-                mapped1 = map1[map_edge1.split('_')[-1]] if map_edge1.split('_')[-1] in map1.keys() else ''
-                mapped2 = [map_edge2]
+                raise Exception('ERROR: Data could not be properly read in')
 
-            for mapped_i in mapped1:
-                for mapped_j in mapped2:
-                    cleaned_edge = [None, None]
-                    cleaned_edge[int(edge_loc[0])] = mapped_i.split('/')[-1]
-                    cleaned_edge[abs(1 - int(edge_loc[0]))] = mapped_j.split('/')[-1]
+    @staticmethod
+    def label_formatter(edge_data: pandas.DataFrame, label_criteria: str):
+        """Applies criteria to reformat edge data labels.
 
-                    # add updated edge
-                    updated_edges.append(cleaned_edge)
+        Args:
+            edge_data: A data frame containing a column for each node in the edge
+            label_criteria: A ';' delimited string containing 3 arguments: (1) string splitter, (2) string to append
+                to subject node, and (3) string to append to object node
 
-        # check that there is data
-        if len(updated_edges) <= 1:
-            raise Exception('ERROR: Something went wrong when mapping identifiers')
+        Returns:
+            edge_data:
+
+        """
+
+        cut = label_criteria.split(';')[0]
+
+        for col in range(0, len(label_criteria.split(';')[1:])):
+            formatter, col_to_check = label_criteria.split(';')[col + 1], edge_data[list(edge_data)[col]].astype(str)
+
+            if (cut == '' and formatter != '') or not any(i for i in list(col_to_check) if cut in i):
+                edge_data[list(edge_data)[col]] = edge_data[list(edge_data)[col]].apply(lambda x: formatter + str(x))
+
+            elif cut != '' and formatter != '':
+                edge_data[list(edge_data)[col]].replace('(^.*{})'.format(cut), formatter, inplace=True, regex=True)
+
+            else:
+                pass
+
+        return edge_data
+
+    def data_merger(self, node: int, mapping_data: str, edge_data: pandas.DataFrame):
+        """Processes a string that contains instructions for mapping both columns in the edge_data Pandas DataFrame.
+        This function assumes that the mapping data pointed to contains two columns: (1) identifier in edge_data to be
+        mapped and (2) the desired identifier to map to. If one of the columns does not need to be mapped to an
+        identifier then the original node's column is used for the final merge.
+
+        Args:
+            node: A column integer.
+            mapping_data: A ';' delimited string containing information on identifier mapping data. Each item
+                contains an index of an edge_data column and a filepath to an identifier mapping data set:
+                    '0:./filepath/mapping_data_0.txt;1:./filepath/mapping_data_1.txt'
+            edge_data: A Pandas DataFrame row containing two columns of identifiers.
+
+        Returns:
+            A nested list - [0] node of edge type, [1] edge_data column that needs mapping, and [2]: a Pandas
+            DataFrame containing the data to be mapped.
+
+        Raises:
+            An exception if when indexing into a list that does not contain object at index.
+            An exception is raised when trying to merge data on columns of different data types.
+
+        """
+
+        # check if node needs to be mapped to an outside data source
+        if str(node) in re.sub('(?:(?!:)\D)*', '', mapping_data).split(':'):
+            node2map = list(edge_data)[node]
+
+            # MAPPING TO OUTSIDE DATA SOURCE
+            try:
+                map_data = self.data_reader(mapping_data.split(';')[node].split(':')[1])
+
+            except IndexError:
+                map_data = self.data_reader(mapping_data.split(';')[0].split(':')[1])
+
+            # process mapping data
+            map_col = list(map_data)[0]
+            col_to_map = str(node2map) + '_' + str(map_col) + '_mapped'
+            map_data.rename(columns={list(map_data)[1]: str(col_to_map)}, inplace=True)
+
+            try:
+                merged_data = pandas.merge(edge_data, map_data, left_on=node2map, right_on=map_col, how='inner')
+
+            except ValueError:
+                # update map_data merge col to match edge_data merge col type
+                edge_data[node2map], map_data[map_col] = edge_data[node2map].astype(str), map_data[map_col].astype(str)
+
+                # merge data
+                merged_data = pandas.merge(edge_data, map_data, left_on=node2map, right_on=map_col, how='inner')
+
+            # drop all columns but merge key and value columns
+            merged_data = merged_data[[list(edge_data)[0], list(edge_data)[1], col_to_map]]
+
+        # NOT MAPPING TO OUTSIDE DATA SOURCE
+        else:
+            col_to_map = str(list(edge_data)[node]) + '_mapped'
+            edge_data[col_to_map] = edge_data[[list(edge_data)[node]]]
+            merged_data = edge_data[[list(edge_data)[0], list(edge_data)[1], col_to_map]]
+
+        return [col_to_map, merged_data]
+
+    def process_mapping_data(self, mapping_data: str, edge_data: pandas.DataFrame):
+        """Merges two mapped Pandas DataFrames into a single DataFrame. After merging the DataFrames, the function
+        removes all columns except the the mapped columns and removes any duplicate rows.
+
+        Args:
+            mapping_data: A ';' delimited string containing information on identifier mapping data. Each item
+                contains an index of an edge_data column and a filepath to an identifier mapping data set:
+                    '0:./filepath/mapping_data_0.txt;1:./filepath/mapping_data_1.txt'
+            edge_data: A Pandas DataFrame row containing two columns of identifiers.
+
+        Returns:
+            A list of tuples, where each tuple contains a mapped identifier from each node column in the edge_data
+            Pandas DataFrame.
+
+        """
+
+        if mapping_data == 'None':
+            return tuple(zip(list(edge_data[list(edge_data)[0]]), list(edge_data[list(edge_data)[1]])))
 
         else:
-            return updated_edges
+            # merge edge data with referenced mapping data
+            maps = [self.data_merger(node, mapping_data, edge_data) for node in range(2)]
 
-    # @property
+            # merge mapping data merge result DataFrames
+            merged_cols = list(set(maps[0][1]).intersection(set(maps[1][1])))
+            merged_data = pandas.merge(maps[0][1], maps[1][1], left_on=merged_cols, right_on=merged_cols, how='inner')
+
+            # remove un-wanted columns
+            keep_cols = [x for x in merged_data.columns if 'mapped' in str(x)]
+            merged_data = merged_data[keep_cols].drop_duplicates(subset=None, keep='first', inplace=False)
+
+            return tuple(zip(list(merged_data[maps[0][0]]), list(merged_data[maps[1][0]])))
+
     def creates_knowledge_graph_edges(self):
         """Generates edge lists for each edge type in an input dictionary.
 
@@ -400,47 +304,47 @@ class EdgeList(object):
         """
 
         for edge_type in tqdm(self.source_info.keys()):
+            print('\n### Processing Edge: {}'.format(edge_type))
 
-            print('\n\n' + '=' * 50)
-            print('Processing Edge: {0}'.format(edge_type))
-            print('=' * 50 + '\n')
+            # step 1: read in, filter data, and label data
+            print('*** Reading Edge Data ***')
+            edge_data = self.data_reader(self.data_files[edge_type],
+                                         self.source_info[edge_type]['row_splitter'],
+                                         self.source_info[edge_type]['column_splitter'])
 
-            # step 1: read in, process, and filter data
-            print('Cleaning Edges')
+            # apply filtering and evidence criteria
+            print('*** Applying Filtering and/or Mapping Criteria to Edge Data ***')
+            edge_data = self.filter_data(edge_data,
+                                         self.source_info[edge_type]['filter_criteria'],
+                                         self.source_info[edge_type]['evidence_criteria'])
 
-            clean_data = self.processes_edge_data(self.data_files[edge_type],
-                                                  self.source_info[edge_type]['row_splitter'],
-                                                  self.source_info[edge_type]['column_splitter'],
-                                                  self.source_info[edge_type]['column_indicies'],
-                                                  self.source_info[edge_type]['evidence_criteria'],
-                                                  self.source_info[edge_type]['filter_criteria'],
-                                                  self.source_info[edge_type]['source_labels'])
+            # reduce data to specific edge columns and remove duplicates
+            cols = self.source_info[edge_type]['column_idx']
+            edge_data = edge_data[[list(edge_data)[int(cols.split(';')[0])], list(edge_data)[int(cols.split(';')[1])]]]
+            edge_data = edge_data.drop_duplicates(subset=None, keep='first', inplace=False)
 
-            # step 2: map identifiers + add proper source labels
-            print('Mapping Identifiers and Updating Edge List\n')
+            # update node column values
+            print('*** Reformatting Node Values ***')
+            edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
 
-            if self.source_info[edge_type]['identifier_maps'] == 'None':
-                self.source_info[edge_type]['edge_list'] = clean_data
+            # relabel nodes
+            edge_data.rename(columns={list(edge_data)[0]: str(list(edge_data)[0]) + '-' + edge_type.split('-')[0],
+                                      list(edge_data)[1]: str(list(edge_data)[1]) + '-' + edge_type.split('-')[1]},
+                             inplace=True)
 
-            else:
-                edge_loc = [i for j in self.source_info[edge_type]['identifier_maps'].split(';')
-                            for i in j.split(':')][0::2]
+            # map identifiers
+            print('*** Performing Identifier Mapping ***')
+            mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'], edge_data)
 
-                map_source = [i for j in self.source_info[edge_type]['identifier_maps'].split(';')
-                              for i in j.split(':')][1::2]
+            # add edge and node data to master dictionary
+            self.source_info[edge_type]['edge_list'] = mapped_data
 
-                # map identifiers
-                self.source_info[edge_type]['edge_list'] = self.maps_identifiers(clean_data,
-                                                                                 edge_type,
-                                                                                 edge_loc,
-                                                                                 map_source)
-
-            # get stats to print
+            # get stats to psrint
+            s, o = edge_type.split('-')[0], edge_type.split('-')[1]
             n0 = len(set([x[0] for x in self.source_info[edge_type]['edge_list']]))
             n1 = len(set([x[1] for x in self.source_info[edge_type]['edge_list']]))
             link = len(self.source_info[edge_type]['edge_list'])
-            print('\n\n' + '=' * 75)
-            print('Processed Edge: {0} (nodes:{1}; edge:{2}; nodes:{3})'.format(edge_type, n0, link, n1))
-            print('=' * 75 + '\n')
+
+            print('=== Processed: {0} ({1} edges; {2}:{3}; {4}:{5}) ==='.format(edge_type, link, s, n0, o, n1))
 
         return None
