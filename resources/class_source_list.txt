@@ -1,5 +1,8 @@
-rna-anatomy, https://www.proteinatlas.org/download/rna_tissue_consensus.tsv.zip
+rna-anatomy, https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+rna-cell, https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_RNA_GENE_PROTEIN_EDGES.txt?dl=1
 rna-protein, https://www.dropbox.com/s/ckrw11nfyu6a08c/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt?dl=1
+protein-anatomy, https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+protein-cell, https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_RNA_GENE_PROTEIN_EDGES.txt?dl=1
 protein-protein, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
 protein-gobp, http://geneontology.org/gene-associations/goa_human.gaf.gz
 protein-gomf, http://geneontology.org/gene-associations/goa_human.gaf.gz
@@ -17,10 +20,13 @@ chemical-reaction, https://reactome.org/download/current/ChEBI2ReactomeReactions
 chemical-pathway, https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
 chemical-rna, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
 chemical-gene, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
+chemical-gobp, http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
+chemical-gomf, http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
+chemical-gocc, http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
 chemical-protein, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
 chemical-disease, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
 chemical-phenotype, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
 disease-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
-gene-protein, https://www.dropbox.com/s/79ce6oe68jt72ph/PROTEIN_CODING_GENES_PROTEINS.txt?dl=1
-gene-phenotype, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
 gene-disease, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
+gene-phenotype, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
+gene-protein, https://www.dropbox.com/s/79ce6oe68jt72ph/PROTEIN_CODING_GENES_PROTEINS.txt?dl=1

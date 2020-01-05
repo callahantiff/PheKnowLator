@@ -4,4 +4,5 @@ disease, http://purl.obolibrary.org/obo/doid.owl
 vaccine, http://purl.obolibrary.org/obo/vo.owl
 chemical, ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
 anatomy, http://purl.obolibrary.org/obo/uberon/ext.owl
+cell, http://purl.obolibrary.org/obo/clo.owl
 protein, https://www.dropbox.com/s/6ux85agl95ja3wx/human_pro_closed.owl?dl=1
