@@ -155,13 +155,13 @@ def data_downloader(url: str, write_location: str, filename: str = ''):
     """
 
     # get filename from url
-    file = filename if filename != '' else re.sub('.gz|.zip', '', url.split('/')[-1])
+    file = re.sub('.gz|.zip', '', filename) if filename != '' else re.sub('.gz|.zip', '', url.split('/')[-1])
 
     # zipped data
     if '.zip' in url:
         zipped_url_download(url, write_location, file)
 
-    elif '.gz' in url:
+    elif '.gz' in url or '.gz' in filename:
         if 'ftp' in url:
             gzipped_ftp_url_download(url, write_location, file)
         else:
