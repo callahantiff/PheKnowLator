@@ -339,7 +339,7 @@ class EdgeList(object):
             # add edge and node data to master dictionary
             self.source_info[edge_type]['edge_list'] = mapped_data
 
-            # get stats to psrint
+            # get stats to print
             s, o = edge_type.split('-')[0], edge_type.split('-')[1]
             n0 = len(set([x[0] for x in self.source_info[edge_type]['edge_list']]))
             n1 = len(set([x[1] for x in self.source_info[edge_type]['edge_list']]))
