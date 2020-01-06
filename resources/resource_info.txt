@@ -35,4 +35,6 @@ gene-pathway|:;;|instance-instance|RO_0000056|http://purl.uniprot.org/geneid/|ht
 gene-phenotype|;;|instance-class|RO_0003302|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|n|t|0;4|1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|10;>=;0.70|None
 gene-protein|;;|instance-class|RO_0002205|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|n|t|0;1|None|None|None
 gene-rna|;;|instance-instance|RO_0002511|http://purl.uniprot.org/geneid/|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|n|t|0;1|None|None|None
-variant-gene|;;|instance-instance|RO_0002566|https://www.ncbi.nlm.nih.gov/snp/rs|http://purl.uniprot.org/geneid/|n|t|9;3|None|6;.startswith('Pathogenic');|9;!=;-1
+variant-gene|;;|instance-instance|RO_0002566|https://www.ncbi.nlm.nih.gov/snp/rs|http://purl.uniprot.org/geneid/|n|t|9;3|None|24;.startswith('no assertion');|9;!=;-1
+variant-phenotype|;;|instance-class|  |https://www.ncbi.nlm.nih.gov/snp/rs|http://purl.obolibrary.org/obo/|n|t|9;12|1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|24;.startswith('no assertion');|9;!=;-1
+variant-disease|;;|instance-class|  |https://www.ncbi.nlm.nih.gov/snp/rs|http://purl.obolibrary.org/obo/|n|t|9;12|1:./resources/processed_data/DISEASE_DOID_MAP.txt|24;.startswith('no assertion');|9;!=;-1

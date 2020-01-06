@@ -30,3 +30,5 @@ disease-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly
 gene-disease, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
 gene-phenotype, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
 gene-protein, https://www.dropbox.com/s/79ce6oe68jt72ph/PROTEIN_CODING_GENES_PROTEINS.txt?dl=1
+variant-phenotype, https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
+variant-disease, https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
