@@ -345,6 +345,6 @@ class EdgeList(object):
             n1 = len(set([x[1] for x in self.source_info[edge_type]['edge_list']]))
             link = len(self.source_info[edge_type]['edge_list'])
 
-            print('=== Processed: {0} ({1} edges; {2}:{3}; {4}:{5}) ==='.format(edge_type, link, s, n0, o, n1))
+            print('=== Processed: {0} ({1} edges; {2}s:{3}; {4}s:{5}) ==='.format(edge_type, link, s, n0, o, n1))
 
         return None
