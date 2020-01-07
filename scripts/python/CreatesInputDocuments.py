@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 
+# TODO: Need to add checks to make sure that user input is correct
+
 class DocumentationMaker(object):
     """Has functionality to interact with a user and gather the information needed in order to prepare the three
     input documents needed to run the PheKnowLator program.
@@ -46,9 +48,9 @@ class DocumentationMaker(object):
             print('\n')
             data_type = input('Provide the data types for each node in the edge (e.g. gene-drug --> class-instance): ')
             print('\n')
-            row_splitter = input('Provide the character used to split input text into rows: ')
+            row_splitter = input('Provide the character used to split input text into rows (e.g. n or !): ')
             print('\n')
-            col_splitter = input('Provide the character used to split each row into columns: ')
+            col_splitter = input('Provide the character used to split each row into columns (e.g. t or ,): ')
             print('\n')
             col_idx = input('Provide the column index for each node in the input data, separated by ";" (e.g. 0;3): ')
             print('\n')
