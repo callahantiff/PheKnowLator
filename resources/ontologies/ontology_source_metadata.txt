@@ -1,57 +1,92 @@
-#Mon Jan 06 23:30:27 UTC 2020 
-DOWNLOAD_URL= http://purl.obolibrary.org/obo/hp.owl
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 82406199
-DOWNLOADED_FILE_LOCATION= ./resources/ontologies/hp_with_imports.owl
-EDGE TYPE= phenotype
-FILE_LAST_MOD_DATE= 01/06/2020
+===================================
+#Wed Jan 08 20:11:29 UTC 2020 
+===================================
 
-DOWNLOAD_URL= http://purl.obolibrary.org/obo/go.owl
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 164688647
-DOWNLOADED_FILE_LOCATION= ./resources/ontologies/go_with_imports.owl
-EDGE TYPE= go
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: phenotype
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = http://purl.obolibrary.org/obo/hp.owl
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 82406199
+  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/hp_with_imports.owl
 
-DOWNLOAD_URL= http://purl.obolibrary.org/obo/doid.owl
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 24631826
-DOWNLOADED_FILE_LOCATION= ./resources/ontologies/doid_with_imports.owl
-EDGE TYPE= disease
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: go
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = http://purl.obolibrary.org/obo/go.owl
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 164688647
+  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/go_with_imports.owl
 
-DOWNLOAD_URL= http://purl.obolibrary.org/obo/vo.owl
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 7684846
-DOWNLOADED_FILE_LOCATION= ./resources/ontologies/vo_with_imports.owl
-EDGE TYPE= vaccine
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: disease
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = http://purl.obolibrary.org/obo/doid.owl
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 24631826
+  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/doid_with_imports.owl
 
-DOWNLOAD_URL= ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 142693019
-DOWNLOADED_FILE_LOCATION= ./resources/ontologies/chebi_lite_with_imports.owl
-EDGE TYPE= chemical
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: vaccine
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = http://purl.obolibrary.org/obo/vo.owl
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 7684846
+  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/vo_with_imports.owl
 
-DOWNLOAD_URL= http://purl.obolibrary.org/obo/uberon/ext.owl
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 76534454
-DOWNLOADED_FILE_LOCATION= ./resources/ontologies/ext_with_imports.owl
-EDGE TYPE= anatomy
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: chemical
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 142693019
+  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/chebi_lite_with_imports.owl
 
-DOWNLOAD_URL= http://purl.obolibrary.org/obo/clo.owl
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 119273027
-DOWNLOADED_FILE_LOCATION= ./resources/ontologies/clo_with_imports.owl
-EDGE TYPE= cell
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: anatomy
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = http://purl.obolibrary.org/obo/uberon/ext.owl
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 76534454
+  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/ext_with_imports.owl
 
-DOWNLOAD_URL= https://www.dropbox.com/s/6ux85agl95ja3wx/human_pro_closed.owl?dl=1
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 43793715
-DOWNLOADED_FILE_LOCATION= ./resources/ontologies/human_pro_closed_with_imports.owl
-EDGE TYPE= protein
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: cell
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = http://purl.obolibrary.org/obo/clo.owl
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 119273027
+  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/clo_with_imports.owl
+
+EDGE: protein
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = https://www.dropbox.com/s/6ux85agl95ja3wx/human_pro_closed.owl?dl=1
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 43793715
+  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/human_pro_closed_with_imports.owl
 

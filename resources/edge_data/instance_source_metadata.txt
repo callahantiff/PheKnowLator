@@ -1,43 +1,70 @@
-#Mon Jan 06 23:31:03 UTC 2020 
-DOWNLOAD_URL= https://www.dropbox.com/s/sojaq8u3hwfw4jz/REACTOME_COMPLEX_COMPLEX.txt?dl=1
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 371331
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/complex-complex_REACTOME_COMPLEX_COMPLEX.txt
-EDGE TYPE= complex-complex
-FILE_LAST_MOD_DATE= 01/06/2020
+===================================
+#Wed Jan 08 20:11:46 UTC 2020 
+===================================
 
-DOWNLOAD_URL= https://reactome.org/download/current/Complex_2_Pathway_human.txt
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 844121
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/complex-pathway_Complex_2_Pathway_human.txt
-EDGE TYPE= complex-pathway
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: complex-complex
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = https://www.dropbox.com/s/sojaq8u3hwfw4jz/REACTOME_COMPLEX_COMPLEX.txt?dl=1
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 371331
+  - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/complex-complex_REACTOME_COMPLEX_COMPLEX.txt
 
-DOWNLOAD_URL= http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 270656653
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-gene_COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
-EDGE TYPE= gene-gene
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: complex-pathway
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = https://reactome.org/download/current/Complex_2_Pathway_human.txt
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 844121
+  - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/complex-pathway_Complex_2_Pathway_human.txt
 
-DOWNLOAD_URL= http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 8193974
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-pathway_CTD_genes_pathways.tsv
-EDGE TYPE= gene-pathway
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: gene-gene
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = gene (./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt) | gene (./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt)
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = edge_data[2]>0
+FILE INFO
+  - DOWNLOAD_URL = http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 270656653
+  - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-gene_COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
 
-DOWNLOAD_URL= https://www.dropbox.com/s/yqnofd8h90luygu/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 3875055
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/gene-rna_ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt
-EDGE TYPE= gene-rna
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: gene-pathway
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = edge_data[3].startswith('REACT:R-HSA-')
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 8193974
+  - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-pathway_CTD_genes_pathways.tsv
 
-DOWNLOAD_URL= https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
-DOWNLOAD_DATE= 01/06/2020
-FILE_SIZE_IN_BYTES= 1406391053
-DOWNLOADED_FILE_LOCATION= ./resources/edge_data/variant-gene_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
-EDGE TYPE= variant-gene
-FILE_LAST_MOD_DATE= 01/06/2020
+EDGE: gene-rna
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = None
+FILE INFO
+  - DOWNLOAD_URL = https://www.dropbox.com/s/yqnofd8h90luygu/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 3875055
+  - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-rna_ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt
+
+EDGE: variant-gene
+EDGE DATA INFO
+  - IDENTIFIER MAPPING = None
+  - FILTERING CRITERIA = edge_data[9]!=-1
+  - EVIDENCE CRITERIA = edge_data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"]
+FILE INFO
+  - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
+  - DOWNLOAD_DATE = 01/08/2020
+  - FILE_SIZE_IN_BYTES = 1406391053
+  - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-gene_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 

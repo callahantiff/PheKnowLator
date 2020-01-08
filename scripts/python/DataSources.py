@@ -24,11 +24,14 @@ class DataSource(object):
     classes methods that are specialized for that specific data type.
 
     Attributes:
-        data_path: A string file path/name to a text file storing URLs of different sources to download.
-        data_type: A string specifying the type of data source.
-        source_list: A list of URLs containing the data sources to download/process.
-        data_files: A list of strings, which contain the full file path/name of each downloaded data source.
-        metadata: An empty list that will be used to store metadata information for each downloaded resource.
+        data_path: a string file path/name to a text file storing URLs of different sources to download.
+        data_type: a string specifying the type of data source.
+        resource_info: a list of pipe-delimited arguments for how each data source should be processed.
+        resource_dict: an edge data dictionary where the keys are the edge type and the values are a list containing
+            mapping and filtering information (only used for "Edge Data")
+        source_list: a list of URLs containing the data sources to download/process.
+        data_files: a list of strings, which contain the full file path/name of each downloaded data source.
+        metadata: an empty list that will be used to store metadata information for each downloaded resource.
 
     """
 
@@ -37,6 +40,8 @@ class DataSource(object):
     def __init__(self, data_path: str):
         self.data_path: str = data_path
         self.data_type: str = data_path.split('/')[-1].split('.')[0]
+        self.resource_info: list = open(glob.glob('**/**/*resource**info*.txt', recursive=True)[0]).readlines()
+        self.resource_dict: dict = {}
         self.source_list: dict = {}
         self.data_files: dict = {}
         self.metadata: list = []
@@ -70,6 +75,50 @@ class DataSource(object):
 
         pass
 
+    def extracts_edge_metadata(self):
+        """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are
+        a list containing mapping and filtering information.
+
+        Returns:
+            dictionary of edge type metadata, where each value contains a list of three items:
+                (1) identifier mapping information: edge node, filepath to identifier data
+                (2) filtering criteria: edge data column index: criteria
+                (3) evidence criteria: edge data column index: criteria
+
+                For example: {node1-node2:
+                                          node1 - './filepath/mapping_data.txt,
+                                          col_idx:8 - col_val<2.0 | col_idx:24 - col_val.startswith('REACT'),
+                                          col_idx:2 - col_val=='reviewed', col_idx:4 - col_val in [9606, 1026]}
+
+        """
+
+        # create edge data resource dictionary
+        for edge in self.resource_info:
+
+            # get identifier mapping information
+            edge_type = edge.split('|')[0].split('-')
+            mapping = ['{} ({})'.format(edge_type[int(x.split(':')[0])], ''.join(x.split(':')[1]))
+                       if x != 'None'
+                       else 'None'
+                       for x in edge.split('|')[-3].strip('\n').split(';')]
+
+            # get filtering information
+            filtering = ['None' if x == 'None'
+                         else 'edge_data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
+                         if ('in' in x.split(';')[1] and x != 'None')
+                         else 'edge_data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+                         for x in edge.split('|')[-1].strip('\n').split('::')]
+
+            # get evidence criteria
+            evidence = ['None' if x == 'None'
+                        else 'edge_data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
+                        if ('in' in x.split(';')[1] and x != 'None')
+                        else 'edge_data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+                        for x in edge.split('|')[-2].strip('\n').split('::')]
+
+            # add info to dictionary
+            self.resource_dict[edge.split('|')[0]] = [' | '.join(mapping), ' | '.join(filtering), ' | '.join(evidence)]
+
     def generates_source_metadata(self):
         """Extracts and stores metadata for imported data sources. Metadata includes the date of download,
         date of last modification to the file, the difference in days between last date of modification and current
@@ -83,39 +132,30 @@ class DataSource(object):
         print('\n*** Generating Metadata ***\n')
         self.metadata.append(['#' + str(datetime.datetime.utcnow().strftime('%a %b %d %X UTC %Y')) + ' \n'])
 
+        # create resource info edge dict
+        self.extracts_edge_metadata()
+
         for i in tqdm(self.data_files.keys()):
             source = self.data_files[i]
 
-            # get vars for metadata file
-            try:
-                file_info = requests.head(self.source_list[i])
+            # get edge information
+            if '-' in source:
+                map_info = self.resource_dict[i][0]
+                filter_info = self.resource_dict[i][1]
+                evidence_info = self.resource_dict[i][2]
 
-                if 'modified' in [x.lower() for x in file_info.headers.keys()]:
-                    mod_info = file_info.headers['modified'][0]
-
-                elif 'Last-Modified' in [x.lower() for x in file_info.headers.keys()]:
-                    mod_info = file_info.headers['Last-Modified'][0]
-
-                elif 'Date' in [x.lower() for x in file_info.headers.keys()]:
-                    mod_info = file_info.headers['Date']
-
-                else:
-                    mod_info = datetime.datetime.now().strftime('%a, %d %b %Y %X GMT')
-
-            # for ftp downloads that don't have header info
-            except requests.exceptions.InvalidSchema:
-                mod_info = datetime.datetime.now().strftime('%a, %d %b %Y %X GMT')
-
-            # reformat date
-            mod_date = datetime.datetime.strptime(mod_info, '%a, %d %b %Y %X GMT').strftime('%m/%d/%Y')
+            else:
+                map_info, filter_info, evidence_info = 'None', 'None', 'None'
 
             # add metadata for each source as nested list
-            source_metadata = ['DOWNLOAD_URL= {}'.format(str(self.source_list[i])),
-                               'DOWNLOAD_DATE= {}'.format(str(datetime.datetime.now().strftime('%m/%d/%Y'))),
-                               'FILE_SIZE_IN_BYTES= {}'.format(str(os.stat(self.data_files[i]).st_size)),
-                               'DOWNLOADED_FILE_LOCATION= {}'.format(str(source)),
-                               'EDGE TYPE= {}'.format(i),
-                               'FILE_LAST_MOD_DATE= {}'.format(str(mod_date))]
+            source_metadata = ['EDGE: {}'.format(i),
+                               'EDGE DATA INFO\n  - IDENTIFIER MAPPING = {}'.format(map_info),
+                               '  - FILTERING CRITERIA = {}'.format(filter_info),
+                               '  - EVIDENCE CRITERIA = {}'.format(evidence_info),
+                               'FILE INFO\n  - DOWNLOAD_URL = {}'.format(str(self.source_list[i])),
+                               '  - DOWNLOAD_DATE = {}'.format(str(datetime.datetime.now().strftime('%m/%d/%Y'))),
+                               '  - FILE_SIZE_IN_BYTES = {}'.format(str(os.stat(self.data_files[i]).st_size)),
+                               '  - DOWNLOADED_FILE_LOCATION = {}'.format(str(source))]
 
             self.metadata.append(source_metadata)
 
@@ -136,7 +176,7 @@ class DataSource(object):
         write_loc_part1 = str('/'.join(list(self.data_files.values())[1].split('/')[:-1]) + '/')
         write_loc_part2 = str('_'.join(self.data_type.split('_')[:-1]))
         outfile = open(write_loc_part1 + write_loc_part2 + '_metadata.txt', 'w')
-        outfile.write(self.metadata[0][0])
+        outfile.write('=' * 35 + '\n{}'.format(self.metadata[0][0]) + '=' * 35 + '\n\n')
 
         for i in tqdm(range(1, len(self.data_files.keys()) + 1)):
             outfile.write(str(self.metadata[i][0]) + '\n')
@@ -145,6 +185,8 @@ class DataSource(object):
             outfile.write(str(self.metadata[i][3]) + '\n')
             outfile.write(str(self.metadata[i][4]) + '\n')
             outfile.write(str(self.metadata[i][5]) + '\n')
+            outfile.write(str(self.metadata[i][6]) + '\n')
+            outfile.write(str(self.metadata[i][7]) + '\n')
             outfile.write('\n')
 
         outfile.close()
