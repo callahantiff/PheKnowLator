@@ -104,16 +104,16 @@ class DataSource(object):
 
             # get filtering information
             filtering = ['None' if x == 'None'
-                         else 'edge_data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
+                         else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
                          if ('in' in x.split(';')[1] and x != 'None')
-                         else 'edge_data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+                         else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
                          for x in edge.split('|')[-1].strip('\n').split('::')]
 
             # get evidence criteria
             evidence = ['None' if x == 'None'
-                        else 'edge_data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
+                        else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
                         if ('in' in x.split(';')[1] and x != 'None')
-                        else 'edge_data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+                        else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
                         for x in edge.split('|')[-2].strip('\n').split('::')]
 
             # add info to dictionary
@@ -149,10 +149,10 @@ class DataSource(object):
 
             # add metadata for each source as nested list
             source_metadata = ['EDGE: {}'.format(i),
-                               'EDGE DATA INFO\n  - IDENTIFIER MAPPING = {}'.format(map_info),
+                               'DATA PROCESSING INFO\n  - IDENTIFIER MAPPING = {}'.format(map_info),
                                '  - FILTERING CRITERIA = {}'.format(filter_info),
                                '  - EVIDENCE CRITERIA = {}'.format(evidence_info),
-                               'FILE INFO\n  - DOWNLOAD_URL = {}'.format(str(self.source_list[i])),
+                               'DATA INFO\n  - DOWNLOAD_URL = {}'.format(str(self.source_list[i])),
                                '  - DOWNLOAD_DATE = {}'.format(str(datetime.datetime.now().strftime('%m/%d/%Y'))),
                                '  - FILE_SIZE_IN_BYTES = {}'.format(str(os.stat(self.data_files[i]).st_size)),
                                '  - DOWNLOADED_FILE_LOCATION = {}'.format(str(source))]
