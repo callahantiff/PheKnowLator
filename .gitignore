@@ -29,6 +29,7 @@ scripts/python/scratch.py
 ./resources/normal_class_source_list.txt
 ./resources/normal_instance_source_list.txt
 ./resources/normal_resource_info_list.txt
+resources/node_data/*
 
 # releases
 /resources/releases/
