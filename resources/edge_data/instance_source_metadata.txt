@@ -1,5 +1,5 @@
 ===================================
-#Wed Jan 08 20:11:46 UTC 2020 
+#Wed Jan 08 23:40:11 UTC 2020 
 ===================================
 
 EDGE: complex-complex
@@ -60,7 +60,7 @@ FILE INFO
 EDGE: variant-gene
 EDGE DATA INFO
   - IDENTIFIER MAPPING = None
-  - FILTERING CRITERIA = edge_data[9]!=-1
+  - FILTERING CRITERIA = edge_data[9]!=-1 | edge_data[16]==GRCh38
   - EVIDENCE CRITERIA = edge_data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"]
 FILE INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1

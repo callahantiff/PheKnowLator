@@ -1,5 +1,5 @@
 ===================================
-#Wed Jan 08 20:11:42 UTC 2020 
+#Wed Jan 08 23:40:04 UTC 2020 
 ===================================
 
 EDGE: chemical-complex
@@ -357,7 +357,7 @@ FILE INFO
 EDGE: variant-disease
 EDGE DATA INFO
   - IDENTIFIER MAPPING = disease (./resources/processed_data/DISEASE_DOID_MAP.txt)
-  - FILTERING CRITERIA = edge_data[9]!=-1
+  - FILTERING CRITERIA = edge_data[9]!=-1 | edge_data[16]==GRCh38
   - EVIDENCE CRITERIA = edge_data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"] | edge_data[7]==1
 FILE INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
@@ -368,7 +368,7 @@ FILE INFO
 EDGE: variant-phenotype
 EDGE DATA INFO
   - IDENTIFIER MAPPING = phenotype (./resources/processed_data/PHENOTYPE_HPO_MAP.txt)
-  - FILTERING CRITERIA = edge_data[9]!=-1
+  - FILTERING CRITERIA = edge_data[9]!=-1 | edge_data[16]==GRCh38
   - EVIDENCE CRITERIA = edge_data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"] | edge_data[7]==1
 FILE INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
