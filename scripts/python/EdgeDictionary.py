@@ -33,7 +33,7 @@ class EdgeList(object):
         self.data_files = data_files
         self.source_file = source_file
 
-        # convert to dictionary
+        # convert edge data to a dictionary
         self.source_info = dict()
 
         for row in open(source_file).read().split('\n'):
@@ -158,8 +158,11 @@ class EdgeList(object):
                         statement = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2])
 
                 except ValueError:
-                    if '(' in crit.split(';')[1]:
+                    if crit.split(';')[2] == '' and '(' in crit.split(';')[1]:
                         statement = '{}{}'.format('x', crit.split(';')[1])
+
+                    elif '(' in crit.split(';')[2] or '[' in crit.split(';')[2]:
+                        statement = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
 
                     else:
                         statement = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
