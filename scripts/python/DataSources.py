@@ -305,8 +305,8 @@ class OntData(DataSource):
                         print(error.output)
 
                 else:
-                    data_downloader(source, str(write_loc), str(file_prefix) + '_with_imports.owl')
-                    self.data_files[i] = str(write_loc) + str(file_prefix) + '_with_imports.owl'
+                    data_downloader(source, './resources/ontologies/', str(file_prefix) + '_with_imports.owl')
+                    self.data_files[i] = './resources/ontologies/' + str(file_prefix) + '_with_imports.owl'
 
         # CHECK
         if len(self.source_list) != len(self.data_files):

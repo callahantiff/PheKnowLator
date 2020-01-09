@@ -1,5 +1,5 @@
 ===================================
-#Thu Jan 09 18:13:04 UTC 2020 
+#Thu Jan 09 19:17:29 UTC 2020 
 ===================================
 
 EDGE: phenotype
@@ -55,7 +55,7 @@ DATA INFO
   - DOWNLOAD_URL = ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
   - DOWNLOAD_DATE = 01/09/2020
   - FILE_SIZE_IN_BYTES = 142971487
-  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/chebi_litechebi_lite_with_imports.owl
+  - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/chebi_lite_with_imports.owl
 
 EDGE: anatomy
 DATA PROCESSING INFO
@@ -87,6 +87,6 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/6ux85agl95ja3wx/human_pro_closed.owl?dl=1
   - DOWNLOAD_DATE = 01/09/2020
-  - FILE_SIZE_IN_BYTES = 43793715
+  - FILE_SIZE_IN_BYTES = 197759055
   - DOWNLOADED_FILE_LOCATION = ./resources/ontologies/human_pro_closed_with_imports.owl
 
