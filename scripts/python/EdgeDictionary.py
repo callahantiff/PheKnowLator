@@ -9,8 +9,7 @@ import re
 
 from tqdm import tqdm
 
-# TODO: currently using eval() to handle filtering of downloaded data, should consider replacing this in a future
-#  release.
+# TODO: using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
 
 
 class EdgeList(object):
@@ -145,29 +144,45 @@ class EdgeList(object):
             map_filter_criteria = filter_criteria + '::' + evidence_criteria
 
             for crit in [x for x in map_filter_criteria.split('::') if x != 'None']:
-                col = list(edge_data)[int(crit.split(';')[0])]
 
-                try:
-                    if type(float(crit.split(';')[2])) is float or type(int(crit.split(';')[2])) is int:
-                        if type(float(crit.split(';')[2])) is float:
-                            edge_data[col] = edge_data[col].astype(float)
+                # check if argument is to deduplicate data
+                if crit.split(';')[1] == 'dedup':
+                    sort_col = list(edge_data)[int(crit.split(';')[0].split('-')[0])]
+                    filt_col = list(edge_data)[int(crit.split(';')[0].split('-')[1])]
+
+                    # sort data
+                    sort_dir = [True if crit.split(';')[-1].lower() == 'asc' else False][0]
+                    edge_data.sort_values(sort_col, ascending=sort_dir, inplace=True)
+
+                    # deduplicate data
+                    edge_data.drop_duplicates(subset=filt_col, keep='first', inplace=True)
+
+                else:
+                    col = list(edge_data)[int(crit.split(';')[0])]
+
+                    try:
+                        if type(float(crit.split(';')[2])) is float or type(int(crit.split(';')[2])) is int:
+                            if type(float(crit.split(';')[2])) is float:
+                                edge_data[col] = edge_data[col].astype(float)
+
+                            else:
+                                edge_data[col] = edge_data[col].astype(int)
+
+                            statement = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2])
+
+                    except ValueError:
+                        if crit.split(';')[2] == '' and '(' in crit.split(';')[1]:
+                            statement = '{}{}'.format('x', crit.split(';')[1])
+
+                        elif '(' in crit.split(';')[2] or '[' in crit.split(';')[2]:
+                            statement = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
 
                         else:
-                            edge_data[col] = edge_data[col].astype(int)
+                            statement = '{} {} "{}"'.format('x',
+                                                            crit.split(';')[1],
+                                                            crit.split(';')[2].replace("'", ''))
 
-                        statement = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2])
-
-                except ValueError:
-                    if crit.split(';')[2] == '' and '(' in crit.split(';')[1]:
-                        statement = '{}{}'.format('x', crit.split(';')[1])
-
-                    elif '(' in crit.split(';')[2] or '[' in crit.split(';')[2]:
-                        statement = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
-
-                    else:
-                        statement = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
-
-                edge_data = edge_data.loc[edge_data[col].apply(lambda x: eval(statement))]
+                    edge_data = edge_data.loc[edge_data[col].apply(lambda x: eval(statement))]
 
             # CHECK - verify data
             if len(list(edge_data)) >= 2 and len(edge_data) > 10:
