@@ -94,7 +94,7 @@ class EdgeList(object):
             A Pandas DataFrame containing the data from the data_filepath.
 
         Raises:
-            An exception is raised if the Pandas DataFrame contains at least 2 columns and more than 10 rows.
+            An exception is raised if the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
 
         """
 
@@ -133,7 +133,7 @@ class EdgeList(object):
             A filtered Pandas DataFrame.
 
         Raises:
-            An exception is raised if the Pandas DataFrame contains at least 2 columns and more than 10 rows.
+            An exception is raised if the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
 
         """
 
