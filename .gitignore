@@ -31,6 +31,8 @@ scripts/python/scratch.py
 ./resources/normal_resource_info_list.txt
 resources/node_data/*
 !resources/node_data/README.md
+resources/relations_data/*
+!resources/relations_data/README.md
 
 # releases
 /resources/releases/
