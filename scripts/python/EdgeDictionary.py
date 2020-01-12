@@ -153,8 +153,6 @@ class EdgeList(object):
                     # sort data
                     sort_dir = [True if crit.split(';')[-1].lower() == 'asc' else False][0]
                     edge_data.sort_values(sort_col, ascending=sort_dir, inplace=True)
-
-                    # deduplicate data
                     edge_data.drop_duplicates(subset=filt_col, keep='first', inplace=True)
 
                 else:
@@ -190,6 +188,30 @@ class EdgeList(object):
 
             else:
                 raise Exception('ERROR: Data could not be properly read in')
+
+    @staticmethod
+    def data_reducer(cols: str, edge_data: pandas.DataFrame):
+        """Reduces a Pandas.DataFrame to 2 columns. Prior to returning the data, the function checks the type
+        of each column in the reduced Pandas.DataFrame to make sure that neither column is of type float.
+
+        Args:
+            cols: a ';'-delimited str containing column indices.
+            edge_data: a Pandas.DataFrame.
+
+        Returns:
+            A Pandas.DataFrame that consists of the two columns provided by the 'col' variable.
+
+        """
+
+        edge_data = edge_data[[list(edge_data)[int(cols.split(';')[0])], list(edge_data)[int(cols.split(';')[1])]]]
+        edge_data = edge_data.drop_duplicates(subset=None, keep='first', inplace=False)
+
+        # make sure neither column is float
+        for x in list(edge_data):
+            if 'float' in str(edge_data[x].dtype):
+                edge_data[x] = edge_data[x].astype(int)
+
+        return edge_data
 
     @staticmethod
     def label_formatter(edge_data: pandas.DataFrame, label_criteria: str):
@@ -337,10 +359,8 @@ class EdgeList(object):
                                          self.source_info[edge_type]['filter_criteria'],
                                          self.source_info[edge_type]['evidence_criteria'])
 
-            # reduce data to specific edge columns and remove duplicates
-            cols = self.source_info[edge_type]['column_idx']
-            edge_data = edge_data[[list(edge_data)[int(cols.split(';')[0])], list(edge_data)[int(cols.split(';')[1])]]]
-            edge_data = edge_data.drop_duplicates(subset=None, keep='first', inplace=False)
+            # reduce data to specific edge columns, remove duplicates, and ensure proper formatting of column data
+            edge_data = self.data_reducer(self.source_info[edge_type]['column_idx'], edge_data)
 
             # update node column values
             print('*** Reformatting Node Values ***')
