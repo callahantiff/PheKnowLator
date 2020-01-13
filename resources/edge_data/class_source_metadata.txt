@@ -1,5 +1,5 @@
 ===================================
-#Fri Jan 10 21:22:41 UTC 2020 
+#Mon Jan 13 07:39:54 UTC 2020 
 ===================================
 
 EDGE: chemical-complex
@@ -9,7 +9,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/qoetjt0vfy6qb3y/REACTOME_CHEMICAL_COMPLEX.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 143628
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-complex_REACTOME_CHEMICAL_COMPLEX.txt
 
@@ -20,7 +20,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[5]!=' '
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 606298215
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-disease_CTD_chemicals_diseases.tsv
 
@@ -31,7 +31,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 377439886
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gene_CTD_chem_gene_ixns.tsv
 
@@ -42,7 +42,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[8]<0.0001
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 760612373
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gobp_CTD_chem_go_enriched.tsv
 
@@ -53,7 +53,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[8]<0.0001
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 760612373
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gocc_CTD_chem_go_enriched.tsv
 
@@ -64,7 +64,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[8]<0.0001
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 760612373
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv
 
@@ -75,7 +75,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 29633871
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-pathway_ChEBI2Reactome_All_Levels.txt
 
@@ -86,7 +86,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[5]!=' '
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 606298215
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-phenotype_CTD_chemicals_diseases.tsv
 
@@ -97,7 +97,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 377439886
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-protein_CTD_chem_gene_ixns.tsv
 
@@ -108,7 +108,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://reactome.org/download/current/ChEBI2ReactomeReactions.txt
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 26202491
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-reaction_ChEBI2ReactomeReactions.txt
 
@@ -119,7 +119,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 377439886
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-rna_CTD_chem_gene_ixns.tsv
 
@@ -130,7 +130,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 10751300
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/disease-phenotype_ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
 
@@ -141,7 +141,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[10]>=0.70
 DATA INFO
   - DOWNLOAD_URL = https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 11055467
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-disease_curated_gene_disease_associations.tsv
 
@@ -152,7 +152,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[10]>=0.70
 DATA INFO
   - DOWNLOAD_URL = https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 11055467
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-phenotype_curated_gene_disease_associations.tsv
 
@@ -163,7 +163,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/79ce6oe68jt72ph/PROTEIN_CODING_GENES_PROTEINS.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 650954
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-protein_PROTEIN_CODING_GENES_PROTEINS.txt
 
@@ -174,7 +174,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://reactome.org/download/current/gene_association.reactome.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 12199709
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gobp-pathway_gene_association.reactome
 
@@ -185,7 +185,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://reactome.org/download/current/gene_association.reactome.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 12199709
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/pathway-gocc_gene_association.reactome
 
@@ -196,7 +196,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://reactome.org/download/current/gene_association.reactome.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 12199709
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/pathway-gomf_gene_association.reactome
 
@@ -207,7 +207,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_RNA_GENE_PROTEIN_EDGES.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 5061655
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-anatomy_HPA_RNA_GENE_PROTEIN_EDGES.txt
 
@@ -218,7 +218,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/pvopvs0iq8x3oq2/UNIPROT_PROTEIN_CATALYST.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 1084475
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-catalyst_UNIPROT_PROTEIN_CATALYST.txt
 
@@ -229,7 +229,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_RNA_GENE_PROTEIN_EDGES.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 5061655
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-cell_HPA_RNA_GENE_PROTEIN_EDGES.txt
 
@@ -240,7 +240,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/ij9t89botd8nmmj/UNIPROT_PROTEIN_COFACTOR.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 100843
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-cofactor_UNIPROT_PROTEIN_COFACTOR.txt
 
@@ -251,7 +251,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/7meu0cdz1mrnsz7/REACTOME_PROTEIN_COMPLEX.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 1902652
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-complex_REACTOME_PROTEIN_COMPLEX.txt
 
@@ -262,7 +262,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://geneontology.org/gene-associations/goa_human.gaf.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 84144583
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-gobp_goa_human.gaf
 
@@ -273,7 +273,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://geneontology.org/gene-associations/goa_human.gaf.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 84144583
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-gocc_goa_human.gaf
 
@@ -284,7 +284,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://geneontology.org/gene-associations/goa_human.gaf.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 84144583
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-gomf_goa_human.gaf
 
@@ -295,7 +295,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 107205734
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-pathway_UniProt2Reactome_All_Levels.txt
 
@@ -306,7 +306,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[2]>=700
 DATA INFO
   - DOWNLOAD_URL = https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 540934917
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-protein_9606.protein.links.v11.0.txt
 
@@ -317,7 +317,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://reactome.org/download/current/UniProt2ReactomeReactions.txt
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 94802840
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-reaction_UniProt2ReactomeReactions.txt
 
@@ -328,7 +328,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_RNA_GENE_PROTEIN_EDGES.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 5061655
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/rna-anatomy_HPA_RNA_GENE_PROTEIN_EDGES.txt
 
@@ -339,7 +339,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_RNA_GENE_PROTEIN_EDGES.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 5061655
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/rna-cell_HPA_RNA_GENE_PROTEIN_EDGES.txt
 
@@ -350,7 +350,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/ckrw11nfyu6a08c/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 2533672
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/rna-protein_ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt
 
@@ -361,7 +361,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"] | data[7]==1
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 1406391053
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-disease_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 
@@ -372,7 +372,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"] | data[7]==1
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 1406391053
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-phenotype_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 

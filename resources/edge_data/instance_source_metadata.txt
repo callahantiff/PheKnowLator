@@ -1,5 +1,5 @@
 ===================================
-#Fri Jan 10 21:22:43 UTC 2020 
+#Mon Jan 13 07:40:24 UTC 2020 
 ===================================
 
 EDGE: complex-complex
@@ -9,7 +9,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/sojaq8u3hwfw4jz/REACTOME_COMPLEX_COMPLEX.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 371331
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/complex-complex_REACTOME_COMPLEX_COMPLEX.txt
 
@@ -20,7 +20,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://reactome.org/download/current/Complex_2_Pathway_human.txt
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 844121
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/complex-pathway_Complex_2_Pathway_human.txt
 
@@ -31,7 +31,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[2]>0
 DATA INFO
   - DOWNLOAD_URL = http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 270656653
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-gene_COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
 
@@ -42,7 +42,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 8193974
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-pathway_CTD_genes_pathways.tsv
 
@@ -53,7 +53,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/yqnofd8h90luygu/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 3842618
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-rna_ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt
 
@@ -64,7 +64,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"]
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
-  - DOWNLOAD_DATE = 01/10/2020
+  - DOWNLOAD_DATE = 01/13/2020
   - FILE_SIZE_IN_BYTES = 1406391053
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-gene_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 
