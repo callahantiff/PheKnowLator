@@ -33,6 +33,7 @@ resources/node_data/*
 !resources/node_data/README.md
 resources/relations_data/*
 !resources/relations_data/README.md
+!/resources/embeddings/README.md
 
 # releases
 /resources/releases/
