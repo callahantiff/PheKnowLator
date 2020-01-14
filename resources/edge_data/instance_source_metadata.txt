@@ -1,5 +1,5 @@
 ===================================
-#Tue Jan 14 18:04:02 UTC 2020 
+#Tue Jan 14 19:26:55 UTC 2020 
 ===================================
 
 EDGE: complex-complex
@@ -16,12 +16,12 @@ DATA INFO
 EDGE: complex-pathway
 DATA PROCESSING INFO
   - IDENTIFIER MAPPING = None
-  - FILTERING CRITERIA = None
+  - FILTERING CRITERIA = data[0].startswith('R-HSA')
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/my03w16fjw7bt20/REACTOME_COMPLEX_PATHWAY.txt?dl=1
   - DOWNLOAD_DATE = 01/14/2020
-  - FILE_SIZE_IN_BYTES = 555865
+  - FILE_SIZE_IN_BYTES = 554806
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/complex-pathway_REACTOME_COMPLEX_PATHWAY.txt
 
 EDGE: gene-gene
