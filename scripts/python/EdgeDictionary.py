@@ -7,6 +7,7 @@ import json
 import pandas
 import re
 
+from difflib import SequenceMatcher
 from tqdm import tqdm
 
 # TODO: using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
@@ -53,29 +54,38 @@ class EdgeList(object):
             self.source_info[cols[0].strip('"').strip("'")]['edge_list'] = []
 
     @staticmethod
-    def identify_header(path: str, sep: str, rows: int = 5, threshold: float = 0.9):
-        """Compares the similarity of a Pandas DataFrame read in with and without a header to determine whether or
-        not the data frame should be built with a header or not. This function was modified from a Stack Overflow
+    def identify_header(path: str, sep: str):
+        """Compares the similarity of the first line of a Pandas DataFrame to the column headers when read in with and
+        without a header to determine whether or not the data frame should be built with a header or not. This
+        function was modified from a Stack Overflow
         post: https://stackoverflow.com/questions/40193388/how-to-check-if-a-csv-has-a-header-using-python/40193509
 
         Args:
             path: A filepath to a data file.
             sep: A character specifying how the data is delimited.
-            rows: The number of rows to compare.
-            threshold: A threshold used to determine the similarity between the data with and without the header.
 
         Returns:
-            if the similarity is grater than the threshold, then None is returned, otherwise 0 is returned
+            if the similarity between the first line and the columns, when a header is inferred,
+            then the Pandas.DataFrame is read in with the header.
 
         """
 
-        df_with_header = pandas.read_csv(path, header='infer', nrows=rows, delimiter=sep)
-        df_without_header = pandas.read_csv(path, header=None, nrows=rows, delimiter=sep)
+        # read in data
+        df_with_header = pandas.read_csv(path, header='infer', nrows=1, delimiter=sep)
+        df_without_header = pandas.read_csv(path, header=None, nrows=1, delimiter=sep)
 
-        # detect similarity
-        sim = (df_with_header.dtypes.values == df_without_header.dtypes.values).mean()
+        # calculate similarity between header and first row
+        with_header_test = SequenceMatcher(None, '|'.join([str(x) for x in list(df_with_header.iloc[0])]),
+                                           '|'.join([str(x) for x in list(df_with_header)])).ratio()
 
-        if sim > threshold:
+        without_header_test = SequenceMatcher(None, '|'.join([str(x) for x in list(df_without_header.iloc[0])]),
+                                              '|'.join([str(x) for x in list(df_without_header)])).ratio()
+
+        # determine if header should be used
+        if abs(with_header_test-without_header_test) < 0.05:
+            return 0
+
+        elif with_header_test >= without_header_test:
             return None
 
         else:
@@ -109,7 +119,7 @@ class EdgeList(object):
 
         else:
             # determine if file contains a header
-            header = self.identify_header(data_filepath, splitter, 5, 0.9)
+            header = self.identify_header(data_filepath, splitter)
             edge_data = pandas.read_csv(data_filepath, header=header, delimiter=splitter, low_memory=False)
 
         # CHECK - verify data
@@ -238,6 +248,9 @@ class EdgeList(object):
             elif cut != '' and formatter != '':
                 edge_data[list(edge_data)[col]].replace('(^.*{})'.format(cut), formatter, inplace=True, regex=True)
 
+            elif cut != '' and formatter == '':
+                edge_data[list(edge_data)[col]].replace('(^.*{})'.format(cut), formatter, inplace=True, regex=True)
+
             else:
                 pass
 
@@ -288,8 +301,6 @@ class EdgeList(object):
             except ValueError:
                 # update map_data merge col to match edge_data merge col type
                 edge_data[node2map], map_data[map_col] = edge_data[node2map].astype(str), map_data[map_col].astype(str)
-
-                # merge data
                 merged_data = pandas.merge(edge_data, map_data, left_on=node2map, right_on=map_col, how='inner')
 
             # drop all columns but merge key and value columns
@@ -365,6 +376,7 @@ class EdgeList(object):
             # update node column values
             print('*** Reformatting Node Values ***')
             edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
+            # edge_data = label_formatter(edge_data, ':;MESH_;')
 
             # relabel nodes
             edge_data.rename(columns={list(edge_data)[0]: str(list(edge_data)[0]) + '-' + edge_type.split('-')[0],
