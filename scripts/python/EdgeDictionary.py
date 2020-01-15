@@ -396,12 +396,12 @@ class EdgeList(object):
             self.source_info[edge_type]['edge_list'] = mapped_data
 
             # print edge statistics
-            s, o = edge_type.split('-')[0], edge_type.split('-')[1]
-            n0 = len(set([x[0] for x in self.source_info[edge_type]['edge_list']]))
-            n1 = len(set([x[1] for x in self.source_info[edge_type]['edge_list']]))
-            link = len(self.source_info[edge_type]['edge_list'])
-
-            print('=== Processed: {0} ({1} edges; {2}s:{3}; {4}s:{5}) ==='.format(edge_type, link, s, n0, o, n1))
+            unique_edges = [list(y) for y in set([tuple(x) for x in self.source_info[edge_type]['edge_list']])]
+            print('PROCESSED EDGE: {}'.format(edge_type))
+            print('Total Unique Edge Count: {}'.format(len(unique_edges)))
+            print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(set([x[0] for x in unique_edges]))))
+            print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(set([x[1] for x in unique_edges]))))
+            print('\n\n')
 
         # save a copy of the final master edge list
         with open('/'.join(self.source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:
