@@ -331,6 +331,8 @@ class EdgeList(object):
         """
 
         if mapping_data == 'None':
+            # make sure that both columns are type string
+            edge_data = edge_data.astype(str)
             return tuple(zip(list(edge_data[list(edge_data)[0]]), list(edge_data[list(edge_data)[1]])))
 
         else:
@@ -344,6 +346,9 @@ class EdgeList(object):
             # remove un-wanted columns
             keep_cols = [x for x in merged_data.columns if 'mapped' in str(x)]
             merged_data = merged_data[keep_cols].drop_duplicates(subset=None, keep='first', inplace=False)
+
+            # make sure that both columns are type string
+            merged_data = merged_data.astype(str)
 
             return tuple(zip(list(merged_data[maps[0][0]]), list(merged_data[maps[1][0]])))
 

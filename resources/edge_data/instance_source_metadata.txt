@@ -1,5 +1,5 @@
 ===================================
-#Tue Jan 14 19:26:55 UTC 2020 
+#Wed Jan 15 05:01:08 UTC 2020 
 ===================================
 
 EDGE: complex-complex
@@ -16,7 +16,7 @@ DATA INFO
 EDGE: complex-pathway
 DATA PROCESSING INFO
   - IDENTIFIER MAPPING = None
-  - FILTERING CRITERIA = data[0].startswith('R-HSA')
+  - FILTERING CRITERIA = None
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/my03w16fjw7bt20/REACTOME_COMPLEX_PATHWAY.txt?dl=1
@@ -28,7 +28,7 @@ EDGE: gene-gene
 DATA PROCESSING INFO
   - IDENTIFIER MAPPING = gene (./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt) | gene (./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt)
   - FILTERING CRITERIA = None
-  - EVIDENCE CRITERIA = data[2]>0
+  - EVIDENCE CRITERIA = data[2]>=0.00012
 DATA INFO
   - DOWNLOAD_URL = http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
   - DOWNLOAD_DATE = 01/14/2020
@@ -65,6 +65,6 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 01/14/2020
-  - FILE_SIZE_IN_BYTES = 1406391053
+  - FILE_SIZE_IN_BYTES = 928398643
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-gene_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 

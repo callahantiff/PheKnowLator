@@ -1,5 +1,5 @@
 ===================================
-#Tue Jan 14 19:26:51 UTC 2020 
+#Wed Jan 15 05:01:07 UTC 2020 
 ===================================
 
 EDGE: chemical-complex
@@ -362,7 +362,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 01/14/2020
-  - FILE_SIZE_IN_BYTES = 1406391053
+  - FILE_SIZE_IN_BYTES = 928398643
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-disease_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 
 EDGE: variant-phenotype
@@ -373,6 +373,6 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 01/14/2020
-  - FILE_SIZE_IN_BYTES = 1406391053
+  - FILE_SIZE_IN_BYTES = 928398643
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-phenotype_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 
