@@ -397,7 +397,7 @@ class EdgeList(object):
 
             # print edge statistics
             unique_edges = [list(y) for y in set([tuple(x) for x in self.source_info[edge_type]['edge_list']])]
-            print('PROCESSED EDGE: {}'.format(edge_type))
+            print('\nPROCESSED EDGE: {}'.format(edge_type))
             print('Total Unique Edge Count: {}'.format(len(unique_edges)))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(set([x[0] for x in unique_edges]))))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(set([x[1] for x in unique_edges]))))
