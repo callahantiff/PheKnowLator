@@ -16,7 +16,9 @@ This repository is a required component for building the PheKnowLator Knowledge 
 
 ##### 🛑 ASSUMPTIONS 🛑  
 The algorithm makes the following assumptions:
-- All metadata data sets should be written to `./resources/node_data`
+- All metadata data sets should be written to `./resources/node_data`  
+  - There will be one file per edge type and is labeled such that the edge type occurs at the beginning of the file
+   (e.g. `chemical-gene_metadata.txt`).
 - Each metadata file, in addition to containing the primary node identifier (labeled as `ID`), will contain 1 to 4
  additional columns labeled: `Label`, `Description`, `Synonym`, and `DbXref`. An example of these data types is shown
   below for the Ensembl transcript identifier `ENST00000000412`:  

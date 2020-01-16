@@ -12,6 +12,7 @@ import requests
 import shutil
 
 from contextlib import closing
+from difflib import SequenceMatcher
 from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -281,3 +282,80 @@ def mesh_finder(data: pandas.DataFrame, x_id: str, id_type: str, id_dic: dict):
                         id_dic[id_type + x_id].append('DOID_' + row['code'])
 
     return None
+
+
+def identify_header(path: str, sep: str):
+    """Compares the similarity of the first line of a Pandas DataFrame to the column headers when read in with and
+    without a header to determine whether or not the data frame should be built with a header or not. This
+    function was modified from a Stack Overflow
+    post: https://stackoverflow.com/questions/40193388/how-to-check-if-a-csv-has-a-header-using-python/40193509
+
+    Args:
+        path: A filepath to a data file.
+        sep: A character specifying how the data is delimited.
+
+    Returns:
+        if the similarity between the first line and the columns, when a header is inferred,
+        then the Pandas.DataFrame is read in with the header.
+
+    """
+
+    # read in data
+    df_with_header = pandas.read_csv(path, header='infer', nrows=1, delimiter=sep)
+    df_without_header = pandas.read_csv(path, header=None, nrows=1, delimiter=sep)
+
+    # calculate similarity between header and first row
+    with_header_test = SequenceMatcher(None, '|'.join([str(x) for x in list(df_with_header.iloc[0])]),
+                                       '|'.join([str(x) for x in list(df_with_header)])).ratio()
+
+    without_header_test = SequenceMatcher(None, '|'.join([str(x) for x in list(df_without_header.iloc[0])]),
+                                          '|'.join([str(x) for x in list(df_without_header)])).ratio()
+
+    # determine if header should be used
+    if abs(with_header_test-without_header_test) < 0.05:
+        return 0
+
+    elif with_header_test >= without_header_test:
+        return None
+
+    else:
+        return 0
+
+
+def data_reader(data_filepath: str, file_splitter: str = '\n', line_splitter: str = 't'):
+    """Takes a filepath pointing to data source and reads it into a Pandas DataFrame using information in the
+    file and line splitter variables.
+
+    Args:
+        data_filepath: Filepath to data.
+        file_splitter: Character to split data, used when a file contains metadata information.
+        line_splitter: Character used to split rows into columns.
+
+    Return:
+        A Pandas DataFrame containing the data from the data_filepath.
+
+    Raises:
+        An exception is raised if the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
+
+    """
+
+    # identify line splitter
+    splitter = '\t' if 't' in line_splitter else " " if ' ' in line_splitter else line_splitter
+
+    # read in data
+    if '!' in file_splitter or '#' in file_splitter:
+        # ASSUMPTION: assumes data is read in without a header
+        decoded_data = open(data_filepath).read().split(file_splitter)[-1]
+        edge_data = pandas.DataFrame([x.split(splitter) for x in decoded_data.split('\n') if x != ''])
+
+    else:
+        # determine if file contains a header
+        header = identify_header(data_filepath, splitter)
+        edge_data = pandas.read_csv(data_filepath, header=header, delimiter=splitter, low_memory=False)
+
+    # CHECK - verify data
+    if len(list(edge_data)) >= 2 and len(edge_data) > 10:
+        return edge_data.dropna(inplace=False)
+
+    else:
+        raise Exception('ERROR: Data could not be properly read in')
