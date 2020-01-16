@@ -3,14 +3,13 @@
 ***
 ***
 
-**Wiki Page:** **[`Dependencies`](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies)**  
+**Wiki Page:** **[`Dependencies`](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies#node-metadata)**  
 **Jupyter Notebook:** **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)**  
 
 ___
 
 ### Purpose
-This repository is a required component for building the PheKnowLator Knowledge graph. It should contain a `tab
-` delimited data set for each instance data node that you would like to include metadata for.
+The knowledge graph can be built with or without the inclusion of instance node metadata (i.e. labels, descriptions or definitions, synonyms, and DbXrefs). If you's like to create and use node metadata, please see the Jupyter Notebook referenced above and run the code chunks listed under the **Gather Node Metadata Data** section. These code chunks should only be run once the edge lists have been created, but before the knowledge graph is constructed.
 
 <br>
 
