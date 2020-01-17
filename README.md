@@ -16,7 +16,10 @@ A repository for building biomedical knowledge graphs of human disease mechanism
 ### Releases  
 All code and output for each release are free to download, see [Wiki](https://github.com/callahantiff/PheKnowLator/wiki) for full release archive.  
 
-**Current Release:** [v2.0.0](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0). Data and code can be directly downloaded [here](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0#generated-output)
+**Current Release:** 
+
+⚠️ v.2.0.0 is in progress and set to be released by 02/01/2020
+<!--- - [v2.0.0](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0). Data and code can be directly downloaded [here](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0#generated-output) -->
 
 *** 
 
