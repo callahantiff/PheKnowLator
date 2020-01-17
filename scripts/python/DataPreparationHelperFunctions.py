@@ -13,6 +13,7 @@ import shutil
 
 from contextlib import closing
 from io import BytesIO
+from reactome2py import content
 from urllib.request import urlopen
 from zipfile import ZipFile
 
@@ -299,3 +300,103 @@ def chunks(lst: list, chunk_size: int):
     """
     for i in range(0, len(lst), chunk_size):
         yield lst[i:i+chunk_size]
+
+
+def metadata_dictionary_mapper(nodes: list, metadata_dictionaries: dict):
+    """
+
+    Args:
+        nodes: the list of identifiers to obtain metadata information for.
+        metadata_dictionaries: the metadata dictionary to obtain metadata from.
+
+    Returns:
+        A pandas.DataFrame of metadata results.
+
+    """
+
+    # data to gather
+    ids, labels, desc, synonyms, dbxrefs = [], [], [], [], []
+
+    # map nodes
+    for x in nodes:
+        if x in metadata_dictionaries.keys():
+            ids.append(str(x))
+
+            # get labels
+            if 'Label' in metadata_dictionaries[x].keys():
+                labels.append(metadata_dictionaries[x]['Label'])
+            else:
+                labels.append('None')
+
+            # get descriptions
+            if 'Description' in metadata_dictionaries[x].keys():
+                desc.append(metadata_dictionaries[x]['Description'])
+            else:
+                desc.append('None')
+
+            # get synonyms
+            if 'Synonym' in metadata_dictionaries[x].keys():
+                synonyms.append(metadata_dictionaries[x]['Synonym'])
+            else:
+                synonyms.append('None')
+
+            # get dbxrefs
+            if 'DbXref' in metadata_dictionaries[x].keys():
+                dbxrefs.append(metadata_dictionaries[x]['DbXref'])
+            else:
+                dbxrefs.append('None')
+
+    # combine into new data frame
+    node_metadata_final = pandas.DataFrame(list(zip(ids, labels, desc, synonyms, dbxrefs)),
+                                           columns=['ID', 'Label', 'Description', 'Synonym', 'DbXref'])
+
+    # make all variables string
+    node_metadata_final = node_metadata_final.astype(str)
+
+    return node_metadata_final
+
+
+def metadata_api_mapper(nodes: list):
+    """
+
+    Args:
+        nodes: the list of identifiers to obtain metadata information for.
+
+    Returns:
+        A pandas.DataFrame of metadata results.
+
+    """
+
+    # data to gather
+    ids, labels, desc, synonyms, dbxrefs = [], [], [], [], []
+
+    # get data from reactome API
+    for request_ids in list(chunks(nodes, 20)):
+        results = content.query_ids(ids=','.join(request_ids))
+
+        for row in results:
+            ids.append(row['stId'])
+
+            # get labels
+            labels.append(row['displayName'])
+
+            # get descriptions
+            desc.append('None')
+
+            # get synonyms
+            if row['displayName'] != row['name']:
+                synonyms.append('|'.join(row['name']))
+            else:
+                synonyms.append('None')
+
+            # get dbxrefs
+            dbxrefs.append('None')
+
+    # combine into new data frame
+    node_metadata_final = pandas.DataFrame(list(zip(ids, labels, desc, synonyms, dbxrefs)),
+                                           columns=['ID', 'Label', 'Description', 'Synonym', 'DbXref'])
+
+    # make all variables string
+    node_metadata_final = node_metadata_final.astype(str)
+
+    return node_metadata_final
