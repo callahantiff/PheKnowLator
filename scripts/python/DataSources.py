@@ -57,12 +57,7 @@ class DataSource(object):
 
         """
 
-        if os.stat(self.data_path).st_size == 0:
-            raise Exception('ERROR: input file: {} is empty'.format(self.data_path))
-
-        else:
-            self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip() for row in open(
-                self.data_path).read().split('\n')}
+        pass
 
     def downloads_data_from_url(self, download_type: str):
         """Downloads each source from a list and writes the downloaded file to a directory.
@@ -70,6 +65,9 @@ class DataSource(object):
         Args:
             download_type: A string that indicates whether or not the ontologies should be downloaded
                 with imported ontologies ('imports').
+
+        Returns:
+            None.
 
         """
 
@@ -319,6 +317,24 @@ class Data(DataSource):
         """"A string representing the type of data being processed."""
 
         return 'Edge Data'
+
+    def parses_resource_file(self):
+        """Verifies a file contains data and then outputs a list where each item is a line from the input text file.
+
+        Returns:
+            source_list: A dictionary, where the key is the type of data and the value is the file path or url.
+
+        Raises:
+            An exception is raised if the input file is empty.
+
+        """
+
+        if os.stat(self.data_path).st_size == 0:
+            raise Exception('ERROR: input file: {} is empty'.format(self.data_path))
+
+        else:
+            self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip() for row in open(
+                self.data_path).read().split('\n')}
 
     def downloads_data_from_url(self, download_type: str):
         """Takes a string representing a file path/name to a text file as an argument. The function assumes that
