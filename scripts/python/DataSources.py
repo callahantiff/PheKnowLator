@@ -9,8 +9,9 @@ import os.path
 
 from abc import ABCMeta, abstractmethod
 from owlready2 import subprocess
-from scripts.python.DataPreparationHelperFunctions import *
 from tqdm import tqdm
+
+from scripts.python.DataPreparationHelperFunctions import *
 
 
 class DataSource(object):
@@ -24,14 +25,26 @@ class DataSource(object):
     classes methods that are specialized for that specific data type.
 
     Attributes:
-        data_path: a string file path/name to a text file storing URLs of different sources to download.
-        data_type: a string specifying the type of data source.
-        resource_info: a list of pipe-delimited arguments for how each data source should be processed.
-        resource_dict: an edge data dictionary where the keys are the edge type and the values are a list containing
-            mapping and filtering information (only used for "Edge Data")
-        source_list: a list of URLs containing the data sources to download/process.
-        data_files: a list of strings, which contain the full file path/name of each downloaded data source.
-        metadata: an empty list that will be used to store metadata information for each downloaded resource.
+        data_path: A string file path/name to a text file storing URLs of different sources to download.
+        data_type: A string specifying the type of data source, which is derived from the data_path attribute (e.g.
+            the data_path of 'resources/ontology_source_list.txt' would produce 'ontology_source_list'.
+        resource_info: A list of pipe-delimited arguments for how each data source should be processed. For example:
+            ['chemical-complex|;;|class-instance|RO_0002436|n|t|0;1|None|None|None`]
+        resource_dict: An edge data dictionary where the keys are the edge type and the values are a list containing
+            mapping and filtering information (only used for "Edge Data"). For example:
+            {node1-node2: node1 - './filepath/mapping_data.txt,
+                          col_idx:8 - col_val<2.0 | col_idx:24 - col_val.startswith('REACT'),
+                          col_idx:2 - col_val=='reviewed', col_idx:4 - col_val in [9606, 1026]
+            }
+        source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
+            example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
+                            'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'
+                            }
+        data_files: A dictionary mapping each source identifier to the local location where it was downloaded. For
+            example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
+                      'phenotype': 'resources/ontologies/hp_with_imports.owl'
+                      }
+        metadata: A list that stores metadata information for each downloaded data source.
 
     """
 
@@ -47,10 +60,15 @@ class DataSource(object):
         self.metadata: list = []
 
     def parses_resource_file(self):
-        """Verifies a file contains data and then outputs a list where each item is a line from the input text file.
+        """Verifies that an input file contains data and then outputs a dictionary where each item is a line from the
+        input file.
 
         Returns:
-            source_list: A dictionary, where the key is the type of data and the value is the file path or url.
+            source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
+                example below:
+                {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
+                 'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'
+                 }
 
         Raises:
             An exception is raised if the input file is empty.
@@ -60,14 +78,20 @@ class DataSource(object):
         pass
 
     def downloads_data_from_url(self, download_type: str):
-        """Downloads each source from a list and writes the downloaded file to a directory.
+        """Downloads each data source from a list and writes the downloaded file to a directory.
 
         Args:
             download_type: A string that indicates whether or not the ontologies should be downloaded
                 with imported ontologies ('imports').
 
         Returns:
-            None.
+            data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
+                For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
+                              'phenotype': 'resources/ontologies/hp_with_imports.owl'
+                              }
+
+        Raises:
+            An exception is raised if any URL does point to a valid endpoint containing data.
 
         """
 
@@ -78,7 +102,7 @@ class DataSource(object):
         a list containing mapping and filtering information.
 
         Returns:
-            dictionary of edge type metadata, where each value contains a list of three items:
+            A Dictionary of edge type metadata, where each value contains a list of three items:
                 (1) identifier mapping information: edge node, filepath to identifier data
                 (2) filtering criteria: edge data column index: criteria
                 (3) evidence criteria: edge data column index: criteria
@@ -118,9 +142,25 @@ class DataSource(object):
             self.resource_dict[edge.split('|')[0]] = [' | '.join(mapping), ' | '.join(filtering), ' | '.join(evidence)]
 
     def generates_source_metadata(self):
-        """Extracts and stores metadata for imported data sources. Metadata includes the date of download,
-        date of last modification to the file, the difference in days between last date of modification and current
-        download date, file size in bytes, path to file, and URL from which the file was downloaded for each data source
+        """Extracts and stores metadata for imported data sources and save the information to the metadata attribute.
+        Metadata includes the following information:
+            1 - Edge: the name of the edge-type (e.g. 'chemical-gene')
+            2 - Data Processing Information: how the data will be processed including: urls/file paths to other data
+                sources that will be used to map identifiers or filter the data.
+            3 - Data Information: information on the data including: downloaded url, download date, file size in
+                bytes, and the local file location it was downloaded to
+
+        Example:
+                EDGE: chemical-gobp
+                DATA PROCESSING INFO
+                    - IDENTIFIER MAPPING = chemical (./resources/processed_data/MESH_CHEBI_MAP.txt)
+                    - FILTERING CRITERIA = data[3]==Biological Process
+                    - EVIDENCE CRITERIA = data[8]<0.0001
+                DATA INFO
+                    - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
+                    - DOWNLOAD_DATE = 01/14/2020
+                    - FILE_SIZE_IN_BYTES = 760612373
+                    - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gobp_CTD_chem_go_enriched.tsv
 
         Returns:
             None.
@@ -173,6 +213,7 @@ class DataSource(object):
         # open file to write to and specify output location
         write_loc_part1 = str('/'.join(list(self.data_files.values())[1].split('/')[:-1]) + '/')
         write_loc_part2 = str('_'.join(self.data_type.split('_')[:-1]))
+
         outfile = open(write_loc_part1 + write_loc_part2 + '_metadata.txt', 'w')
         outfile.write('=' * 35 + '\n{}'.format(self.metadata[0][0]) + '=' * 35 + '\n\n')
 
@@ -209,7 +250,10 @@ class OntData(DataSource):
         """Parses data from a file and outputs a list where each item is a line from the input text file.
 
         Returns:
-            source_list: A list, where each item represents a data source from the input text file.
+            source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
+                example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
+                                'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'
+                                }
 
         Raises:
             An exception is raised if the file contains data.
@@ -249,7 +293,10 @@ class OntData(DataSource):
                 with imported ontologies ('imports').
 
         Returns:
-            source_list: A list, where each item in the list represents an ontology via URL.
+            data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
+                For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
+                              'phenotype': 'resources/ontologies/hp_with_imports.owl'
+                              }
 
         Raises:
             An exception is raised if any of the URLs passed as command line arguments fails to return data.
@@ -322,7 +369,10 @@ class Data(DataSource):
         """Verifies a file contains data and then outputs a list where each item is a line from the input text file.
 
         Returns:
-            source_list: A dictionary, where the key is the type of data and the value is the file path or url.
+            source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
+                example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
+                                'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'
+                                }
 
         Raises:
             An exception is raised if the input file is empty.
@@ -333,8 +383,8 @@ class Data(DataSource):
             raise Exception('ERROR: input file: {} is empty'.format(self.data_path))
 
         else:
-            self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip() for row in open(
-                self.data_path).read().split('\n')}
+            self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
+                                for row in open(self.data_path).read().split('\n')}
 
     def downloads_data_from_url(self, download_type: str):
         """Takes a string representing a file path/name to a text file as an argument. The function assumes that
@@ -345,7 +395,10 @@ class Data(DataSource):
                 with imported ontologies ('imports'). Within this subclass, this argument is currently ignored.
 
         Returns:
-            source_list: A list, where each item in the list represents a data source.
+            data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
+                For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
+                              'phenotype': 'resources/ontologies/hp_with_imports.owl'
+                              }
 
         Raises:
             An exception is raised if any URL does point to a valid endpoint containing data.
