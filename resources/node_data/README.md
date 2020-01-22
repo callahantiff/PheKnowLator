@@ -13,7 +13,7 @@ The knowledge graph can be built with or without the inclusion of instance node 
 
 <br>
 
-##### 🛑 ASSUMPTIONS 🛑  
+🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
 - If metadata is provided, only those edges with nodes that have metadata will be created. All valid edges without metadata     will be discarded.
 - All metadata data sets should be written to `./resources/node_data`  
@@ -22,6 +22,8 @@ The knowledge graph can be built with or without the inclusion of instance node 
 - Each metadata file, in addition to containing the primary node identifier (labeled as `ID`), will contain 1 to 3
  additional columns labeled: `Label`, `Description`, and `Synonym`. An example of these data types is shown
   below for the Ensembl transcript identifier `ENST00000000412`:  
+
+<br>
 
 | **Metadata Type** | **Definition** | **Metadata**  | 
 | :---: | :--- | :--- | 
