@@ -16,7 +16,7 @@ The knowledge graph can be built with or without the inclusion of instance node 
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
 - If metadata is provided, only those edges with nodes that have metadata will be created. All valid edges without metadata     will be discarded.
-- All metadata data sets should be written to `./resources/node_data`  
+- All metadata data sets should be written to `./resources/node_data`.  
   - There will be one file per edge type and is labeled such that the edge type occurs at the beginning of the file
    (e.g. `chemical-gene_metadata.txt`).
 - Each metadata file, in addition to containing the primary node identifier (labeled as `ID`), will contain 1 to 3
