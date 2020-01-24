@@ -23,7 +23,7 @@ If you would like the knowledge graph to include relations and their inverse rel
 
 ___ 
 
-##### Relations and Inverse Relations Data 
+#### Relations and Inverse Relations Data 
 
 **Filename:** `INVERSE_RELATIONS.txt`
 
@@ -45,7 +45,7 @@ The data in this file should look like:
 
 ___
 
-##### Relations and Labels  
+#### Relations and Labels  
 
 **Filename:** `RELATIONS_LABELS.txt`
 
