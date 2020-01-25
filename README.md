@@ -22,43 +22,42 @@ All code and output for each release are free to download, see [Wiki](https://gi
 
 ### Getting Started
 
-**Dependencies:**  
+**🛑 Dependencies 🛑**  
 - [x] This program requires Python version 3.6. To install required modules, run the following:  
-
     ```
     pip install -r requirements.txt
     ``` 
-- [x] Run the  **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)** notebook to build mapping and filtering datasets. 
-- [x] ‼ **Important.** This code depends on four documents in order to run successfully. See Step 1 below for more details.
+- [x] Run the  **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)** notebook to build mapping, filtering, and labeling datasets. 
+- [x] **Important.** This code depends on four documents in order to run successfully. See **STEP 1: Prepare Input
+ Documents** below for more 
+ details.
 - [x] [OWLTools](https://github.com/owlcollab/owltools) library. Please download it to `resources/lib/` prior to running `main.py`. 
 - [x] Knowledge graph embeddings are generated using [n1-standard1](https://cloud.google.com/compute/vm-instance-pricing#n1_predefined) Google Compute virtual machines.  
 
 <br>
 
-**Data Sources:** This knowledge graph is built entirely on linked open data and [Open Biomedical Ontologies](http://obofoundry.org/) (which we are very grateful for
- 🙏 🙇‍♀). Please see the [Data Source](https://github.com/callahantiff/PheKnowLator/wiki/Data-Sources) Wiki page for
-  information on the data we use.
+**Data Sources:** This knowledge graph is built entirely on publicly available linked open data and [Open Biomedical Ontologies](http://obofoundry.org/).
+  - Please see the [Data Source](https://github.com/callahantiff/PheKnowLator/wiki/Data-Sources) Wiki page for
+  information.
 
 <br>
 
-**Running Code:**
-
+**Running Code:**  
 This program can be run using a Jupyter Notebook ([`main.ipynb`](https://github.com/callahantiff/pheknowlator/blob/master/main.ipynb)) or from the command line ([`main.py`](https://github.com/callahantiff/pheknowlator/blob/master/main.py)) by:
 
-    ```
-    python3 Main.py -h
+``` bash
+python3 Main.py -h
     
-    usage: Main.py [-h] -o ONTS -c CLS -i INST
+usage: Main.py [-h] -o ONTS -c CLS -i INST
     
-    PheKnowLator: This program builds a biomedical knowledge graph using Open
-    Biomedical Ontologies and linked open data. The programs takes the following arguments:
+PheKnowLator: This program builds a biomedical knowledge graph using Open Biomedical Ontologies and linked open data. The programs takes the following arguments:
     
-    optional arguments:
-      -h, --help            show this help message and exit
-      -o ONTS, --onts ONTS  name/path to text file containing ontologies
-      -c CLS, --cls CLS     name/path to text file containing class sources
-      -i INST, --inst INST  name/path to text file containing instance sources
-    ```   
+optional arguments:
+    -h, --help            show this help message and exit
+    -o ONTS, --onts ONTS  name/path to text file containing ontologies
+    -c CLS, --cls CLS     name/path to text file containing class sources
+    -i INST, --inst INST  name/path to text file containing instance sources
+```   
 
 ***
 
@@ -67,21 +66,37 @@ The [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Const
   provided below. 
 
 **STEP 1: Prepare Input Documents**  
-This code depends on four documents in order to run successfully. For information on what's included in these documents, see the [Document Dependencies](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies) Wiki page. For assistance in creating these documents, please run the following:
-   ```bash
-   python ./scripts/python/CreatesInputDocuments.py
-   ```
+This code depends on four documents in order to run successfully. For information on what's included in these documents, see the [Document Dependencies](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies) Wiki page.
 
-**STEP 2: Download and Preprocess Data**
- - <u>Create Mapping and Filtering Data</u>: The **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)** assists with the downloading and processing of all data needed to help build the knowledge graph. 
- - <u>Download Ontologies</u>: Downloads ontologies with or without imports from the `ontology_source_list.txt` file. Once the ontology has downloaded, metadata information from each ontology will be saved to `ontology_source_metadata.txt`, which is located within the `resources/ontologies` directory.
- - <u>Download Class Data</u>: Downloads data that is used to create connections between ontology concepts treated as classes and instance data from the `class_source_list.txt` file. Once 
-    the data has downloaded, metadata information from each source will be saved to `class_source_metadata.txt`, which is located within the `resources/text_files` directory. 
- - <u>Download Instance Data</u>: Downloads data from the `instance_source_list.txt` file. Once the data has downloaded, metadata information from each source will be saved to `instance_source_metadata.txt`, which is located within the `resources/text_files` directory.   
+For assistance in creating these documents, please run the following:
+```bash
+   python ./scripts/python/CreatesInputDocuments.py
+```
+
+<br>
+
+**STEP 2: Download and Preprocess Data**  
+   <br>
+_PREPROCESS DATA:_  
+ - <u>Create Mapping, Filtering, and Labeling Data</u>: The **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)** assists with the downloading and processing of all data needed to help build the knowledge graph.   
+
+_DOWNLOAD DATA:_  
+ - <u>Download Ontologies</u>: Downloads ontologies with or without imports from the [`ontology_source_list.txt
+   `](https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontology_source_list.txt) file. Metadata
+    information from each ontology is saved to [`ontology_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/ontology_source_metadata.txt) directory.
+ - <u>Download Class Data</u>: Downloads data that is used to create connections between ontology concepts treated
+   as classes and instance data from the [`class_source_list.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/class_source_list.txt) file. Metadata information from each source is saved
+    to [`class_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/class_source_metadata.txt) directory. 
+ - <u>Download Instance Data</u>: Downloads data from the [`instance_source_list.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/instance_source_list.txt) file. Metadata information
+    from each source is saved to [`instance_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/instance_source_metadata.txt) directory.   
+
+<br>
 
 **STEP 3: Create Edge Lists**  
  - Create edges between classes and instances of classes.  
  - Create edges between instances of classes and instances of data.  
+
+<br>
 
 **STEP 4: Build Knowledge Graph**  
 1. Merge ontologies used as classes.  
@@ -92,20 +107,10 @@ This code depends on four documents in order to run successfully. For informatio
 6. Write edges (as triples) to local directory.  
 7. Convert original edges to integers and write to local directory (required input format for generating embeddings).
 
+<br>
+
 **STEP 5: Generate Mechanism Embeddings**  
-To create estimates of molecular mechanisms, we embed knowledge graph information extracted by [DeepWalk](https://github.com/phanein/deepwalk). This repository contains code to run two versions of the [original method](http://www.perozzi.net/publications/14_kdd_deepwalk.pdf) developed by [Bryan Perozzi](https://github.com/phanein):    
- -  **[DeepWalk algorithm-C](https://github.com/xgfs/deepwalk-c):** an implementation of the original algorithm in C
- ++ (with some improvements to speed up initialize the hierarchical softmax tree that was developed by [Anton Tsitsulin](https://github.com/xgfs).  
- - **[DeepWalk-RDF`](https://github.com/bio-ontology-research-group/walking-rdf-and-owl):** an extension of the
-  original algorithm that also embeds graph edges; developed by [the Bio-Ontology Research Group](https://github.com/bio-ontology-research-group/walking-rdf-and-owl).  
-    - ‼ **Note:** This library depends on the [C++ Boost library](https://www.pyimagesearch.com/2015/04/27/installing-boost-and-boost-python-on-osx-with-homebrew/) and [Boost Threadpool Header Files](http://threadpool.sourceforge.net/). For the Headers, the sub-directory called `Boost` at the top-level of the `walking-rdf-and-owl-master` directory. In order to compile and run `Deepwalk-RDF`, there are a few important changes that will need to be made:  
-      - Change `TIME_UTC` to `TIME_UTC_` in the `boost/threadpool/task_adaptors.hpp`.  
-      - Change the `-lboost_thread` argument to `-lboost_thread-mt` in the `walking-rdf-and-owl-master/Makefile` 
-      - To troubleshoot incompatibility issues between Deepwalk and Gensim, run the following in this order:  
-        - `pip uninstall gensim`  
-        - `pip uninstall deepwalk`  
-        - `pip install gensim==0.10.2` 
-        - `pip install deepwalk`   
+To create estimates of molecular mechanisms, we embed knowledge graph information extracted by [DeepWalk](https://github.com/phanein/deepwalk). Please see this [`README.md`](https://github.com/callahantiff/PheKnowLator/tree/master/resources/embeddings) for details.  
 
 <br>
 
