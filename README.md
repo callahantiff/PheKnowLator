@@ -65,6 +65,15 @@ optional arguments:
 The [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction) Wiki page provides a detailed description of the knowledge construction process. A brief overview of this process is also provided
   provided below. 
 
+ **STEP 0: Select the Build Type**  
+ The knowledge graph build algorithm has been designed to run from three different stages of development: `full`, `partial`, and `post-closure`. For details on each of these, please see the table below.
+
+Build Type | Description | Use Cases  
+:--: | -- | --   
+`full` | Runs all build steps in the algorithm | You want to build a KG and will not use a reasoner  
+`partial` | Runs all of the build steps in the algorithm through adding the `class-class`, `instance-class`, `class-instance`, and `instance-instance` edges<br><br> If `node_data` is provided, it will not be added to the KG, but instead used to filter the edges such that only those edges with valid node metadata are added to the KG<br><br> Node metadata can always be added to a `partial` built KG by running the build as `post-closure` | You want to build a KG and plan to run a reasoner over it<br><br> You want to build a KG, but do not want to include node metadata, filter OWL semantics, or generate triple lists  
+`post-closure` | Adds node metadata (if `node_data='yes'`), determines whether owl semantics should be filtered, creates and writes triple lists, and writes node metadata | You have run the `partial` build, ran a reasoner over it, and now want to complete the algorithm<br><br> You want to use the algorithm to process metadata and owl semantics for an externally built KG
+
 **STEP 1: Prepare Input Documents**  
 This code depends on four documents in order to run successfully. For information on what's included in these documents, see the [Document Dependencies](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies) Wiki page.
 
