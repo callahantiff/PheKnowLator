@@ -114,7 +114,6 @@ def extracts_mapping_data(api_key: str, source1: str, source2: str, file_out: st
 def main():
 
     # get api key
-    # open('resources/bioportal_api_key.txt').read()
     api_key = input('Please provide your BioPortal API Key: ')
 
     # get user info for sources to map
