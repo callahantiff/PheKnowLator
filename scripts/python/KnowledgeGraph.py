@@ -50,7 +50,7 @@ class KGBuilder(object):
                                   },
             }
         ontologies: A list of file paths to an .owl file containing ontology data.
-        kg_iri_map: A dictionary that stores the mapping between a class and its instance. The keys are the original
+        kg_uuid_map: A dictionary that stores the mapping between a class and its instance. The keys are the original
              class uri and the values are the hashed uuid of the uri needed to create an instance of the class. An
              example is shown below:
              {'http://purl.obolibrary.org/obo/CHEBI_24505':
@@ -103,7 +103,7 @@ class KGBuilder(object):
             self.edge_dict = json.load(open(edge_data, 'r'))
 
         self.ontologies: list = glob.glob('*/ontologies/*.owl')
-        self.kg_iri_map: dict = dict()
+        self.kg_uuid_map: dict = dict()
         self.graph: Graph = Graph()
 
         # set file names for writing data
@@ -155,7 +155,7 @@ class KGBuilder(object):
                 self.remove_owl_semantics = 'yes'
             else:
                 self.full_kg = kg_node + 'OWLSemantics_KG.owl'
-                self.remove_owl_semantics = 'no'
+                self.remove_owl_semantics = None
 
     def sets_up_environment(self):
         """Sets-up the environment by checking for the existence of the following directories and if either do not
@@ -511,11 +511,11 @@ class KGBuilder(object):
         for edge in tqdm(self.edge_dict[edge_type]['edge_list']):
 
             # create a uuid for instance of the class
-            if self.edge_dict[edge_type]['uri'][class_loc] + edge[class_loc] in self.kg_iri_map.keys():
-                ont_class_iri = self.kg_iri_map[str(self.edge_dict[edge_type]['uri'][class_loc] + edge[class_loc])]
+            if self.edge_dict[edge_type]['uri'][class_loc] + edge[class_loc] in self.kg_uuid_map.keys():
+                ont_class_iri = self.kg_uuid_map[str(self.edge_dict[edge_type]['uri'][class_loc] + edge[class_loc])]
             else:
                 ont_class_iri = str(pheknowlator) + str(uuid.uuid4())
-                self.kg_iri_map[str(self.edge_dict[edge_type]['uri'][class_loc] + edge[class_loc])] = ont_class_iri
+                self.kg_uuid_map[str(self.edge_dict[edge_type]['uri'][class_loc] + edge[class_loc])] = ont_class_iri
 
             # adds node metadata information if present
             if self.node_dict:
@@ -570,7 +570,7 @@ class KGBuilder(object):
         Edges are added by their edge_type (e.g. chemical-gene) and after the edges for a given edge-type have been
         added to the knowledge graph, some simple statistics are printed to include the number of unique nodes and
         edges. Once the knowledge graph is complete, it is written out to the write_location directory to an .owl
-        file specified by the output_loc input variable. Additionally, the kg_iri_map dictionary that stores the
+        file specified by the output_loc input variable. Additionally, the kg_uuid_map dictionary that stores the
         mapping between each class and its instance is lso written out to the same location and filename with
         '_ClassInstanceMap.json' appended to the end.
 
@@ -606,8 +606,8 @@ class KGBuilder(object):
         # serialize graph
         self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
 
-        # write iri dictionary to file
-        json.dump(self.kg_iri_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
+        # write class-instance uuid mapping dictionary to file
+        json.dump(self.kg_uuid_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
 
         return None
 
@@ -673,18 +673,18 @@ class KGBuilder(object):
         """
 
         # read in and reverse dictionary to map IRIs back to labels
-        iri_map = {val: key for (key, val) in self.kg_iri_map.items()}
+        uuid_map = {val: key for (key, val) in self.kg_uuid_map.items()}
 
         # from those triples with URIs, remove triples that are about instances of classes
         update_graph = Graph()
 
         for edge in tqdm(self.graph):
             if not any(str(x) for x in edge if not str(x).startswith('http')):
-                if any(x for x in edge[0::2] if str(x) in iri_map.keys()):
-                    if str(edge[2]) in iri_map.keys() and 'ns#type' not in str(edge[1]):
-                        update_graph.add((edge[0], edge[1], URIRef(iri_map[str(edge[2])])))
+                if any(x for x in edge[0::2] if str(x) in uuid_map.keys()):
+                    if str(edge[2]) in uuid_map.keys() and 'ns#type' not in str(edge[1]):
+                        update_graph.add((edge[0], edge[1], URIRef(uuid_map[str(edge[2])])))
                     else:
-                        update_graph.add((URIRef(iri_map[str(edge[0])]), edge[1], edge[2]))
+                        update_graph.add((URIRef(uuid_map[str(edge[0])]), edge[1], edge[2]))
 
                 # catch and remove all owl
                 elif not any(str(x) for x in edge[0::2] if '#' in str(x)):
@@ -885,11 +885,23 @@ class KGBuilder(object):
 
             # STEP 3: LOAD CLOSED KNOWLEDGE GRAPH
             closed_kg_location = input('Provide the relative filepath to the location of the closed knowledge graph: ')
+            uuid_map_location = input('Provide the relative filepath to the location of the class-instance UUID Map: ')
 
+            # check uuid input file
+            if '.json' not in uuid_map_location:
+                raise Exception('FILE TYPE ERROR: The provided file is not type .json')
+            elif os.stat(uuid_map_location).st_size == 0:
+                raise Exception('ERROR: input file: {} is empty'.format(uuid_map_location))
+            else:
+                # load closed knowledge graph
+                print('*** Knowledge Graph Class-Instance UUID Map ***')
+                self.kg_uuid_map = json.load(open(uuid_map_location, 'r'))
+
+            # check input owl file
             if '.owl' not in closed_kg_location:
                 raise Exception('FILE TYPE ERROR: The provided file is not type .owl')
             elif os.stat(closed_kg_location).st_size == 0:
-                raise Exception('ERROR: input file: {} is empty'.format(edge_data))
+                raise Exception('ERROR: input file: {} is empty'.format(closed_kg_location))
             else:
                 # load closed knowledge graph
                 print('*** Loading Merged Ontologies ***')
@@ -906,7 +918,7 @@ class KGBuilder(object):
             self.adds_node_metadata_after_build()
 
             # STEP 5: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
-            if self.remove_owl_semantics == 'yes':
+            if self.remove_owl_semantics:
                 print('*** Removing Metadata Nodes ***')
                 cleaned_kg = self.removes_edges_with_owl_semantics()
             else:
@@ -972,7 +984,7 @@ class KGBuilder(object):
             self.creates_knowledge_graph_edges()
 
             # STEP 4: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
-            if self.remove_owl_semantics == 'yes':
+            if self.remove_owl_semantics:
                 print('*** Removing Metadata Nodes ***')
                 cleaned_kg = self.removes_edges_with_owl_semantics()
             else:
