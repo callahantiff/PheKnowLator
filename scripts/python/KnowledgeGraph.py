@@ -137,6 +137,8 @@ class KGBuilder(object):
 
                     if self.build == 'post-closure':
                         kg_node = kg_rel + 'NodeMetadata_Closed_'
+                    elif self.build == 'partial':
+                        kg_node = kg_rel + 'NotClosed_'
                     else:
                         kg_node = kg_rel + 'NodeMetadata_NotClosed_'
             else:
