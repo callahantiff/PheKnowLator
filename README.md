@@ -96,7 +96,8 @@ For assistance in creating these documents, please run the following:
 **STEP 2: Download and Preprocess Data**  
    <br>
 _PREPROCESS DATA:_  
- - <u>Create Mapping, Filtering, and Labeling Data</u>: The **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)** assists with the downloading and processing of all data needed to help build the knowledge graph.   
+ - <u>Create Mapping, Filtering, and Labeling Data</u>: The **[`data_preparation.ipynb`](https://github.com
+ /callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)** assists with the downloading and processing of all data needed to help build the knowledge graph.   
 
 _DOWNLOAD DATA:_  
  - <u>Download Ontologies</u>: Downloads ontologies with or without imports from the [`ontology_source_list.txt
