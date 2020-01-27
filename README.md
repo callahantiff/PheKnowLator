@@ -48,15 +48,24 @@ This program can be run using a Jupyter Notebook ([`main.ipynb`](https://github.
 ``` bash
 python3 Main.py -h
     
-usage: Main.py [-h] -o ONTS -c CLS -i INST
-    
-PheKnowLator: This program builds a biomedical knowledge graph using Open Biomedical Ontologies and linked open data. The programs takes the following arguments:
-    
+usage: Main.py [-h] -g ONTS -c CLS -i INST -t RES -b KG -o OUT -n NDE -r REL
+               -s OWL
+
+PheKnowLator: This program builds a biomedical knowledge graph using Open
+Biomedical Ontologies and linked open data. The programs takes the following
+arguments:
+
 optional arguments:
-    -h, --help            show this help message and exit
-    -o ONTS, --onts ONTS  name/path to text file containing ontologies
-    -c CLS, --cls CLS     name/path to text file containing class sources
-    -i INST, --inst INST  name/path to text file containing instance sources
+  -h, --help            show this help message and exit
+  -g ONTS, --onts ONTS  name/path to text file containing ontologies
+  -c CLS, --cls CLS     name/path to text file containing class sources
+  -i INST, --inst INST  name/path to text file containing instance sources
+  -t RES, --res RES     name/path to text file containing resource_info
+  -b KG, --kg KG        the build, can be "partial", "full", or "post-closure"
+  -o OUT, --out OUT     name/path to directory where to write knowledge graph
+  -n NDE, --nde NDE     yes/no - adding node metadata to knowledge graph
+  -r REL, --rel REL     yes/no - adding inverse relations to knowledge graph
+  -s OWL, --owl OWL     yes/no - removing OWL Semantics from knowledge graph
 ```   
 
 ***
