@@ -11,7 +11,7 @@ from abc import ABCMeta, abstractmethod
 from owlready2 import subprocess
 from tqdm import tqdm
 
-from scripts.python.DataPreparationHelperFunctions import *
+from scripts.python.data_preparation_helper_functions import *
 
 
 class DataSource(object):
