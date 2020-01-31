@@ -1,5 +1,5 @@
 ===================================
-#Fri Jan 31 00:58:17 UTC 2020 
+#Fri Jan 31 04:56:18 UTC 2020 
 ===================================
 
 EDGE: chemical-complex
@@ -206,9 +206,9 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[3]==Evidence at protein level | data[4]==anatomy
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 01/30/2020
-  - FILE_SIZE_IN_BYTES = 1245
+  - FILE_SIZE_IN_BYTES = 82639479
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-anatomy_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 
 EDGE: protein-catalyst
@@ -228,9 +228,9 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[3]==Evidence at protein level | data[4]==cell line
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 01/30/2020
-  - FILE_SIZE_IN_BYTES = 1245
+  - FILE_SIZE_IN_BYTES = 82639479
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-cell_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 
 EDGE: protein-cofactor
@@ -327,9 +327,9 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[3]==Evidence at transcript level | data[4]==anatomy
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 01/30/2020
-  - FILE_SIZE_IN_BYTES = 1245
+  - FILE_SIZE_IN_BYTES = 82639479
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/rna-anatomy_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 
 EDGE: rna-cell
@@ -338,9 +338,9 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[3]==Evidence at transcript level | data[4]==cell line
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/vww5mif0i8h7bhj/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 01/30/2020
-  - FILE_SIZE_IN_BYTES = 1245
+  - FILE_SIZE_IN_BYTES = 82639479
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/rna-cell_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 
 EDGE: rna-protein
