@@ -14,12 +14,14 @@ import shutil
 from contextlib import closing
 from io import BytesIO
 from reactome2py import content
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from urllib.request import urlopen
 from zipfile import ZipFile
 
 # disable chained assignment warning
 # rationale: https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
 pandas.options.mode.chained_assignment = None
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 # functions to download data
