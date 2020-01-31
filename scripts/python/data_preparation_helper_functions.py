@@ -34,13 +34,21 @@ def url_download(url: str, write_location: str, filename: str):
         filename: A string containing a filepath for where to write data to.
 
     Return:
-        None
+        None.
 
     """
     print('Downloading data file')
 
     r = requests.get(url, allow_redirects=True, verify=False)
+
+    while r.ok and int(r.headers['Content-Length']) < 1000:
+        r = requests.get(url, allow_redirects=True, verify=False)
+
+    # download file
     open(write_location + '{filename}'.format(filename=filename), 'wb').write(r.content)
+
+    return None
+
 
 
 def ftp_url_download(url: str, write_location: str, filename: str):
