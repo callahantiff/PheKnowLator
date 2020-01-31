@@ -27,10 +27,10 @@ The knowledge graph can be built with or without the inclusion of instance node 
 
 | **Metadata Type** | **Definition** | **Metadata**  | 
 | :---: | :--- | :--- | 
-| ID | Node identifiers for instance data sources | `ENST00000000412` |
-| Label | The primary label or name for the node | `M6PR` |       
-| Description | A definition or other useful details about the node | This transcript was transcribed from `Mannose-6-Phosphate Receptor, Cation Dependent`, a `protein-coding gene` that is located on chromosome `12` (map_location: `12p13.31`). |        
-| Synonym | Alternative terms used for a node | `CD-M6PR, CD-MPR, MPR 46, MPR-46, MPR46, SMPR, cation-dependent mannose-6-phosphate receptor, 46-kDa mannose 6-phosphate receptor, CD Man-6-P receptor, Mr 46,000 Man6PR, small mannose 6-phosphate receptor` |           
+| ID | Node identifiers for instance data sources | `5620` |
+| Label | The primary label or name for the node | `LANCL2` |       
+| Description | A definition or other useful details about the node | `Lanc Like 2` is a `protein-coding` gene that is located on chromosome `7` (map_location: `7p11.2`) |        
+| Synonym | Alternative terms used for a node | `GPR69B`, `TASP`, `lanC-like protein 2`, `G protein-coupled receptor 69B`, `LanC (bacterial lantibiotic synthetase component C)-like 2`, `LanC lantibiotic synthetase component C-like 2`, `testis-specific adriamycin sensitivity protein` |          
 
 <br>
 
