@@ -2,5 +2,5 @@ complex-complex, https://www.dropbox.com/s/sojaq8u3hwfw4jz/REACTOME_COMPLEX_COMP
 complex-pathway, https://www.dropbox.com/s/my03w16fjw7bt20/REACTOME_COMPLEX_PATHWAY.txt?dl=1
 gene-gene, http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
 gene-pathway, http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
-gene-rna, https://www.dropbox.com/s/5o8yt7eejbf819x/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
+gene-rna, https://www.dropbox.com/s/yqnofd8h90luygu/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
 variant-gene, https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
