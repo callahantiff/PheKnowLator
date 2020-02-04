@@ -1,5 +1,5 @@
 ===================================
-#Tue Feb 04 16:29:11 UTC 2020 
+#Tue Feb 04 21:29:50 UTC 2020 
 ===================================
 
 EDGE: complex-complex
@@ -10,7 +10,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/sojaq8u3hwfw4jz/REACTOME_COMPLEX_COMPLEX.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 368165
+  - FILE_SIZE_IN_BYTES = 369774
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/complex-complex_REACTOME_COMPLEX_COMPLEX.txt
 
 EDGE: complex-pathway
@@ -43,7 +43,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 8193974
+  - FILE_SIZE_IN_BYTES = 8193939
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-pathway_CTD_genes_pathways.tsv
 
 EDGE: gene-rna
@@ -65,6 +65,6 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 1406391053
+  - FILE_SIZE_IN_BYTES = 1420983598
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-gene_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 

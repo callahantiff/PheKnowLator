@@ -1,5 +1,5 @@
 ===================================
-#Tue Feb 04 16:28:58 UTC 2020 
+#Tue Feb 04 21:29:27 UTC 2020 
 ===================================
 
 EDGE: chemical-complex
@@ -21,7 +21,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 606298215
+  - FILE_SIZE_IN_BYTES = 610068344
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-disease_CTD_chemicals_diseases.tsv
 
 EDGE: chemical-gene
@@ -32,7 +32,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 377439886
+  - FILE_SIZE_IN_BYTES = 378813685
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gene_CTD_chem_gene_ixns.tsv
 
 EDGE: chemical-gobp
@@ -43,7 +43,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 760612373
+  - FILE_SIZE_IN_BYTES = 763576774
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gobp_CTD_chem_go_enriched.tsv
 
 EDGE: chemical-gocc
@@ -54,7 +54,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 760612373
+  - FILE_SIZE_IN_BYTES = 763576774
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gocc_CTD_chem_go_enriched.tsv
 
 EDGE: chemical-gomf
@@ -65,7 +65,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 760612373
+  - FILE_SIZE_IN_BYTES = 763576774
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv
 
 EDGE: chemical-pathway
@@ -87,7 +87,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 606298215
+  - FILE_SIZE_IN_BYTES = 610068344
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-phenotype_CTD_chemicals_diseases.tsv
 
 EDGE: chemical-protein
@@ -98,7 +98,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 377439886
+  - FILE_SIZE_IN_BYTES = 378813685
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-protein_CTD_chem_gene_ixns.tsv
 
 EDGE: chemical-reaction
@@ -120,7 +120,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 377439886
+  - FILE_SIZE_IN_BYTES = 378813685
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-rna_CTD_chem_gene_ixns.tsv
 
 EDGE: disease-phenotype
@@ -159,13 +159,13 @@ DATA INFO
 EDGE: gene-protein
 DATA PROCESSING INFO
   - IDENTIFIER MAPPING = None
-  - FILTERING CRITERIA = None
+  - FILTERING CRITERIA = data[2]==protein-coding
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/79ce6oe68jt72ph/PROTEIN_CODING_GENES_PROTEINS.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/ufbp5o6zgagriw7/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 1217944
-  - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-protein_PROTEIN_CODING_GENES_PROTEINS.txt
+  - FILE_SIZE_IN_BYTES = 1251928
+  - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-protein_ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
 
 EDGE: gobp-pathway
 DATA PROCESSING INFO
@@ -362,7 +362,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 1406391053
+  - FILE_SIZE_IN_BYTES = 1420983598
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-disease_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 
 EDGE: variant-phenotype
@@ -373,6 +373,6 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 1406391053
+  - FILE_SIZE_IN_BYTES = 1420983598
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/variant-phenotype_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
 

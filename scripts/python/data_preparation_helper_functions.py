@@ -41,11 +41,18 @@ def url_download(url: str, write_location: str, filename: str):
 
     r = requests.get(url, allow_redirects=True, verify=False)
 
-    while r.ok and int(r.headers['Content-Length']) < 1000:
-        r = requests.get(url, allow_redirects=True, verify=False)
+    if 'Content-Length' in r.headers:
+        while r.ok and int(r.headers['Content-Length']) < 1000:
+            r = requests.get(url, allow_redirects=True, verify=False)
+
+        data = r.content
+
+    else:
+        if len(r.content) > 10:
+            data = r.content
 
     # download file
-    open(write_location + '{filename}'.format(filename=filename), 'wb').write(r.content)
+    open(write_location + '{filename}'.format(filename=filename), 'wb').write(data)
 
     return None
 

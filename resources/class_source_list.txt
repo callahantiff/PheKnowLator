@@ -12,7 +12,7 @@ chemical-rna, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
 disease-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
 gene-disease, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
 gene-phenotype, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
-gene-protein, https://www.dropbox.com/s/79ce6oe68jt72ph/PROTEIN_CODING_GENES_PROTEINS.txt?dl=1
+gene-protein, https://www.dropbox.com/s/ufbp5o6zgagriw7/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt?dl=1
 gobp-pathway, https://reactome.org/download/current/gene_association.reactome.gz
 pathway-gocc, https://reactome.org/download/current/gene_association.reactome.gz
 pathway-gomf, https://reactome.org/download/current/gene_association.reactome.gz
