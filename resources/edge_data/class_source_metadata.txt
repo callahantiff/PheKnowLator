@@ -1,5 +1,5 @@
 ===================================
-#Tue Feb 04 21:29:27 UTC 2020 
+#Wed Feb 05 05:30:24 UTC 2020 
 ===================================
 
 EDGE: chemical-complex
@@ -164,7 +164,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/ufbp5o6zgagriw7/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 1251928
+  - FILE_SIZE_IN_BYTES = 1252887
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-protein_ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
 
 EDGE: gobp-pathway
@@ -208,7 +208,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 74959349
+  - FILE_SIZE_IN_BYTES = 20467831
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-anatomy_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 
 EDGE: protein-catalyst
@@ -230,7 +230,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 74959349
+  - FILE_SIZE_IN_BYTES = 20467831
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/protein-cell_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 
 EDGE: protein-cofactor
@@ -329,7 +329,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 74959349
+  - FILE_SIZE_IN_BYTES = 20467831
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/rna-anatomy_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 
 EDGE: rna-cell
@@ -340,18 +340,18 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 74959349
+  - FILE_SIZE_IN_BYTES = 20467831
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/rna-cell_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 
 EDGE: rna-protein
 DATA PROCESSING INFO
   - IDENTIFIER MAPPING = None
-  - FILTERING CRITERIA = data[3]==protein-coding
+  - FILTERING CRITERIA = data[2]==protein-coding
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/ckrw11nfyu6a08c/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 5146904
+  - FILE_SIZE_IN_BYTES = 3844509
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/rna-protein_ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt
 
 EDGE: variant-disease

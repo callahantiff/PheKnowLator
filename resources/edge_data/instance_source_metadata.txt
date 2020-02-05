@@ -1,5 +1,5 @@
 ===================================
-#Tue Feb 04 21:29:50 UTC 2020 
+#Wed Feb 05 05:30:52 UTC 2020 
 ===================================
 
 EDGE: complex-complex
@@ -54,7 +54,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/yqnofd8h90luygu/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
   - DOWNLOAD_DATE = 02/04/2020
-  - FILE_SIZE_IN_BYTES = 8676453
+  - FILE_SIZE_IN_BYTES = 8834760
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-rna_ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt
 
 EDGE: variant-gene
