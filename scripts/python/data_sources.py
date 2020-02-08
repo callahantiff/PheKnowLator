@@ -427,7 +427,6 @@ class Data(DataSource):
 
                 except shutil.SameFileError:
                     pass
-
             else:
                 # download data
                 self.data_files[i] = write_path + i + '_' + file_name
