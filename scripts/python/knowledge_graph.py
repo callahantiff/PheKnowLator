@@ -250,6 +250,79 @@ class KGBuilder(object):
                 else:
                     self.relations_dict = df.to_dict('index')
 
+    def adds_ontology_annotations(self, filename: str, graph: Graph):
+        """Updates the ontology annotation information for an input knowledge graph or ontology.
+
+        Args:
+            filename: A string containing the name of a knowledge graph.
+            graph: An RDFLib graph object.
+
+        Returns:
+            graph: An RDFLib graph object with edited ontology annotations.
+
+        """
+
+        # set namespaces
+        oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
+        owl = Namespace('http://www.w3.org/2002/07/owl#')
+
+        # set environment variables
+        url = 'https://github.com/callahantiff/PheKnowLator'
+        authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
+        date = datetime.datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+
+        # query ontology to obtain existing ontology annotations
+        results = graph.query(
+            """SELECT DISTINCT ?o ?p ?s
+                   WHERE {
+                      ?o rdf:type owl:Ontology .
+                       ?o ?p ?s .}
+                   """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                                'owl': 'http://www.w3.org/2002/07/owl#'})
+
+        # iterate over annotations and remove them
+        for res in results:
+            graph.remove(res)
+
+        # add new annotations
+        graph.add((URIRef(url + '.owl'), RDF.type, URIRef(owl + 'Ontology')))
+        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
+        graph.add((URIRef(url + '.owl'), URIRef(owl + 'versionIRI'), URIRef(url + '/wiki/' + self.kg_version)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
+        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information please visit: ' + url)))
+
+        return graph
+
+    @staticmethod
+    def ontology_file_formatter(graph_location: str):
+        """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
+        referenced by graph_location is read in and output to the same location via the OWLTools API.
+
+        Args:
+            graph_location: A string naming the location of an ontology.
+
+        Raises:
+            An exception is raised if something other than an .owl file is passed to function.
+            An exception is raised if the input file contains no data.
+            An exception is raised if OWLTools API is unable to process the call.
+
+        """
+
+        # check input owl file
+        if '.owl' not in graph_location:
+            raise Exception('FILE TYPE ERROR: The provided file is not type .owl')
+        elif os.stat(graph_location).st_size == 0:
+            raise Exception('ERROR: input file: {} is empty'.format(graph_location))
+        else:
+            try:
+                subprocess.check_call(['./resources/lib/owltools', graph_location, '-o', graph_location])
+            except subprocess.CalledProcessError as error:
+                print(error.output)
+
+        return None
+
     def merges_ontologies(self):
         """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into
         a master merged ontology file and saved locally to the provided file path via the merged_ontology attribute.
@@ -394,7 +467,6 @@ class KGBuilder(object):
             inverse_relation = None
 
         for edge in tqdm(self.edge_dict[edge_type]['edge_list']):
-
             # adds node metadata information if present
             if self.node_dict:
                 if edge_type in self.node_dict.keys():
@@ -605,8 +677,14 @@ class KGBuilder(object):
         nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
         print('\nThe KG contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
+        # add ontology annotations
+        self.graph = self.adds_ontology_annotations(self.full_kg.split('/')[-1], self.graph)
+
         # serialize graph
         self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
+
+        # apply OWL API formatting to file
+        self.ontology_file_formatter(self.write_location + self.full_kg)
 
         # write class-instance uuid mapping dictionary to file
         json.dump(self.kg_uuid_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
@@ -700,8 +778,14 @@ class KGBuilder(object):
         nodes = len(set([str(node) for edge in list(update_graph) for node in edge[0::2]]))
         print('\nThe filtered KG contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
+        # add ontology annotations
+        update_graph_annot = self.adds_ontology_annotations(self.full_kg.split('/')[-1], update_graph)
+
         # serialize edges
-        update_graph.serialize(destination=self.write_location + self.full_kg, format='xml')
+        update_graph_annot.serialize(destination=self.write_location + self.full_kg, format='xml')
+
+        # apply OWL API formatting to file
+        self.ontology_file_formatter(self.write_location + self.full_kg)
 
         return update_graph
 
