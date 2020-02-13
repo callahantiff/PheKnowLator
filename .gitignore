@@ -38,7 +38,7 @@ resources/relations_data/*
 !/resources/embeddings/README.md
 
 # releases
-/resources/releases/
+/releases/
 
 # API keys/passwords
 /resources/bioportal_api_key.txt
