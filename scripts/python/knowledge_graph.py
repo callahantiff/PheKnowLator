@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # import needed libraries
+import datetime
 import glob
 import json
 import os
@@ -13,7 +14,7 @@ import uuid
 from rdflib import Namespace
 from rdflib import Graph
 from rdflib.namespace import RDF, RDFS
-from rdflib import URIRef, Literal
+from rdflib import URIRef, Literal, BNode
 from tqdm import tqdm
 
 
@@ -107,8 +108,8 @@ class KGBuilder(object):
         self.graph: Graph = Graph()
 
         # set file names for writing data
-        header = '/PheKnowLator_' + self.kg_version + '_' + self.build + '_'
-        self.merged_ont_kg = '/PheKnowLator_' + self.kg_version + '_MergedOntologies.owl'
+        header = '/PheKnowLator_' + self.build + '_'
+        self.merged_ont_kg = '/PheKnowLator_MergedOntologies.owl'
 
         if relations_data.lower() not in ['yes', 'no']:
             raise ValueError('PARAMETER ERROR: relations_data must be "no" or "yes"')
@@ -214,7 +215,6 @@ class KGBuilder(object):
 
         # created nested dictionary
         if self.node_data:
-
             # create list where first item is edge type and the second item is the df
             dfs = [[re.sub('.*/', '', re.sub('((_[^/]*)_.*$)', '', x)),
                     pandas.read_csv(x, header=0, delimiter='\t')] for x in self.node_data]
@@ -249,79 +249,6 @@ class KGBuilder(object):
                     self.inverse_relations_dict = df.to_dict('index')
                 else:
                     self.relations_dict = df.to_dict('index')
-
-    def adds_ontology_annotations(self, filename: str, graph: Graph):
-        """Updates the ontology annotation information for an input knowledge graph or ontology.
-
-        Args:
-            filename: A string containing the name of a knowledge graph.
-            graph: An RDFLib graph object.
-
-        Returns:
-            graph: An RDFLib graph object with edited ontology annotations.
-
-        """
-
-        # set namespaces
-        oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
-        owl = Namespace('http://www.w3.org/2002/07/owl#')
-
-        # set environment variables
-        url = 'https://github.com/callahantiff/PheKnowLator'
-        authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
-        date = datetime.datetime.now().strftime('%m/%d/%Y %H:%M:%S')
-
-        # query ontology to obtain existing ontology annotations
-        results = graph.query(
-            """SELECT DISTINCT ?o ?p ?s
-                   WHERE {
-                      ?o rdf:type owl:Ontology .
-                       ?o ?p ?s .}
-                   """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                                'owl': 'http://www.w3.org/2002/07/owl#'})
-
-        # iterate over annotations and remove them
-        for res in results:
-            graph.remove(res)
-
-        # add new annotations
-        graph.add((URIRef(url + '.owl'), RDF.type, URIRef(owl + 'Ontology')))
-        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
-        graph.add((URIRef(url + '.owl'), URIRef(owl + 'versionIRI'), URIRef(url + '/wiki/' + self.kg_version)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
-        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information please visit: ' + url)))
-
-        return graph
-
-    @staticmethod
-    def ontology_file_formatter(graph_location: str):
-        """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
-        referenced by graph_location is read in and output to the same location via the OWLTools API.
-
-        Args:
-            graph_location: A string naming the location of an ontology.
-
-        Raises:
-            An exception is raised if something other than an .owl file is passed to function.
-            An exception is raised if the input file contains no data.
-            An exception is raised if OWLTools API is unable to process the call.
-
-        """
-
-        # check input owl file
-        if '.owl' not in graph_location:
-            raise Exception('FILE TYPE ERROR: The provided file is not type .owl')
-        elif os.stat(graph_location).st_size == 0:
-            raise Exception('ERROR: input file: {} is empty'.format(graph_location))
-        else:
-            try:
-                subprocess.check_call(['./resources/lib/owltools', graph_location, '-o', graph_location])
-            except subprocess.CalledProcessError as error:
-                print(error.output)
-
-        return None
 
     def merges_ontologies(self):
         """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into
@@ -437,6 +364,86 @@ class KGBuilder(object):
                     identified_inverse_relation = relation
 
         return identified_inverse_relation
+
+    def adds_ontology_annotations(self, filename: str, graph: Graph):
+        """Updates the ontology annotation information for an input knowledge graph or ontology.
+
+        Args:
+            filename: A string containing the name of a knowledge graph.
+            graph: An RDFLib graph object.
+
+        Returns:
+            graph: An RDFLib graph object with edited ontology annotations.
+
+        """
+
+        print('\n*** ADDING ONTOLOGY ANNOTATIONS ***')
+
+        # set namespaces
+        oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
+        owl = Namespace('http://www.w3.org/2002/07/owl#')
+
+        # set environment variables
+        authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
+        date = datetime.datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+
+        # convert filename to permanent url
+        parsed_filename = '_'.join(filename.lower().split('/')[-1].split('_')[2:]).replace('_nodemetadata', '')
+        url = 'https://pheknowlator.com/pheknowlator_' + parsed_filename
+
+        # query ontology to obtain existing ontology annotations
+        results = graph.query(
+            """SELECT DISTINCT ?o ?p ?s
+                   WHERE {
+                      ?o rdf:type owl:Ontology .
+                       ?o ?p ?s .}
+                   """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                                'owl': 'http://www.w3.org/2002/07/owl#'})
+
+        # iterate over annotations and remove them
+        for res in results:
+            graph.remove(res)
+
+        # add new annotations
+        graph.add((URIRef(url + '.owl'), RDF.type, URIRef(owl + 'Ontology')))
+        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
+        graph.add((URIRef(url + '.owl'), URIRef(owl + 'versionIRI'), URIRef(url + '/wiki/' + self.kg_version)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
+        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information please visit: ' + url)))
+
+        return graph
+
+    @staticmethod
+    def ontology_file_formatter(graph_location: str):
+        """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
+        referenced by graph_location is read in and output to the same location via the OWLTools API.
+
+        Args:
+            graph_location: A string naming the location of an ontology.
+
+        Raises:
+            An exception is raised if something other than an .owl file is passed to function.
+            An exception is raised if the input file contains no data.
+            An exception is raised if OWLTools API is unable to process the call.
+
+        """
+
+        print('\n*** REFORMATTING KNOWLEDGE GRAPH FILE FORMAT ***')
+
+        # check input owl file
+        if '.owl' not in graph_location:
+            raise Exception('FILE TYPE ERROR: The provided file is not type .owl')
+        elif os.stat(graph_location).st_size == 0:
+            raise Exception('ERROR: input file: {} is empty'.format(graph_location))
+        else:
+            try:
+                subprocess.check_call(['./resources/lib/owltools', graph_location, '-o', graph_location])
+            except subprocess.CalledProcessError as error:
+                print(error.output)
+
+        return None
 
     def creates_instance_instance_data_edges(self, edge_type: str):
         """Adds edges that contain nodes that are both of type instance to a knowledge graph. The typing of each node
@@ -662,7 +669,6 @@ class KGBuilder(object):
             elif self.edge_dict[edge_type]['data_type'] == 'class-class':
                 print('\n*** EDGE: {} - Creating Class-Class Edges ***'.format(edge_type))
                 edge_results = self.creates_class_class_data_edges(edge_type)
-
             else:
                 print('\n*** EDGE: {} - Creating Class-Instances Edges ***'.format(edge_type))
                 edge_results = self.creates_instance_class_data_edges(edge_type)
@@ -678,7 +684,7 @@ class KGBuilder(object):
         print('\nThe KG contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
         # add ontology annotations
-        self.graph = self.adds_ontology_annotations(self.full_kg.split('/')[-1], self.graph)
+        self.graph = adds_ontology_annotations(self.full_kg.split('/')[-1], self.graph)
 
         # serialize graph
         self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
@@ -688,6 +694,74 @@ class KGBuilder(object):
 
         # write class-instance uuid mapping dictionary to file
         json.dump(self.kg_uuid_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
+
+        return None
+
+    def removes_annotation_assertions(self):
+        """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
+        'removes annotation assertions to make a pure logic subset', which reduces the overall size of the knowledge
+        graph, but still makes able to be reasoned against. To ease the process adding the annotation assertions back
+        after running a reasoner, the edges from the original knowledge graph are written to a text file prior to
+        removing the annotations.
+
+        Returns:
+            None.
+
+        """
+
+        # write knowledge graph edges locally
+        with open(self.write_location + self.full_kg[:-4] + '_edgelist.txt', 'w') as outfile:
+            for edge in tqdm(self.graph):
+                outfile.write(str(edge) + '\n')
+        outfile.close()
+
+        kg.graph.serialize(destination=kg.write_location + kg.full_kg, format='ntriples')
+
+        # remove annotation assertions
+        try:
+            subprocess.check_call(['./resources/lib/owltools',
+                                   self.write_location + self.full_kg,
+                                   '--remove-annotation-assertions',
+                                   '-o',
+                                   self.write_location + self.full_kg[:-4] + '_NoAnnotationAssertions.owl'])
+        except subprocess.CalledProcessError as error:
+            print(error.output)
+
+        return None
+
+    def adds_annotation_assertions(self):
+        """Adds back the edges that were removed from the knowledge graph when removing annotation assertions. The
+        function first reads in the edge list from the knowledge graph that was created prior to removing annotation
+        assertions. Once read in, the function iterates over the closed knowledge graph files and adds any edges that
+        are present in the list, but missing from the closed knowledge graph.
+
+        Returns:
+            None.
+
+        """
+
+        # read in annotation assertions from full graph
+        assertions = open(kg.write_location + kg.full_kg[:-4] + '_edgelist.txt', 'r').readlines()
+
+        assertion_edges = []
+
+        for edge in tqdm(assertions):
+            triples = []
+
+            for triple_part in [x for x in edge.strip('\n').split('rdflib') if 'term' in x]:
+                if 'URIRef' in triple_part:
+                    triples.append(URIRef(re.sub("(.*\(')|('\).*)", '', triple_part)))
+                elif 'Literal' in triple_part:
+                    triples.append(Literal(re.sub("(.*\(')|('\).*)", '', triple_part)))
+                else:
+                    triples.append(BNode(re.sub("(.*\(')|('\).*)", '', triple_part)))
+
+            assertion_edges.append(tuple(triples))
+
+        # iterate over closed knowledge graph and add back missing annotation assertions
+        for edge in tqdm(self.graph):
+            if edge not in assertions:
+                kg.add(edge)
 
         return None
 
@@ -789,7 +863,7 @@ class KGBuilder(object):
 
         return update_graph
 
-    def maps_node_labels_to_integers(self, graph: Graph(), output_triple_integers: str, output_loc):
+    def maps_node_labels_to_integers(self, graph: Graph, output_triple_integers: str, output_loc):
         """Loops over the knowledge graph in order to create three different types of files:
             - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
             subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
@@ -946,7 +1020,7 @@ class KGBuilder(object):
         build types that a user can request includes: "full", "partial", and "post-closure". The steps for each
         build, referenced by their number above (i.e. (2)) are listed below:
             - Full Build: Steps 0-7
-            - Partial Build: Steps 0-3
+            - Partial Build: Steps 0-4
             - Post-Closure Build: Steps 4-7
 
         Returns:
@@ -957,7 +1031,7 @@ class KGBuilder(object):
 
         """
 
-        # STEP 0: SET-UP ENVIRONMENT + IDENTIFY BUILD TYPE
+        # STEP 0: SET-UP ENVIRONMENT
         print('*** Set-Up Environment ***')
         self.sets_up_environment()
 
@@ -1042,8 +1116,18 @@ class KGBuilder(object):
                     self.merges_ontologies()
 
             # STEP 3: ADD EDGE DATA TO KNOWLEDGE GRAPH
+            # create temporary directory to store partial builds
+            temp_dir = '/'.join((self.write_location + self.full_kg).split('/')[:4])
+            os.mkdir(temp_dir + '/partial_build')
+
+            # update path to write data to
+            kg.full_kg = '/'.join(kg.full_kg.split('/')[:2] + ['partial_build'] + kg.full_kg.split('/')[2:])
+
+            # build knowledge graph
             print('*** Building Knowledge Graph Edges ***')
-            self.creates_knowledge_graph_edges()
+            kg.creates_knowledge_graph_edges()
+
+            # STEP 4: REMOVE ANNOTATION ASSERTIONS
 
         else:
             print('\n*** Starting Knowledge Graph Build: FULL ***')
