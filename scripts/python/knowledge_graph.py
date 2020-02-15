@@ -741,7 +741,7 @@ class KGBuilder(object):
         """
 
         # read in annotation assertions from full graph
-        assertions = open(kg.write_location + kg.full_kg[:-4] + '_edgelist.txt', 'r').readlines()
+        assertions = open(self.write_location + self.full_kg[:-4] + '_edgelist.txt', 'r').readlines()
 
         assertion_edges = []
 
@@ -761,7 +761,7 @@ class KGBuilder(object):
         # iterate over closed knowledge graph and add back missing annotation assertions
         for edge in tqdm(self.graph):
             if edge not in assertions:
-                kg.add(edge)
+                self.add(edge)
 
         return None
 
@@ -1118,7 +1118,9 @@ class KGBuilder(object):
             # STEP 3: ADD EDGE DATA TO KNOWLEDGE GRAPH
             # create temporary directory to store partial builds
             temp_dir = '/'.join((self.write_location + self.full_kg).split('/')[:4])
-            os.mkdir(temp_dir + '/partial_build')
+
+            if temp_dir + '/partial_build' not in glob.glob(self.write_location + '/**/**'):
+                os.mkdir(temp_dir + '/partial_build')
 
             # update path to write data to
             kg.full_kg = '/'.join(kg.full_kg.split('/')[:2] + ['partial_build'] + kg.full_kg.split('/')[2:])
