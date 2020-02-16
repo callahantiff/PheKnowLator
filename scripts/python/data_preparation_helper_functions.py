@@ -35,8 +35,8 @@ def url_download(url: str, write_location: str, filename: str):
 
     Return:
         None.
-
     """
+
     print('Downloading data file')
 
     r = requests.get(url, allow_redirects=True, verify=False)
@@ -46,16 +46,13 @@ def url_download(url: str, write_location: str, filename: str):
             r = requests.get(url, allow_redirects=True, verify=False)
 
         data = r.content
+        open(write_location + '{filename}'.format(filename=filename), 'wb').write(data)
 
     else:
         if len(r.content) > 10:
-            data = r.content
-
-    # download file
-    open(write_location + '{filename}'.format(filename=filename), 'wb').write(data)
+            open(write_location + '{filename}'.format(filename=filename), 'wb').write(r.content)
 
     return None
-
 
 
 def ftp_url_download(url: str, write_location: str, filename: str):
@@ -68,8 +65,8 @@ def ftp_url_download(url: str, write_location: str, filename: str):
 
     Return:
         None
-
     """
+
     print('Downloading data from ftp server')
 
     with closing(urlopen(url)) as r:
@@ -87,7 +84,6 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str):
 
     Return:
         None
-
     """
 
     # get ftp server info
@@ -127,8 +123,8 @@ def zipped_url_download(url: str, write_location: str, filename: str = ''):
 
     Return:
         None
-
     """
+
     print('Downloading zipped data file')
 
     with requests.get(url, allow_redirects=True) as zip_data:
@@ -150,8 +146,8 @@ def gzipped_url_download(url: str, write_location: str, filename: str):
 
     Return:
         None
-
     """
+
     print('Downloading gzipped data file')
 
     with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
@@ -169,7 +165,6 @@ def data_downloader(url: str, write_location: str, filename: str = ''):
 
     Return:
         None
-
     """
 
     # get filename from url
@@ -213,14 +208,12 @@ def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str
 
     Returns:
         An exploded Pandas DataFrame
-
     """
 
     if not lst_cols:
         return df
 
     else:
-
         # pop column to process off the stack
         lst = [lst_cols.pop()]
 
@@ -275,7 +268,6 @@ def mesh_finder(data: pandas.DataFrame, x_id: str, id_type: str, id_dic: dict):
 
     Returns:
         None
-
     """
 
     for x in list(data.loc[data['code'] == x_id]['diseaseId']):
@@ -313,8 +305,8 @@ def chunks(lst: list, chunk_size: int):
 
     Returns:
         A nested list, where the length of each nested list is the size of the integer passed by the user.
-
     """
+
     for i in range(0, len(lst), chunk_size):
         yield lst[i:i+chunk_size]
 
@@ -329,7 +321,6 @@ def metadata_dictionary_mapper(nodes: list, metadata_dictionaries: dict):
 
     Returns:
         A pandas.DataFrame of metadata results.
-
     """
 
     # data to gather
@@ -383,7 +374,6 @@ def metadata_api_mapper(nodes: list):
 
     Returns:
         A pandas.DataFrame of metadata results.
-
     """
 
     # data to gather

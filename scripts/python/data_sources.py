@@ -45,7 +45,6 @@ class DataSource(object):
                       'phenotype': 'resources/ontologies/hp_with_imports.owl'
                       }
         metadata: A list that stores metadata information for each downloaded data source.
-
     """
 
     __metaclass__ = ABCMeta
@@ -72,7 +71,6 @@ class DataSource(object):
 
         Raises:
             An exception is raised if the input file is empty.
-
         """
 
         pass
@@ -92,7 +90,6 @@ class DataSource(object):
 
         Raises:
             An exception is raised if any URL does point to a valid endpoint containing data.
-
         """
 
         pass
@@ -111,7 +108,6 @@ class DataSource(object):
                                           node1 - './filepath/mapping_data.txt,
                                           col_idx:8 - col_val<2.0 | col_idx:24 - col_val.startswith('REACT'),
                                           col_idx:2 - col_val=='reviewed', col_idx:4 - col_val in [9606, 1026]}
-
         """
 
         # create edge data resource dictionary
@@ -164,7 +160,6 @@ class DataSource(object):
 
         Returns:
             None.
-
         """
 
         print('\n*** Generating Metadata ***\n')
@@ -204,7 +199,6 @@ class DataSource(object):
 
         Returns:
             None
-
         """
 
         # generate metadata
@@ -258,7 +252,6 @@ class OntData(DataSource):
         Raises:
             An exception is raised if the file contains data.
             An exception is raised if a URL isn't correctly formatted.
-
         """
 
         # CHECK - file has data
@@ -300,7 +293,6 @@ class OntData(DataSource):
 
         Raises:
             An exception is raised if any of the URLs passed as command line arguments fails to return data.
-
         """
 
         # check data before download
@@ -376,7 +368,6 @@ class Data(DataSource):
 
         Raises:
             An exception is raised if the input file is empty.
-
         """
 
         if os.stat(self.data_path).st_size == 0:
@@ -402,7 +393,6 @@ class Data(DataSource):
 
         Raises:
             An exception is raised if any URL does point to a valid endpoint containing data.
-
         """
 
         # check data before download

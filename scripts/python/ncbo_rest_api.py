@@ -25,7 +25,6 @@ def gets_json_results_from_api_call(url: str, api_key: str):
 
     Raises:
         An exception is raised if a 500 HTTP server-side code is raised.
-
     """
 
     response = requests.get(url, headers={'Authorization': 'apikey token=' + api_key})
@@ -47,7 +46,6 @@ def writes_data_to_file(file_out: str, results: set):
 
     Returns:
         None.
-
     """
 
     print('\n' + '=' * 50)
@@ -78,7 +76,6 @@ def extracts_mapping_data(api_key: str, source1: str, source2: str, file_out: st
 
     Returns:
         None.
-
     """
 
     print('\n' + '=' * 50)
@@ -112,7 +109,6 @@ def extracts_mapping_data(api_key: str, source1: str, source2: str, file_out: st
 
 
 def main():
-
     # get api key
     api_key = input('Please provide your BioPortal API Key: ')
 

@@ -73,7 +73,6 @@ class EdgeList(object):
         Returns:
             - 0, if the data should be read in with a header.
             - None, if the data should be read in without a header.
-
         """
 
         # read in data
@@ -109,7 +108,6 @@ class EdgeList(object):
 
         Raises:
             An exception is raised if the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
-
         """
 
         # identify line splitter
@@ -144,7 +142,6 @@ class EdgeList(object):
 
         Raises:
             An exception is raised if the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
-
         """
 
         if filter_criteria == 'None' and evidence_criteria == 'None':
@@ -153,7 +150,6 @@ class EdgeList(object):
             map_filter_criteria = filter_criteria + '::' + evidence_criteria
 
             for crit in [x for x in map_filter_criteria.split('::') if x != 'None']:
-
                 # check if argument is to deduplicate data
                 if crit.split(';')[1] == 'dedup':
                     sort_col = list(edge_data)[int(crit.split(';')[0].split('-')[0])]
@@ -201,7 +197,6 @@ class EdgeList(object):
 
         Returns:
             A Pandas.DataFrame that consists of the two columns provided by the 'col' variable.
-
         """
 
         edge_data = edge_data[[list(edge_data)[int(cols.split(';')[0])], list(edge_data)[int(cols.split(';')[1])]]]
@@ -267,7 +262,6 @@ class EdgeList(object):
         Raises:
             An exception if when indexing into a list that does not contain object at index.
             An exception is raised when trying to merge data on columns of different data types.
-
         """
 
         # check if node needs to be mapped to an outside data source
@@ -317,8 +311,6 @@ class EdgeList(object):
             A list of tuples, where each tuple contains a mapped identifier from each node column in the edge_data
             Pandas DataFrame. For example:
                 [['CHEBI_24505', 'R-HSA-1006173'], ['CHEBI_28879', 'R-HSA-1006173'], ['CHEBI_59888', 'R-HSA-1013011']]
-
-
         """
 
         if mapping_data == 'None':
@@ -362,7 +354,6 @@ class EdgeList(object):
                                                'filter_criteria': 'None',
                                                'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...]},
                         }
-
         """
 
         for edge_type in tqdm(self.source_info.keys()):
