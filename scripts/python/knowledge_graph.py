@@ -11,9 +11,13 @@ import re
 import subprocess
 import uuid
 
+from abc import ABCMeta, abstractmethod
 from rdflib import BNode, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import RDF, RDFS
 from tqdm import tqdm
+
+from scripts.python.knowledge_graph_metadata import MetadataManager
+from scripts.python.knowledge_graph_metadata import OWLNETS
 
 
 class KGBuilder(object):
@@ -75,6 +79,8 @@ class KGBuilder(object):
               'https://github.com/callahantiff/PheKnowLator/obo/ext/d1552fc9-a91b-414a-86cb-885f8c4822e7'}
         graph: An rdflib graph object which stores the knowledge graph.
     """
+
+    __metaclass__ = ABCMeta
 
     def __init__(self, kg_version: str, build: str, write_location: str, edge_data: str = None, node_data: dict = None,
                  relations_data: dict = None, remove_owl_semantics: str = None):
@@ -191,46 +197,6 @@ class KGBuilder(object):
 
         return None
 
-    def node_metadata_processor(self):
-        """Processes a directory of node data sets by reading in each data set and then converting the read in data
-        into a dictionary, which is then added to the class attribute node_dict. This dictionary stores the "ID"
-        column of each data frame as the keys and all other columns as values. For example:
-
-            {'variant-gene': {
-                397508135: {'Label': 'NM_000492.3(CFTR):c.*80T>G',
-                            'Description': 'This variant is a germline single nucleotide variant that results when a T
-                                allele is changed to G on chromosome 7 (NC_000007.14, start:117667188/stop:117667188
-                                positions, cytogenetic location:7q31.2) and has clinical significance not provided.
-                                This entry is for the GRCh38 and was last reviewed on - with review status "no
-                                assertion provided".'
-                            }
-                              }
-            }
-
-        Assumptions:
-            1 - Each edge contains a dictionary.
-            2 - Each edge's dictionary is keyed by "ID" and contains at least 1 of the following: "Label",
-                "Description", and "Symbol".
-
-        Returns:
-            None.
-        """
-
-        if self.node_data:
-            # create list where first item is edge type and the second item is the df
-            dfs = [[re.sub('.*/', '', re.sub('((_[^/]*)_.*$)', '', x)),
-                    pandas.read_csv(x, header=0, delimiter='\t')] for x in self.node_data]
-
-            # convert each data frame to dictionary, using the "ID" column as the index
-            for i in range(0, len(dfs)):
-                df_processed = dfs[i][1].astype(str)
-                df_processed.drop_duplicates(keep='first', inplace=True)
-                df_processed.set_index('ID', inplace=True)
-                df_dict = df_processed.to_dict('index')
-
-                # add data frame to master node metadata dictionary
-                self.node_dict[dfs[i][0]] = df_dict
-
     def reverse_relation_processor(self):
         """Reads in data to a Pandas DataFrame from a user-provided filepath. The pandas DataFrame is then converted
         to a specific dictionary depending on whether it contains inverse relation data or relation data identifiers
@@ -286,45 +252,6 @@ class KGBuilder(object):
 
             return self.merges_ontologies()
 
-    def creates_node_metadata(self, node: str, edge_type: str, url: str):
-        """Given a node in the knowledge graph, if the node has metadata information, new edges are created to add
-        the metadata to the knowledge graph. Metadata that is added includes: labels, descriptions, and synonyms.
-
-        Note. If running a "partial" build and node_data='yes', the algorithm will not add the metadata edges to the
-        KG. This is because 'partial' builds are intended to be run in situations when the generated knowledge graph
-        will be run through a reasoner and thus, the goal is to only include the edges necessary to close the graph.
-        Node metadata can be added back to the KG by running the algorithm again with the build set to "post-closure".
-
-        Args:
-            node: A node identifier (e.g. 'HP_0003269', 'rs765907815').
-            edge_type: A string which specifies the edge type (e.g. chemical-gene).
-            url: The node's url needed to form a complete uri (e.g. http://purl.obolibrary.org/obo/), which is
-                specified in the resource_info.txt document.
-
-        Returns:
-            None.
-        """
-
-        # set namespace arguments
-        obo = Namespace('http://purl.obolibrary.org/obo/')
-        oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
-
-        # create metadata dictionary
-        metadata = self.node_dict[edge_type][node]
-
-        if self.build != 'partial':
-            if 'Label' in metadata.keys() and metadata['Label'] != 'None':
-                self.graph.add((URIRef(url + str(node)), RDFS.label, Literal(metadata['Label'])))
-            if 'Description' in metadata.keys() and metadata['Description'] != 'None':
-                self.graph.add((URIRef(url + str(node)), URIRef(obo + 'IAO_0000115'), Literal(metadata['Description'])))
-            if 'Synonym' in metadata.keys() and metadata['Synonym'] != 'None':
-                for syn in metadata['Synonym'].split('|'):
-                    self.graph.add((URIRef(url + str(node)), URIRef(oboinowl + 'hasExactSynonym'), Literal(syn)))
-        else:
-            pass
-
-        return None
-
     def checks_for_inverse_relations(self, relation: str, edge_list: list):
         """Checks a relation to determine whether or not edges for an inverse relation should be created and added to
         the knowledge graph.
@@ -350,87 +277,6 @@ class KGBuilder(object):
                     return relation
             else:
                 return None
-
-    def adds_ontology_annotations(self, filename: str, graph: Graph):
-        """Updates the ontology annotation information for an input knowledge graph or ontology.
-
-        Args:
-            filename: A string containing the name of a knowledge graph.
-            graph: An RDFLib graph object.
-
-        Returns:
-            graph: An RDFLib graph object with edited ontology annotations.
-        """
-
-        print('\n*** ADDING ONTOLOGY ANNOTATIONS ***')
-
-        # set namespaces
-        oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
-        owl = Namespace('http://www.w3.org/2002/07/owl#')
-
-        # set annotation variables
-        authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
-        date = datetime.datetime.now().strftime('%m/%d/%Y %H:%M:%S')
-
-        # convert filename to permanent url
-        parsed_filename = '_'.join(filename.lower().split('/')[-1].split('_')[2:]).replace('_nodemetadata', '')
-        url = 'https://pheknowlator.com/pheknowlator_' + parsed_filename
-
-        # query ontology to obtain existing ontology annotations
-        results = graph.query(
-            """SELECT DISTINCT ?o ?p ?s
-                WHERE {
-                    ?o rdf:type owl:Ontology .
-                    ?o ?p ?s . }
-            """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                         'owl': 'http://www.w3.org/2002/07/owl#'})
-
-        # iterate over annotations and remove existing annotations
-        for res in results:
-            graph.remove(res)
-
-        # add new annotations
-        graph.add((URIRef(url + '.owl'), RDF.type, URIRef(owl + 'Ontology')))
-        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
-        graph.add((URIRef(url + '.owl'), URIRef(owl + 'versionIRI'), URIRef(url + '/wiki/' + self.kg_version)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
-        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information please visit: ' + url)))
-
-        return graph
-
-    @staticmethod
-    def ontology_file_formatter(graph_location: str):
-        """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
-        referenced by graph_location is read in and output to the same location via the OWLTools API.
-
-        Args:
-            graph_location: A string naming the location of an ontology.
-
-        Returns:
-            None.
-
-        Raises:
-            An exception is raised if something other than an .owl file is passed to function.
-            An exception is raised if the input file contains no data.
-            An exception is raised if OWLTools API is unable to process the command line call.
-        """
-
-        print('\n*** REFORMATTING KNOWLEDGE GRAPH FILE FORMAT ***')
-
-        # check input owl file
-        if '.owl' not in graph_location:
-            raise Exception('ERROR: The provided file is not type .owl')
-        elif os.stat(graph_location).st_size == 0:
-            raise Exception('ERROR: input file: {} is empty'.format(graph_location))
-        else:
-            try:
-                subprocess.check_call(['./resources/lib/owltools', graph_location, '-o', graph_location])
-            except subprocess.CalledProcessError as error:
-                print(error.output)
-
-        return None
 
     def creates_instance_instance_data_edges(self, edge_type: str):
         """Adds edges that contain nodes that are both of type instance to a knowledge graph. The typing of each node
@@ -670,8 +516,7 @@ class KGBuilder(object):
         print('\nThe KG contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
         # add ontology annotations
-        if 'partial' not in self.full_kg.split('/')[-1]:
-            self.graph = self.adds_ontology_annotations(self.full_kg.split('/')[-1], self.graph)
+        self.graph = self.adds_ontology_annotations(self.full_kg.split('/')[-1], self.graph)
 
         # serialize graph
         self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
@@ -684,272 +529,63 @@ class KGBuilder(object):
 
         return None
 
-    def removes_annotation_assertions(self):
-        """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
-        removes annotation assertions to make a pure logic subset', which reduces the overall size of the knowledge
-        graph, but still makes able to be reasoned against. To ease the process adding the annotation assertions back
-        after running a reasoner, the edges from the original knowledge graph are written to a text file prior to
-        removing the annotations.
+    def construct_knowledge_graph(self):
+        """Builds a knowledge graph. The knowledge graph build is completed differently depending on the build type
+        that the user requested. The build types that a user can request includes: "full", "partial", or "post-closure".
 
-        Returns:
-            None.
-        """
-
-        # write knowledge graph edges locally
-        with open(self.write_location + self.full_kg[:-4] + '_edgelist.txt', 'w') as outfile:
-            for edge in tqdm(self.graph):
-                outfile.write(str(edge) + '\n')
-
-        outfile.close()
-
-        # self.graph.serialize(destination=self.write_location + self.full_kg, format='ntriples')
-
-        # remove annotation assertions
-        try:
-            subprocess.check_call(['./resources/lib/owltools',
-                                   self.write_location + self.full_kg,
-                                   '--remove-annotation-assertions',
-                                   '-o',
-                                   self.write_location + self.full_kg[:-4] + '_NoAnnotationAssertions.owl'])
-        except subprocess.CalledProcessError as error:
-            print(error.output)
-
-        return None
-
-    def adds_annotation_assertions(self):
-        """Adds edges removed from the knowledge graph when annotation assertions were removed. First, the edge list
-        from the knowledge graph that was created prior to removing annotation assertions is read in. Then, the function
-        iterates over the closed knowledge graph files and adds any edges that are present in the list, but missing
-        from the closed knowledge graph.
-
-        Returns:
-            None.
-        """
-
-        # read in annotation assertions from full graph
-        assertions = open(self.write_location + self.full_kg[:-4] + '_edgelist.txt', 'r').readlines()
-
-        # reformat/clean edges - important to speed up the process of checking for them in the knowledge graph
-        assertion_edges = []
-        for edge in tqdm(assertions):
-            triples = []
-
-            for triple_part in [x for x in edge.strip('\n').split('rdflib') if 'term' in x]:
-                if 'URIRef' in triple_part:
-                    triples.append(URIRef(re.sub("(.*\(')|('\).*)", '', triple_part)))
-                elif 'Literal' in triple_part:
-                    triples.append(Literal(re.sub("(.*\(')|('\).*)", '', triple_part)))
-                else:
-                    triples.append(BNode(re.sub("(.*\(')|('\).*)", '', triple_part)))
-
-            assertion_edges.append(tuple(triples))
-
-        # iterate over closed knowledge graph and add back missing annotation assertions
-        for edge in tqdm(self.graph):
-            if edge not in assertions:
-                self.add(edge)
-
-        return None
-
-    def adds_node_metadata(self):
-        """Iterates over nodes in each edge in the edge_dict, by edge_type. If the node has metadata available in the
-        the node_data dictionary, then it is added to the knowledge graph.
-
-        Returns:
-            None.
-        """
-
-        for edge_type in self.edge_dict.keys():
-            if 'instance' not in self.edge_dict[edge_type]['data_type']:
-                pass
-            else:
-                print('Adding Node Metadata for {} Edges\n'.format(edge_type))
-                node_idx = [x for x in range(2) if self.edge_dict[edge_type]['data_type'].split('-')[x] == 'instance']
-
-                for edge in tqdm(self.edge_dict[edge_type]['edge_list']):
-                    if self.node_dict and edge_type in self.node_dict.keys():
-                        if len(node_idx) == 2:
-                            subj, obj = edge.split('-')[0], edge.split('-')[1]
-
-                            if subj and obj in self.node_dict[edge_type].keys():
-                                self.creates_node_metadata(subj, edge_type, str(self.edge_dict[edge_type]['uri'][0]))
-                                self.creates_node_metadata(obj, edge_type, str(self.edge_dict[edge_type]['uri'][0]))
-                        else:
-                            subj = edge.split('-')[node_idx]
-
-                            if subj in self.node_dict[edge_type].keys():
-                                self.creates_node_metadata(subj, edge_type, str(self.edge_dict[edge_type]['uri'][0]))
-
-        # print kg statistics
-        edges = len(set(list(self.graph)))
-        nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
-        print('\nThe KG with node data contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
-
-        return None
-
-    def maps_node_labels_to_integers(self, graph: Graph, output_triple_integers: str, output_loc):
-        """Loops over the knowledge graph in order to create three different types of files:
-            - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
-            subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
-            - Identifiers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
-            subject, predicate, object). Both the subject and object identifiers have not been mapped to integers.
-            - Identifier-Integer Map: a `.json` file containing a dictionary where the keys are node identifiers and
-            the values are integers.
-
-        Args:
-            graph: an RDFlib graph object.
-            output_triple_integers: the name and file path to write out results.
-            output_loc: the name and file path to write out results.
+        The knowledge graph is built through the following steps: (0) setting up environment - making sure that the
+        directories to write data to exist; (1) Processing node and relations data - if the user has indicated that
+        each of these data types is needed; (2) Merges ontology data (class data); (3) Add edges from master edge list
+        to merged ontologies. During this process, if specified by the user inverse relations and node meta data are
+        also added; (4) Remove edges containing OWL semantics (if specified by the user); (5) outputs integer and node
+        identifier-labeled edge lists, a dictionary of all node identifiers and their label metadata (i.e. labels,
+        descriptions/definitions, and synonyms), and write a tab-delimited '.txt' file containing the node id, label,
+        description/definition, and synonyms for each node in the knowledge graph.
 
         Returns:
             None.
 
         Raises:
-            An exception is raised if the length of the graph is not the same as the number of extracted triples.
+            - An exception is raised if the ontologies directory is empty.
+            - An error is raised when the user passes an empty class-instance UUID Map file.
+            - An error is raised when the user passes an empty knowledge graph file.
         """
 
-        # create dictionary for mapping and list to write edges to
-        node_map, output_triples, node_counter = {}, [], 0
+        pass
 
-        # build graph from input file and set counter
-        out_ints = open(self.write_location + output_triple_integers, 'w')
-        label_location = self.write_location + '_'.join(output_triple_integers.split('_')[:-1]) + '_Identifiers.txt'
-        out_labs = open(label_location, 'w')
+    @abstractmethod
+    def gets_build_type(self):
+        """"A string representing the type of knowledge graph build."""
 
-        # write file headers
-        out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
-        out_labs.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
+        pass
 
-        for edge in tqdm(graph):
-            if str(edge[0]) not in node_map:
-                node_counter += 1
-                node_map[str(edge[0])] = node_counter
-            if str(edge[1]) not in node_map:
-                node_counter += 1
-                node_map[str(edge[1])] = node_counter
-            if str(edge[2]) not in node_map:
-                node_counter += 1
-                node_map[str(edge[2])] = node_counter
 
-            # convert edge labels to ints
-            subj, pred, obj = str(edge[0]), str(edge[1]), str(edge[2])
-            output_triples.append([node_map[subj], node_map[pred], node_map[obj]])
-            out_ints.write('%d' % node_map[subj] + '\t' + '%d' % node_map[pred] + '\t' + '%d' % node_map[obj] + '\n')
-            out_labs.write(subj + '\t' + pred + '\t' + obj + '\n')
+class PartialBuild(KGBuilder):
 
-        out_ints.close(), out_labs.close()
+    def gets_build_type(self):
+        """"A string representing the type of knowledge graph build."""
 
-        # CHECK - verify we get the number of edges that we would expect to get
-        if len(graph) != len(output_triples):
-            raise Exception('ERROR: The number of triples is incorrect!')
-        else:
-            json.dump(node_map, open(self.write_location + '/' + output_loc, 'w'))
-
-        return None
-
-    def extracts_class_metadata(self):
-        """Functions queries the knowledge graph to obtain labels, definitions/descriptions, and synonyms for
-        classes. This information is then added to the existing self.node_dict dictionary under the key of 'classes'.
-        Each metadata type is saved as a dictionary key with the actual string stored as the value. The metadata types
-        are packaged as a dictionary which is stored as the value to the node identifier as the key.
-
-        Returns:
-            None.
-        """
-
-        self.node_dict['classes'] = {}
-        # edge_list = [x for y in [self.edge_dict[x]['edge_list'] for x in self.edge_dict.keys()] for x in y]
-
-        # query knowledge graph to obtain metadata
-        results = self.graph.query(
-            """SELECT DISTINCT ?class ?class_label ?class_definition ?class_syn
-                   WHERE {
-                      ?class rdf:type owl:Class .
-                      ?class rdfs:label ?class_label .
-                      ?class obo:IAO_0000115 ?class_definition .
-                      ?class oboinowl:hasExactSynonym ?class_syn .}
-                   """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                                'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
-                                'owl': 'http://www.w3.org/2002/07/owl#',
-                                'obo': 'http://purl.obolibrary.org/obo/',
-                                'oboinowl': 'http://www.geneontology.org/formats/oboInOwl#'})
-
-        # convert results to dictionary
-        for result in tqdm(results):
-            node = str(result[0]).split('/')[-1]
-
-            if node in self.node_dict['classes'].keys():
-                self.node_dict['classes'][node]['Synonym'].append(str(result[3]))
-            else:
-                self.node_dict['classes'][node] = {}
-                self.node_dict['classes'][node]['Label'] = str(result[1])
-                self.node_dict['classes'][node]['Description'] = str(result[2])
-                self.node_dict['classes'][node]['Synonym'] = [str(result[3])]
-
-        return None
-
-    def output_knowledge_graph_metadata(self):
-        """Loops over the self.node_dict dictionary and writes out the data to a file locally. The data is stored as
-        a tab-delimited '.txt' file with four columns: (1) node identifier; (2) node label; (3) node description or
-        definition; and (4) node synonym.
-
-        Returns:
-            None.
-        """
-
-        # add metadata for nodes that are data type class to self.node_dict
-        self.extracts_class_metadata()
-
-        with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w') as outfile:
-
-            # write file header
-            outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
-
-            for edge_type in tqdm(self.node_dict.keys()):
-                for node in self.node_dict[edge_type]:
-                    node_id = node
-                    label = self.node_dict[edge_type][node]['Label']
-                    desc = self.node_dict[edge_type][node]['Description']
-                    syn_list = self.node_dict[edge_type][node]['Synonym']
-
-                    if isinstance(syn_list, list) and len(syn_list) > 1:
-                        syn = '|'.join(syn_list)
-                    elif isinstance(syn_list, list) and len(syn_list) == 1:
-                        syn = syn_list[0]
-                    else:
-                        syn = syn_list
-
-                    outfile.write(node_id + '\t' + label + '\t' + desc + '\t' + syn + '\n')
-
-        outfile.close()
-
-        return None
+        return 'Partial Build'
 
     def construct_knowledge_graph(self):
-        """Builds a knowledge graph through the following steps: (0) setting up environment - making sure that the
+        """Builds a partial knowledge graph. A partial knowledge graph build is recommended when one intends to build a
+        knowledge graph and intends to run a reasoner over it.
+
+        The knowledge graph is built through the following steps: (0) setting up environment - making sure that the
         directories to write data to exist; (1) Processing node and relations data - if the user has indicated that
         each of these data types is needed, the system process each source setting class attributes self.node_dict,
-        self.relations_dict, and self.inverse_relations_dict; (2) Merges ontology data (class data); (3) Add edges
-        from master edge list to merged ontologies. During this process, if specified by the user inverse relations
-        and node meta data are also added; (4) Remove edges containing OWL semantics (if specified by the user);
-        (5) outputs integer and node identifier-labeled edge lists; (6) Outputs a dictionary of all node
-        identifiers and their label metadata (i.e. labels, descriptions/definitions, and synonyms); and (7) writes a
-        tab-delimited '.txt' file containing the node id, label, description/definition, and synonyms for each node
-        in the knowledge graph.
-
-        The knowledge graph build is completed differently depending on the build type that the user requested. The
-        build types that a user can request includes: "full", "partial", and "post-closure". The steps for each
-        build, referenced by their number above (i.e. (2)) are listed below:
-            - Full Build: Steps 0-7
-            - Partial Build: Steps 0-4
-            - Post-Closure Build: Steps 4-7
+        self.relations_dict, and self.inverse_relations_dict; (2) Merges ontology data (class data); (3) Add edges from
+        master edge list to merged ontologies. During this process, if specified by the user inverse relations and node
+        metadata are also added; and (4) Remove edges containing annotation assertions.
 
         Returns:
             None.
 
         Raises:
-            - An exception is raised when the build type is
+            - An exception is raised if the ontologies directory is empty.
         """
+
+        print('\n*** Starting Knowledge Graph Build: PARTIAL ***')
 
         # STEP 0: SET-UP ENVIRONMENT
         print('*** Set-Up Environment ***')
@@ -957,83 +593,29 @@ class KGBuilder(object):
 
         # STEP 1: PROCESS NODE METADATA AND RELATIONS DATA
         print('*** Loading Support Data ***')
-        self.node_metadata_processor()
+
+        # load relations data
         self.reverse_relation_processor()
 
-        if self.build == 'post-closure':
-            print('\n*** Starting Knowledge Graph Build: post-closure ***')
+        # load and process node metadata
+        self.node_metadata_processor()
 
-            # STEP 3: LOAD CLOSED KNOWLEDGE GRAPH
-            closed_kg_location = input('Provide the relative filepath to the location of the closed knowledge graph: ')
-            uuid_map_location = input('Provide the relative filepath to the location of the class-instance UUID Map: ')
+        # STEP 2: MERGE ONTOLOGIES
+        if self.write_location + self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
+            print('*** Loading Merged Ontologies ***')
+            self.graph.parse(self.write_location + self.merged_ont_kg)
 
-            # check uuid input file
-            if '.json' not in uuid_map_location:
-                raise Exception('FILE TYPE ERROR: The provided file is not type .json')
-            elif os.stat(uuid_map_location).st_size == 0:
-                raise Exception('ERROR: input file: {} is empty'.format(uuid_map_location))
+            # print stats
+            edges = len(set(list(self.graph)))
+            nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
+            print('\nThe merged ontology contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
+        else:
+            if len(self.ontologies) == 0:
+                raise Exception('ERROR: the ontologies directory: {} is empty'.format(
+                    self.write_location + '/' + self.ontologies))
             else:
-                # load closed knowledge graph
-                print('*** Knowledge Graph Class-Instance UUID Map ***')
-                self.kg_uuid_map = json.load(open(uuid_map_location, 'r'))
-
-            # check input owl file
-            if '.owl' not in closed_kg_location:
-                raise Exception('FILE TYPE ERROR: The provided file is not type .owl')
-            elif os.stat(closed_kg_location).st_size == 0:
-                raise Exception('ERROR: input file: {} is empty'.format(closed_kg_location))
-            else:
-                # load closed knowledge graph
-                print('*** Loading Merged Ontologies ***')
-                self.graph = Graph()
-                self.graph.parse(closed_kg_location)
-
-                # print stats
-                edges = len(set(list(self.graph)))
-                nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
-                print('\nThe closed ontology contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
-
-            # STEP 4: ADD NODE DATA
-            print('*** Adding Node Metadata ***')
-            self.adds_node_metadata()
-
-            # STEP 5: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
-            if self.remove_owl_semantics:
-                print('*** Removing Metadata Nodes ***')
-                cleaned_kg = self.removes_edges_with_owl_semantics()
-            else:
-                cleaned_kg = self.graph
-
-            # STEP 6: WRITE OUT KNOWLEDGE GRAPH EDGE LISTS
-            print('*** Writing Knowledge Graph Edge Lists ***')
-            self.maps_node_labels_to_integers(graph=cleaned_kg,
-                                              output_triple_integers=self.cleaned_kg[:-6] + '_Triples_Integers.txt',
-                                              output_loc=self.cleaned_kg[:-6] + '_Triples_Integer_Labels_Map.json')
-
-            # STEP 7: WRITE OUT NODE LABELS, DEFINITIONS, AND SYNONYMS
-            if self.node_dict:
-                print('*** Writing Knowledge Graph Labels, Definitions/Descriptions, and Synonyms ***')
-                self.output_knowledge_graph_metadata()
-
-        elif self.build == 'partial':
-            print('\n*** Starting Knowledge Graph Build: PARTIAL ***')
-
-            # STEP 2: MERGE ONTOLOGIES
-            if self.write_location + self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
-                print('*** Loading Merged Ontologies ***')
-                self.graph.parse(self.write_location + self.merged_ont_kg)
-
-                # print stats
-                edges = len(set(list(self.graph)))
-                nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
-                print('\nThe merged ontology contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
-            else:
-                if len(self.ontologies) == 0:
-                    raise Exception('ERROR: the ontologies directory: {} is empty'.format(
-                        self.write_location + '/' + self.ontologies))
-                else:
-                    print('*** Merging Ontology Data ***')
-                    self.merges_ontologies()
+                print('*** Merging Ontology Data ***')
+                self.merges_ontologies()
 
             # STEP 3: ADD EDGE DATA TO KNOWLEDGE GRAPH
             # create temporary directory to store partial builds
@@ -1053,25 +635,167 @@ class KGBuilder(object):
             print('*** Removing Annotation Assertions ***')
             self.removes_annotation_assertions()
 
+        return None
+
+
+class PostClosureBuild(KGBuilder):
+
+    def gets_build_type(self):
+        """"A string representing the type of knowledge graph being built."""
+
+        return 'Post-Closure Build'
+
+    def construct_knowledge_graph(self):
+        """Builds a post-closure knowledge graph. A post-closure knowledge graph build is recommended when one has
+        previously performed a "partial" knowledge graph build and then ran a reasoner over the partially built
+        knowledge graph. This build type inputs the closed partially built knowledge graph and completes the build
+        process.
+
+        The knowledge graph through the following steps: (0) setting up environment - making sure that the
+        directories to write data to exist; (1) load closed knowledge graph and class-instance UUID map; (2) add node
+        metadata; (3) Remove edges containing OWL semantics (if specified by the user); (4) outputs integer and node
+        identifier-labeled edge lists; (3) Outputs a dictionary of all node identifiers and their label metadata (
+        i.e. labels, descriptions/definitions, and synonyms) and write a tab-delimited '.txt' file containing the
+        node id, label, description/definition, and synonyms for each node in the knowledge graph.
+
+        Returns:
+            None.
+
+        Raises:
+            - An error is raised when the user passes an empty class-instance UUID Map file.
+            - An error is raised when the user passes an empty knowledge graph file.
+        """
+
+        print('\n*** Starting Knowledge Graph Build: post-closure ***')
+
+        # STEP 0: SET-UP ENVIRONMENT
+        print('*** Set-Up Environment ***')
+        self.sets_up_environment()
+
+        # STEP 1: PROCESS NODE METADATA AND RELATIONS DATA
+        print('*** Loading Support Data ***')
+
+        # load relations data
+        self.reverse_relation_processor()
+
+        # load and process node metadata
+        self.node_metadata_processor()
+
+        # STEP 1: LOAD CLOSED KNOWLEDGE GRAPH
+        uuid_map_location = input('Provide the relative filepath to the location of the class-instance UUID Map: ')
+        closed_kg_location = input('Provide the relative filepath to the location of the closed knowledge graph: ')
+
+        # check uuid input file
+        if '.json' not in uuid_map_location:
+            raise Exception('FILE TYPE ERROR: The provided file is not type .json')
+        elif os.stat(uuid_map_location).st_size == 0:
+            raise Exception('ERROR: input file: {} is empty'.format(uuid_map_location))
         else:
-            print('\n*** Starting Knowledge Graph Build: FULL ***')
+            # load closed knowledge graph
+            print('*** Knowledge Graph Class-Instance UUID Map ***')
+            self.kg_uuid_map = json.load(open(uuid_map_location, 'r'))
 
-            # STEP 2: MERGE ONTOLOGIES
-            if self.write_location + self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
-                print('*** Loading Merged Ontologies ***')
-                self.graph.parse(self.write_location + self.merged_ont_kg)
+        # check input owl file
+        if '.owl' not in closed_kg_location:
+            raise Exception('FILE TYPE ERROR: The provided file is not type .owl')
+        elif os.stat(closed_kg_location).st_size == 0:
+            raise Exception('ERROR: input file: {} is empty'.format(closed_kg_location))
+        else:
+            # load closed knowledge graph
+            print('*** Loading Merged Ontologies ***')
+            self.graph = Graph()
+            self.graph.parse(closed_kg_location)
 
-                # print stats
-                edges = len(set(list(self.graph)))
-                nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
-                print('\nThe merged ontology contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
+            # print stats
+            edges = len(set(list(self.graph)))
+            nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
+            print('\nThe closed ontology contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
+
+        # STEP 2: ADD NODE METADATA
+        print('*** Adding Node Metadata ***')
+        self.adds_node_metadata()
+
+        # STEP 3: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
+        if self.remove_owl_semantics:
+            print('*** Removing Metadata Nodes ***')
+            cleaned_kg = self.removes_edges_with_owl_semantics()
+        else:
+            cleaned_kg = self.graph
+
+        # STEP 4: WRITE OUT KNOWLEDGE GRAPH EDGE LISTS
+        print('*** Writing Knowledge Graph Edge Lists ***')
+
+        # output knowledge graph edge lists
+        self.maps_node_labels_to_integers(graph=cleaned_kg,
+                                          output_triple_integers=self.cleaned_kg[:-6] + '_Triples_Integers.txt',
+                                          output_loc=self.cleaned_kg[:-6] + '_Triples_Integer_Labels_Map.json')
+
+        # output metadata
+        if self.node_dict:
+            print('*** Writing Knowledge Graph Labels, Definitions/Descriptions, and Synonyms ***')
+            self.output_knowledge_graph_metadata()
+
+        return None
+
+
+class FullBuild(KGBuilder):
+
+    def gets_build_type(self):
+        """"A string representing the type of knowledge graph being built."""
+
+        return 'Full Build'
+
+    def construct_knowledge_graph(self):
+        """Builds a full knowledge graph. Please note that the process to build this version of the knowledge graph
+        does not include running a reasoner.
+
+        The knowledge graph through the following steps: (0) setting up environment - making sure that the directories
+        to write data to exist; (1) Processing node and relations data - if the user has indicated that each of these
+        data types is needed; (2) Merges ontology data (class data); (3) Add edges from master edge list to merged
+        ontologies. During this process, if specified by the user inverse relations and node meta data are also added;
+        (4) Remove edges containing OWL semantics (if specified by the user); (5) outputs integer and node identifier-
+        labeled edge lists, a dictionary of all node identifiers and their label metadata (i.e. labels, descriptions/
+        definitions, and synonyms), and write a tab-delimited '.txt' file containing the node id, label, description/
+        definition, and synonyms for each node in the knowledge graph.
+
+        Returns:
+            None.
+
+        Raises:
+            - An error is raised if the ontology directory is empty.
+        """
+
+        print('\n*** Starting Knowledge Graph Build: FULL ***')
+
+        # STEP 0: SET-UP ENVIRONMENT
+        print('*** Set-Up Environment ***')
+        self.sets_up_environment()
+
+        # STEP 1: PROCESS NODE METADATA AND RELATIONS DATA
+        print('*** Loading Support Data ***')
+
+        # load relations data
+        self.reverse_relation_processor()
+
+        # load and process node metadata
+        self.node_metadata_processor()
+
+        # STEP 2: MERGE ONTOLOGIES
+        if self.write_location + self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
+            print('*** Loading Merged Ontologies ***')
+            self.graph.parse(self.write_location + self.merged_ont_kg)
+
+            # print stats
+            edges = len(set(list(self.graph)))
+            nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
+            print('\nThe merged ontology contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
+        else:
+            if len(self.ontologies) == 0:
+                raise Exception('ERROR: the ontologies directory: {} is empty'.format(
+                    self.write_location + '/' + self.ontologies))
             else:
-                if len(self.ontologies) == 0:
-                    raise Exception('ERROR: the ontologies directory: {} is empty'.format(
-                        self.write_location + '/' + self.ontologies))
-                else:
-                    print('*** Merging Ontology Data ***')
-                    self.merges_ontologies()
+                print('*** Merging Ontology Data ***')
+                self.merges_ontologies()
 
             # STEP 3: ADD EDGE DATA TO KNOWLEDGE GRAPH
             print('*** Building Knowledge Graph Edges ***')
@@ -1086,11 +810,13 @@ class KGBuilder(object):
 
             # STEP 5: WRITE OUT KNOWLEDGE GRAPH EDGE LISTS
             print('*** Writing Knowledge Graph Edge Lists ***')
+
+            # output knowledge graph edge lists
             self.maps_node_labels_to_integers(graph=cleaned_kg,
                                               output_triple_integers=self.full_kg[:-6] + 'Triples_Integers.txt',
                                               output_loc=self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
 
-            # STEP 6: WRITE OUT NODE LABELS, DEFINITIONS, AND SYNONYMS
+            # output metadata
             if self.node_dict:
                 print('*** Writing Knowledge Graph Labels, Definitions/Descriptions, and Synonyms ***')
                 self.output_knowledge_graph_metadata()
