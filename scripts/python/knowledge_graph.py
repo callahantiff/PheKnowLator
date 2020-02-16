@@ -363,6 +363,9 @@ class KGBuilder(object):
                 if len(set([x[0] for x in edge_list])) != len(set([x[1] for x in edge_list])):
                     identified_inverse_relation = relation
 
+            else:
+                identified_inverse_relation = None
+
         return identified_inverse_relation
 
     def adds_ontology_annotations(self, filename: str, graph: Graph):
@@ -678,19 +681,25 @@ class KGBuilder(object):
             print('Unique {}: {}'.format(edge_type.split('-')[0], len(set([x[0] for x in edge_results]))))
             print('Unique {}: {}'.format(edge_type.split('-')[1], len(set([x[1] for x in edge_results]))))
 
+            # print statistics on kg (comment out when not testing)
+            edges = len(set(list(self.graph)))
+            nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
+            print('\nThe KG contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
+
         # print statistics on kg
         edges = len(set(list(self.graph)))
         nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
         print('\nThe KG contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
         # add ontology annotations
-        self.graph = adds_ontology_annotations(self.full_kg.split('/')[-1], self.graph)
+        if 'partial' not in self.full_kg.split('/')[-1]:
+            self.graph = self.adds_ontology_annotations(self.full_kg.split('/')[-1], self.graph)
 
-        # serialize graph
-        self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
+            # serialize graph
+            self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
 
-        # apply OWL API formatting to file
-        self.ontology_file_formatter(self.write_location + self.full_kg)
+            # apply OWL API formatting to file
+            self.ontology_file_formatter(self.write_location + self.full_kg)
 
         # write class-instance uuid mapping dictionary to file
         json.dump(self.kg_uuid_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
@@ -715,7 +724,7 @@ class KGBuilder(object):
                 outfile.write(str(edge) + '\n')
         outfile.close()
 
-        kg.graph.serialize(destination=kg.write_location + kg.full_kg, format='ntriples')
+        # self.graph.serialize(destination=self.write_location + self.full_kg, format='ntriples')
 
         # remove annotation assertions
         try:
@@ -1123,13 +1132,15 @@ class KGBuilder(object):
                 os.mkdir(temp_dir + '/partial_build')
 
             # update path to write data to
-            kg.full_kg = '/'.join(kg.full_kg.split('/')[:2] + ['partial_build'] + kg.full_kg.split('/')[2:])
+            self.full_kg = '/'.join(self.full_kg.split('/')[:2] + ['partial_build'] + self.full_kg.split('/')[2:])
 
             # build knowledge graph
             print('*** Building Knowledge Graph Edges ***')
-            kg.creates_knowledge_graph_edges()
+            self.creates_knowledge_graph_edges()
 
             # STEP 4: REMOVE ANNOTATION ASSERTIONS
+            print('*** Removing Annotation Assertions ***')
+            self.removes_annotation_assertions()
 
         else:
             print('\n*** Starting Knowledge Graph Build: FULL ***')
