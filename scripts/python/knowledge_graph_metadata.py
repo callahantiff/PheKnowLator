@@ -206,28 +206,14 @@ class Metadata(object):
 
         return None
 
-    def removes_annotation_assertions(self, graph: Graph):
+    def removes_annotation_assertions(self):
         """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
         removes annotation assertions to make a pure logic subset', which reduces the overall size of the knowledge
-        graph, but still makes able to be reasoned against. To ease the process adding the annotation assertions back
-        after running a reasoner, the edges from the original knowledge graph are written to a text file prior to
-        removing the annotations.
-
-        Args:
-            graph: An rdflib graph object.
+        graph, while still being compatible with a reasoner.
 
         Returns:
             None.
         """
-
-        # write knowledge graph edges locally
-        with open(self.write_location + self.full_kg[:-4] + '_edgelist.txt', 'w') as outfile:
-            for edge in tqdm(graph):
-                outfile.write(str(edge) + '\n')
-
-        outfile.close()
-
-        # self.graph.serialize(destination=self.write_location + self.full_kg, format='ntriples')
 
         # remove annotation assertions
         try:
@@ -241,11 +227,12 @@ class Metadata(object):
 
         return None
 
-    def adds_annotation_assertions(self, graph: Graph, filename: str):
-        """Adds edges removed from the knowledge graph when annotation assertions were removed. First, the edge list
-        from the knowledge graph that was created prior to removing annotation assertions is read in. Then, the function
-        iterates over the closed knowledge graph files and adds any edges that are present in the list, but missing
-        from the closed knowledge graph.
+    @staticmethod
+    def adds_annotation_assertions(graph: Graph, filename: str):
+        """Adds edges removed from the knowledge graph when annotation assertions were removed. First, the knowledge
+        graph that was created prior to removing annotation assertions is read in. Then, the function iterates over the
+        closed knowledge graph files and adds any edges that are present in the list, but missing from the closed
+        knowledge graph.
 
         Args:
             graph: An rdflib graph object.
@@ -255,28 +242,13 @@ class Metadata(object):
             graph: An rdflib graph object that includes annotation assertions.
         """
 
-        # read in annotation assertions from full graph
-        assertions = open(filename, 'r').readlines()
+        # read in list of removed annotation assertions
+        assertions = Graph()
+        assertions.parse(filename)
 
-        # reformat/clean edges - important to speed up the process of checking for them in the knowledge graph
-        assertion_edges = []
+        # iterate over removed assertions and add them back to closed graph
         for edge in tqdm(assertions):
-            triples = []
-
-            for triple_part in [x for x in edge.strip('\n').split('rdflib') if 'term' in x]:
-                if 'URIRef' in triple_part:
-                    triples.append(URIRef(re.sub("(.*\(')|('\).*)", '', triple_part)))
-                elif 'Literal' in triple_part:
-                    triples.append(Literal(re.sub("(.*\(')|('\).*)", '', triple_part)))
-                else:
-                    triples.append(BNode(re.sub("(.*\(')|('\).*)", '', triple_part)))
-
-            assertion_edges.append(tuple(triples))
-
-        # iterate over closed knowledge graph and add back missing annotation assertions
-        for edge in tqdm(graph):
-            if edge not in assertions:
-                self.add(edge)
+            graph.add(edge)
 
         return graph
 
