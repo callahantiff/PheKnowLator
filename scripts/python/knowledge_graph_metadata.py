@@ -241,7 +241,7 @@ class Metadata(object):
 
         return None
 
-    def adds_annotation_assertions(self, graph: Graph):
+    def adds_annotation_assertions(self, graph: Graph, filename: str):
         """Adds edges removed from the knowledge graph when annotation assertions were removed. First, the edge list
         from the knowledge graph that was created prior to removing annotation assertions is read in. Then, the function
         iterates over the closed knowledge graph files and adds any edges that are present in the list, but missing
@@ -249,13 +249,14 @@ class Metadata(object):
 
         Args:
             graph: An rdflib graph object.
+            filename: A string containing the filepath to the annotation assertions edge list.
 
         Returns:
             graph: An rdflib graph object that includes annotation assertions.
         """
 
         # read in annotation assertions from full graph
-        assertions = open(self.write_location + self.full_kg[:-4] + '_edgelist.txt', 'r').readlines()
+        assertions = open(filename, 'r').readlines()
 
         # reformat/clean edges - important to speed up the process of checking for them in the knowledge graph
         assertion_edges = []
