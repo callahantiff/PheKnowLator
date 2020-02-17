@@ -81,14 +81,11 @@ class KGBuilder(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, kg_version: str, build: str, write_location: str, edge_data: str = None, node_data: dict = None,
+    def __init__(self, kg_version: str, write_location: str, edge_data: str = None, node_data: dict = None,
                  relations_data: dict = None, remove_owl_semantics: str = None):
 
         # set build type
-        if build.lower() not in ['full', 'partial', 'post-closure']:
-            raise ValueError('ERROR: build must be "full", "partial", or "post-closure"')
-        else:
-            self.build = build.lower()
+        self.build = self.gets_build_type().lower().split()[0]
 
         # set build version
         if kg_version is None:
@@ -630,26 +627,26 @@ class PartialBuild(KGBuilder):
                 print('*** Merging Ontology Data ***')
                 self.merges_ontologies()
 
-            # STEP 3: ADD EDGE DATA TO KNOWLEDGE GRAPH
-            # create temporary directory to store partial builds
-            temp_dir = '/'.join((self.write_location + self.full_kg).split('/')[:4])
+        # STEP 3: ADD EDGE DATA TO KNOWLEDGE GRAPH
+        # create temporary directory to store partial builds
+        temp_dir = '/'.join((self.write_location + self.full_kg).split('/')[:4])
 
-            if temp_dir + '/partial_build' not in glob.glob(self.write_location + '/**/**'):
-                os.mkdir(temp_dir + '/partial_build')
+        if temp_dir + '/partial_build' not in glob.glob(self.write_location + '/**/**'):
+            os.mkdir(temp_dir + '/partial_build')
 
-            # update path to write data to
-            self.full_kg = '/'.join(self.full_kg.split('/')[:2] + ['partial_build'] + self.full_kg.split('/')[2:])
-            kg_metadata.full_kg = self.full_kg
+        # update path to write data to
+        self.full_kg = '/'.join(self.full_kg.split('/')[:2] + ['partial_build'] + self.full_kg.split('/')[2:])
+        kg_metadata.full_kg = self.full_kg
 
-            # build knowledge graph
-            print('*** Building Knowledge Graph Edges ***')
-            self.creates_knowledge_graph_edges(kg_metadata.creates_node_metadata,
-                                               kg_metadata.adds_ontology_annotations,
-                                               kg_metadata.ontology_file_formatter)
+        # build knowledge graph
+        print('*** Building Knowledge Graph Edges ***')
+        self.creates_knowledge_graph_edges(kg_metadata.creates_node_metadata,
+                                           kg_metadata.adds_ontology_annotations,
+                                           kg_metadata.ontology_file_formatter)
 
-            # STEP 4: REMOVE ANNOTATION ASSERTIONS
-            print('*** Removing Annotation Assertions ***')
-            kg_metadata.removes_annotation_assertions(self.graph)
+        # STEP 4: REMOVE ANNOTATION ASSERTIONS
+        print('*** Removing Annotation Assertions ***')
+        kg_metadata.removes_annotation_assertions(self.graph)
 
         return None
 
