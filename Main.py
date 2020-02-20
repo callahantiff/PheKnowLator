@@ -89,21 +89,21 @@ def main():
                                                          write_location=args.out,
                                                          edge_data='./resources/Master_Edge_List_Dict.json',
                                                          node_data=args.nde,
-                                                         relations_data=args.rel,
+                                                         inverse_relations=args.rel,
                                                          remove_owl_semantics=args.owl)
     elif args.kg == 'post-closure':
         kg = scripts.python.knowledge_graph.PostClosureBuild(kg_version='v2.0.0',
                                                              write_location=args.out,
                                                              edge_data='./resources/Master_Edge_List_Dict.json',
                                                              node_data=args.nde,
-                                                             relations_data=args.rel,
+                                                             inverse_relations=args.rel,
                                                              remove_owl_semantics=args.owl)
     else:
         kg = scripts.python.knowledge_graph.FullBuild(kg_version='v2.0.0',
                                                       write_location=args.out,
                                                       edge_data='./resources/Master_Edge_List_Dict.json',
                                                       node_data=args.nde,
-                                                      relations_data=args.rel,
+                                                      inverse_relations=args.rel,
                                                       remove_owl_semantics=args.owl)
 
     kg.construct_knowledge_graph()
