@@ -7,7 +7,7 @@ import rdflib
 from networkx import networkx
 from rdflib.extras.external_graph_libs import *
 from tqdm import tqdm
-from typing import Dict, List, Tuple
+from typing import Dict, Mapping, List, Optional, Tuple
 
 
 class OWLNETS(object):
@@ -26,14 +26,14 @@ class OWLNETS(object):
         class_list: A list of owl classes from the input knowledge graph.
     """
 
-    def __init__(self, knowledge_graph: rdflib.Graph, uuid_class_map: dict):
+    def __init__(self, knowledge_graph: rdflib.Graph, uuid_class_map: Dict[str, str]):
         self.knowledge_graph = knowledge_graph
         self.uuid_map = uuid_class_map
-        self.class_list: list = None
+        self.class_list: Optional[List] = None
 
         # convert knowledge graph to multidigraph
         print('Converting knowledge graph to MultiDiGraph. Please be patient, this process can take ~50 minutes')
-        self.nx_multidigraph = rdflib_to_networkx_multidigraph(knowledge_graph)
+        self.nx_multidigraph: nx.multidigraph.MultiDiGraph = rdflib_to_networkx_multidigraph(knowledge_graph)
 
         # knowledge_graph = Graph()
         # knowledge_graph.parse('resources/ontologies/hp_with_imports.owl')
@@ -54,14 +54,14 @@ class OWLNETS(object):
         # end = time.time()
         # print('Total time to run code: {} seconds'.format(end - start))
 
-    def finds_classes(self):
+    def finds_classes(self) -> List[Union[rdflib.URIRef, rdflib.BNode]]:
         """Queries a knowledge graph and returns a list of all owl:Class objects in the graph.
 
         Returns:
             class_list: A list of all of the class in the graph.
 
         Raises:
-            ValueError: If the query returns no nodes of type owl:Class.
+            ValueError: If the query returns zero nodes with type owl:Class.
         """
 
         # find all classes in graph
@@ -70,7 +70,7 @@ class OWLNETS(object):
                    WHERE {?c rdf:type owl:Class . }
                    """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
                                 'owl': 'http://www.w3.org/2002/07/owl#'}
-                                          )
+        )
 
         # convert results to list of classes
         class_list = [str(res[0]) for res in tqdm(kg_classes)]
@@ -81,14 +81,18 @@ class OWLNETS(object):
             raise ValueError('ERROR: No classes returned from query.')
 
     @staticmethod
-    def recurses_ontology_axioms(seen_nodes: list, axioms: list):
-        """Function recursively searches a list of knowledge graph nodes, tracking those nodes it has visited. Once
+    def recurses_ontology_axioms(seen_nodes: List[rdflib.term], axioms: List[rdflib.term]) -> List[rdflib.BNode]:
+        """Function recursively searches a list of knowledge graph nodes and tracks the nodes it has visited. Once
         it has visited all nodes in the input axioms list, a final unique list of relevant nodes is returned. This
         list is assumed to include all necessary nodes needed to re-create an OWL equivalentClass.
 
         Args:
             seen_nodes: A list which may or may not contain knowledge graph nodes.
-            axioms:
+            axioms: A list of axioms, e.g. [
+                                            (rdflib.term.BNode('N3e23fe5f05ff4a7d992c548607c86277'),
+                                            rdflib.term.URIRef('http://www.w3.org/2002/07/owl#Class'),
+                                            rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'))
+                                            ]
 
         Returns:
             seen_nodes: A list of knowledge graph nodes.
@@ -110,7 +114,7 @@ class OWLNETS(object):
             return seen_nodes
 
     @staticmethod
-    def creates_edge_dictionary(class_node: rdflib.term):
+    def creates_edge_dictionary(class_node: rdflib.term) -> Dict[str, str]:
         """Creates a nested edge dictionary from an input class node by obtaining all of the edges that come
         out from the class and then recursively looping over each anonymous out edge node. The outer
         dictionary keys are anonymous nodes and the inner keys are owl:ObjectProperty values from each out
@@ -154,33 +158,34 @@ class OWLNETS(object):
         return class_edge_dict
 
     @staticmethod
-    def returns_object_property(subj_node: rdflib.term, obj_node: rdflib.term, relation: rdflib.term = None):
+    def returns_object_property(sub: rdflib.URIRef, obj: rdflib.URIRef, prop: rdflib.URIRef = None) -> rdflib.URIRef:
         """Checks the subject and object node types in order to return the correct type of owl:ObjectProperty. The
         following ObjectProperties are returned for each of the following subject-object types:
-            - subj_node and obj_node are not PATO terms --> rdfs:subClassOf
-            - subj_node and obj_node are PATO terms --> rdfs:subClassOf
-            - subj_node is not a PATO term, but obj_node is a PATO term --> owl:RO_000086
+            - sub + obj are not PATO terms + prop is None --> rdfs:subClassOf
+            - sub + obj are PATO terms + prop is None --> rdfs:subClassOf
+            - sub is not a PATO term, but obj is a PATO term --> owl:RO_000086
+            - sub is a PATO term + obj is a PATO term + prop is not None --> prop
 
         Args:
-            subj_node: An rdflib.term object.
-            obj_node: An rdflib.term object.
-            relation: An rdflib.term object, which is provided as the value of owl:onProperty.
+            sub: An rdflib.term object.
+            obj: An rdflib.term object.
+            prop: An rdflib.term object, which is provided as the value of owl:onProperty.
 
         Returns:
             An rdflib.term object that represents an owl:ObjectProperty.
         """
 
-        if ('PATO' in subj_node and 'PATO' in obj_node) and not relation:
+        if ('PATO' in sub and 'PATO' in obj) and not prop:
             return rdflib.URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf')
-        elif ('PATO' not in subj_node and 'PATO' not in obj_node) and not relation:
+        elif ('PATO' not in sub and 'PATO' not in obj) and not prop:
             return rdflib.URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf')
-        elif 'PATO' not in subj_node and 'PATO' in obj_node:
+        elif 'PATO' not in sub and 'PATO' in obj:
             return rdflib.URIRef('http://purl.obolibrary.org/obo/RO_0000086')
         else:
-            return relation
+            return prop
 
     @staticmethod
-    def parses_anonymous_axioms(edges: Dict, class_dict: Dict):
+    def parses_anonymous_axioms(edges: Dict[str, str], class_dict: Dict[str, str]) -> Dict[str, str]:
         """Parses axiom dictionaries that only include anonymous axioms (i.e. 'first' and 'rest') and returns an
         updated axiom dictionary that contains owl:Restrictions or an owl constructor (i.e. owl:unionOf or
         owl:intersectionOf).
@@ -206,7 +211,8 @@ class OWLNETS(object):
             return {**class_dict[edges['first']], **class_dict[edges['rest']]}
 
     @staticmethod
-    def parses_constructors(class_node: rdflib.URIRef, edges: Dict, class_dict: Dict, relation: rdflib.URIRef = None):
+    def parses_constructors(node: rdflib.URIRef, edges: Dict[str, str], class_dict: Dict[str, str],
+                            relation: rdflib.URIRef = None) -> Tuple[Set(Tuple), Dict[str, str]]:
         """Traverses a dictionary of rdflib objects used in the owl:unionOf or owl:intersectionOf constructors, from
         which the original set of edges used to the construct the class_node are edited, such that all owl-encoded
         information is removed. Examples of the transformations performed for these constructor types are shown below:
@@ -219,7 +225,7 @@ class OWLNETS(object):
                 - PR_000050170, RO_0002160, NCBITaxon_9606
 
         Args:
-            class_node: An rdflib term of type URIRef or BNode that references an OWL-encoded class.
+            node: An rdflib term of type URIRef or BNode that references an OWL-encoded class.
             edges: A subset of dictionary where keys are owl:Objects (i.e. 'first', 'rest', 'onProperty',
                 or 'someValuesFrom').
             class_dict: A nested dictionary. The outer dictionary keys are anonymous nodes and the inner keys
@@ -241,11 +247,11 @@ class OWLNETS(object):
             if ('first' in edge_batch.keys() and 'rest' in edge_batch.keys()) and 'type' not in edge_batch.keys():
                 if isinstance(edge_batch['first'], rdflib.URIRef) and isinstance(edge_batch['rest'], rdflib.BNode):
                     obj_property = returns_object_property(node, edge_batch['first'], relation)
-                    cleaned_classes |= {(class_node, obj_property, edge_batch['first'])}
+                    cleaned_classes |= {(node, obj_property, edge_batch['first'])}
                     edge_batch = class_dict[edge_batch['rest']]
                 elif isinstance(edge_batch['first'], rdflib.URIRef) and isinstance(edge_batch['rest'], rdflib.URIRef):
                     obj_property = returns_object_property(node, edge_batch['first'], relation)
-                    cleaned_classes |= {(class_node, obj_property, edge_batch['first'])}
+                    cleaned_classes |= {(node, obj_property, edge_batch['first'])}
                     edge_batch = None
                 else:
                     edge_batch = parses_anonymous_axioms(edge_batch, class_dict)
@@ -255,7 +261,8 @@ class OWLNETS(object):
         return cleaned_classes, edge_batch
 
     @staticmethod
-    def parses_restrictions(class_node: rdflib.URIRef, edges: Dict, class_dict: Dict) -> Tuple:
+    def parses_restrictions(class_node: rdflib.URIRef, edges: Dict[str, str], class_dict: Dict[str, str]) -> \
+            Tuple[Set(Tuple), Dict[str, str]]:
         """Parses a subset of a dictionary containing rdflib objects participating in a constructor (i.e.
         owl:intersectionOf or owl:unionOf) and reconstructs the class (referenced by class_node) in order to remove
         owl-encoded information. An example is shown below:
@@ -307,7 +314,7 @@ class OWLNETS(object):
 
         cleaned_classes, complement_constructors, cardinality = set(), set(), set()
 
-        for cls in tqdm(self.class_list):
+        for cls in tqdm(class_list):
             node = rdflib.URIRef(cls) if 'http' in cls else rdflib.BNode(cls)
             class_edge_dict = creates_edge_dictionary(node)
 
@@ -319,31 +326,35 @@ class OWLNETS(object):
                 out_edges = list(nx_multidigraph.out_edges(node, keys=True))
                 semantic_chunk_nodes = [x[1] for x in out_edges if isinstance(x[1], rdflib.BNode)]
 
-                # decode owl-encoded edges
-                for element in semantic_chunk_nodes:
-                    edges = class_edge_dict[element]
+                if len(semantic_chunk_nodes) == 0:
+                    class_list.remove(cls)
+                else:
+                    # decode owl-encoded edges
+                    for element in semantic_chunk_nodes:
+                        edges = class_edge_dict[element]
 
-                    # check for cardinality -- keeping a count of classes constructed using cardinality
-                    if any(v for v in edges.keys() if 'cardinality' in v.lower()):
-                        cardinality |= {'{}: {}'.format(node, element)}
-                        del edges[[key for key in edges.keys() if 'cardinality' in key.lower()][0]]
+                        # check for cardinality -- keeping a count of classes constructed using cardinality
+                        if any(v for v in edges.keys() if 'cardinality' in v.lower()):
+                            cardinality |= {'{}: {}'.format(node, element)}
+                            del edges[[key for key in edges.keys() if 'cardinality' in key.lower()][0]]
 
-                    while edges:
-                        if 'unionOf' in edges.keys():
-                            results = parses_constructors(node, edges, class_edge_dict)
-                            cleaned_classes |= results[0]
-                            edges = results[1]
-                        elif 'intersectionOf' in edges.keys():
-                            results = parses_constructors(node, edges, class_edge_dict)
-                            cleaned_classes |= results[0]
-                            edges = results[1]
-                        elif 'Restriction' in edges['type']:
-                            results = parses_restrictions(node, edges, class_edge_dict)
-                            cleaned_classes |= results[0]
-                            edges = results[1]
-                        else:
-                            print('STOP!!')
-                            edges = None
+                        while edges:
+                            if 'unionOf' in edges.keys():
+                                results = parses_constructors(node, edges, class_edge_dict)
+                                cleaned_classes |= results[0]
+                                edges = results[1]
+                            elif 'intersectionOf' in edges.keys():
+                                results = parses_constructors(node, edges, class_edge_dict)
+                                cleaned_classes |= results[0]
+                                edges = results[1]
+                            elif 'Restriction' in edges['type']:
+                                results = parses_restrictions(node, edges, class_edge_dict)
+                                cleaned_classes |= results[0]
+                                edges = results[1]
+                            else:
+                                print('STOP!!')
+                                break
+                                # edges = None
 
         print('\nFINISHED: Completed Decoding Owl-Encoded Classes')
         print('{} owl class elements containing cardinality were ignored\n'.format(len(cardinality)))
