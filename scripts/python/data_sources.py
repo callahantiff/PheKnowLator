@@ -10,6 +10,7 @@ import os.path
 from abc import ABCMeta, abstractmethod
 from owlready2 import subprocess
 from tqdm import tqdm
+from typing import Dict, List
 
 from scripts.python.data_preparation_helper_functions import *
 
@@ -49,16 +50,16 @@ class DataSource(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, data_path: str):
+    def __init__(self, data_path: str) -> None:
         self.data_path: str = data_path
         self.data_type: str = data_path.split('/')[-1].split('.')[0]
-        self.resource_info: list = open(glob.glob('**/**/*resource**info*.txt', recursive=True)[0]).readlines()
-        self.resource_dict: dict = {}
-        self.source_list: dict = {}
-        self.data_files: dict = {}
-        self.metadata: list = []
+        self.resource_info: List[str] = open(glob.glob('**/**/*resource**info*.txt', recursive=True)[0]).readlines()
+        self.resource_dict: Dict[str, List[str]] = {}
+        self.source_list: Dict[str, str] = {}
+        self.data_files: Dict[str, str] = {}
+        self.metadata: List[str] = []
 
-    def parses_resource_file(self):
+    def parses_resource_file(self) -> None:
         """Verifies that an input file contains data and then outputs a dictionary where each item is a line from the
         input file.
 
@@ -70,12 +71,13 @@ class DataSource(object):
                  }
 
         Raises:
-            An exception is raised if the input file is empty.
+            TypeError: If the file does not contain data.
+            ValueError: If there some of the input URLs were improperly formatted.
         """
 
         pass
 
-    def downloads_data_from_url(self, download_type: str):
+    def downloads_data_from_url(self, download_type: str) -> None:
         """Downloads each data source from a list and writes the downloaded file to a directory.
 
         Args:
@@ -89,12 +91,12 @@ class DataSource(object):
                               }
 
         Raises:
-            An exception is raised if any URL does point to a valid endpoint containing data.
+            ValueError: If not all of the URLs returned valid data.
         """
 
         pass
 
-    def extracts_edge_metadata(self):
+    def extracts_edge_metadata(self) -> Dict[str, List[str]]:
         """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are
         a list containing mapping and filtering information.
 
@@ -137,7 +139,7 @@ class DataSource(object):
             # add info to dictionary
             self.resource_dict[edge.split('|')[0]] = [' | '.join(mapping), ' | '.join(filtering), ' | '.join(evidence)]
 
-    def generates_source_metadata(self):
+    def generates_source_metadata(self) -> List[str]:
         """Extracts and stores metadata for imported data sources and save the information to the metadata attribute.
         Metadata includes the following information:
             1 - Edge: the name of the edge-type (e.g. 'chemical-gene')
@@ -194,14 +196,13 @@ class DataSource(object):
 
         return None
 
-    def writes_source_metadata_locally(self):
+    def writes_source_metadata_locally(self) -> None:
         """Writes metadata for each imported data source to a text file.
 
         Returns:
             None
         """
 
-        # generate metadata
         self.generates_source_metadata()
 
         # open file to write to and specify output location
@@ -227,7 +228,7 @@ class DataSource(object):
         return None
 
     @abstractmethod
-    def gets_data_type(self):
+    def gets_data_type(self) -> None:
         """"A string representing the type of data being processed."""
 
         pass
@@ -235,12 +236,12 @@ class DataSource(object):
 
 class OntData(DataSource):
 
-    def gets_data_type(self):
+    def gets_data_type(self) -> str:
         """"A string representing the type of data being processed."""
 
         return 'Ontology Data'
 
-    def parses_resource_file(self):
+    def parses_resource_file(self) -> None:
         """Parses data from a file and outputs a list where each item is a line from the input text file.
 
         Returns:
@@ -250,14 +251,13 @@ class OntData(DataSource):
                                 }
 
         Raises:
-            An exception is raised if the file contains data.
-            An exception is raised if a URL isn't correctly formatted.
+            TypeError: If the file does not contain data.
+            ValueError: If there some of the input URLs were improperly formatted.
         """
 
         # CHECK - file has data
         if os.stat(self.data_path).st_size == 0:
-            raise Exception('ERROR: input file: {} is empty'.format(self.data_path))
-
+            raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
             source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
                            for row in open(self.data_path).read().split('\n')}
@@ -268,11 +268,12 @@ class OntData(DataSource):
 
             if len(source_list) == len(valid_sources):
                 self.source_list = source_list
-
             else:
-                raise Exception('ERROR: Not all URLs were formatted properly')
+                raise ValueError('ERROR: Not all URLs were formatted properly')
 
-    def downloads_data_from_url(self, download_type: str):
+        return None
+
+    def downloads_data_from_url(self, download_type: str) -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes
         that each item in the input file list is an URL to an OWL/OBO ontology.
 
@@ -292,7 +293,7 @@ class OntData(DataSource):
                               }
 
         Raises:
-            An exception is raised if any of the URLs passed as command line arguments fails to return data.
+           ValueError: If not all of the URLs returned valid data.
         """
 
         # check data before download
@@ -313,9 +314,7 @@ class OntData(DataSource):
             # don't re-download ontologies
             if any(x for x in os.listdir(write_loc.strip(file_prefix)) if re.sub('_with.*.owl', '', x) == file_prefix):
                 self.data_files[i] = glob.glob(write_loc.strip(file_prefix) + '*' + file_prefix + '*')[0]
-
             else:
-
                 if download_type == 'imports' and 'purl' in source:
                     try:
                         subprocess.check_call(['./resources/lib/owltools',
@@ -325,10 +324,8 @@ class OntData(DataSource):
                                                str(write_loc) + '_with_imports.owl'])
 
                         self.data_files[i] = str(write_loc) + '_with_imports.owl'
-
                     except subprocess.CalledProcessError as error:
                         print(error.output)
-
                 elif download_type != 'imports' and 'purl' in source:
                     try:
                         subprocess.check_call(['./resources/lib/owltools',
@@ -337,27 +334,27 @@ class OntData(DataSource):
                                                str(write_loc) + '_without_imports.owl'])
 
                         self.data_files[i] = str(write_loc) + '_without_imports.owl'
-
                     except subprocess.CalledProcessError as error:
                         print(error.output)
-
                 else:
                     data_downloader(source, './resources/ontologies/', str(file_prefix) + '_with_imports.owl')
                     self.data_files[i] = './resources/ontologies/' + str(file_prefix) + '_with_imports.owl'
 
-        # CHECK
+        # CHECK - make sure all files were processed
         if len(self.source_list) != len(self.data_files):
-            raise Exception('ERROR: Not all URLs returned a data file')
+            raise ValueError('ERROR: Not all URLs returned a data file')
+
+        return None
 
 
 class Data(DataSource):
 
-    def gets_data_type(self):
+    def gets_data_type(self) -> str:
         """"A string representing the type of data being processed."""
 
         return 'Edge Data'
 
-    def parses_resource_file(self):
+    def parses_resource_file(self) -> None:
         """Verifies a file contains data and then outputs a list where each item is a line from the input text file.
 
         Returns:
@@ -367,17 +364,19 @@ class Data(DataSource):
                                 }
 
         Raises:
-            An exception is raised if the input file is empty.
+            TypeError: If the file does not contain data.
         """
 
         if os.stat(self.data_path).st_size == 0:
-            raise Exception('ERROR: input file: {} is empty'.format(self.data_path))
+            raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
 
         else:
             self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
                                 for row in open(self.data_path).read().split('\n')}
 
-    def downloads_data_from_url(self, download_type: str):
+        return None
+
+    def downloads_data_from_url(self, download_type: str) -> Dict[str, str]:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes that
         each item in the input file list is a valid URL.
 
@@ -392,10 +391,9 @@ class Data(DataSource):
                               }
 
         Raises:
-            An exception is raised if any URL does point to a valid endpoint containing data.
+            ValueError: If not all of the URLs returned valid data.
         """
 
-        # check data before download
         self.parses_resource_file()
 
         # set location where to write data
@@ -414,7 +412,6 @@ class Data(DataSource):
 
                 try:
                     shutil.copy(glob.glob(write_path + '*' + file_name)[0], write_path + i + '_' + file_name)
-
                 except shutil.SameFileError:
                     pass
             else:
@@ -424,4 +421,4 @@ class Data(DataSource):
 
         # CHECK
         if len(self.source_list) != len(self.data_files):
-            raise Exception('ERROR: Not all URLs returned a data file')
+            raise ValueError('ERROR: Not all URLs returned a data file')

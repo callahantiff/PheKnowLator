@@ -108,7 +108,7 @@ def extracts_mapping_data(api_key: str, source1: str, source2: str, file_out: st
     return None
 
 
-def main():
+def main() -> None:
     # get api key
     api_key = input('Please provide your BioPortal API Key: ')
 

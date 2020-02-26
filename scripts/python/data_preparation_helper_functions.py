@@ -320,7 +320,7 @@ def chunks(lst: List[Union[str, int]], chunk_size: int) -> List[List[str]]:
         yield lst[i:i + chunk_size]
 
 
-def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[Dict[str]]) -> pandas.DataFrame:
+def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str, Dict[str, str]]) -> pandas.DataFrame:
     """Takes a list of nodes and a dictionary of metadata and returns a pandas.DataFrame containing the mapped
     metadata for each of the nodes.
 
