@@ -109,9 +109,9 @@ class DocumentationMaker(object):
         """Function takes a dictionary of file information and writes it to a user-provided location.
 
         Args:
-            data: a dictionary of edge data.
-            delimiter: a string containing a character to use as the row delimiter.
-            filename: a string containing a file path.
+            data: A dictionary of edge data.
+            delimiter: A string containing a character to use as the row delimiter.
+            filename: A string containing a file path.
 
         Returns:
             None
