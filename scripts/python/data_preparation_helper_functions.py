@@ -38,7 +38,7 @@ def url_download(url: str, write_location: str, filename: str) -> None:
         None.
     """
 
-    print('Downloading data file')
+    print('Downloading Data from Url...')
 
     r = requests.get(url, allow_redirects=True, verify=False)
 
@@ -68,7 +68,7 @@ def ftp_url_download(url: str, write_location: str, filename: str) -> None:
         None
     """
 
-    print('Downloading data from ftp server')
+    print('Downloading Data from FTP Server...')
 
     with closing(urlopen(url)) as r:
         with open(write_location + '{filename}'.format(filename=filename), 'wb') as f:
@@ -96,14 +96,14 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> No
     write_loc = write_location + '{filename}'.format(filename=file)
 
     # download ftp gzipped file
-    print('Downloading gzipped data from ftp server')
+    print('Downloading Gzipped data from FTP Server...')
     with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
         ftp.login()
         ftp.cwd(directory)
         ftp.retrbinary('RETR {}'.format(file), fid.write)
 
     # read in gzipped file,uncompress, and write to directory
-    print('Decompressing and writing gzipped data')
+    print('Decompressing and Writing Gzipped Data to File')
     with gzip.open(write_loc, 'rb') as fid_in:
         with open(write_loc.replace('.gz', ''), 'wb') as f:
             f.write(fid_in.read())
@@ -130,7 +130,7 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
         None
     """
 
-    print('Downloading zipped data file')
+    print('Downloading Zipped Data...')
 
     with requests.get(url, allow_redirects=True) as zip_data:
         with ZipFile(BytesIO(zip_data.content)) as zip_file:
@@ -155,8 +155,7 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
         None
     """
 
-    print('Downloading gzipped data file')
-
+    print('Downloading Gzipped Data...')
     with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
         outfile.write(gzip.decompress(requests.get(url, allow_redirects=True, verify=False).content))
 
@@ -343,14 +342,12 @@ def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str
             # get labels
             if 'Label' in metadata_dictionaries[x].keys():
                 labels.append(metadata_dictionaries[x]['Label'])
-
             else:
                 labels.append('None')
 
             # get descriptions
             if 'Description' in metadata_dictionaries[x].keys():
                 desc.append(metadata_dictionaries[x]['Description'])
-
             else:
                 desc.append('None')
 
@@ -358,10 +355,8 @@ def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str
             if 'Synonym' in metadata_dictionaries[x].keys():
                 if metadata_dictionaries[x]['Synonym'].endswith('|'):
                     synonyms.append('|'.join(metadata_dictionaries[x]['Synonym'].split('|')[0:-1]))
-
                 else:
                     synonyms.append(metadata_dictionaries[x]['Synonym'])
-
             else:
                 synonyms.append('None')
 
@@ -394,14 +389,9 @@ def metadata_api_mapper(nodes: List[str]) -> pandas.DataFrame:
 
         for row in results:
             ids.append(row['stId'])
-
-            # get labels
             labels.append(row['displayName'])
-
-            # get descriptions
             desc.append('None')
 
-            # get synonyms
             if row['displayName'] != row['name']:
                 synonyms.append('|'.join(row['name']))
             else:

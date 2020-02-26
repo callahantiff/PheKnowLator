@@ -133,7 +133,7 @@ class Metadata(object):
             graph: An rdflib graph object with edited ontology annotations.
         """
 
-        print('\n*** ADDING ONTOLOGY ANNOTATIONS ***')
+        print('\n*** Adding Ontology Annotation ***')
 
         # set namespaces
         oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
@@ -187,7 +187,7 @@ class Metadata(object):
             TypeError: If the input file contains no data.
         """
 
-        print('\n*** REFORMATTING KNOWLEDGE GRAPH FILE FORMAT ***')
+        print('\n*** Applying OWL API Formatting to Knowledge Graph OWL File ***')
 
         # check input owl file
         if '.owl' not in graph_location:
@@ -280,7 +280,6 @@ class Metadata(object):
             if 'instance' not in edge_dict[edge_type]['data_type']:
                 pass
             else:
-                print('Adding Node Metadata for {} Edges\n'.format(edge_type))
                 node_idx = [x for x in range(2) if edge_dict[edge_type]['data_type'].split('-')[x] == 'instance']
 
                 for edge in tqdm(edge_dict[edge_type]['edge_list']):

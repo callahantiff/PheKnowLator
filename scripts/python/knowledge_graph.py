@@ -69,8 +69,8 @@ class KGBuilder(object):
             {'RO_0002616': 'related via evidence or inference to', 'RO_0002442': 'mutualistically interacts with}
         inverse_relations_dict: A dictionary storing relations ids and their inverse relation ids. For example:
             {'RO_0000056': 'RO_0000057', 'RO_0000079': 'RO_0000085'}
-        merged_ont_kg: A string containing the filename of the knowledge graph that only contains the merged ontologies.
         full_kg: A string containing the filename for the full knowledge graph.
+        merged_ont_kg: A string containing the filename of the knowledge graph that only contains the merged ontologies.
         ontologies: A list of file paths to an .owl file containing ontology data.
         kg_uuid_map: A dictionary storing the mapping between a class and its instance. The keys are the original class
              uri and the values are the hashed uuid of the uri needed to create an instance of the class. For example:
@@ -96,22 +96,21 @@ class KGBuilder(object):
                  node_data: Optional[str] = None, inverse_relations: Optional[str] = None,
                  decode_owl_semantics: Optional[str] = None) -> None:
 
-        # set build type
+        # BUILD VARIABLES
         self.build: str = self.gets_build_type().lower().split()[0]
 
-        # set build version
         if kg_version is None:
             raise ValueError('ERROR: kg_version must not contain a valid version e.g. v.2.0.0')
         else:
             self.kg_version = kg_version
 
-        # set write location
+        # WRITE LOCATION
         if write_location is None:
             raise ValueError('ERROR: write_location must not contain a valid filepath')
         else:
             self.write_location = write_location
 
-        # read in knowledge graph edge list
+        # KNOWLEDGE GRAPH EDDE LIST
         if edge_data is None:
             raise ValueError('ERROR: edge_data must not contain a valid filepath')
         elif os.stat(edge_data).st_size == 0:
@@ -119,11 +118,7 @@ class KGBuilder(object):
         else:
             self.edge_dict: Dict[str, List[List[str, str]]] = json.load(open(edge_data, 'r'))
 
-        # set file names for writing data
-        header = '/PheKnowLator_' + self.build + '_'
-        self.merged_ont_kg: str = '/PheKnowLator_MergedOntologies.owl'
-
-        # read in relations data
+        # RELATIONS DATA
         if inverse_relations.lower() not in ['yes', 'no']:
             raise ValueError('ERROR: relations_data must be "no" or "yes"')
         else:
@@ -134,12 +129,12 @@ class KGBuilder(object):
                     self.inverse_relations = glob.glob('*/relations_data/*.txt', recursive=True)
                     self.relations_dict: Dict[str, Dict[str, str]] = dict()
                     self.inverse_relations_dict: Dict[str, Dict[str, str]] = dict()
-                    kg_rel = '/inverse_relations' + header + 'InverseRelations_'
+                    kg_rel = '/inverse_relations' + '/PheKnowLator_' + self.build + '_InverseRelations_'
             else:
                 self.inverse_relations, self.relations_dict, self.inverse_relations_dict = None, None, None
-                kg_rel = '/relations_only' + header
+                kg_rel = '/relations_only' + '/PheKnowLator_' + self.build + '_'
 
-        # read in node metadata
+        # NODE METADATA
         if node_data.lower() not in ['yes', 'no']:
             raise ValueError('ERROR: node_data must be "no" or "yes"')
         else:
@@ -149,20 +144,14 @@ class KGBuilder(object):
                 else:
                     self.node_data = glob.glob('*/node_data/*.txt', recursive=True)
                     self.node_dict: Dict[str, Dict[str, str]] = dict()
-
-                    if self.build == 'post-closure':
-                        kg_node = kg_rel + 'Closed_'
-                    else:
-                        kg_node = kg_rel + 'NotClosed_'
+                    if self.build == 'post-closure': kg_node = kg_rel + 'Closed_'
+                    else: kg_node = kg_rel + 'NotClosed_'
             else:
                 self.node_data, self.node_dict = None, None
+                if self.build == 'post-closure': kg_node = kg_rel + 'NoNodeMetadata_Closed_'
+                else: kg_node = kg_rel + 'NoNodeMetadata_NotClosed_'
 
-                if self.build == 'post-closure':
-                    kg_node = kg_rel + 'NoNodeMetadata_Closed_'
-                else:
-                    kg_node = kg_rel + 'NoNodeMetadata_NotClosed_'
-
-        # set owl semantics removal attribute
+        # OWL SEMANTICS
         if decode_owl_semantics.lower() not in ['yes', 'no']:
             raise ValueError('ERROR: decode_semantics must be "no" or "yes"')
         else:
@@ -173,10 +162,9 @@ class KGBuilder(object):
                 self.full_kg = kg_node + 'OWLSemantics_KG.owl'
                 self.decode_owl_semantics = None
 
-        # read in ontologies data
+        # set remaining attributes
+        self.merged_ont_kg: str = '/PheKnowLator_MergedOntologies.owl'
         self.ontologies: List[str] = glob.glob('*/ontologies/*.owl')
-
-        # set knowledge graph build files
         self.kg_uuid_map: Dict[str, str] = dict()
         self.graph: Graph = Graph()
 
@@ -247,9 +235,7 @@ class KGBuilder(object):
             else:
                 ont1, ont2 = self.ontologies.pop(), self.ontologies.pop()
 
-            # merge ontologies
             print('\nMerging Ontologies: {ont1}, {ont2}\n'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
-
             try:
                 subprocess.check_call(['./resources/lib/owltools', str(ont1), str(ont2),
                                        '--merge-support-ontologies',
@@ -320,7 +306,6 @@ class KGBuilder(object):
                     if edge[0] in self.node_dict[edge_type].keys() and edge[1] in self.node_dict[edge_type].keys():
                         subj_uri = str(self.edge_dict[edge_type]['uri'][0])
                         obj_uri = str(self.edge_dict[edge_type]['uri'][1])
-
                         self.graph = creates_node_metadata_func(edge[0], edge_type, subj_uri, self.graph)
                         self.graph = creates_node_metadata_func(edge[1], edge_type, obj_uri, self.graph)
 
@@ -329,7 +314,6 @@ class KGBuilder(object):
                                         URIRef(str(obo + self.edge_dict[edge_type]['edge_relation'])),
                                         URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))))
 
-                        # add inverse relation
                         if inverse_relation:
                             self.graph.add((URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1])),
                                             URIRef(str(obo + inverse_relation)),
@@ -511,17 +495,17 @@ class KGBuilder(object):
         # loop over classes to create instances
         for edge_type in self.edge_dict.keys():
             if self.edge_dict[edge_type]['data_type'] == 'instance-instance':
-                print('\n*** EDGE: {} - Creating Instance-Instance Edges ***'.format(edge_type))
+                print('\nEDGE: {} - Creating Instance-Instance Edges ***'.format(edge_type))
                 edge_results = self.creates_instance_instance_data_edges(edge_type, creates_node_metadata_func)
             elif self.edge_dict[edge_type]['data_type'] == 'class-class':
-                print('\n*** EDGE: {} - Creating Class-Class Edges ***'.format(edge_type))
+                print('\nEDGE: {} - Creating Class-Class Edges ***'.format(edge_type))
                 edge_results = self.creates_class_class_data_edges(edge_type)
             else:
-                print('\n*** EDGE: {} - Creating Class-Instances Edges ***'.format(edge_type))
+                print('\nEDGE: {} - Creating Class-Instances Edges ***'.format(edge_type))
                 edge_results = self.creates_instance_class_data_edges(edge_type, creates_node_metadata_func)
 
             # print edge-type statistics
-            print('Unique Edges: {}'.format(len([list(x) for x in set([tuple(y) for y in edge_results])])))
+            print('\nUnique Edges: {}'.format(len([list(x) for x in set([tuple(y) for y in edge_results])])))
             print('Unique {}: {}'.format(edge_type.split('-')[0], len(set([x[0] for x in edge_results]))))
             print('Unique {}: {}'.format(edge_type.split('-')[1], len(set([x[1] for x in edge_results]))))
 
@@ -612,11 +596,12 @@ class PartialBuild(KGBuilder):
         self.sets_up_environment()
 
         # STEP 2: PROCESS RELATION AND INVERSE RELATION DATA
-        print('*** Loading Support Data ***')
+        print('*** Loading Relations Data ***')
         self.reverse_relation_processor()
 
         # STEP 3: PROCESS NODE METADATA
-        metadata = Metadata(self.kg_version, 'no', self.write_location,self.full_kg, self.node_data, self.node_dict)
+        print('*** Loading Node Metadata Data ***')
+        metadata = Metadata(self.kg_version, 'no', self.write_location, self.full_kg, self.node_data, self.node_dict)
         metadata.node_metadata_processor()
 
         # STEP 4: MERGE ONTOLOGIES
@@ -703,10 +688,11 @@ class PostClosureBuild(KGBuilder):
         self.sets_up_environment()
 
         # STEP 2: PROCESS RELATION AND INVERSE RELATION DATA
-        print('*** Loading Support Data ***')
+        print('*** Loading Relations Data ***')
         self.reverse_relation_processor()
 
         # STEP 3: PROCESS NODE METADATA
+        print('*** Loading Node Metadata Data ***')
         metadata = Metadata(self.kg_version, 'yes', self.write_location, self.full_kg, self.node_data, self.node_dict)
         metadata.node_metadata_processor()
 
@@ -730,7 +716,7 @@ class PostClosureBuild(KGBuilder):
 
         # check input owl file
         if '.owl' not in closed_kg_location:
-            raise TypeError('FILE TYPE ERROR: The provided file is not type .owl')
+            raise TypeError('ERROR: The provided file is not type .owl')
         elif os.stat(closed_kg_location).st_size == 0:
             raise TypeError('ERROR: input file: {} is empty'.format(closed_kg_location))
         else:
@@ -746,7 +732,7 @@ class PostClosureBuild(KGBuilder):
 
         # STEP 5: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
         if self.decode_owl_semantics:
-            print('*** Removing Metadata Nodes ***')
+            print('*** Decoding OWL-Encoded Class and Removing OWL Semantics ***')
             owl_semantics = OWLNETS(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
             cleaned_kg = owl_semantics.removes_edges_with_owl_semantics()
         else:
@@ -821,10 +807,11 @@ class FullBuild(KGBuilder):
         self.sets_up_environment()
 
         # STEP 2: PROCESS RELATION AND INVERSE RELATION DATA
-        print('*** Loading Support Data ***')
+        print('*** Loading Relations Data ***')
         self.reverse_relation_processor()
 
         # STEP 3: PROCESS NODE METADATA
+        print('*** Loading Node Metadata Data ***')
         metadata = Metadata(self.kg_version, 'no', self.write_location, self.full_kg, self.node_data, self.node_dict)
         metadata.node_metadata_processor()
 
@@ -853,7 +840,7 @@ class FullBuild(KGBuilder):
 
         # STEP 6: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
         if self.decode_owl_semantics:
-            print('*** Removing Metadata Nodes ***')
+            print('*** Decoding OWL-Encoded Class and Removing OWL Semantics ***')
             owl_semantics = OWLNETS(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
             cleaned_kg = owl_semantics.removes_edges_with_owl_semantics()
         else:

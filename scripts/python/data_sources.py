@@ -301,7 +301,7 @@ class OntData(DataSource):
 
         # set location where to write data
         file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/ontologies/'
-        print('\n ***Downloading: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
+        print('\n ***Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
 
         # process data
         for i in tqdm(self.source_list.keys()):
@@ -398,7 +398,7 @@ class Data(DataSource):
 
         # set location where to write data
         file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/edge_data/'
-        print('\n*** Downloading : {0} to "{1}" ***\n'.format(self.data_type, file_loc))
+        print('\n*** Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
 
         for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]
