@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 # import needed libraries
 import json
 import os
@@ -9,9 +8,10 @@ import requests
 import time
 
 from tqdm import tqdm
+from typing import Dict, IO, Set
 
 
-def gets_json_results_from_api_call(url: str, api_key: str):
+def gets_json_results_from_api_call(url: str, api_key: str) -> Dict[str, str]:
     """Function makes API requests and returns results as a json file. API documentation can be found here:
     http://data.bioontology.org/documentation. If a 500 HTTP server-side code is return from "status_code" then the
     algorithm pauses for 30 seconds before trying the request again.
@@ -37,7 +37,7 @@ def gets_json_results_from_api_call(url: str, api_key: str):
     return json.loads(response.text)
 
 
-def writes_data_to_file(file_out: str, results: set):
+def writes_data_to_file(file_out: str, results: Set[Tuple[str, str]]) -> IO[str]:
     """Function iterates over set of tuples and writes data to text file locally.
 
     Args:
@@ -63,7 +63,7 @@ def writes_data_to_file(file_out: str, results: set):
     return None
 
 
-def extracts_mapping_data(api_key: str, source1: str, source2: str, file_out: str):
+def extracts_mapping_data(api_key: str, source1: str, source2: str, file_out: str) -> None:
     """Function uses the BioPortal API to retrieve mappings between two sources. The function batch processes the
     results in chunks of 1000, writes the data to a temporary directory and then once all batches have been
     processed, the data is concatenated into a single file.
