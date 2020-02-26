@@ -9,7 +9,7 @@ import re
 
 from difflib import SequenceMatcher
 from tqdm import tqdm
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 # TODO: using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
 
@@ -240,7 +240,8 @@ class EdgeList(object):
 
         return edge_data
 
-    def data_merger(self, node: int, mapping_data: str, edge_data: pandas.DataFrame) -> List[str, pandas.DataFrame]:
+    def data_merger(self, node: int, mapping_data: str, edge_data: pandas.DataFrame) ->\
+            List[Union[str, pandas.DataFrame]]:
         """Processes a string that contains instructions for mapping both columns in the edge_data Pandas DataFrame.
         This function assumes that the mapping data pointed to contains two columns: (1) identifier in edge_data to be
         mapped and (2) the desired identifier to map to. If one of the columns does not need to be mapped to an
