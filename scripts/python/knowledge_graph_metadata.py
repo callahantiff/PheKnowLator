@@ -21,10 +21,9 @@ class Metadata(object):
 
     Attributes:
         kg_version: A string that contains the version of the knowledge graph build.
-        build: A string indicating the type of knowledge graph build.
-        write_location: A string containing the file path to the knowledge graph directory (e.g.
-            './resources/knowledge_graphs).
-        full_kg: A string containing the subdirectory and name of the knowledge graph (e.g.'/relations_only/KG.owl').
+        node_metadata_flag: A string indicating whether or not node metadata should be added to the knowledge graph.
+        write_location: A filepath to the knowledge graph directory (e.g. './resources/knowledge_graphs).
+        full_kg: The subdirectory and name of the knowledge graph (e.g.'/relations_only/KG.owl').
         node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
         node_dict: A nested dictionary storing metadata for the nodes in the edge_dict. Where the outer key is a node
             identifier and each inner key is an identifier type keyed by the identifier type with the value being the
@@ -37,11 +36,11 @@ class Metadata(object):
                 }
     """
 
-    def __init__(self, kg_version: str, build_type: str, write_location: str, kg_location: str,
-                 node_data: Optional[str], node_dict: Dict[str, Dict[str, str]]) -> None:
+    def __init__(self, kg_version: str, flag: str, write_location: str, kg_location: str, node_data: Optional[str],
+                 node_dict: Dict[str, Dict[str, str]]) -> None:
 
         self.kg_version = kg_version
-        self.build = build_type
+        self.node_metadata_flag = flag
         self.write_location = write_location
         self.full_kg = kg_location
         self.node_data = node_data
@@ -90,10 +89,7 @@ class Metadata(object):
         """Given a node in the knowledge graph, if the node has metadata information, new edges are created to add
         the metadata to the knowledge graph. Metadata that is added includes: labels, descriptions, and synonyms.
 
-        Note. If running a "partial" build and node_data='yes', the algorithm will not add the metadata edges to the
-        KG. This is because 'partial' builds are intended to be run in situations when the generated knowledge graph
-        will be run through a reasoner and thus, the goal is to only include the edges necessary to close the graph.
-        Node metadata can be added back to the KG by running the algorithm again with the build set to "post-closure".
+        Note. Metadata edges will only be added to the knowledge graph if node_metadata_flag='yes'.
 
         Args:
             node: A node identifier (e.g. 'HP_0003269', 'rs765907815').
@@ -113,7 +109,7 @@ class Metadata(object):
         # create metadata dictionary
         metadata = self.node_dict[edge_type][node]
 
-        if 'partial' not in self.build.lower():
+        if self.node_metadata_flag == 'yes':
             if 'Label' in metadata.keys() and metadata['Label'] != 'None':
                 graph.add((URIRef(url + str(node)), RDFS.label, Literal(metadata['Label'])))
             if 'Description' in metadata.keys() and metadata['Description'] != 'None':
