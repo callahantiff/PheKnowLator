@@ -15,6 +15,7 @@ from contextlib import closing
 from io import BytesIO
 from reactome2py import content
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from typing import Dict, List, Union
 from urllib.request import urlopen
 from zipfile import ZipFile
 
@@ -25,7 +26,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 # functions to download data
-def url_download(url: str, write_location: str, filename: str):
+def url_download(url: str, write_location: str, filename: str) -> None:
     """Downloads a file from a URL.
 
     Args:
@@ -55,7 +56,7 @@ def url_download(url: str, write_location: str, filename: str):
     return None
 
 
-def ftp_url_download(url: str, write_location: str, filename: str):
+def ftp_url_download(url: str, write_location: str, filename: str) -> None:
     """Downloads a file from an ftp server.
 
     Args:
@@ -73,8 +74,10 @@ def ftp_url_download(url: str, write_location: str, filename: str):
         with open(write_location + '{filename}'.format(filename=filename), 'wb') as f:
             shutil.copyfileobj(r, f)
 
+    return None
 
-def gzipped_ftp_url_download(url: str, write_location: str, filename: str):
+
+def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> None:
     """Downloads a gzipped file from an ftp server.
 
     Args:
@@ -112,8 +115,10 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str):
     # remove gzipped and original files
     os.remove(write_loc)
 
+    return None
 
-def zipped_url_download(url: str, write_location: str, filename: str = ''):
+
+def zipped_url_download(url: str, write_location: str, filename: str = '') -> None:
     """Downloads a zipped file from a URL.
 
     Args:
@@ -135,8 +140,10 @@ def zipped_url_download(url: str, write_location: str, filename: str = ''):
     if filename != '':
         os.rename(write_location + re.sub('.gz|.zip', '', url.split('/')[-1]), write_location + filename)
 
+    return None
 
-def gzipped_url_download(url: str, write_location: str, filename: str):
+
+def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
     """Downloads a gzipped file from a URL.
 
     Args:
@@ -153,9 +160,10 @@ def gzipped_url_download(url: str, write_location: str, filename: str):
     with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
         outfile.write(gzip.decompress(requests.get(url, allow_redirects=True, verify=False).content))
 
+    return None
 
-# function to download data from a URL
-def data_downloader(url: str, write_location: str, filename: str = ''):
+
+def data_downloader(url: str, write_location: str, filename: str = '') -> None:
     """Downloads data from a URL and saves the file to the `/resources/processed_data/unprocessed_data' directory.
 
     Args:
@@ -189,9 +197,12 @@ def data_downloader(url: str, write_location: str, filename: str = ''):
             # download data from URL
             url_download(url, write_location, file)
 
+    return None
+
 
 # function to explode nested DataFrames
-def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str = 'None', preserve_idx: bool = False):
+def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str = 'None',
+            preserve_idx: bool = False) -> pandas.DataFrame:
     """Function takes a Pandas DataFrame containing a mix of nested and un-nested data and un-nests the data by
     expanding each column in a user-defined list. This function is a modification of the explode function provided in
     the following stack overflow post:
@@ -200,14 +211,14 @@ def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str
     treats the user-provided column list as a stack and recursively un-nests each column.
 
     Args:
-        df: a Pandas DataFrame containing nested columns
-        lst_cols: a list of columns to unnest
-        splitter: a character delimiter used in nested columns
-        fill_value: a string value to fill empty cell values with
-        preserve_idx: whether or not thee original index should be preserved or reset
+        df: A Pandas DataFrame containing nested columns
+        lst_cols: A list of columns to unnest
+        splitter: A character delimiter used in nested columns
+        fill_value: A string value to fill empty cell values with
+        preserve_idx: Whether or not thee original index should be preserved or reset.
 
     Returns:
-        An exploded Pandas DataFrame
+        An exploded Pandas DataFrame.
     """
 
     if not lst_cols:
@@ -254,17 +265,16 @@ def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str
         return explode(res, lst_cols, splitter)
 
 
-# human disease and phenotype ontology identifiers mapping
-def mesh_finder(data: pandas.DataFrame, x_id: str, id_type: str, id_dic: dict):
+def mesh_finder(data: pandas.DataFrame, x_id: str, id_type: str, id_dic: Dict[str, List[str]]) -> None:
     """Function takes a Pandas DataFrame, a dictionary, and an id and updates the dictionary by searching additional
     identifiers linked to the id.
 
     Args:
-        data: a Pandas DataFrame containing columns of identifiers
-        x_id: a string containing a MeSH or OMIM identifier
-        id_type: a string containing the types of the identifier
-        id_dic: a dictionary where the keys are CUI and MeSH identifiers and the values are lists of DO and HPO
-            identifiers
+        data: A Pandas DataFrame containing columns of identifiers.
+        x_id: A string containing a MeSH or OMIM identifier.
+        id_type: A string containing the types of the identifier.
+        id_dic: A dictionary where the keys are CUI and MeSH identifiers and the values are lists of DO and HPO
+            identifiers.
 
     Returns:
         None
@@ -293,31 +303,30 @@ def mesh_finder(data: pandas.DataFrame, x_id: str, id_type: str, id_dic: dict):
     return None
 
 
-# list chunking function -- used for making requests to the reactome api
-def chunks(lst: list, chunk_size: int):
+def chunks(lst: List[Union[str, int]], chunk_size: int) -> List[List[str]]:
     """Takes a list an integer and creates a list of lists, where each nested list is length chunk_size.
 
     Modified from: https://chrisalbon.com/python/data_wrangling/break_list_into_chunks_of_equal_size/
 
     Args:
-        lst: list of objects, can be strings or integers.
-        chunk_size: an integer which specifies the how big each chunk should be.
+        lst: A list of objects, can be strings or integers.
+        chunk_size: An integer which specifies the how big each chunk should be.
 
     Returns:
         A nested list, where the length of each nested list is the size of the integer passed by the user.
     """
 
     for i in range(0, len(lst), chunk_size):
-        yield lst[i:i+chunk_size]
+        yield lst[i:i + chunk_size]
 
 
-def metadata_dictionary_mapper(nodes: list, metadata_dictionaries: dict):
+def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[Dict[str]]) -> pandas.DataFrame:
     """Takes a list of nodes and a dictionary of metadata and returns a pandas.DataFrame containing the mapped
     metadata for each of the nodes.
 
     Args:
-        nodes: the list of identifiers to obtain metadata information for.
-        metadata_dictionaries: the metadata dictionary to obtain metadata from.
+        nodes: A list of identifiers to obtain metadata information for.
+        metadata_dictionaries: A metadata dictionary to obtain metadata from.
 
     Returns:
         A pandas.DataFrame of metadata results.
@@ -366,11 +375,11 @@ def metadata_dictionary_mapper(nodes: list, metadata_dictionaries: dict):
     return node_metadata_final
 
 
-def metadata_api_mapper(nodes: list):
+def metadata_api_mapper(nodes: List[str]) -> pandas.DataFrame:
     """Takes a list of nodes and queries them, in chunks of 20, against the Reactome API.
 
     Args:
-        nodes: the list of identifiers to obtain metadata information for.
+        nodes: A list of identifiers to obtain metadata information for.
 
     Returns:
         A pandas.DataFrame of metadata results.
