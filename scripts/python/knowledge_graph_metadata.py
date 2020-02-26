@@ -13,6 +13,7 @@ import subprocess
 from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.namespace import RDF, RDFS
 from tqdm import tqdm
+from typing import Dict, List, Optional, Union
 
 
 class Metadata(object):
@@ -29,24 +30,24 @@ class Metadata(object):
             identifier and each inner key is an identifier type keyed by the identifier type with the value being the
             corresponding metadata for that identifier type. For example:
                 {'6469': {'Label': 'SHH',
-                          'Description': 'Sonic Hedgehog Signaling Molecule is a protein-coding gene that is
-                                          located on chromosome 7 (map_location: 7q36.3).',
+                          'Description': 'Sonic Hedgehog Signaling Molecule is a protein-coding gene that is located on
+                                          chromosome 7 (map_location: 7q36.3).',
                           'Synonym': 'HHG1|HLP3|HPE3|MCOPCB5|SMMCI|ShhNC|TPT|TPTPS|sonic hedgehog protein'
                           },
                 }
     """
 
-    def __init__(self, kg_version: str, build_type: str, write_location: str, kg_location: str, node_data: list,
-                 node_dict: dict):
+    def __init__(self, kg_version: str, build_type: str, write_location: str, kg_location: str,
+                 node_data: Optional[str], node_dict: Dict[str, Dict[str, str]]) -> None:
 
         self.kg_version = kg_version
-        self.build: str = build_type
+        self.build = build_type
         self.write_location = write_location
         self.full_kg = kg_location
-        self.node_data: list = node_data
-        self.node_dict: dict = node_dict
+        self.node_data = node_data
+        self.node_dict = node_dict
 
-    def node_metadata_processor(self):
+    def node_metadata_processor(self) -> None:
         """Processes a directory of node data sets by reading in each data set and then converting the read in data
         into a dictionary, which is then added to the class attribute node_dict. This dictionary stores the "ID"
         column of each data frame as the keys and all other columns as values. For example:
@@ -85,7 +86,7 @@ class Metadata(object):
                 # add data frame to master node metadata dictionary
                 self.node_dict[dfs[i][0]] = df_dict
 
-    def creates_node_metadata(self, node: str, edge_type: str, url: str, graph: Graph):
+    def creates_node_metadata(self, node: str, edge_type: str, url: str, graph: Graph) -> Graph:
         """Given a node in the knowledge graph, if the node has metadata information, new edges are created to add
         the metadata to the knowledge graph. Metadata that is added includes: labels, descriptions, and synonyms.
 
@@ -125,7 +126,7 @@ class Metadata(object):
 
         return graph
 
-    def adds_ontology_annotations(self, filename: str, graph: Graph):
+    def adds_ontology_annotations(self, filename: str, graph: Graph) -> Graph:
         """Updates the ontology annotation information for an input knowledge graph or ontology.
 
         Args:
@@ -175,7 +176,7 @@ class Metadata(object):
         return graph
 
     @staticmethod
-    def ontology_file_formatter(graph_location: str):
+    def ontology_file_formatter(graph_location: str) -> None:
         """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
         referenced by graph_location is read in and output to the same location via the OWLTools API.
 
@@ -186,18 +187,17 @@ class Metadata(object):
             None.
 
         Raises:
-            An exception is raised if something other than an .owl file is passed to function.
-            An exception is raised if the input file contains no data.
-            An exception is raised if OWLTools API is unable to process the command line call.
+            TypeError: If something other than an .owl file is passed to function.
+            TypeError: If the input file contains no data.
         """
 
         print('\n*** REFORMATTING KNOWLEDGE GRAPH FILE FORMAT ***')
 
         # check input owl file
         if '.owl' not in graph_location:
-            raise Exception('ERROR: The provided file is not type .owl')
+            raise TypeError('ERROR: The provided file is not type .owl')
         elif os.stat(graph_location).st_size == 0:
-            raise Exception('ERROR: input file: {} is empty'.format(graph_location))
+            raise TypeError('ERROR: input file: {} is empty'.format(graph_location))
         else:
             try:
                 subprocess.check_call(['./resources/lib/owltools', graph_location, '-o', graph_location])
@@ -206,7 +206,7 @@ class Metadata(object):
 
         return None
 
-    def removes_annotation_assertions(self):
+    def removes_annotation_assertions(self) -> None:
         """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
         removes annotation assertions to make a pure logic subset', which reduces the overall size of the knowledge
         graph, while still being compatible with a reasoner.
@@ -228,7 +228,7 @@ class Metadata(object):
         return None
 
     @staticmethod
-    def adds_annotation_assertions(graph: Graph, filename: str):
+    def adds_annotation_assertions(graph: Graph, filename: str) -> Graph:
         """Adds edges removed from the knowledge graph when annotation assertions were removed. First, the knowledge
         graph that was created prior to removing annotation assertions is read in. Then, the function iterates over the
         closed knowledge graph files and adds any edges that are present in the list, but missing from the closed
@@ -252,7 +252,8 @@ class Metadata(object):
 
         return graph
 
-    def adds_node_metadata(self, graph: Graph, edge_dict: dict):
+    def adds_node_metadata(self, graph: Graph, edge_dict: Dict[str, List[Union[str, List[Union[str, List[str]]]]]])\
+            -> Graph:
         """Iterates over nodes in each edge in the edge_dict, by edge_type. If the node has metadata available in the
         the node_data dictionary, then it is added to the knowledge graph.
 
@@ -310,7 +311,7 @@ class Metadata(object):
 
         return graph
 
-    def extracts_class_metadata(self, graph: Graph):
+    def extracts_class_metadata(self, graph: Graph) -> None:
         """Functions queries the knowledge graph to obtain labels, definitions/descriptions, and synonyms for
         classes. This information is then added to the existing self.node_dict dictionary under the key of 'classes'.
         Each metadata type is saved as a dictionary key with the actual string stored as the value. The metadata types
@@ -353,7 +354,7 @@ class Metadata(object):
 
         return None
 
-    def maps_node_labels_to_integers(self, graph: Graph, output_triple_integers: str, output_loc: str):
+    def maps_node_labels_to_integers(self, graph: Graph, output_triple_integers: str, output_loc: str) -> None:
         """Loops over the knowledge graph in order to create three different types of files:
             - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
             subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
@@ -371,7 +372,7 @@ class Metadata(object):
             None.
 
         Raises:
-            An exception is raised if the length of the graph is not the same as the number of extracted triples.
+            ValueError: If the length of the graph is not the same as the number of extracted triples.
         """
 
         # create dictionary for mapping and list to write edges to
@@ -407,13 +408,13 @@ class Metadata(object):
 
         # CHECK - verify we get the number of edges that we would expect to get
         if len(graph) != len(output_triples):
-            raise Exception('ERROR: The number of triples is incorrect!')
+            raise ValueError('ERROR: The number of triples is incorrect!')
         else:
             json.dump(node_map, open(self.write_location + '/' + output_loc, 'w'))
 
         return None
 
-    def output_knowledge_graph_metadata(self, graph: Graph):
+    def output_knowledge_graph_metadata(self, graph: Graph) -> None:
         """Loops over the self.node_dict dictionary and writes out the data to a file locally. The data is stored as
         a tab-delimited '.txt' file with four columns: (1) node identifier; (2) node label; (3) node description or
         definition; and (4) node synonym.
@@ -429,7 +430,6 @@ class Metadata(object):
         self.extracts_class_metadata(graph)
 
         with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w') as outfile:
-
             # write file header
             outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
 

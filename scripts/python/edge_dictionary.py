@@ -9,6 +9,7 @@ import re
 
 from difflib import SequenceMatcher
 from tqdm import tqdm
+from typing import Dict, Optional, Tuple
 
 # TODO: using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
 
@@ -34,17 +35,16 @@ class EdgeList(object):
 
     """
 
-    def __init__(self, data_files: dict, source_file: str):
+    def __init__(self, data_files: Dict[str, str], source_file: str) -> None:
 
         self.data_files = data_files
         self.source_file = source_file
 
         # convert edge data to a dictionary
-        self.source_info = dict()
+        self.source_info: Dict[str, Dict[str, str]] = dict()
 
         for row in open(source_file).read().split('\n'):
             cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
-
             self.source_info[cols[0].strip('"').strip("'")] = {}
             self.source_info[cols[0].strip('"').strip("'")]['source_labels'] = cols[1].strip('"').strip("'")
             self.source_info[cols[0].strip('"').strip("'")]['data_type'] = cols[2].strip('"').strip("'")
@@ -60,7 +60,7 @@ class EdgeList(object):
             self.source_info[cols[0].strip('"').strip("'")]['edge_list'] = []
 
     @staticmethod
-    def identify_header(file_path: str, file_delimiter: str):
+    def identify_header(file_path: str, file_delimiter: str) -> Optional[int]:
         """Compares the similarity of the first line of a Pandas DataFrame to the column headers when read in with and
         without a header to determine whether or not the data frame should be built with a header or not. This
         function was modified from a Stack Overflow post:
@@ -94,20 +94,20 @@ class EdgeList(object):
         else:
             return 0
 
-    def data_reader(self, file_path: str, file_splitter: str = '\n', line_splitter: str = 't'):
+    def data_reader(self, file_path: str, file_splitter: str = '\n', line_splitter: str = 't') -> pandas.DataFrame:
         """Takes a filepath pointing to data source and reads it into a Pandas DataFrame using information in the
         file and line splitter variables.
 
         Args:
-            file_path: Filepath to data.
-            file_splitter: Character to split data, used when a file contains metadata information.
-            line_splitter: Character used to split rows into columns.
+            file_path: A Filepath to data.
+            file_splitter: A Character to split data, used when a file contains metadata information.
+            line_splitter: A Character used to split rows into columns.
 
         Return:
             A Pandas DataFrame containing the data from the data_filepath.
 
         Raises:
-            An exception is raised if the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
+            Exception: If the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
         """
 
         # identify line splitter
@@ -125,10 +125,10 @@ class EdgeList(object):
         if len(list(edge_data)) >= 2 and len(edge_data) > 10:
             return edge_data.dropna(inplace=False)
         else:
-            raise Exception('ERROR: Data could not be properly read in')
+            raise ValueError('ERROR: Data could not be properly read in')
 
     @staticmethod
-    def filter_data(edge_data: pandas.DataFrame, filter_criteria: str, evidence_criteria: str):
+    def filter_data(edge_data: pandas.DataFrame, filter_criteria: str, evidence_criteria: str) -> pandas.DataFrame:
         """Applies a set of filtering and/or evidence criteria to specific columns in a Pandas DataFrame and returns a
         filtered data frame.
 
@@ -141,7 +141,7 @@ class EdgeList(object):
             edge_data: A filtered Pandas DataFrame.
 
         Raises:
-            An exception is raised if the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
+            Exception: If the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
         """
 
         if filter_criteria == 'None' and evidence_criteria == 'None':
@@ -186,7 +186,7 @@ class EdgeList(object):
                 raise Exception('ERROR: Data could not be properly read in')
 
     @staticmethod
-    def data_reducer(cols: str, edge_data: pandas.DataFrame):
+    def data_reducer(cols: str, edge_data: pandas.DataFrame) -> pandas.DataFrame:
         """Reduces a Pandas DataFrame to the 2 columns specified by resource_info.txt. Prior to returning the data, the
         function checks the data type of each column in the reduced Pandas DataFrame to make sure that neither column is
         of type float.
@@ -210,7 +210,7 @@ class EdgeList(object):
         return edge_data
 
     @staticmethod
-    def label_formatter(edge_data: pandas.DataFrame, label_criteria: str):
+    def label_formatter(edge_data: pandas.DataFrame, label_criteria: str) -> pandas.DataFrame:
         """Applies criteria to reformat edge data labels.
 
         Args:
@@ -221,8 +221,7 @@ class EdgeList(object):
                 3 - string to append to object node
 
         Returns:
-            edge_data:
-
+            edge_data: A Pandas.DataFrame with updated value labels.
         """
 
         cut = label_criteria.split(';')[0]
@@ -241,7 +240,7 @@ class EdgeList(object):
 
         return edge_data
 
-    def data_merger(self, node: int, mapping_data: str, edge_data: pandas.DataFrame):
+    def data_merger(self, node: int, mapping_data: str, edge_data: pandas.DataFrame) -> List[str, pandas.DataFrame]:
         """Processes a string that contains instructions for mapping both columns in the edge_data Pandas DataFrame.
         This function assumes that the mapping data pointed to contains two columns: (1) identifier in edge_data to be
         mapped and (2) the desired identifier to map to. If one of the columns does not need to be mapped to an
@@ -258,10 +257,6 @@ class EdgeList(object):
             A nested list containing:
                 1 - column that needs mapping
                 2 - a Pandas DataFrame containing the merged data
-
-        Raises:
-            An exception if when indexing into a list that does not contain object at index.
-            An exception is raised when trying to merge data on columns of different data types.
         """
 
         # check if node needs to be mapped to an outside data source
@@ -297,7 +292,7 @@ class EdgeList(object):
 
         return [col_to_map, merged_data]
 
-    def process_mapping_data(self, mapping_data: str, edge_data: pandas.DataFrame):
+    def process_mapping_data(self, mapping_data: str, edge_data: pandas.DataFrame) -> List[Tuple[str, str]]:
         """Merges two mapped Pandas DataFrames into a single DataFrame. After merging the DataFrames, the function
         removes all columns except the the mapped columns and removes any duplicate rows.
 
@@ -333,7 +328,7 @@ class EdgeList(object):
 
             return tuple(zip(list(merged_data[maps[0][0]]), list(merged_data[maps[1][0]])))
 
-    def creates_knowledge_graph_edges(self):
+    def creates_knowledge_graph_edges(self) -> Dict[str, Dict[str, Union[str, List[List[str]]]]]:
         """Generates edge lists for each edge type in an input dictionary. In order to generate the edge list,
         the function performs six steps: (1) read in data; (2) apply filtering and evidence criteria; (3) reduce data
         to specific columns, remove duplicates, and ensure proper formatting of column data; (4) update node column
@@ -386,7 +381,6 @@ class EdgeList(object):
             # STEP 6: map identifiers
             print('*** Performing Identifier Mapping ***')
             mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'], edge_data)
-
             self.source_info[edge_type]['edge_list'] = mapped_data
 
             # print edge statistics

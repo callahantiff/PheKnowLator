@@ -13,10 +13,10 @@ from abc import ABCMeta, abstractmethod
 from rdflib import BNode, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import RDF, RDFS
 from tqdm import tqdm
-from typing import Callable
+from typing import Callable, Dict, List, Optional
 
 from scripts.python.knowledge_graph_metadata import Metadata
-# from scripts.python.knowledge_graph_metadata import OWLNETS
+from scripts.python.knowledge_graph_metadata import OWLNETS
 
 
 class KGBuilder(object):
@@ -38,7 +38,7 @@ class KGBuilder(object):
         write_location: A file path used for writing knowledge graph data.
         edge_data: A path to a file that references a dictionary of edge list tuples used to build the knowledge graph.
         node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
-        relations_data: A filepath to a directory called 'relations_data' containing the relations data.
+        inverse_relations: A filepath to a directory called 'relations_data' containing the relations data.
         remove_owl_semantics: A string indicating whether edges containing owl semantics should be removed.
         edge_dict: A nested dictionary storing the master edge list for building the knowledge graph. Where the outer
             key is an edge-type (e.g. gene-cell) and each inner key contains a dictionary storing details from the
@@ -77,15 +77,27 @@ class KGBuilder(object):
              {'http://purl.obolibrary.org/obo/CHEBI_24505':
               'https://github.com/callahantiff/PheKnowLator/obo/ext/d1552fc9-a91b-414a-86cb-885f8c4822e7'}
         graph: An rdflib graph object which stores the knowledge graph.
+
+    Raises:
+        ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
+        ValueError: If write_location does not contain a valid filepath.
+        ValueError: If edge_data does not contain a valid filepath.
+        TypeError: If the edge_data contains no data.
+        ValueError: If relations_data does not contain "yes" or "no".
+        TypeError: If the relations_data directory does not contain any data files.
+        ValueError: If node_data does not contain "yes" or "no".
+        TypeError: If the node_data directory does not contain any data files.
+        ValueError: If remove_owl_semantics does not contain "yes" or "no".
     """
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, kg_version: str, write_location: str, edge_data: str = None, node_data: dict = None,
-                 relations_data: dict = None, remove_owl_semantics: str = None):
+    def __init__(self, kg_version: str, write_location: str, edge_data: Optional[str] = None,
+                 node_data: Optional[str] = None, inverse_relations: Optional[str] = None,
+                 remove_owl_semantics: Optional[str] = None) -> None:
 
         # set build type
-        self.build = self.gets_build_type().lower().split()[0]
+        self.build: str = self.gets_build_type().lower().split()[0]
 
         # set build version
         if kg_version is None:
@@ -103,28 +115,28 @@ class KGBuilder(object):
         if edge_data is None:
             raise ValueError('ERROR: edge_data must not contain a valid filepath')
         elif os.stat(edge_data).st_size == 0:
-            raise Exception('FILE ERROR: input file: {} is empty'.format(edge_data))
+            raise TypeError('FILE ERROR: input file: {} is empty'.format(edge_data))
         else:
-            self.edge_dict = json.load(open(edge_data, 'r'))
+            self.edge_dict: Dict[str, List[List[str, str]]] = json.load(open(edge_data, 'r'))
 
         # set file names for writing data
         header = '/PheKnowLator_' + self.build + '_'
-        self.merged_ont_kg = '/PheKnowLator_MergedOntologies.owl'
+        self.merged_ont_kg: str = '/PheKnowLator_MergedOntologies.owl'
 
         # read in relations data
-        if relations_data.lower() not in ['yes', 'no']:
+        if inverse_relations.lower() not in ['yes', 'no']:
             raise ValueError('ERROR: relations_data must be "no" or "yes"')
         else:
-            if relations_data.lower() == 'yes':
+            if inverse_relations.lower() == 'yes':
                 if len(glob.glob('*/relations_data/*.txt', recursive=True)) == 0:
-                    raise Exception('ERROR: the relations_data directory is empty')
+                    raise TypeError('ERROR: the relations_data directory is empty')
                 else:
-                    self.relations_data = glob.glob('*/relations_data/*.txt', recursive=True)
-                    self.relations_dict = dict()
-                    self.inverse_relations_dict = dict()
+                    self.inverse_relations = glob.glob('*/relations_data/*.txt', recursive=True)
+                    self.relations_dict: Dict[str, Dict[str, str]] = dict()
+                    self.inverse_relations_dict: Dict[str, Dict[str, str]] = dict()
                     kg_rel = '/inverse_relations' + header + 'InverseRelations_'
             else:
-                self.relations_data, self.relations_dict, self.inverse_relations_dict = None, None, None
+                self.inverse_relations, self.relations_dict, self.inverse_relations_dict = None, None, None
                 kg_rel = '/relations_only' + header
 
         # read in node metadata
@@ -133,10 +145,10 @@ class KGBuilder(object):
         else:
             if node_data.lower() == 'yes':
                 if len(glob.glob('*/node_data/*.txt', recursive=True)) == 0:
-                    raise Exception('ERROR: the node_data directory is empty')
+                    raise TypeError('ERROR: the node_data directory is empty')
                 else:
                     self.node_data = glob.glob('*/node_data/*.txt', recursive=True)
-                    self.node_dict = dict()
+                    self.node_dict: Dict[str, Dict[str, str]] = dict()
 
                     if self.build == 'post-closure':
                         kg_node = kg_rel + 'Closed_'
@@ -155,20 +167,20 @@ class KGBuilder(object):
             raise ValueError('ERROR: remove_owl_semantics must be "no" or "yes"')
         else:
             if remove_owl_semantics.lower() == 'yes' and self.build != 'partial':
-                self.full_kg = kg_node + 'NoOWLSemantics_KG.owl'
+                self.full_kg: str = kg_node + 'NoOWLSemantics_KG.owl'
                 self.remove_owl_semantics = 'yes'
             else:
                 self.full_kg = kg_node + 'OWLSemantics_KG.owl'
                 self.remove_owl_semantics = None
 
         # read in ontologies data
-        self.ontologies: list = glob.glob('*/ontologies/*.owl')
+        self.ontologies: List[str] = glob.glob('*/ontologies/*.owl')
 
         # set knowledge graph build files
-        self.kg_uuid_map: dict = dict()
+        self.kg_uuid_map: Dict[str, str] = dict()
         self.graph: Graph = Graph()
 
-    def sets_up_environment(self):
+    def sets_up_environment(self) -> None:
         """Sets-up the environment by checking for the existence of the following directories and if either do not
         exist, it creates them:
             - 'knowledge_graphs' directory in the `resources` directory
@@ -184,7 +196,7 @@ class KGBuilder(object):
         if self.write_location not in glob.glob('./resources/**'): os.mkdir(self.write_location)
 
         if self.build in ['full', 'partial']:
-            if isinstance(self.relations_data, list):
+            if isinstance(self.inverse_relations, list):
                 if self.write_location + '/inverse_relations' not in glob.glob('./resources/**/**'):
                     os.mkdir(self.write_location + '/inverse_relations')
             else:
@@ -193,7 +205,7 @@ class KGBuilder(object):
 
         return None
 
-    def reverse_relation_processor(self):
+    def reverse_relation_processor(self) -> None:
         """Reads in data to a Pandas DataFrame from a user-provided filepath. The pandas DataFrame is then converted
         to a specific dictionary depending on whether it contains inverse relation data or relation data identifiers
         and labels. This distinction is derived from the filename (e.g. resources/relations_data/INVERSE_RELATIONS.txt).
@@ -202,8 +214,8 @@ class KGBuilder(object):
             None.
         """
 
-        if self.relations_data:
-            for data in self.relations_data:
+        if self.inverse_relations:
+            for data in self.inverse_relations:
                 df = pandas.read_csv(data, header=0, delimiter='\t')
                 df.drop_duplicates(keep='first', inplace=True)
                 df.set_index(list(df)[0], inplace=True)
@@ -213,7 +225,9 @@ class KGBuilder(object):
                 else:
                     self.relations_dict = df.to_dict('index')
 
-    def merges_ontologies(self):
+        return None
+
+    def merges_ontologies(self) -> None:
         """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into
         a master merged ontology file and saved locally to the provided file path via the merged_ontology attribute.
         The function assumes that the file is written to the directory specified by the write_location attribute.
@@ -224,11 +238,9 @@ class KGBuilder(object):
 
         if not self.ontologies:
             self.graph.parse(self.write_location + self.merged_ont_kg)
-
             edges = len(set(list(self.graph)))
             nodes = len(set([str(node) for edge in list(self.graph) for node in edge[0::2]]))
             print('\nThe merged ontology KG contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
-
         else:
             if self.write_location + self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
                 ont1, ont2 = self.ontologies.pop(), self.write_location + self.merged_ont_kg
@@ -242,13 +254,12 @@ class KGBuilder(object):
                 subprocess.check_call(['./resources/lib/owltools', str(ont1), str(ont2),
                                        '--merge-support-ontologies',
                                        '-o', self.write_location + self.merged_ont_kg])
-
             except subprocess.CalledProcessError as error:
                 print(error.output)
 
             return self.merges_ontologies()
 
-    def checks_for_inverse_relations(self, relation: str, edge_list: list):
+    def checks_for_inverse_relations(self, relation: str, edge_list: List[List[str, str]]) -> str:
         """Checks a relation to determine whether or not edges for an inverse relation should be created and added to
         the knowledge graph.
 
@@ -265,7 +276,7 @@ class KGBuilder(object):
                 - None, assuming the prior listed conditions are not met
         """
 
-        if self.relations_data:
+        if self.inverse_relations:
             if relation in self.inverse_relations_dict.keys():
                 return self.inverse_relations_dict[relation]['Inverse_Relation']
             elif relation in self.relations_dict.keys() and 'interact' in self.relations_dict[relation]['Label']:
@@ -274,7 +285,8 @@ class KGBuilder(object):
             else:
                 return None
 
-    def creates_instance_instance_data_edges(self, edge_type: str, creates_node_metadata_func: Callable):
+    def creates_instance_instance_data_edges(self, edge_type: str, creates_node_metadata_func: Callable) ->\
+            List[str, str]:
         """Adds edges that contain nodes that are both of type instance to a knowledge graph. The typing of each node
         in an edge is specified in the resource_info.txt document. For each edge, the function will add metadata for
         nodes that are part of the edge and of type instance. The function will also check whether or not edges for
@@ -297,7 +309,7 @@ class KGBuilder(object):
         obo = Namespace('http://purl.obolibrary.org/obo/')
 
         # check for inverse relations
-        if self.relations_data:
+        if self.inverse_relations:
             inverse_relation = self.checks_for_inverse_relations(self.edge_dict[edge_type]['edge_relation'],
                                                                  self.edge_dict[edge_type]['edge_list'])
         else:
@@ -340,7 +352,7 @@ class KGBuilder(object):
 
         return edge_counts
 
-    def creates_class_class_data_edges(self, edge_type: str):
+    def creates_class_class_data_edges(self, edge_type: str) -> List[str, str]:
         """Adds edges that contain nodes that are both of type class to a knowledge graph. The typing of each node
         in an edge is specified in the resource_info.txt document. While adding each edge, the function will check
         whether or not edges for inverse relations should also be
@@ -362,7 +374,7 @@ class KGBuilder(object):
         obo = Namespace('http://purl.obolibrary.org/obo/')
 
         # check for inverse relations
-        if self.relations_data:
+        if self.inverse_relations:
             inverse_relation = self.checks_for_inverse_relations(self.edge_dict[edge_type]['edge_relation'],
                                                                  self.edge_dict[edge_type]['edge_list'])
         else:
@@ -384,7 +396,7 @@ class KGBuilder(object):
 
         return edge_counts
 
-    def creates_instance_class_data_edges(self, edge_type: str, creates_node_metadata_func: Callable):
+    def creates_instance_class_data_edges(self, edge_type: str, creates_node_metadata_func: Callable) -> List[str, str]:
         """Adds edges that contain one node of type instance and one node of type class to a knowledge graph. The
         typing of each node in an edge is specified in the resource_info.txt document. While adding each edge,
         the function will add metadata for nodes that are part of the edge and of type instance. The function will
@@ -414,7 +426,7 @@ class KGBuilder(object):
         inst = self.edge_dict[edge_type]['data_type'].split('-').index('instance')
 
         # check for inverse relation
-        if self.relations_data:
+        if self.inverse_relations:
             inverse_relation = self.checks_for_inverse_relations(self.edge_dict[edge_type]['edge_relation'],
                                                                  self.edge_dict[edge_type]['edge_list'])
         else:
@@ -474,7 +486,7 @@ class KGBuilder(object):
         return edge_counts
 
     def creates_knowledge_graph_edges(self, creates_node_metadata_func: Callable, ontology_annotator_func: Callable,
-                                      ontology_file_formatter_func: Callable):
+                                      ontology_file_formatter_func: Callable) -> None:
         """Takes a nested dictionary of edge lists and adds them to an existing knowledge graph. The function
         performs different tasks in order to add the edges according to whether or not the edge is of type
         instance-instance, class-class, class-instance/instance-class.
@@ -489,8 +501,9 @@ class KGBuilder(object):
         Args:
             creates_node_metadata_func: A function that adds metadata (i.e. labels, descriptions, and synonyms) for
                 class-instance and instance-instance edges.
-            ontology_annotator_func:
-            ontology_file_formatter_func:
+            ontology_annotator_func: A function that adds annotations to an existing ontology.
+            ontology_file_formatter_func: A function that utilizes the OWLTools API to convert the format of a saved
+                knowledge graph file to match the OWL API format.
 
         Returns:
             None.
@@ -500,13 +513,13 @@ class KGBuilder(object):
         for edge_type in self.edge_dict.keys():
             if self.edge_dict[edge_type]['data_type'] == 'instance-instance':
                 print('\n*** EDGE: {} - Creating Instance-Instance Edges ***'.format(edge_type))
-                edge_results = self.creates_instance_instance_data_edges(creates_node_metadata_func, edge_type)
+                edge_results = self.creates_instance_instance_data_edges(edge_type, creates_node_metadata_func)
             elif self.edge_dict[edge_type]['data_type'] == 'class-class':
                 print('\n*** EDGE: {} - Creating Class-Class Edges ***'.format(edge_type))
                 edge_results = self.creates_class_class_data_edges(edge_type)
             else:
                 print('\n*** EDGE: {} - Creating Class-Instances Edges ***'.format(edge_type))
-                edge_results = self.creates_instance_class_data_edges(creates_node_metadata_func, edge_type)
+                edge_results = self.creates_instance_class_data_edges(edge_type, creates_node_metadata_func)
 
             # print edge-type statistics
             print('Unique Edges: {}'.format(len([list(x) for x in set([tuple(y) for y in edge_results])])))
@@ -537,7 +550,7 @@ class KGBuilder(object):
 
         return None
 
-    def construct_knowledge_graph(self):
+    def construct_knowledge_graph(self) -> None:
         """Builds a knowledge graph. The knowledge graph build is completed differently depending on the build type
         that the user requested. The build types that a user can request includes: "full", "partial", or "post-closure".
 
@@ -557,7 +570,7 @@ class KGBuilder(object):
         pass
 
     @abstractmethod
-    def gets_build_type(self):
+    def gets_build_type(self) -> None:
         """"A string representing the type of knowledge graph build."""
 
         pass
@@ -565,12 +578,12 @@ class KGBuilder(object):
 
 class PartialBuild(KGBuilder):
 
-    def gets_build_type(self):
+    def gets_build_type(self) -> str:
         """"A string representing the type of knowledge graph build."""
 
         return 'Partial Build'
 
-    def construct_knowledge_graph(self):
+    def construct_knowledge_graph(self) -> None:
         """Builds a partial knowledge graph. A partial knowledge graph build is recommended when one intends to build a
         knowledge graph and intends to run a reasoner over it.
 
@@ -585,7 +598,7 @@ class PartialBuild(KGBuilder):
             None.
 
         Raises:
-            An exception is raised if the ontologies directory is empty.
+            TypeError: If the ontologies directory is empty.
         """
 
         print('\n### Starting Knowledge Graph Build: PARTIAL ###')
@@ -602,7 +615,7 @@ class PartialBuild(KGBuilder):
 
         # load and process node metadata
         kg_metadata = Metadata(self.kg_version,
-                               self.gets_build_type,
+                               self.gets_build_type(),
                                self.write_location,
                                self.full_kg,
                                self.node_data,
@@ -621,7 +634,7 @@ class PartialBuild(KGBuilder):
             print('\nThe merged ontology contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
         else:
             if len(self.ontologies) == 0:
-                raise Exception('ERROR: the ontologies directory: {} is empty'.format(
+                raise TypeError('ERROR: the ontologies directory: {} is empty'.format(
                     self.write_location + '/' + self.ontologies))
             else:
                 print('*** Merging Ontology Data ***')
@@ -646,19 +659,19 @@ class PartialBuild(KGBuilder):
 
         # STEP 4: REMOVE ANNOTATION ASSERTIONS
         print('*** Removing Annotation Assertions ***')
-        kg_metadata.removes_annotation_assertions(self.graph)
+        kg_metadata.removes_annotation_assertions()
 
         return None
 
 
 class PostClosureBuild(KGBuilder):
 
-    def gets_build_type(self):
+    def gets_build_type(self) -> str:
         """"A string representing the type of knowledge graph being built."""
 
         return 'Post-Closure Build'
 
-    def construct_knowledge_graph(self):
+    def construct_knowledge_graph(self) -> None:
         """Builds a post-closure knowledge graph. A post-closure knowledge graph build is recommended when one has
         previously performed a "partial" knowledge graph build and then ran a reasoner over the partially built
         knowledge graph. This build type inputs the closed partially built knowledge graph and completes the build
@@ -675,10 +688,12 @@ class PostClosureBuild(KGBuilder):
             None.
 
         Raises:
-            - An error is returned if the class-instance UUID Map file type is not json.
-            - An error is raised if the class-instance UUID Map file is empty.
-            - An error is returned if the knowledge graph file type is not owl.
-            - An error is raised if the knowledge graph file is empty.
+            TypeError: If the class-instance UUID Map file type is not json.
+            TypeError: If the class-instance UUID Map file is empty.
+            TypeError: If the knowledge graph file type is not owl.
+            TypeError: If the knowledge graph file is empty.
+            TypeError: If the annotation assertion file type is not owl.
+            TypeError: If the annotation assertion file is empty.
         """
 
         print('\n### Starting Knowledge Graph Build: post-closure ###')
@@ -695,7 +710,7 @@ class PostClosureBuild(KGBuilder):
 
         # load and process node metadata
         kg_metadata = Metadata(self.kg_version,
-                               self.gets_build_type,
+                               self.gets_build_type(),
                                self.write_location,
                                self.full_kg,
                                self.node_data,
@@ -704,15 +719,15 @@ class PostClosureBuild(KGBuilder):
         kg_metadata.node_metadata_processor()
 
         # STEP 1: LOAD CLOSED KNOWLEDGE GRAPH
-        uuid_location = input('Provide the relative filepath to the class-instance UUID Map: ')
-        closed_kg_location = input('Provide the relative filepath to the closed knowledge graph: ')
-        annotation_assertions = input('Provide the relative filepath to the annotation assertions edge list: ')
+        uuid_location = input('Provide the filepath to the class-instance UUID Map: ')
+        closed_kg_location = input('Provide the filepath to the closed knowledge graph: ')
+        annotation_assertions = input('Provide the filepath to the knowledge graph with annotation assertions: ')
 
         # check uuid input file
         if '.json' not in uuid_location:
-            raise Exception('ERROR: The provided file is not type .json')
+            raise TypeError('ERROR: The provided file is not type .json')
         elif os.stat(uuid_location).st_size == 0:
-            raise Exception('ERROR: input file: {} is empty'.format(uuid_location))
+            raise TypeError('ERROR: input file: {} is empty'.format(uuid_location))
         else:
             # load closed knowledge graph
             print('*** Loading Knowledge Graph Class-Instance UUID Map ***')
@@ -723,9 +738,9 @@ class PostClosureBuild(KGBuilder):
 
         # check input owl file
         if '.owl' not in closed_kg_location:
-            raise Exception('FILE TYPE ERROR: The provided file is not type .owl')
+            raise TypeError('FILE TYPE ERROR: The provided file is not type .owl')
         elif os.stat(closed_kg_location).st_size == 0:
-            raise Exception('ERROR: input file: {} is empty'.format(closed_kg_location))
+            raise TypeError('ERROR: input file: {} is empty'.format(closed_kg_location))
         else:
             # load closed knowledge graph
             print('*** Loading Closed Knowledge Graph ***')
@@ -738,11 +753,11 @@ class PostClosureBuild(KGBuilder):
             print('\nThe closed ontology contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
         # STEP 2: ADD NODE METADATA
-        # check annotation assertion edges input file
+        # check annotation assertions input file
         if '.txt' not in annotation_assertions:
-            raise Exception('ERROR: The provided file is not type .txt')
+            raise TypeError('ERROR: The provided file is not type .owl')
         elif os.stat(annotation_assertions).st_size == 0:
-            raise Exception('ERROR: input file: {} is empty'.format(annotation_assertions))
+            raise TypeError('ERROR: input file: {} is empty'.format(annotation_assertions))
         else:
             # load closed knowledge graph
             print('*** Loading Annotation Assertions Edge List ***')
@@ -753,12 +768,12 @@ class PostClosureBuild(KGBuilder):
         self.graph = kg_metadata.adds_node_metadata(self.graph, self.edge_dict)
 
         # STEP 3: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
-        # if self.remove_owl_semantics:
-        #     print('*** Removing Metadata Nodes ***')
-        #     cleaned_kg = self.removes_edges_with_owl_semantics()
-        # else:
-        #     cleaned_kg = self.graph
-        cleaned_kg = self.graph
+        if self.remove_owl_semantics:
+            print('*** Removing Metadata Nodes ***')
+            owl_semantics = OWLNETS(self.graph, self.kg_uuid_map)
+            cleaned_kg = owl_semantics.removes_edges_with_owl_semantics()
+        else:
+            cleaned_kg = self.graph
 
         # STEP 4: WRITE OUT KNOWLEDGE GRAPH EDGE LISTS
         print('*** Writing Knowledge Graph Edge Lists ***')
@@ -781,12 +796,12 @@ class PostClosureBuild(KGBuilder):
 
 class FullBuild(KGBuilder):
 
-    def gets_build_type(self):
+    def gets_build_type(self) -> str:
         """"A string representing the type of knowledge graph being built."""
 
         return 'Full Build'
 
-    def construct_knowledge_graph(self):
+    def construct_knowledge_graph(self) -> None:
         """Builds a full knowledge graph. Please note that the process to build this version of the knowledge graph
         does not include running a reasoner.
 
@@ -803,7 +818,7 @@ class FullBuild(KGBuilder):
             None.
 
         Raises:
-            - An error is raised if the ontology directory is empty.
+            TypeError: If the ontology directory is empty.
         """
 
         print('\n### Starting Knowledge Graph Build: FULL ###')
@@ -820,7 +835,7 @@ class FullBuild(KGBuilder):
 
         # load and process node metadata
         kg_metadata = Metadata(self.kg_version,
-                               self.gets_build_type,
+                               self.gets_build_type(),
                                self.write_location,
                                self.full_kg,
                                self.node_data,
@@ -839,7 +854,7 @@ class FullBuild(KGBuilder):
             print('\nThe merged ontology contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
         else:
             if len(self.ontologies) == 0:
-                raise Exception('ERROR: the ontologies directory: {} is empty'.format(
+                raise TypeError('ERROR: the ontologies directory: {} is empty'.format(
                     self.write_location + '/' + self.ontologies))
             else:
                 print('*** Merging Ontology Data ***')
@@ -852,12 +867,12 @@ class FullBuild(KGBuilder):
                                            kg_metadata.ontology_file_formatter)
 
         # STEP 4: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
-        # if self.remove_owl_semantics:
-        #     print('*** Removing Metadata Nodes ***')
-        #     cleaned_kg = self.removes_edges_with_owl_semantics()
-        # else:
-        #     cleaned_kg = self.graph
-        cleaned_kg = self.graph
+        if self.remove_owl_semantics:
+            print('*** Removing Metadata Nodes ***')
+            owl_semantics = OWLNETS(self.graph, self.kg_uuid_map)
+            cleaned_kg = owl_semantics.removes_edges_with_owl_semantics()
+        else:
+            cleaned_kg = self.graph
 
         # STEP 5: WRITE OUT KNOWLEDGE GRAPH EDGE LISTS
         print('*** Writing Knowledge Graph Edge Lists ***')
@@ -870,6 +885,6 @@ class FullBuild(KGBuilder):
         # output metadata
         if self.node_dict:
             print('*** Writing Knowledge Graph Labels, Definitions/Descriptions, and Synonyms ***')
-            kg_metadata.output_knowledge_graph_metadata(cleaned_graph)
+            kg_metadata.output_knowledge_graph_metadata(cleaned_kg)
 
         return None
