@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# import needed libraries
+from typing import Dict, Tuple
+
 
 # TODO: Need to add checks to make sure that user input is correct
 
@@ -16,14 +19,13 @@ class DocumentationMaker(object):
     Attributes:
         edge_count: an integer specifying the number of edges to create.
         write_location: A string containing a filename.
-
     """
 
-    def __init__(self, edge_count: int, write_location: str = './resources/'):
+    def __init__(self, edge_count: int, write_location: str = './resources/') -> None:
         self.edge_count = edge_count
         self.write_location = write_location
 
-    def information_getter(self):
+    def information_getter(self) -> Tuple[str, str, str]:
         """Creates three dictionaries from information provided by a user. The three dictionaries store information
         for each of the three required documents.
 
@@ -32,7 +34,6 @@ class DocumentationMaker(object):
                 1. Information needed to create the resource_info.txt file
                 2. Information needed to create the class_source_list.txt file
                 3. Information needed to create the instance_source_list.txt file
-
         """
 
         # store input
@@ -104,7 +105,7 @@ class DocumentationMaker(object):
 
         return edge_data, class_data, instance_data
 
-    def writes_out_document(self, data: dict, delimiter: str, filename: str):
+    def writes_out_document(self, data: Dict[str, str], delimiter: str, filename: str) -> None:
         """Function takes a dictionary of file information and writes it to a user-provided location.
 
         Args:
@@ -114,13 +115,11 @@ class DocumentationMaker(object):
 
         Returns:
             None
-
         """
 
         with open(self.write_location + filename, 'w') as outfile:
             for edge, values in data.items():
                 outfile.write(edge + delimiter + values + '\n')
-
         outfile.close()
 
         return None
