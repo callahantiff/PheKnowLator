@@ -31,8 +31,21 @@ class OWLNETS(object):
     def __init__(self, knowledge_graph: rdflib.Graph, nx_graph: networkx.MultiDiGraph, uuid_class_map: Dict[str, str],
                  write_location: str, full_kg: str) -> None:
 
-        self.knowledge_graph = knowledge_graph
-        self.nx_multidigraph = nx_graph
+        # verify input graphs
+        if not isinstance(knowledge_graph, rdflib.Graph):
+            raise TypeError('knowledge_graph must be an RDFLib Graph Object.')
+        elif len(knowledge_graph) == 0:
+            raise ValueError('knowledge_graph is empty.')
+        else:
+            self.knowledge_graph = knowledge_graph
+
+        if not isinstance(nx_graph, networkx.MultiDiGraph):
+            raise TypeError('nx_graph must be a Networkx MultiDiGraph.')
+        elif len(nx_graph) == 0:
+            raise ValueError('nx_graph is empty.')
+        else:
+            self.nx_multidigraph = nx_graph
+
         self.uuid_map = uuid_class_map
         self.write_location = write_location
         self.full_kg = full_kg
