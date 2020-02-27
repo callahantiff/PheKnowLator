@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # import needed libraries
+import networkx
 import pickle
 import rdflib
 
-from networkx import networkx
-from rdflib import Graph
+from collections import Counter
 from tqdm import tqdm
 from typing import Dict, Mapping, List, Optional, Set, Tuple, Union
 
@@ -15,10 +15,9 @@ class OWLNETS(object):
     """Class removes OWL semantics from an ontology or knowledge graph using the OWL-NETS method.
 
     OWL Semantics are nodes and edges in the graph that are needed in order to create a rich semantic representation
-    and to do things like run reasoners. Many of these nodes and edges  and The first step of this class is to convert
-    an input rdflib graph into a networkx multidigraph object. Once the knowledge graph has been converted, it is
-    queried to obtain all owl:Class type nodes. Using the list of classes, the multidigraph is queried in order to
-    identify
+    and to do things like run reasoners. Many of these nodes and edges are not clinically or biologically meaningful.
+    This class is designed to decode all owl-encoded classes and return a knowledge graph that is semantically rich and
+    clinically and biologically meaningful.
 
     Attributes:
         knowledge_graph: An RDFLib object.
@@ -29,11 +28,11 @@ class OWLNETS(object):
         class_list: A list of owl classes from the input knowledge graph.
     """
 
-    def __init__(self, knowledge_graph: rdflib.Graph, networkx_graph: networkx.MultiDiGraph,
-                 uuid_class_map: Dict[str, str], write_location: str, full_kg: str) -> None:
+    def __init__(self, knowledge_graph: rdflib.Graph, nx_graph: networkx.MultiDiGraph, uuid_class_map: Dict[str, str],
+                 write_location: str, full_kg: str) -> None:
 
         self.knowledge_graph = knowledge_graph
-        self.nx_multidigraph = networkx_graph
+        self.nx_multidigraph = nx_graph
         self.uuid_map = uuid_class_map
         self.write_location = write_location
         self.full_kg = full_kg
@@ -320,7 +319,7 @@ class OWLNETS(object):
                 saved locally.
         """
 
-        cleaned_class_dict, complement_constructors, cardinality = dict(), set(), set()
+        cleaned_class_dict, complement_constructors, cardinality, misc = dict(), set(), set(), []
 
         for node in tqdm(self.class_list):
             node_information = creates_edge_dictionary(node)
@@ -356,8 +355,7 @@ class OWLNETS(object):
                             edges = results[1]
                         else:
                             # catch all other axioms -- only catching owl:onProperty with owl:oneOf
-                            # print('STOP!!')
-                            # print(node)
+                            misc += [x for x in edges.keys() if x not in ['type', 'first', 'rest', 'onProperty']]
                             edges = None
 
                 # add results to dictionary
@@ -371,14 +369,14 @@ class OWLNETS(object):
         # delete networkx graph object from memory
         del nx_multidigraph
 
-        print('\nFINISHED: Completed Decoding Owl-Encoded Classes')
-        print('Decoded {} owl-encoded classes\n'.format(len(cleaned_class_dict.keys())))
-        print('{} owl class elements containing cardinality were ignored\n'.format(len(cardinality)))
+        print('\nFINISHED: Decoded {} owl-encoded classes. Note the following:'.format(len(cleaned_class_dict.keys())))
+        print('{} owl class elements containing cardinality were ignored'.format(len(cardinality)))
+        print('The following {} misc owl class elements were ignored: {}'.format(len(misc), list(Counter(misc))))
         print('{} owl classes constructed using owl:complementOf were removed\n'.format(len(complement_constructors)))
 
         return cleaned_class_dict
 
-    def adds_cleaned_classes_to_graph(self, graph: Graph) -> Graph:
+    def adds_cleaned_classes_to_graph(self, graph: rdflib.Graph) -> rdflib.Graph:
         """Runs the OWL-NETS procedure by first finding all owl:Class nodes in the input knowledge_graph and then
         decodes each class, returning a dictionary containing a set of decoded triples for each class. Each new
         triple is then added to a new rdflib.graph.
@@ -403,7 +401,7 @@ class OWLNETS(object):
 
         return graph
 
-    def removes_edges_with_owl_semantics(self) -> Graph:
+    def removes_edges_with_owl_semantics(self) -> rdflib.Graph:
         """Filters the knowledge graph with the goal of removing all edges that contain entities that are needed to
         support owl semantics, but are not biologically meaningful. For example:
 
@@ -441,11 +439,10 @@ class OWLNETS(object):
                     else:
                         update_graph.add((rdflib.URIRef(uuid_map[str(edge[0])]), edge[1], edge[2]))
 
-                # keep only those edges with nodes that do not include '#' and predicates without 'ns#type'
+                # keep edges with nodes that do not include '#' and predicates without 'ns#type'
                 elif not any(str(x) for x in edge[0::2] if '#' in str(x)) and 'ns#type' not in str(edge[1]):
                     update_graph.add(edge)
                 else:
-                    print(str(edge[0]) + '\t' + str(edge[1]) + '\t' + str(edge[2]))
                     pass
 
         # add cleaned classes to graph
