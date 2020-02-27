@@ -4,6 +4,7 @@
 # import needed libraries
 import glob
 import json
+import networkx
 import os
 import pandas
 import subprocess
@@ -77,6 +78,7 @@ class KGBuilder(object):
              {'http://purl.obolibrary.org/obo/CHEBI_24505':
               'https://github.com/callahantiff/PheKnowLator/obo/ext/d1552fc9-a91b-414a-86cb-885f8c4822e7'}
         graph: An rdflib graph object which stores the knowledge graph.
+        nx_mgd: A networkx MultiDiGraph object which is only created if the user requests owl semantics be removed.
 
     Raises:
         ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
@@ -167,6 +169,7 @@ class KGBuilder(object):
         self.ontologies: List[str] = glob.glob('*/ontologies/*.owl')
         self.kg_uuid_map: Dict[str, str] = dict()
         self.graph: Graph = Graph()
+        if self.decode_owl_semantics == 'yes': self.nx_mgd: networkx.MultiDiGraph = networkx.MultiDiGraph()
 
     def sets_up_environment(self) -> None:
         """Sets-up the environment by checking for the existence of the following directories and if either do not
@@ -310,26 +313,34 @@ class KGBuilder(object):
                         self.graph = creates_node_metadata_func(edge[1], edge_type, obj_uri, self.graph)
 
                         # add primary edge
-                        self.graph.add((URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0])),
-                                        URIRef(str(obo + self.edge_dict[edge_type]['edge_relation'])),
-                                        URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))))
+                        s = URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0]))
+                        p = URIRef(str(obo + self.edge_dict[edge_type]['edge_relation']))
+                        o = URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))
+                        self.graph.add((s, p, o))
+                        if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                         if inverse_relation:
-                            self.graph.add((URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1])),
-                                            URIRef(str(obo + inverse_relation)),
-                                            URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0]))))
+                            s = URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))
+                            p = URIRef(str(obo + inverse_relation))
+                            o = URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0]))
+                            self.graph.add((s, p, o))
+                            if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                         edge_counts.append(edge)
 
                 else:  # when no node metadata has been provided
-                    self.graph.add((URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0])),
-                                    URIRef(str(obo + self.edge_dict[edge_type]['edge_relation'])),
-                                    URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))))
+                    s = URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0]))
+                    p = URIRef(str(obo + self.edge_dict[edge_type]['edge_relation']))
+                    o = URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))
+                    self.graph.add((s, p, o))
+                    if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                     if inverse_relation:
-                        self.graph.add((URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1])),
-                                        URIRef(str(obo + inverse_relation)),
-                                        URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0]))))
+                        s = URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))
+                        p = URIRef(str(obo + inverse_relation))
+                        o = URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0]))
+                        self.graph.add((s, p, o))
+                        if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                     edge_counts.append(edge)
 
@@ -365,15 +376,19 @@ class KGBuilder(object):
 
         for edge in tqdm(self.edge_dict[edge_type]['edge_list']):
             # add primary edge
-            self.graph.add((URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0])),
-                            URIRef(str(obo + self.edge_dict[edge_type]['edge_relation'])),
-                            URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))))
+            s = URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0]))
+            p = URIRef(str(obo + self.edge_dict[edge_type]['edge_relation']))
+            o = URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))
+            self.graph.add((s, p, o))
+            if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
             # add inverse relation
             if inverse_relation:
-                self.graph.add((URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1])),
-                                URIRef(str(obo + inverse_relation)),
-                                URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0]))))
+                s = URIRef(str(self.edge_dict[edge_type]['uri'][1] + edge[1]))
+                p = URIRef(str(obo + inverse_relation))
+                o = URIRef(str(self.edge_dict[edge_type]['uri'][0] + edge[0]))
+                self.graph.add((s, p, o))
+                if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
             edge_counts.append(edge)
 
@@ -430,46 +445,59 @@ class KGBuilder(object):
                     self.graph = creates_node_metadata_func(edge[inst], edge_type, node_uri, self.graph)
 
                     # add instance of class
-                    self.graph.add((URIRef(ont_class_iri),
-                                    RDF.type,
-                                    URIRef(str(self.edge_dict[edge_type]['uri'][cls] + edge[cls]))))
+                    s = URIRef(ont_class_iri)
+                    p = RDF.type
+                    o = URIRef(str(self.edge_dict[edge_type]['uri'][cls] + edge[cls]))
+                    self.graph.add((s, p, o))
+                    if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                     # add edge between instance of class and instance
-                    self.graph.add((URIRef(ont_class_iri),
-                                    URIRef(str(obo + self.edge_dict[edge_type]['edge_relation'])),
-                                    URIRef(str(self.edge_dict[edge_type]['uri'][inst] + str(edge[inst])))))
+                    s = URIRef(ont_class_iri)
+                    p = URIRef(str(obo + self.edge_dict[edge_type]['edge_relation']))
+                    o = URIRef(str(self.edge_dict[edge_type]['uri'][inst] + str(edge[inst])))
+                    self.graph.add((s, p, o))
+                    if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                     # add inverse relations
                     if inverse_relation:
-                        self.graph.add((URIRef(str(self.edge_dict[edge_type]['uri'][inst] + str(edge[inst]))),
-                                        URIRef(str(obo + inverse_relation)),
-                                        URIRef(ont_class_iri)))
+                        s = URIRef(str(self.edge_dict[edge_type]['uri'][inst] + str(edge[inst])))
+                        p = URIRef(str(obo + inverse_relation))
+                        o = URIRef(ont_class_iri)
+                        self.graph.add((s, p, o))
+
+                        if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                     edge_counts.append(edge)
 
             else:  # when no node metadata has been provided
                 # add instance of class
-                self.graph.add((URIRef(ont_class_iri),
-                                RDF.type,
-                                URIRef(str(self.edge_dict[edge_type]['uri'][cls] + edge[cls]))))
+                s = URIRef(ont_class_iri)
+                p = RDF.type
+                o = URIRef(str(self.edge_dict[edge_type]['uri'][cls] + edge[cls]))
+                self.graph.add((s, p, o))
+                if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                 # add relation between instance of class and instance
-                self.graph.add((URIRef(ont_class_iri),
-                                URIRef(str(obo + self.edge_dict[edge_type]['edge_relation'])),
-                                URIRef(str(self.edge_dict[edge_type]['uri'][inst] + str(edge[inst])))))
+                s = URIRef(ont_class_iri)
+                p = URIRef(str(obo + self.edge_dict[edge_type]['edge_relation']))
+                o = URIRef(str(self.edge_dict[edge_type]['uri'][inst] + str(edge[inst])))
+                self.graph.add((s, p, o))
+                if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                 # add inverse relations
                 if inverse_relation:
-                    self.graph.add((URIRef(str(self.edge_dict[edge_type]['uri'][inst] + str(edge[inst]))),
-                                    URIRef(str(obo + inverse_relation)),
-                                    URIRef(ont_class_iri)))
+                    s = URIRef(str(self.edge_dict[edge_type]['uri'][inst] + str(edge[inst])))
+                    p = URIRef(str(obo + inverse_relation))
+                    o = URIRef(ont_class_iri)
+                    self.graph.add((s, p, o))
+                    if self.decode_owl_semantics: nx_mgd.add_edge(s, o, **{'key': p})
 
                 edge_counts.append(edge)
 
         return edge_counts
 
-    def creates_knowledge_graph_edges(self, creates_node_metadata_func: Callable, ontology_annotator_func: Callable,
-                                      ontology_file_formatter_func: Callable) -> None:
+    def creates_knowledge_graph_edges(self, creates_node_metadata_func: Callable, ontology_annotator_func: Callable) ->\
+            None:
         """Takes a nested dictionary of edge lists and adds them to an existing knowledge graph. The function
         performs different tasks in order to add the edges according to whether or not the edge is of type
         instance-instance, class-class, class-instance/instance-class.
@@ -485,8 +513,6 @@ class KGBuilder(object):
             creates_node_metadata_func: A function that adds metadata (i.e. labels, descriptions, and synonyms) for
                 class-instance and instance-instance edges.
             ontology_annotator_func: A function that adds annotations to an existing ontology.
-            ontology_file_formatter_func: A function that utilizes the OWLTools API to convert the format of a saved
-                knowledge graph file to match the OWL API format.
 
         Returns:
             None.
@@ -525,30 +551,27 @@ class KGBuilder(object):
         # serialize graph
         self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
 
-        # apply OWL API formatting to file
-        ontology_file_formatter_func(self.write_location + self.full_kg)
-
         # write class-instance uuid mapping dictionary to file
         json.dump(self.kg_uuid_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
 
-        return None
+        return nx_mgd
 
     def construct_knowledge_graph(self) -> None:
         """Builds a knowledge graph. The knowledge graph build is completed differently depending on the build type
         that the user requested. The build types that a user can request includes: "full", "partial", or "post-closure".
 
         The knowledge graph is built through the following steps:
-            (1) Set up environment - making sure that the directories to write data to exist.
-            (2) Process relation and inverse relation data.
-            (3) Process node metadata.
-            (4) Merge ontology data (class data).
-            (5) Add edges from master edge list to merged ontologies.
-            (6) Remove annotation assertions (if partial build).
-            (7) Decode OWL-encoded class and remove non-biologically meaningful semantics.
-            (8) Add annotation assertions (if post-closure build).
-            (9) Add Node metadata.
+            (1)  Set up environment - making sure that the directories to write data to exist.
+            (2)  Process relation and inverse relation data.
+            (3)  Process node metadata.
+            (4)  Merge ontology data (class data).
+            (5)  Add edges from master edge list to merged ontologies.
+            (6)  Remove annotation assertions (if partial build).
+            (7)  Decode OWL-encoded class and remove non-biologically meaningful semantics.
+            (8)  Add annotation assertions (if post-closure build).
+            (9)  Add Node metadata.
             (10) Output integer and node identifier-labeled edge lists, a dictionary of all node identifiers and their
-                label metadata (i.e. labels, definitions, and synonyms).
+                 label metadata (i.e. labels, definitions, and synonyms).
 
         Returns:
             None.
@@ -634,9 +657,10 @@ class PartialBuild(KGBuilder):
 
         # build knowledge graph
         print('*** Building Knowledge Graph Edges ***')
-        self.creates_knowledge_graph_edges(metadata.creates_node_metadata,
-                                           metadata.adds_ontology_annotations,
-                                           metadata.ontology_file_formatter)
+        self.creates_knowledge_graph_edges(metadata.creates_node_metadata, metadata.adds_ontology_annotations)
+
+        # apply OWL API formatting to file
+        metadata.ontology_file_formatter(self.write_location + metadata.full_kg)
 
         # STEP 6: REMOVE ANNOTATION ASSERTIONS
         print('*** Removing Annotation Assertions ***')
@@ -733,7 +757,7 @@ class PostClosureBuild(KGBuilder):
         # STEP 5: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
         if self.decode_owl_semantics:
             print('*** Decoding OWL-Encoded Class and Removing OWL Semantics ***')
-            owl_semantics = OWLNETS(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
+            owl_semantics = OWLNETS(self.graph, self.self.nx_mgd, self.kg_uuid_map, self.write_location, self.full_kg)
             cleaned_kg = owl_semantics.removes_edges_with_owl_semantics()
         else:
             cleaned_kg = self.graph
@@ -752,6 +776,10 @@ class PostClosureBuild(KGBuilder):
         if self.node_dict:
             print('*** Adding Node Metadata ***')
             graph_with_node_metadata = metadata.adds_node_metadata(cleaned_kg, self.edge_dict)
+
+            # serialize graph + apply OWL API formatting to file
+            graph_with_node_metadata.serialize(destination=self.write_location + self.full_kg, format='xml')
+            metadata.ontology_file_formatter_func(self.write_location + self.full_kg)
 
             # STEP 8: WRITE OUT KNOWLEDGE GRAPH EDGE LISTS
             print('*** Writing Knowledge Graph Edge Lists ***')
@@ -834,14 +862,12 @@ class FullBuild(KGBuilder):
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('*** Building Knowledge Graph Edges ***')
-        self.creates_knowledge_graph_edges(metadata.creates_node_metadata,
-                                           metadata.adds_ontology_annotations,
-                                           metadata.ontology_file_formatter)
+        self.creates_knowledge_graph_edges(metadata.creates_node_metadata, metadata.adds_ontology_annotations)
 
         # STEP 6: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
         if self.decode_owl_semantics:
             print('*** Decoding OWL-Encoded Class and Removing OWL Semantics ***')
-            owl_semantics = OWLNETS(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
+            owl_semantics = OWLNETS(self.graph, self.self.nx_mgd, self.kg_uuid_map, self.write_location, self.full_kg)
             cleaned_kg = owl_semantics.removes_edges_with_owl_semantics()
         else:
             cleaned_kg = self.graph
@@ -853,6 +879,10 @@ class FullBuild(KGBuilder):
         if self.node_dict:
             print('*** Adding Node Metadata ***')
             graph_with_node_metadata = metadata.adds_node_metadata(cleaned_kg, self.edge_dict)
+
+            # serialize graph + apply OWL API formatting to file
+            graph_with_node_metadata.serialize(destination=self.write_location + self.full_kg, format='xml')
+            metadata.ontology_file_formatter_func(self.write_location + self.full_kg)
 
             # STEP 8: WRITE OUT KNOWLEDGE GRAPH EDGE LISTS
             print('*** Writing Knowledge Graph Edge Lists ***')
