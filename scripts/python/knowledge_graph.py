@@ -757,8 +757,8 @@ class PostClosureBuild(KGBuilder):
         # STEP 5: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
         if self.decode_owl_semantics:
             print('*** Decoding OWL-Encoded Class and Removing OWL Semantics ***')
-            owl_semantics = OWLNETS(self.graph, self.self.nx_mgd, self.kg_uuid_map, self.write_location, self.full_kg)
-            cleaned_kg = owl_semantics.removes_edges_with_owl_semantics()
+            owl_nets = OWLNETS(self.graph, self.self.nx_mgd, self.kg_uuid_map, self.write_location, self.full_kg)
+            cleaned_kg = owl_nets.removes_edges_with_owl_semantics()
         else:
             cleaned_kg = self.graph
 
@@ -867,8 +867,8 @@ class FullBuild(KGBuilder):
         # STEP 6: REMOVE OWL SEMANTICS FROM KNOWLEDGE GRAPH
         if self.decode_owl_semantics:
             print('*** Decoding OWL-Encoded Class and Removing OWL Semantics ***')
-            owl_semantics = OWLNETS(self.graph, self.nx_mdg, self.kg_uuid_map, self.write_location, self.full_kg)
-            cleaned_kg = owl_semantics.removes_edges_with_owl_semantics()
+            owl_nets = OWLNETS(self.graph, self.nx_mdg, self.kg_uuid_map, self.write_location, self.full_kg)
+            cleaned_kg = owl_nets.removes_edges_with_owl_semantics()
         else:
             cleaned_kg = self.graph
 
