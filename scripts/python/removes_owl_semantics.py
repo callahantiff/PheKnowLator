@@ -22,14 +22,20 @@ class OWLNETS(object):
     Attributes:
         knowledge_graph: An RDFLib object.
         nx_multidigraph: A networkx graph object that contains the same edges as knowledge_graph.
-        uuid_map: A dictionary dictionary that stores the mapping between each class and its instance.
         write_location: A file path used for writing knowledge graph data.
         full_kg: A string containing the filename for the full knowledge graph.
+        uuid_map: A dictionary that stores the mapping between each class and its instance.
         class_list: A list of owl classes from the input knowledge graph.
+
+    Raises:
+        TypeError: If knowledge_graph is not an rdflib.graph object.
+        ValueError: If knowledge_graph is an empty rdflib.graph object.
+        TypeError: If nx_multidigraph is not an networkx.MultiDiGraph object.
+        ValueError: If nx_multidigraph is an empty networkx.MultiDiGraph object.
     """
 
-    def __init__(self, knowledge_graph: rdflib.Graph, nx_graph: networkx.MultiDiGraph, uuid_class_map: Dict[str, str],
-                 write_location: str, full_kg: str) -> None:
+    def __init__(self, knowledge_graph: rdflib.Graph, nx_graph: networkx.MultiDiGraph, write_location: str,
+                 full_kg: str, uuid_class_map: Optional[Dict[str, str]] = None) -> None:
 
         # verify input graphs
         if not isinstance(knowledge_graph, rdflib.Graph):
@@ -46,7 +52,7 @@ class OWLNETS(object):
         else:
             self.nx_multidigraph = nx_graph
 
-        self.uuid_map = uuid_class_map
+        self.uuid_map = uuid_class_map if uuid_class_map else None
         self.write_location = write_location
         self.full_kg = full_kg
         self.class_list: Optional[List[rdflib.URIRef]] = None
@@ -67,6 +73,8 @@ class OWLNETS(object):
             ValueError: If the query returns zero nodes with type owl:Class.
         """
 
+        print('Querying Knowledge Graph to Obtain all OWL:Class Nodes')
+
         # find all classes in graph
         kg_classes = self.knowledge_graph.query(
             """SELECT DISTINCT ?c
@@ -83,8 +91,7 @@ class OWLNETS(object):
         else:
             raise ValueError('ERROR: No classes returned from query.')
 
-    @staticmethod
-    def recurses_axioms(seen_nodes: List[rdflib.BNode],
+    def recurses_axioms(self, seen_nodes: List[rdflib.BNode],
                         axioms: List[Union[rdflib.BNode, rdflib.URIRef, rdflib.Literal]]) -> List[rdflib.BNode]:
         """Function recursively searches a list of knowledge graph nodes and tracks the nodes it has visited. Once
         it has visited all nodes in the input axioms list, a final unique list of relevant nodes is returned. This
@@ -92,11 +99,9 @@ class OWLNETS(object):
 
         Args:
             seen_nodes: A list which may or may not contain knowledge graph nodes.
-            axioms: A list of axioms, e.g. [
-                                            (rdflib.term.BNode('N3e23fe5f05ff4a7d992c548607c86277'),
+            axioms: A list of axioms, e.g. [(rdflib.term.BNode('N3e23fe5f05ff4a7d992c548607c86277'),
                                             rdflib.term.URIRef('http://www.w3.org/2002/07/owl#Class'),
-                                            rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'))
-                                            ]
+                                            rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'))]
 
         Returns:
             seen_nodes: A list of knowledge graph nodes.
@@ -109,16 +114,15 @@ class OWLNETS(object):
                 if isinstance(element, rdflib.BNode):
                     if element not in seen_nodes:
                         tracked_nodes.append(element)
-                        search_axioms += list(nx_multidigraph.out_edges(element, keys=True))
+                        search_axioms += list(self.nx_multidigraph.out_edges(element, keys=True))
 
         if len(tracked_nodes) > 0:
             seen_nodes += list(set(tracked_nodes))
-            return recurses_axioms(seen_nodes, search_axioms)
+            return self.recurses_axioms(seen_nodes, search_axioms)
         else:
             return seen_nodes
 
-    @staticmethod
-    def creates_edge_dictionary(node: rdflib.URIRef) -> Tuple[Dict[str, str], Set[str]]:
+    def creates_edge_dictionary(self, node: rdflib.URIRef) -> Tuple[Dict[str, str], Set[str]]:
         """Creates a nested edge dictionary from an input class node by obtaining all of the edges that come
         out from the class and then recursively looping over each anonymous out edge node. The outer
         dictionary keys are anonymous nodes and the inner keys are owl:ObjectProperty values from each out
@@ -148,13 +152,13 @@ class OWLNETS(object):
         matches, class_edge_dict, cardinality = [], {}, set()
 
         # get all edges that come out of class node
-        out_edges = [x for axioms in list(nx_multidigraph.out_edges(node, keys=True)) for x in axioms]
+        out_edges = [x for axioms in list(self.nx_multidigraph.out_edges(node, keys=True)) for x in axioms]
 
         # recursively loop over anonymous nodes in out_edges to create a list of relevant edges to rebuild class
         for axiom in out_edges:
             if isinstance(axiom, rdflib.BNode):
-                for element in recurses_axioms([], list(nx_multidigraph.out_edges(axiom, keys=True))):
-                    matches += list(nx_multidigraph.out_edges(element, keys=True))
+                for element in self.recurses_axioms([], list(self.nx_multidigraph.out_edges(axiom, keys=True))):
+                    matches += list(self.nx_multidigraph.out_edges(element, keys=True))
 
         # create dictionary of edge lists
         for match in matches:
@@ -224,8 +228,7 @@ class OWLNETS(object):
         else:
             return {**class_dict[edges['first']], **class_dict[edges['rest']]}
 
-    @staticmethod
-    def parses_constructors(node: rdflib.URIRef, edges: Dict[str, str], class_dict: Dict[str, str],
+    def parses_constructors(self, node: rdflib.URIRef, edges: Dict[str, str], class_dict: Dict[str, str],
                             relation: rdflib.URIRef = None) ->\
             Tuple[Set[Tuple[rdflib.URIRef, rdflib.URIRef, Union[rdflib.URIRef, rdflib.Literal]]], Dict[str, str]]:
         """Traverses a dictionary of rdflib objects used in the owl:unionOf or owl:intersectionOf constructors, from
@@ -260,22 +263,21 @@ class OWLNETS(object):
         while edge_batch:
             if ('first' in edge_batch.keys() and 'rest' in edge_batch.keys()) and 'type' not in edge_batch.keys():
                 if isinstance(edge_batch['first'], rdflib.URIRef) and isinstance(edge_batch['rest'], rdflib.BNode):
-                    obj_property = returns_object_property(node, edge_batch['first'], relation)
+                    obj_property = self.returns_object_property(node, edge_batch['first'], relation)
                     cleaned_classes |= {(node, obj_property, edge_batch['first'])}
                     edge_batch = class_dict[edge_batch['rest']]
                 elif isinstance(edge_batch['first'], rdflib.URIRef) and isinstance(edge_batch['rest'], rdflib.URIRef):
-                    obj_property = returns_object_property(node, edge_batch['first'], relation)
+                    obj_property = self.returns_object_property(node, edge_batch['first'], relation)
                     cleaned_classes |= {(node, obj_property, edge_batch['first'])}
                     edge_batch = None
                 else:
-                    edge_batch = parses_anonymous_axioms(edge_batch, class_dict)
+                    edge_batch = self.parses_anonymous_axioms(edge_batch, class_dict)
             else:
                 break
 
         return cleaned_classes, edge_batch
 
-    @staticmethod
-    def parses_restrictions(node: rdflib.URIRef, edges: Dict[str, str], class_dict: Dict[str, str]) -> \
+    def parses_restrictions(self, node: rdflib.URIRef, edges: Dict[str, str], class_dict: Dict[str, str]) -> \
             Tuple[Set[Tuple[rdflib.URIRef, rdflib.URIRef, Union[rdflib.URIRef, rdflib.Literal]]], Dict[str, str]]:
         """Parses a subset of a dictionary containing rdflib objects participating in a constructor (i.e.
         owl:intersectionOf or owl:unionOf) and reconstructs the class (referenced by node) in order to remove
@@ -308,12 +310,12 @@ class OWLNETS(object):
                 return cleaned_classes, None
             else:
                 cleaned_classes |= {(node, edge_batch['onProperty'], object_node)}
-                return cleaned_classes, parses_anonymous_axioms(edge_batch, class_dict)
+                return cleaned_classes, self.parses_anonymous_axioms(edge_batch, class_dict)
         else:
             axioms = class_dict[edge_batch[object_type]]
 
             if 'unionOf' in axioms.keys() or 'intersectionOf' in axioms.keys():
-                results = parses_constructors(node, axioms, class_dict, edge_batch['onProperty'])
+                results = self.parses_constructors(node, axioms, class_dict, edge_batch['onProperty'])
                 cleaned_classes |= results[0]
                 edge_batch = results[1]
                 return cleaned_classes, edge_batch
@@ -335,7 +337,7 @@ class OWLNETS(object):
         cleaned_class_dict, complement_constructors, cardinality, misc = dict(), set(), set(), []
 
         for node in tqdm(self.class_list):
-            node_information = creates_edge_dictionary(node)
+            node_information = self.creates_edge_dictionary(node)
             class_edge_dict = node_information[0]
             cardinality |= node_information[1]
 
@@ -346,7 +348,7 @@ class OWLNETS(object):
                 pass
             else:
                 cleaned_class_dict[node], cleaned_classes = dict(), set()
-                out_edges = list(nx_multidigraph.out_edges(node, keys=True))
+                out_edges = list(self.nx_multidigraph.out_edges(node, keys=True))
                 semantic_chunk_nodes = [x[1] for x in out_edges if isinstance(x[1], rdflib.BNode)]
 
                 # decode owl-encoded edges
@@ -355,15 +357,15 @@ class OWLNETS(object):
 
                     while edges:
                         if 'unionOf' in edges.keys():
-                            results = parses_constructors(node, edges, class_edge_dict)
+                            results = self.parses_constructors(node, edges, class_edge_dict)
                             cleaned_classes |= results[0]
                             edges = results[1]
                         elif 'intersectionOf' in edges.keys():
-                            results = parses_constructors(node, edges, class_edge_dict)
+                            results = self.parses_constructors(node, edges, class_edge_dict)
                             cleaned_classes |= results[0]
                             edges = results[1]
                         elif 'Restriction' in edges['type']:
-                            results = parses_restrictions(node, edges, class_edge_dict)
+                            results = self.parses_restrictions(node, edges, class_edge_dict)
                             cleaned_classes |= results[0]
                             edges = results[1]
                         else:
@@ -380,7 +382,7 @@ class OWLNETS(object):
         # cleaned_class_dict = pickle.load(open(write_location + full_kg[:-7] + '_OWLNETS_results.json', 'rb'))
 
         # delete networkx graph object from memory
-        del nx_multidigraph
+        del self.nx_multidigraph
 
         print('\nFINISHED: Decoded {} owl-encoded classes. Note the following:'.format(len(cleaned_class_dict.keys())))
         print('{} owl class elements containing cardinality were ignored'.format(len(cardinality)))
@@ -428,7 +430,7 @@ class OWLNETS(object):
                 predicate: http://purl.obolibrary.org/obo/RO_0002606
                 object: http://purl.obolibrary.org/obo/HP_0000832
 
-        Additionally, all class-instances which appear as hash are reverted back to the original url. For examples:
+        Additionally, all class-instances are reverted back to the original url. For examples:
             Instance hash: https://github.com/callahantiff/PheKnowLator/obo/ext/925298d1-7b95-49de-a21b-27f03183f57a
             Reverted to: http://purl.obolibrary.org/obo/CHEBI_24505
 
@@ -440,9 +442,9 @@ class OWLNETS(object):
         uuid_map = {val: key for (key, val) in self.uuid_map.items()}
 
         # from those triples with URIs, remove triples that are about instances of classes
-        update_graph = Graph()
+        update_graph = rdflib.Graph()
 
-        for edge in tqdm(knowledge_graph):
+        for edge in tqdm(self.knowledge_graph):
             if all(str(x) for x in edge if str(x).startswith('http')):
 
                 # look for created class-instances so they can be reversed
@@ -459,7 +461,7 @@ class OWLNETS(object):
                     pass
 
         # add cleaned classes to graph
-        update_graph = adds_cleaned_classes_to_graph(update_graph)
+        update_graph = self.adds_cleaned_classes_to_graph(update_graph)
 
         # print kg statistics
         edges = len(set(list(update_graph)))
