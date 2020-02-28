@@ -9,6 +9,7 @@ scripts/*.pyc
 .ipynb_checkpoints/main-checkpoint.ipynb
 .ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
 scripts/python/.ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
+.mypy*
 
 # data and scripts
 /resources/releases/archive.zip
