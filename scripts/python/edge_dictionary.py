@@ -4,12 +4,12 @@
 # import needed libraries
 import csv
 import json
-import pandas
+import pandas  # type: ignore
 import re
 
 from difflib import SequenceMatcher
-from tqdm import tqdm
-from typing import Dict, List, Optional, Tuple, Union
+from tqdm import tqdm  # type: ignore
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # TODO: using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
 
@@ -41,7 +41,7 @@ class EdgeList(object):
         self.source_file = source_file
 
         # convert edge data to a dictionary
-        self.source_info: Dict[str, Dict[str, str]] = dict()
+        self.source_info: Dict[str, Dict[str, Any]] = dict()
 
         for row in open(source_file).read().split('\n'):
             cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
@@ -293,7 +293,7 @@ class EdgeList(object):
 
         return [col_to_map, merged_data]
 
-    def process_mapping_data(self, mapping_data: str, edge_data: pandas.DataFrame) -> List[Tuple[str, str]]:
+    def process_mapping_data(self, mapping_data: str, edge_data: pandas.DataFrame) -> Tuple[Tuple[Any, Any], ...]:
         """Merges two mapped Pandas DataFrames into a single DataFrame. After merging the DataFrames, the function
         removes all columns except the the mapped columns and removes any duplicate rows.
 
@@ -304,7 +304,7 @@ class EdgeList(object):
             edge_data: A Pandas DataFrame row containing two columns of identifiers.
 
         Returns:
-            A list of tuples, where each tuple contains a mapped identifier from each node column in the edge_data
+            A tuple of tuples, where each tuple contains a mapped identifier from each node column in the edge_data
             Pandas DataFrame. For example:
                 [['CHEBI_24505', 'R-HSA-1006173'], ['CHEBI_28879', 'R-HSA-1006173'], ['CHEBI_59888', 'R-HSA-1013011']]
         """
@@ -329,7 +329,7 @@ class EdgeList(object):
 
             return tuple(zip(list(merged_data[maps[0][0]]), list(merged_data[maps[1][0]])))
 
-    def creates_knowledge_graph_edges(self) -> Dict[str, Dict[str, Union[str, List[List[str]]]]]:
+    def creates_knowledge_graph_edges(self) -> None:
         """Generates edge lists for each edge type in an input dictionary. In order to generate the edge list,
         the function performs six steps: (1) read in data; (2) apply filtering and evidence criteria; (3) reduce data
         to specific columns, remove duplicates, and ensure proper formatting of column data; (4) update node column

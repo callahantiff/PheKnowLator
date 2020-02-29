@@ -4,24 +4,24 @@
 # import needed libraries
 import ftplib
 import gzip
-import numpy
+import numpy as np  # type: ignore
 import os
-import pandas
+import pandas as pd  # type: ignore
 import re
 import requests
 import shutil
 
 from contextlib import closing
 from io import BytesIO
-from reactome2py import content
+from reactome2py import content  # type: ignore
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from typing import Dict, List, Union
+from typing import Dict, Generator, List, Union
 from urllib.request import urlopen
 from zipfile import ZipFile
 
 # disable chained assignment warning
 # rationale: https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
-pandas.options.mode.chained_assignment = None
+pd.options.mode.chained_assignment = None
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
@@ -200,8 +200,8 @@ def data_downloader(url: str, write_location: str, filename: str = '') -> None:
 
 
 # function to explode nested DataFrames
-def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str = 'None',
-            preserve_idx: bool = False) -> pandas.DataFrame:
+def explode(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: str = 'None',
+            preserve_idx: bool = False) -> pd.DataFrame:
     """Function takes a Pandas DataFrame containing a mix of nested and un-nested data and un-nests the data by
     expanding each column in a user-defined list. This function is a modification of the explode function provided in
     the following stack overflow post:
@@ -237,13 +237,13 @@ def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str
         lens = df[lst[0]].str.len()
 
         # preserve original index values
-        idx = numpy.repeat(df.index.values, lens)
+        idx = np.repeat(df.index.values, lens)
 
         # create "exploded" DF
-        res = (pandas.DataFrame({
-            col: numpy.repeat(df[col].values, lens)
+        res = (pd.DataFrame({
+            col: np.repeat(df[col].values, lens)
             for col in idx_cols},
-            index=idx).assign(**{col: numpy.concatenate(df.loc[lens > 0, col].values)
+            index=idx).assign(**{col: np.concatenate(df.loc[lens > 0, col].values)
                                  for col in lst}))
 
         # append those rows that have empty lists
@@ -264,7 +264,7 @@ def explode(df: pandas.DataFrame, lst_cols: list, splitter: str, fill_value: str
         return explode(res, lst_cols, splitter)
 
 
-def mesh_finder(data: pandas.DataFrame, x_id: str, id_type: str, id_dic: Dict[str, List[str]]) -> None:
+def mesh_finder(data: pd.DataFrame, x_id: str, id_type: str, id_dic: Dict[str, List[str]]) -> None:
     """Function takes a Pandas DataFrame, a dictionary, and an id and updates the dictionary by searching additional
     identifiers linked to the id.
 
@@ -302,7 +302,7 @@ def mesh_finder(data: pandas.DataFrame, x_id: str, id_type: str, id_dic: Dict[st
     return None
 
 
-def chunks(lst: List[Union[str, int]], chunk_size: int) -> List[List[str]]:
+def chunks(lst: List[str], chunk_size: int) -> Generator:
     """Takes a list an integer and creates a list of lists, where each nested list is length chunk_size.
 
     Modified from: https://chrisalbon.com/python/data_wrangling/break_list_into_chunks_of_equal_size/
@@ -319,7 +319,7 @@ def chunks(lst: List[Union[str, int]], chunk_size: int) -> List[List[str]]:
         yield lst[i:i + chunk_size]
 
 
-def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str, Dict[str, str]]) -> pandas.DataFrame:
+def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str, Dict[str, str]]) -> pd.DataFrame:
     """Takes a list of nodes and a dictionary of metadata and returns a pandas.DataFrame containing the mapped
     metadata for each of the nodes.
 
@@ -361,8 +361,8 @@ def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str
                 synonyms.append('None')
 
     # combine into new data frame
-    node_metadata_final = pandas.DataFrame(list(zip(ids, labels, desc, synonyms)),
-                                           columns=['ID', 'Label', 'Description', 'Synonym'])
+    node_metadata_final = pd.DataFrame(list(zip(ids, labels, desc, synonyms)),
+                                       columns=['ID', 'Label', 'Description', 'Synonym'])
 
     # make all variables string
     node_metadata_final = node_metadata_final.astype(str)
@@ -370,7 +370,7 @@ def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str
     return node_metadata_final
 
 
-def metadata_api_mapper(nodes: List[str]) -> pandas.DataFrame:
+def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
     """Takes a list of nodes and queries them, in chunks of 20, against the Reactome API.
 
     Args:
@@ -398,8 +398,8 @@ def metadata_api_mapper(nodes: List[str]) -> pandas.DataFrame:
                 synonyms.append('None')
 
     # combine into new data frame
-    node_metadata_final = pandas.DataFrame(list(zip(ids, labels, desc, synonyms)),
-                                           columns=['ID', 'Label', 'Description', 'Synonym'])
+    node_metadata_final = pd.DataFrame(list(zip(ids, labels, desc, synonyms)),
+                                       columns=['ID', 'Label', 'Description', 'Synonym'])
 
     # make all variables string
     node_metadata_final = node_metadata_final.astype(str)

@@ -6,14 +6,17 @@ import datetime
 import glob
 import json
 import os
-import pandas
+import pandas  # type: ignore
 import re
 import subprocess
 
-from rdflib import Graph, Literal, Namespace, URIRef
-from rdflib.namespace import RDF, RDFS
-from tqdm import tqdm
+from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
+from rdflib.namespace import RDF, RDFS  # type: ignore
+from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Union
+
+# TODO: mypy throws errors for optional[dict] usage, this is an existing bug in mypy
+# https://github.com/python/mypy/issues/4359
 
 
 class Metadata(object):
@@ -36,8 +39,8 @@ class Metadata(object):
                 }
     """
 
-    def __init__(self, kg_version: str, flag: str, write_location: str, kg_location: str, node_data: Optional[str],
-                 node_dict: Dict[str, Dict[str, str]]) -> None:
+    def __init__(self, kg_version: str, flag: str, write_location: str, kg_location: str, node_data: Optional[List],
+                 node_dict: Optional[Dict]) -> None:
 
         self.kg_version = kg_version
         self.node_metadata_flag = flag
@@ -248,8 +251,7 @@ class Metadata(object):
 
         return graph
 
-    def adds_node_metadata(self, graph: Graph, edge_dict: Dict[str, List[Union[str, List[Union[str, List[str]]]]]])\
-            -> Graph:
+    def adds_node_metadata(self, graph: Graph, edge_dict: Optional[Dict]) -> Graph:
         """Iterates over nodes in each edge in the edge_dict, by edge_type. If the node has metadata available in the
         the node_data dictionary, then it is added to the knowledge graph.
 
@@ -371,7 +373,7 @@ class Metadata(object):
         """
 
         # create dictionary for mapping and list to write edges to
-        node_map, output_triples, node_counter = {}, [], 0
+        node_map, output_triples, node_counter = {}, [], 0  # type: ignore
 
         # build graph from input file and set counter
         out_ints = open(self.write_location + output_triple_integers, 'w')

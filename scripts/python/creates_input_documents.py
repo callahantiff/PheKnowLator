@@ -25,7 +25,7 @@ class DocumentationMaker(object):
         self.edge_count = edge_count
         self.write_location = write_location
 
-    def information_getter(self) -> Tuple[str, str, str]:
+    def information_getter(self) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, str]]:
         """Creates three dictionaries from information provided by a user. The three dictionaries store information
         for each of the three required documents.
 

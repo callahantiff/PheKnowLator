@@ -8,9 +8,9 @@ import glob
 import os.path
 
 from abc import ABCMeta, abstractmethod
-from owlready2 import subprocess
-from tqdm import tqdm
-from typing import Dict, List
+from owlready2 import subprocess  # type: ignore
+from tqdm import tqdm  # type: ignore
+from typing import Dict, List, Optional
 
 from scripts.python.data_preparation_helper_functions import *
 
@@ -57,7 +57,7 @@ class DataSource(object):
         self.resource_dict: Dict[str, List[str]] = {}
         self.source_list: Dict[str, str] = {}
         self.data_files: Dict[str, str] = {}
-        self.metadata: List[str] = []
+        self.metadata: List[List[str]] = []
 
     def parses_resource_file(self) -> None:
         """Verifies that an input file contains data and then outputs a dictionary where each item is a line from the
@@ -96,7 +96,7 @@ class DataSource(object):
 
         pass
 
-    def extracts_edge_metadata(self) -> Dict[str, List[str]]:
+    def extracts_edge_metadata(self) -> None:
         """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are
         a list containing mapping and filtering information.
 
@@ -139,7 +139,9 @@ class DataSource(object):
             # add info to dictionary
             self.resource_dict[edge.split('|')[0]] = [' | '.join(mapping), ' | '.join(filtering), ' | '.join(evidence)]
 
-    def generates_source_metadata(self) -> List[str]:
+            return None
+
+    def generates_source_metadata(self) -> None:
         """Extracts and stores metadata for imported data sources and save the information to the metadata attribute.
         Metadata includes the following information:
             1 - Edge: the name of the edge-type (e.g. 'chemical-gene')
@@ -228,7 +230,7 @@ class DataSource(object):
         return None
 
     @abstractmethod
-    def gets_data_type(self) -> None:
+    def gets_data_type(self) -> str:
         """"A string representing the type of data being processed."""
 
         pass
@@ -376,7 +378,7 @@ class Data(DataSource):
 
         return None
 
-    def downloads_data_from_url(self, download_type: str) -> Dict[str, str]:
+    def downloads_data_from_url(self, download_type: str) -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes that
         each item in the input file list is a valid URL.
 
@@ -422,3 +424,5 @@ class Data(DataSource):
         # CHECK
         if len(self.source_list) != len(self.data_files):
             raise ValueError('ERROR: Not all URLs returned a data file')
+
+        return None

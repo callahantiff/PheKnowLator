@@ -7,11 +7,11 @@ import os
 import requests
 import time
 
-from tqdm import tqdm
-from typing import Dict, IO, Set
+from tqdm import tqdm  # type: ignore
+from typing import Any, Dict, IO, List, Set, Tuple, Union
 
 
-def gets_json_results_from_api_call(url: str, api_key: str) -> Dict[str, str]:
+def gets_json_results_from_api_call(url: str, api_key: str) -> Dict:
     """Function makes API requests and returns results as a json file. API documentation can be found here:
     http://data.bioontology.org/documentation. If a 500 HTTP server-side code is return from "status_code" then the
     algorithm pauses for 30 seconds before trying the request again.
@@ -37,7 +37,7 @@ def gets_json_results_from_api_call(url: str, api_key: str) -> Dict[str, str]:
     return json.loads(response.text)
 
 
-def writes_data_to_file(file_out: str, results: Set[Tuple[str, str]]) -> IO[str]:
+def writes_data_to_file(file_out: str, results: Set[Tuple[str, Any]]) -> None:
     """Function iterates over set of tuples and writes data to text file locally.
 
     Args:
@@ -87,7 +87,7 @@ def extracts_mapping_data(api_key: str, source1: str, source2: str, file_out: st
     api_results = gets_json_results_from_api_call(ont_source, api_key)
 
     # enable batch processing of api result pages
-    total_pages = list(range(1, api_results['pageCount'] + 1))
+    total_pages = list(range(1, int(api_results['pageCount']) + 1))
     n = 500 if len(total_pages) > 5000 else 100
     batches = [total_pages[i:i + n] for i in range(0, len(total_pages), n)]
 
