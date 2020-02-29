@@ -51,14 +51,11 @@ class OWLNETS(object):
         self.class_list: Optional[List[rdflib.URIRef]] = None
 
         # convert RDF graph to multidigraph
-        print('Converting knowledge graph to MultiDiGraph. Note, this process can take up to 20 minutes.')
+        print('\nConverting knowledge graph to MultiDiGraph. Note, this process can take up to 20 minutes.')
         self.nx_multidigraph: networkx.MultiDiGraph = networkx.MultiDiGraph()
 
         for s, p, o in tqdm(self.knowledge_graph):
             self.nx_multidigraph.add_edge(s, o, **{'key': p})
-
-        # pickle networkx graph
-        networkx.write_gpickle(self.nx_multidigraph, self.write_location + self.full_kg[:-4] + '.gpickle')
 
     def finds_classes(self) -> None:
         """Queries a knowledge graph and returns a list of all owl:Class objects in the graph.
