@@ -374,7 +374,7 @@ class OWLNETS(object):
         pickle.dump(cleaned_class_dict, open(self.write_location + self.full_kg[:-7] + '_OWLNETS_results.pickle', 'wb'))
         # cleaned_class_dict = pickle.load(open(write_location + full_kg[:-7] + '_OWLNETS_results.json', 'rb'))
 
-        # delete networkx graph object from memory
+        # delete networkx graph object to free up memory
         del self.nx_multidigraph
 
         print('\nFINISHED: Decoded {} owl-encoded classes. Note the following:'.format(len(cleaned_class_dict.keys())))
@@ -384,27 +384,21 @@ class OWLNETS(object):
 
         return cleaned_class_dict
 
-    def adds_cleaned_classes_to_graph(self, graph: rdflib.Graph) -> rdflib.Graph:
-        """Runs the OWL-NETS procedure by first finding all owl:Class nodes in the input knowledge_graph and then
-        decodes each class, returning a dictionary containing a set of decoded triples for each class. Each new
-        triple is then added to a new rdflib.graph.
+    @staticmethod
+    def adds_cleaned_classes_to_graph(graph: rdflib.Graph, cleaned_class_dict: Dict) -> rdflib.Graph:
+        """Adds triples from a dictionary containing a set of decoded triples to a rdflib.graph.
 
         Args:
             graph: An rdflib.Graph object.
+            cleaned_class_dict:
 
         Returns:
             An rdflib.Graph object that has been updated to include all triples from the cleaned_classes dictionary.
         """
 
-        # run OWL-NETS
-        print('\nRunning OWL-NETS')
-        self.finds_classes()
-        cleaned_class_dict = self.cleans_owl_encoded_classes()
-
         # add cleaned classes to graph
         for node in tqdm(cleaned_class_dict.keys()):
             for triple in cleaned_class_dict[node]['owl-decoded']:
-                print(triple[0], triple[1], triple[2])
                 graph.add((triple[0], triple[1], triple[2]))
 
         return graph
@@ -431,6 +425,11 @@ class OWLNETS(object):
             An RDFlib.Graph that has been cleaned.
         """
 
+        # run OWL-NETS -- running this first in order to free up memory by deleting the networkx object
+        print('\nRunning OWL-NETS')
+        self.finds_classes()
+        cleaned_class_dict = self.cleans_owl_encoded_classes()
+
         # read in and reverse dictionary to map IRIs back to labels
         reverse_uuid_map = {val: key for (key, val) in self.uuid_map.items() if self.uuid_map}
 
@@ -454,12 +453,12 @@ class OWLNETS(object):
                     pass
 
         # add cleaned classes to graph
-        update_graph = self.adds_cleaned_classes_to_graph(update_graph)
+        update_graph = self.adds_cleaned_classes_to_graph(update_graph, cleaned_class_dict)
 
         # print kg statistics
         edges = len(set(list(update_graph)))
         nodes = len(set([str(node) for edge in list(update_graph) for node in edge[0::2]]))
-        print('\nFINISHED: Completed Removing OWL Semantics')
+        print('\nFINISHED: Completed the Removal of OWL Semantics')
         print('The Decoded Knowledge graph contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
         return update_graph
