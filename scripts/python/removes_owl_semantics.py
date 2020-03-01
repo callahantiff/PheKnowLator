@@ -29,13 +29,15 @@ class OWLNETS(object):
         full_kg: A string containing the filename for the full knowledge graph.
         nx_multidigraph: A networkx graph object that contains the same edges as knowledge_graph.
         class_list: A list of owl classes from the input knowledge graph.
+        keep_types: A list of owl:Property types to keep when filtering triples from knowledge graph.
 
     Raises:
         TypeError: If knowledge_graph is not an rdflib.graph object.
         ValueError: If knowledge_graph is an empty rdflib.graph object.
     """
 
-    def __init__(self, knowledge_graph: rdflib.Graph, uuid_class_map: Dict, write_location: str, full_kg: str) -> None:
+    def __init__(self, knowledge_graph: rdflib.Graph, uuid_class_map: Dict, write_location: str, full_kg: str,
+                 keep_types: Optional[List[str]] = None) -> None:
 
         # verify input graphs
         if not isinstance(knowledge_graph, rdflib.Graph):
@@ -56,6 +58,9 @@ class OWLNETS(object):
 
         for s, p, o in tqdm(self.knowledge_graph):
             self.nx_multidigraph.add_edge(s, o, **{'key': p})
+
+        # set a list of owl:Property types to keep when filtering triples from knowledge graph
+        self.keep_types = keep_types if keep_types else ['inverseOf', 'disjointWith', 'subClassOf']
 
     def finds_classes(self) -> None:
         """Queries a knowledge graph and returns a list of all owl:Class objects in the graph.
@@ -84,6 +89,62 @@ class OWLNETS(object):
             self.class_list = class_list
         else:
             raise ValueError('ERROR: No classes returned from query.')
+
+        return None
+
+    def removes_edges_with_owl_semantics(self) -> None:
+        """Filters the knowledge graph with the goal of removing all edges that contain entities that are needed to
+        support owl semantics, but are not biologically meaningful. For example:
+
+            REMOVE - edge needed to support owl semantics that are not biologically meaningful:
+                subject: http://purl.obolibrary.org/obo/CLO_0037294
+                predicate: owl:AnnotationProperty
+                object: rdf:about="http://purl.obolibrary.org/obo/CLO_0037294"
+
+            KEEP - biologically meaningful edges:
+                subject: http://purl.obolibrary.org/obo/CHEBI_16130
+                predicate: http://purl.obolibrary.org/obo/RO_0002606
+                object: http://purl.obolibrary.org/obo/HP_0000832
+
+        Additionally, all class-instances are reverted back to the original url. For examples:
+            Instance hash: https://github.com/callahantiff/PheKnowLator/obo/ext/925298d1-7b95-49de-a21b-27f03183f57a
+            Reverted to: http://purl.obolibrary.org/obo/CHEBI_24505
+
+        Returns:
+            None.
+        """
+
+        reverse_uuid_map = {val: key for (key, val) in self.uuid_map.items() if self.uuid_map}
+
+        for edge in tqdm(self.knowledge_graph):
+            # replace created class-instance UUIDs with the class identifier
+            if any(x for x in edge[0::2] if str(x) in reverse_uuid_map.keys()):
+                if str(edge[2]) in reverse_uuid_map.keys() and 'ns#type' not in str(edge[1]):
+                    self.knowledge_graph.add((edge[0], edge[1], rdflib.URIRef(reverse_uuid_map[str(edge[2])])))
+                    self.knowledge_graph.remove(edge)
+                else:
+                    self.knowledge_graph.add((rdflib.URIRef(reverse_uuid_map[str(edge[0])]), edge[1], edge[2]))
+                    self.knowledge_graph.remove(edge)
+            elif not any(x for x in edge if not isinstance(x, rdflib.URIRef)) and 'obo' in str(edge[1]):
+                if 'IAO' in str(edge[1]) or '#' in str(edge[1]):
+                    self.knowledge_graph.remove(edge)
+                else:
+                    pass
+            else:
+                # remove nodes with '#', properties not in keep_types list, and triples with anonymous or literal nodes
+                if any(str(x) for x in edge[0::2] if '#' in str(x)):
+                    self.knowledge_graph.remove(edge)
+                elif str(edge[1]).split('#')[-1] not in self.keep_types:
+                    self.knowledge_graph.remove(edge)
+                elif isinstance(edge[0], rdflib.BNode) or isinstance(edge[2], rdflib.BNode):
+                    self.knowledge_graph.remove(edge)
+                elif isinstance(edge[0], rdflib.Literal) or isinstance(edge[2], rdflib.Literal):
+                    self.knowledge_graph.remove(edge)
+                else:
+                    pass
+
+        # tidy workspace
+        del reverse_uuid_map, self.uuid_map
 
         return None
 
@@ -328,8 +389,10 @@ class OWLNETS(object):
         """
 
         cleaned_class_dict, complement_constructors, cardinality, misc = dict(), set(), set(), []  # type: ignore
+        pbar = tqdm(total=len(self.class_list))
 
-        for node in tqdm(self.class_list):
+        while self.class_list:
+            node = self.class_list.pop(0)
             node_information = self.creates_edge_dictionary(node)
             class_edge_dict = node_information[0]
             cardinality |= node_information[1]
@@ -370,6 +433,10 @@ class OWLNETS(object):
                 cleaned_class_dict[node]['owl-encoded'] = class_edge_dict
                 cleaned_class_dict[node]['owl-decoded'] = cleaned_classes
 
+                pbar.update(1)
+
+        pbar.close()
+
         # save dictionary of cleaned classes
         pickle.dump(cleaned_class_dict, open(self.write_location + self.full_kg[:-7] + '_OWLNETS_results.pickle', 'wb'))
         # cleaned_class_dict = pickle.load(open(write_location + full_kg[:-7] + '_OWLNETS_results.json', 'rb'))
@@ -384,81 +451,33 @@ class OWLNETS(object):
 
         return cleaned_class_dict
 
-    @staticmethod
-    def adds_cleaned_classes_to_graph(graph: rdflib.Graph, cleaned_class_dict: Dict) -> rdflib.Graph:
-        """Adds triples from a dictionary containing a set of decoded triples to a rdflib.graph.
-
-        Args:
-            graph: An rdflib.Graph object.
-            cleaned_class_dict:
+    def run_owl_nets(self) -> rdflib.Graph:
+        """Adds triples from a dictionary containing a set of decoded triples to an rdflib.graph.
 
         Returns:
             An rdflib.Graph object that has been updated to include all triples from the cleaned_classes dictionary.
         """
 
+        print('\nRunning OWL-NETS')
+
+        # get all classes in knowledge graph
+        self.finds_classes()
+
+        # filter out owl-encoded triples from original knowledge graph
+        self.removes_edges_with_owl_semantics()
+
+        # clean constructors and restrictions
+        cleaned_class_dict = self.cleans_owl_encoded_classes()
+
         # add cleaned classes to graph
         for node in tqdm(cleaned_class_dict.keys()):
             for triple in cleaned_class_dict[node]['owl-decoded']:
-                graph.add((triple[0], triple[1], triple[2]))
-
-        return graph
-
-    def removes_edges_with_owl_semantics(self) -> rdflib.Graph:
-        """Filters the knowledge graph with the goal of removing all edges that contain entities that are needed to
-        support owl semantics, but are not biologically meaningful. For example:
-
-            REMOVE - edge needed to support owl semantics that are not biologically meaningful:
-                subject: http://purl.obolibrary.org/obo/CLO_0037294
-                predicate: owl:AnnotationProperty
-                object: rdf:about="http://purl.obolibrary.org/obo/CLO_0037294"
-
-            KEEP - biologically meaningful edges:
-                subject: http://purl.obolibrary.org/obo/CHEBI_16130
-                predicate: http://purl.obolibrary.org/obo/RO_0002606
-                object: http://purl.obolibrary.org/obo/HP_0000832
-
-        Additionally, all class-instances are reverted back to the original url. For examples:
-            Instance hash: https://github.com/callahantiff/PheKnowLator/obo/ext/925298d1-7b95-49de-a21b-27f03183f57a
-            Reverted to: http://purl.obolibrary.org/obo/CHEBI_24505
-
-        Returns:
-            An RDFlib.Graph that has been cleaned.
-        """
-
-        # run OWL-NETS -- running this first in order to free up memory by deleting the networkx object
-        print('\nRunning OWL-NETS')
-        self.finds_classes()
-        cleaned_class_dict = self.cleans_owl_encoded_classes()
-
-        # read in and reverse dictionary to map IRIs back to labels
-        reverse_uuid_map = {val: key for (key, val) in self.uuid_map.items() if self.uuid_map}
-
-        # from those triples with URIs, remove triples that are about instances of classes
-        update_graph = rdflib.Graph()
-
-        for edge in tqdm(self.knowledge_graph):
-            if all(str(x) for x in edge if str(x).startswith('http')):
-
-                # look for created class-instances so they can be reversed
-                if any(x for x in edge[0::2] if str(x) in reverse_uuid_map.keys()):
-                    if str(edge[2]) in reverse_uuid_map.keys() and 'ns#type' not in str(edge[1]):
-                        update_graph.add((edge[0], edge[1], rdflib.URIRef(reverse_uuid_map[str(edge[2])])))
-                    else:
-                        update_graph.add((rdflib.URIRef(reverse_uuid_map[str(edge[0])]), edge[1], edge[2]))
-
-                # keep edges with nodes that do not include '#' and predicates without 'ns#type'
-                elif not any(str(x) for x in edge[0::2] if '#' in str(x)) and 'ns#type' not in str(edge[1]):
-                    update_graph.add(edge)
-                else:
-                    pass
-
-        # add cleaned classes to graph
-        update_graph = self.adds_cleaned_classes_to_graph(update_graph, cleaned_class_dict)
+                self.knowledge_graph.add((triple[0], triple[1], triple[2]))
 
         # print kg statistics
-        edges = len(set(list(update_graph)))
-        nodes = len(set([str(node) for edge in list(update_graph) for node in edge[0::2]]))
+        edges = len(set(list(self.knowledge_graph)))
+        nodes = len(set([str(node) for edge in list(self.knowledge_graph) for node in edge[0::2]]))
         print('\nFINISHED: Completed the Removal of OWL Semantics')
         print('The Decoded Knowledge graph contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
-        return update_graph
+        return self.knowledge_graph
