@@ -72,7 +72,7 @@ class OWLNETS(object):
             ValueError: If the query returns zero nodes with type owl:Class.
         """
 
-        print('Querying Knowledge Graph to Obtain all OWL:Class Nodes')
+        print('\nQuerying Knowledge Graph to Obtain all OWL:Class Nodes')
 
         # find all classes in graph
         kg_classes = self.knowledge_graph.query(
@@ -113,6 +113,8 @@ class OWLNETS(object):
         Returns:
             None.
         """
+
+        print('\nFiltering Triples')
 
         reverse_uuid_map = {val: key for (key, val) in self.uuid_map.items() if self.uuid_map}
 
@@ -388,10 +390,14 @@ class OWLNETS(object):
                 saved locally.
         """
 
+        print('\nDecoding OWL Constructors and Restrictions')
+
         cleaned_class_dict, complement_constructors, cardinality, misc = dict(), set(), set(), []  # type: ignore
         pbar = tqdm(total=len(self.class_list))
 
         while self.class_list:
+            pbar.update(1)
+
             node = self.class_list.pop(0)
             node_information = self.creates_edge_dictionary(node)
             class_edge_dict = node_information[0]
@@ -433,21 +439,21 @@ class OWLNETS(object):
                 cleaned_class_dict[node]['owl-encoded'] = class_edge_dict
                 cleaned_class_dict[node]['owl-decoded'] = cleaned_classes
 
-                pbar.update(1)
-
         pbar.close()
 
         # save dictionary of cleaned classes
         pickle.dump(cleaned_class_dict, open(self.write_location + self.full_kg[:-7] + '_OWLNETS_results.pickle', 'wb'))
-        # cleaned_class_dict = pickle.load(open(write_location + full_kg[:-7] + '_OWLNETS_results.json', 'rb'))
+        # cleaned_class_dict = pickle.load(open(write_location + full_kg[:-7] + '_OWLNETS_results.pickle', 'rb'))
 
         # delete networkx graph object to free up memory
         del self.nx_multidigraph
 
-        print('\nFINISHED: Decoded {} owl-encoded classes. Note the following:'.format(len(cleaned_class_dict.keys())))
+        print('=' * 75)
+        print('Decoded {} owl-encoded classes. Note the following:'.format(len(cleaned_class_dict.keys())))
         print('{} owl class elements containing cardinality were ignored'.format(len(cardinality)))
-        print('The following {} misc owl class elements were ignored: {}'.format(len(misc), list(Counter(misc))))
-        print('{} owl classes constructed using owl:complementOf were removed\n'.format(len(complement_constructors)))
+        print('ignored {} misc classes of the following type(s): {}'.format(len(misc), ', '.join(list(Counter(misc)))))
+        print('{} owl classes constructed using owl:complementOf were removed'.format(len(complement_constructors)))
+        print('=' * 75)
 
         return cleaned_class_dict
 
@@ -457,8 +463,6 @@ class OWLNETS(object):
         Returns:
             An rdflib.Graph object that has been updated to include all triples from the cleaned_classes dictionary.
         """
-
-        print('\nRunning OWL-NETS')
 
         # get all classes in knowledge graph
         self.finds_classes()
@@ -470,6 +474,8 @@ class OWLNETS(object):
         cleaned_class_dict = self.cleans_owl_encoded_classes()
 
         # add cleaned classes to graph
+        print('\nAdding decoded OWL Classes to Filtered Knowledge Graph')
+
         for node in tqdm(cleaned_class_dict.keys()):
             for triple in cleaned_class_dict[node]['owl-decoded']:
                 self.knowledge_graph.add((triple[0], triple[1], triple[2]))
@@ -477,7 +483,7 @@ class OWLNETS(object):
         # print kg statistics
         edges = len(set(list(self.knowledge_graph)))
         nodes = len(set([str(node) for edge in list(self.knowledge_graph) for node in edge[0::2]]))
-        print('\nFINISHED: Completed the Removal of OWL Semantics')
+        print('Completed the Removal of OWL Semantics')
         print('The Decoded Knowledge graph contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
         return self.knowledge_graph
