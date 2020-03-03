@@ -15,6 +15,8 @@ scripts/python/.ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
 /resources/releases/archive.zip
 /resources/processed_data/
 /resources/edge_data/*
+/resources/node_data/*
+/resources/relations_data/*
 /resources/knowledge_graphs/
 /resources/kr_model/
 /resources/ontologies/*
@@ -29,13 +31,8 @@ scripts/python/knowledge_graph_embedder.py
 !/resources/ontologies/ontology_source_metadata.txt
 !/resources/edge_data/class_source_metadata.txt
 !/resources/edge_data/instance_source_metadata.txt
-./resources/normal_class_source_list.txt
-./resources/normal_instance_source_list.txt
-./resources/normal_resource_info_list.txt
-resources/node_data/*
-!resources/node_data/README.md
-resources/relations_data/*
-!resources/relations_data/README.md
+!/resources/node_data/README.md
+!/resources/relations_data/README.md
 !/resources/embeddings/README.md
 !/resources/knowledge_graphs/OWL_NETS_Property_Types.txt
 
