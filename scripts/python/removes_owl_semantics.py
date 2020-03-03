@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # import needed libraries
+import glob
 import networkx   # type: ignore
+import os
 import pickle
 import rdflib  # type: ignore
 
@@ -29,7 +31,7 @@ class OWLNETS(object):
         full_kg: A string containing the filename for the full knowledge graph.
         nx_multidigraph: A networkx graph object that contains the same edges as knowledge_graph.
         class_list: A list of owl classes from the input knowledge graph.
-        keep_types: A list of owl:Property types to keep when filtering triples from knowledge graph.
+        keep_properties : A list of owl:Property types to keep when filtering triples from knowledge graph.
 
     Raises:
         TypeError: If knowledge_graph is not an rdflib.graph object.
@@ -37,7 +39,7 @@ class OWLNETS(object):
     """
 
     def __init__(self, knowledge_graph: rdflib.Graph, uuid_class_map: Dict, write_location: str, full_kg: str,
-                 keep_types: Optional[List[str]] = None) -> None:
+                 keep_property_types: Optional[List[str]] = None) -> None:
 
         # verify input graphs
         if not isinstance(knowledge_graph, rdflib.Graph):
@@ -60,7 +62,10 @@ class OWLNETS(object):
             self.nx_multidigraph.add_edge(s, o, **{'key': p})
 
         # set a list of owl:Property types to keep when filtering triples from knowledge graph
-        self.keep_types = keep_types if keep_types else ['inverseOf', 'disjointWith', 'subClassOf']
+        if keep_property_types:
+            self.keep_properties = keep_property_types
+        else:
+            self.keep_properties = [x.strip('\n') for x in open(glob.glob('**/**/*Property*.txt')[0]).readlines() if x]
 
     def finds_classes(self) -> None:
         """Queries a knowledge graph and returns a list of all owl:Class objects in the graph.
@@ -92,7 +97,7 @@ class OWLNETS(object):
 
         return None
 
-    def removes_edges_with_owl_semantics(self) -> None:
+    def removes_edges_with_owl_semantics(self) -> Set[str]:
         """Filters the knowledge graph with the goal of removing all edges that contain entities that are needed to
         support owl semantics, but are not biologically meaningful. For example:
 
@@ -111,44 +116,35 @@ class OWLNETS(object):
             Reverted to: http://purl.obolibrary.org/obo/CHEBI_24505
 
         Returns:
-            None.
+            removed_edge_types: A set of owl:Properties that were ignored while filtering the knowledge graph.
         """
 
         print('\nFiltering Triples')
 
+        removed_edge_types = set()
         reverse_uuid_map = {val: key for (key, val) in self.uuid_map.items() if self.uuid_map}
 
         for edge in tqdm(self.knowledge_graph):
             # replace created class-instance UUIDs with the class identifier
-            if any(x for x in edge[0::2] if str(x) in reverse_uuid_map.keys()):
+            if any(x for x in edge[0::2] if str(x) in reverse_uuid_map.keys()) and str(edge[1]) in self.keep_properties:
                 if str(edge[2]) in reverse_uuid_map.keys() and 'ns#type' not in str(edge[1]):
+                    self.knowledge_graph.remove(edge)
                     self.knowledge_graph.add((edge[0], edge[1], rdflib.URIRef(reverse_uuid_map[str(edge[2])])))
-                    self.knowledge_graph.remove(edge)
                 else:
+                    self.knowledge_graph.remove(edge)
                     self.knowledge_graph.add((rdflib.URIRef(reverse_uuid_map[str(edge[0])]), edge[1], edge[2]))
-                    self.knowledge_graph.remove(edge)
-            elif not any(x for x in edge if not isinstance(x, rdflib.URIRef)) and 'obo' in str(edge[1]):
-                if 'IAO' in str(edge[1]) or '#' in str(edge[1]):
-                    self.knowledge_graph.remove(edge)
-                else:
-                    pass
+
+            # edges where both nodes are URIs and the edge is in the keep_properties list
+            elif all(x for x in edge[0::2] if isinstance(x, rdflib.URIRef)) and str(edge[1]) in self.keep_properties:
+                pass
             else:
-                # remove nodes with '#', properties not in keep_types list, and triples with anonymous or literal nodes
-                if any(str(x) for x in edge[0::2] if '#' in str(x)):
-                    self.knowledge_graph.remove(edge)
-                elif str(edge[1]).split('#')[-1] not in self.keep_types:
-                    self.knowledge_graph.remove(edge)
-                elif isinstance(edge[0], rdflib.BNode) or isinstance(edge[2], rdflib.BNode):
-                    self.knowledge_graph.remove(edge)
-                elif isinstance(edge[0], rdflib.Literal) or isinstance(edge[2], rdflib.Literal):
-                    self.knowledge_graph.remove(edge)
-                else:
-                    pass
+                removed_edge_types |= {str(edge[1])}
+                self.knowledge_graph.remove(edge)
 
         # tidy workspace
         del reverse_uuid_map, self.uuid_map
 
-        return None
+        return removed_edge_types
 
     def recurses_axioms(self, seen_nodes: List[rdflib.BNode], axioms: List[Any]) -> List[rdflib.BNode]:
         """Function recursively searches a list of knowledge graph nodes and tracks the nodes it has visited. Once
@@ -468,7 +464,7 @@ class OWLNETS(object):
         self.finds_classes()
 
         # filter out owl-encoded triples from original knowledge graph
-        self.removes_edges_with_owl_semantics()
+        removed_edge_types = self.removes_edges_with_owl_semantics()
 
         # clean constructors and restrictions
         cleaned_class_dict = self.cleans_owl_encoded_classes()
@@ -478,7 +474,16 @@ class OWLNETS(object):
 
         for node in tqdm(cleaned_class_dict.keys()):
             for triple in cleaned_class_dict[node]['owl-decoded']:
-                self.knowledge_graph.add((triple[0], triple[1], triple[2]))
+                if str(triple[1]) in self.keep_properties:
+                    self.knowledge_graph.add((triple[0], triple[1], triple[2]))
+                else:
+                    removed_edge_types |= {str(triple[1])}
+
+        # write removed_edge_types locally
+        with open(self.write_location + self.full_kg[:-4] + '_FilteredOWLProperties_LOG.txt') as prop_out:
+            for owl_property in removed_edge_types:
+                prop_out.write(str(owl_property) + '\n')
+        prop_out.close()
 
         # print kg statistics
         edges = len(set(list(self.knowledge_graph)))
