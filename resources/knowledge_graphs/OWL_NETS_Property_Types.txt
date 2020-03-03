@@ -65,7 +65,6 @@ http://purl.obolibrary.org/obo/cl#lacks_part
 http://purl.obolibrary.org/obo/cl#lacks_plasma_membrane_part
 http://purl.obolibrary.org/obo/CLO_0000015
 http://purl.obolibrary.org/obo/CLO_0000167
-http://purl.obolibrary.org/obo/CLO_0000174
 http://purl.obolibrary.org/obo/CLO_0000179
 http://purl.obolibrary.org/obo/CLO_0037207
 http://purl.obolibrary.org/obo/CLO_0037208
