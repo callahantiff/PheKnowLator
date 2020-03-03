@@ -216,7 +216,7 @@ class Metadata(object):
 
         Args:
             graph: An rdflib graph object.
-            filename: A string containing the filepath to the annotation assertions edge list.
+            filename: A string containing the filepath to the full knowledge graph that includes annotation assertions.
 
         Returns:
             graph: An rdflib graph object that includes annotation assertions.
