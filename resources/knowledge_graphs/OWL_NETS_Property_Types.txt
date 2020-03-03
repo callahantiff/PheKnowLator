@@ -126,7 +126,6 @@ http://purl.obolibrary.org/obo/RO_0002160
 http://purl.obolibrary.org/obo/RO_0002162
 http://purl.obolibrary.org/obo/RO_0002170
 http://purl.obolibrary.org/obo/RO_0002173
-http://purl.obolibrary.org/obo/RO_0002174
 http://purl.obolibrary.org/obo/RO_0002175
 http://purl.obolibrary.org/obo/RO_0002176
 http://purl.obolibrary.org/obo/RO_0002177
