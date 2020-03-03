@@ -627,11 +627,8 @@ class KGBuilder(object):
 
         return None
 
-    def converts_rdflib_to_networkx(self, graph: Optional[Graph] = None) -> None:
+    def converts_rdflib_to_networkx(self) -> None:
         """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally.
-
-        Args:
-            graph: An RDFLib.Graph object.
 
         Returns:
             None.
@@ -645,11 +642,11 @@ class KGBuilder(object):
         # create an empty networkx object
         nx_mdg = networkx.MultiDiGraph()
 
-        if not graph:
+        try:
+            graph = self.graph
+        except (AttributeError, NameError):
             graph = Graph()
-            graph.parse(write_location + full_kg)
-        else:
-            pass
+            graph.parse(self.write_location + self.full_kg)
 
         # convert graph to networkx object
         for s, p, o in tqdm(graph):
@@ -658,8 +655,8 @@ class KGBuilder(object):
 
         # pickle networkx graph
         print('\nPickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
-        networkx.write_gpickle(nx_mdg, write_location + full_kg[:-4] + '_Networkx_MultiDiGraph.gpickle')
-        del graph, nx_mdg
+        networkx.write_gpickle(nx_mdg, self.write_location + self.full_kg[:-4] + '_Networkx_MultiDiGraph.gpickle')
+        del knowledge_graph, nx_mdg
 
         return None
 
@@ -913,7 +910,7 @@ class PostClosureBuild(KGBuilder):
                                        self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
 
         # convert graph into Networkx MultiDiGraph
-        self.converts_rdflib_to_networkx(self.full_kg[:-6] + 'Triples_Identifiers.txt')
+        self.converts_rdflib_to_networkx()
 
         # remove partial build temp directory
         remove_partial_dir = input('\nDelete the "partial" directory?: (please type "yes" or "no")')
@@ -1012,6 +1009,6 @@ class FullBuild(KGBuilder):
                                        self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
 
         # convert graph into Networkx MultiDiGraph
-        # self.converts_rdflib_to_networkx(self.full_kg[:-6] + 'Triples_Identifiers.txt')
+        self.converts_rdflib_to_networkx()
 
         return None
