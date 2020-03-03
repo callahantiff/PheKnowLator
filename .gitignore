@@ -37,6 +37,7 @@ resources/node_data/*
 resources/relations_data/*
 !resources/relations_data/README.md
 !/resources/embeddings/README.md
+!resources/knowledge_graphs/OWL_NETS_Property_Types.txt
 
 # releases
 /releases/
