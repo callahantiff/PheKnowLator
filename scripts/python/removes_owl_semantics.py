@@ -125,18 +125,21 @@ class OWLNETS(object):
         reverse_uuid_map = {val: key for (key, val) in self.uuid_map.items() if self.uuid_map}
 
         for edge in tqdm(self.knowledge_graph):
-            # replace created class-instance UUIDs with the class identifier
-            if any(x for x in edge[0::2] if str(x) in reverse_uuid_map.keys()) and str(edge[1]) in self.keep_properties:
-                if str(edge[2]) in reverse_uuid_map.keys() and 'ns#type' not in str(edge[1]):
-                    self.knowledge_graph.remove(edge)
-                    self.knowledge_graph.add((edge[0], edge[1], rdflib.URIRef(reverse_uuid_map[str(edge[2])])))
+            if str(edge[1]) in self.keep_properties:
+                # keep triple - replace created class-instance UUIDs with the class identifier
+                if any(x for x in edge[0::2] if str(x) in reverse_uuid_map.keys()):
+                    if str(edge[0]) in reverse_uuid_map.keys():
+                        self.knowledge_graph.remove(edge)
+                        self.knowledge_graph.add((rdflib.URIRef(reverse_uuid_map[str(edge[0])]), edge[1], edge[2]))
+                    else:
+                        self.knowledge_graph.remove(edge)
+                        self.knowledge_graph.add((edge[0], edge[1], rdflib.URIRef(reverse_uuid_map[str(edge[2])])))
+                # keep triple - edges where both nodes are URIs
+                elif all(x for x in edge[0::2] if isinstance(x, rdflib.URIRef)):
+                    continue
                 else:
+                    removed_edge_types |= {str(edge[1])}
                     self.knowledge_graph.remove(edge)
-                    self.knowledge_graph.add((rdflib.URIRef(reverse_uuid_map[str(edge[0])]), edge[1], edge[2]))
-
-            # edges where both nodes are URIs and the edge is in the keep_properties list
-            elif all(x for x in edge[0::2] if isinstance(x, rdflib.URIRef)) and str(edge[1]) in self.keep_properties:
-                pass
             else:
                 removed_edge_types |= {str(edge[1])}
                 self.knowledge_graph.remove(edge)
@@ -480,7 +483,7 @@ class OWLNETS(object):
                     removed_edge_types |= {str(triple[1])}
 
         # write removed_edge_types locally
-        with open(self.write_location + self.full_kg[:-4] + '_FilteredOWLProperties_LOG.txt') as prop_out:
+        with open(self.write_location + self.full_kg[:-4] + '_FilteredOWLProperties_LOG.txt', 'w') as prop_out:
             for owl_property in removed_edge_types:
                 prop_out.write(str(owl_property) + '\n')
         prop_out.close()
