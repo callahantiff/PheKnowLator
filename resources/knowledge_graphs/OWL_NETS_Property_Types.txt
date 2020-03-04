@@ -273,5 +273,6 @@ http://purl.obolibrary.org/obo/VO_0003355
 http://semanticscience.org/resource/SIO_000420
 http://www.ebi.ac.uk/efo/EFO_0000784
 http://www.obofoundry.org/ro/ro.owl#contained_in
+http://www.w3.org/2000/01/rdf-schema#subClassOf
 http://www.w3.org/2002/07/owl#disjointWith
 http://www.w3.org/2002/07/owl#inverseOf
