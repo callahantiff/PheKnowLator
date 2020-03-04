@@ -537,9 +537,41 @@ class KGBuilder(object):
 
         # serialize graph
         self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
+        self.ontology_file_formatter()
 
         # write class-instance uuid mapping dictionary to file
         json.dump(self.kg_uuid_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
+
+        return None
+
+    def ontology_file_formatter(self) -> None:
+        """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
+        referenced by graph_location is read in and output to the same location via the OWLTools API.
+
+        Returns:
+            None.
+
+        Raises:
+            TypeError: If something other than an .owl file is passed to function.
+            IOError: If the graph_location file is empty.
+            TypeError: If the input file contains no data.
+        """
+
+        print('\n*** Applying OWL API Formatting to Knowledge Graph OWL File ***')
+        graph_write_location = self.write_location + self.full_kg
+
+        # check input owl file
+        if '.owl' not in graph_location:
+            raise TypeError('ERROR: The provided file is not type .owl')
+        elif not os.path.exists(graph_write_location):
+            raise IOError('The {} file does not exist!'.format(graph_write_location))
+        elif os.stat(graph_location).st_size == 0:
+            raise TypeError('ERROR: input file: {} is empty'.format(graph_write_location))
+        else:
+            try:
+                subprocess.check_call(['./resources/lib/owltools', graph_write_location, '-o', graph_write_location])
+            except subprocess.CalledProcessError as error:
+                print(error.output)
 
         return None
 
@@ -639,9 +671,7 @@ class KGBuilder(object):
 
         print('\nConverting Knowledge Graph to MultiDiGraph')
 
-        # create an empty networkx object
-        nx_mdg = networkx.MultiDiGraph()
-
+        # read in knowledge graph if class graph attribute is not present
         try:
             graph = self.graph
         except (AttributeError, NameError):
@@ -649,6 +679,8 @@ class KGBuilder(object):
             graph.parse(self.write_location + self.full_kg)
 
         # convert graph to networkx object
+        nx_mdg = networkx.MultiDiGraph()
+
         for s, p, o in tqdm(graph):
             graph.remove((s, p, o))
             nx_mdg.add_edge(s, o, **{'key': p})
@@ -656,41 +688,9 @@ class KGBuilder(object):
         # pickle networkx graph
         print('\nPickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
         networkx.write_gpickle(nx_mdg, self.write_location + self.full_kg[:-4] + '_Networkx_MultiDiGraph.gpickle')
+
+        # clean up environment
         del knowledge_graph, nx_mdg
-
-        return None
-
-    @staticmethod
-    def ontology_file_formatter(graph_location: str) -> None:
-        """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
-        referenced by graph_location is read in and output to the same location via the OWLTools API.
-
-        Args:
-            graph_location: A string naming the location of an ontology.
-
-        Returns:
-            None.
-
-        Raises:
-            TypeError: If something other than an .owl file is passed to function.
-            IOError: If the graph_location file is empty.
-            TypeError: If the input file contains no data.
-        """
-
-        print('\n*** Applying OWL API Formatting to Knowledge Graph OWL File ***')
-
-        # check input owl file
-        if '.owl' not in graph_location:
-            raise TypeError('ERROR: The provided file is not type .owl')
-        elif not os.path.exists(graph_location):
-            raise IOError('The {} file does not exist!'.format(graph_location))
-        elif os.stat(graph_location).st_size == 0:
-            raise TypeError('ERROR: input file: {} is empty'.format(graph_location))
-        else:
-            try:
-                subprocess.check_call(['./resources/lib/owltools', graph_location, '-o', graph_location])
-            except subprocess.CalledProcessError as error:
-                print(error.output)
 
         return None
 
@@ -773,7 +773,7 @@ class PartialBuild(KGBuilder):
         # build knowledge graph
         print('*** Building Knowledge Graph Edges ***')
         self.creates_knowledge_graph_edges(metadata.creates_node_metadata, metadata.adds_ontology_annotations)
-        self.ontology_file_formatter(self.write_location + self.full_kg)
+        del self.graph, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
 
         # STEP 6: REMOVE ANNOTATION ASSERTIONS
         print('*** Removing Annotation Assertions ***')
@@ -899,11 +899,6 @@ class PostClosureBuild(KGBuilder):
             del owl_nets, self.kg_uuid_map
 
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
-        # serialize graph + apply OWL API formatting to file
-        print('*** Writing Knowledge Graph Files ***')
-        self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
-        self.ontology_file_formatter(self.write_location + self.full_kg)
-
         # output knowledge graph edge lists
         print('*** Writing Knowledge Graph Edge Lists ***')
         self.maps_node_ids_to_integers(self.full_kg[:-6] + 'Triples_Integers.txt',
@@ -988,7 +983,7 @@ class FullBuild(KGBuilder):
         # STEP 6: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
         metadata.output_knowledge_graph_metadata(self.graph)
-        del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
+        del self.metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
 
         # STEP 7: DECODE OWL SEMANTICS
         if self.decode_owl_semantics:
@@ -998,11 +993,6 @@ class FullBuild(KGBuilder):
             del owl_nets, self.kg_uuid_map
 
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
-        # serialize graph + apply OWL API formatting to file
-        print('\n*** Writing Knowledge Graph Files ***')
-        self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
-        self.ontology_file_formatter(self.write_location + self.full_kg)
-
         # output knowledge graph edge lists
         print('\n*** Writing Knowledge Graph Edge Lists ***')
         self.maps_node_ids_to_integers(self.full_kg[:-6] + 'Triples_Integers.txt',
