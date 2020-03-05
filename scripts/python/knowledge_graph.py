@@ -561,11 +561,11 @@ class KGBuilder(object):
         graph_write_location = self.write_location + self.full_kg
 
         # check input owl file
-        if '.owl' not in graph_location:
+        if '.owl' not in graph_write_location:
             raise TypeError('ERROR: The provided file is not type .owl')
         elif not os.path.exists(graph_write_location):
             raise IOError('The {} file does not exist!'.format(graph_write_location))
-        elif os.stat(graph_location).st_size == 0:
+        elif os.stat(graph_write_location).st_size == 0:
             raise TypeError('ERROR: input file: {} is empty'.format(graph_write_location))
         else:
             try:
@@ -983,7 +983,7 @@ class FullBuild(KGBuilder):
         # STEP 6: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
         metadata.output_knowledge_graph_metadata(self.graph)
-        del self.metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
+        del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
 
         # STEP 7: DECODE OWL SEMANTICS
         if self.decode_owl_semantics:
