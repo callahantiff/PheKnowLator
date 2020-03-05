@@ -690,7 +690,7 @@ class KGBuilder(object):
         networkx.write_gpickle(nx_mdg, self.write_location + self.full_kg[:-4] + '_Networkx_MultiDiGraph.gpickle')
 
         # clean up environment
-        del knowledge_graph, nx_mdg
+        del graph, nx_mdg
 
         return None
 
