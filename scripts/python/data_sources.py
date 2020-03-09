@@ -10,7 +10,7 @@ import os.path
 from abc import ABCMeta, abstractmethod
 from owlready2 import subprocess  # type: ignore
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from scripts.python.data_preparation_helper_functions import *
 
@@ -96,50 +96,44 @@ class DataSource(object):
 
         pass
 
-    def extracts_edge_metadata(self) -> None:
+    @staticmethod
+    def extracts_edge_metadata(edge) -> Tuple[str]:
         """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are
         a list containing mapping and filtering information.
 
-        Returns:
-            A Dictionary of edge type metadata, where each value contains a list of three items:
-                (1) identifier mapping information: edge node, filepath to identifier data
-                (2) filtering criteria: edge data column index: criteria
-                (3) evidence criteria: edge data column index: criteria
+        Args:
+            edge: A pipe-delimited string containing information about the edge. For example,
 
-                For example: {node1-node2:
-                                          node1 - './filepath/mapping_data.txt,
-                                          col_idx:8 - col_val<2.0 | col_idx:24 - col_val.startswith('REACT'),
-                                          col_idx:2 - col_val=='reviewed', col_idx:4 - col_val in [9606, 1026]}
+        Returns:
+            mapping: Identifier mapping information stored as a node and a filepath to perform identifier mapping on
+                (e.g. node1 - './filepath/mapping_data.txt).
+            filtering: Filtering criteria including the edge data column index and criteria by which to filter (e.g.
+                col_idx:8 - col_val<2.0 | col_idx:24 - col_val.startswith('REACT')).
+            evidence criteria: Filtering criteria including the edge data column index and criteria by which to filter
+                (e.g. col_idx:2 - col_val=='reviewed', col_idx:4 - col_val in [9606, 1026]).
         """
 
-        # create edge data resource dictionary
-        for edge in self.resource_info:
+        # get identifier mapping information
+        mapping = ['{} ({})'.format(edge.split('|')[0].split('-')[int(x.split(':')[0])], ''.join(x.split(':')[1]))
+                   if x != 'None'
+                   else 'None'
+                   for x in edge.split('|')[-3].strip('\n').split(';')]
 
-            # get identifier mapping information
-            edge_type = edge.split('|')[0].split('-')
-            mapping = ['{} ({})'.format(edge_type[int(x.split(':')[0])], ''.join(x.split(':')[1]))
-                       if x != 'None'
-                       else 'None'
-                       for x in edge.split('|')[-3].strip('\n').split(';')]
+        # get filtering information
+        filtering = ['None' if x == 'None'
+                     else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
+                     if ('in' in x.split(';')[1] and x != 'None')
+                     else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+                     for x in edge.split('|')[-1].strip('\n').split('::')]
 
-            # get filtering information
-            filtering = ['None' if x == 'None'
-                         else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
-                         if ('in' in x.split(';')[1] and x != 'None')
-                         else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
-                         for x in edge.split('|')[-1].strip('\n').split('::')]
+        # get evidence criteria
+        evidence = ['None' if x == 'None'
+                    else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
+                    if ('in' in x.split(';')[1] and x != 'None')
+                    else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+                    for x in edge.split('|')[-2].strip('\n').split('::')]
 
-            # get evidence criteria
-            evidence = ['None' if x == 'None'
-                        else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
-                        if ('in' in x.split(';')[1] and x != 'None')
-                        else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
-                        for x in edge.split('|')[-2].strip('\n').split('::')]
-
-            # add info to dictionary
-            self.resource_dict[edge.split('|')[0]] = [' | '.join(mapping), ' | '.join(filtering), ' | '.join(evidence)]
-
-            return None
+        return ' | '.join(mapping), ' | '.join(filtering), ' | '.join(evidence)
 
     def generates_source_metadata(self) -> None:
         """Extracts and stores metadata for imported data sources and save the information to the metadata attribute.
@@ -169,17 +163,15 @@ class DataSource(object):
         print('\n*** Generating Metadata ***\n')
         self.metadata.append(['#' + str(datetime.datetime.utcnow().strftime('%a %b %d %X UTC %Y')) + ' \n'])
 
-        # create resource info edge dict
-        self.extracts_edge_metadata()
-
         for i in tqdm(self.data_files.keys()):
             source = self.data_files[i]
 
             # get edge information
             if '-' in source:
-                map_info = self.resource_dict[i][0]
-                filter_info = self.resource_dict[i][1]
-                evidence_info = self.resource_dict[i][2]
+                resource_info = self.extracts_edge_metadata([x for x in self.resource_info if x.startswith(i)][0])
+                map_info = resource_info[0]
+                filter_info = resource_info[1]
+                evidence_info = resource_info[2]
 
             else:
                 map_info, filter_info, evidence_info = 'None', 'None', 'None'
@@ -275,7 +267,7 @@ class OntData(DataSource):
 
         return None
 
-    def downloads_data_from_url(self, download_type: str) -> None:
+    def downloads_data_from_url(self, download_type: Optional[str] = None) -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes
         that each item in the input file list is an URL to an OWL/OBO ontology.
 
@@ -378,7 +370,7 @@ class Data(DataSource):
 
         return None
 
-    def downloads_data_from_url(self, download_type: str) -> None:
+    def downloads_data_from_url(self, download_type: Optional[str] = None) -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes that
         each item in the input file list is a valid URL.
 
@@ -396,33 +388,34 @@ class Data(DataSource):
             ValueError: If not all of the URLs returned valid data.
         """
 
-        self.parses_resource_file()
+        if not download_type:
+            self.parses_resource_file()
 
-        # set location where to write data
-        file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/edge_data/'
-        print('\n*** Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
+            # set location where to write data
+            file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/edge_data/'
+            print('\n*** Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
 
-        for i in tqdm(self.source_list.keys()):
-            source = self.source_list[i]
-            file_name = re.sub('.gz|.zip|\?.*', '', source.split('/')[-1])
-            write_path = './resources/edge_data/'
-            print('\nEdge: {edge}'.format(edge=i))
+            for i in tqdm(self.source_list.keys()):
+                source = self.source_list[i]
+                file_name = re.sub('.gz|.zip|\?.*', '', source.split('/')[-1])
+                write_path = './resources/edge_data/'
+                print('\nEdge: {edge}'.format(edge=i))
 
-            # if file has already been downloaded, rename it
-            if any(x for x in os.listdir(write_path) if '_'.join(x.split('_')[1:]) == file_name):
-                self.data_files[i] = write_path + i + '_' + file_name
+                # if file has already been downloaded, rename it
+                if any(x for x in os.listdir(write_path) if '_'.join(x.split('_')[1:]) == file_name):
+                    self.data_files[i] = write_path + i + '_' + file_name
 
-                try:
-                    shutil.copy(glob.glob(write_path + '*' + file_name)[0], write_path + i + '_' + file_name)
-                except shutil.SameFileError:
-                    pass
-            else:
-                # download data
-                self.data_files[i] = write_path + i + '_' + file_name
-                data_downloader(source, write_path, i + '_' + file_name)
+                    try:
+                        shutil.copy(glob.glob(write_path + '*' + file_name)[0], write_path + i + '_' + file_name)
+                    except shutil.SameFileError:
+                        pass
+                else:
+                    # download data
+                    self.data_files[i] = write_path + i + '_' + file_name
+                    data_downloader(source, write_path, i + '_' + file_name)
 
-        # CHECK
-        if len(self.source_list) != len(self.data_files):
-            raise ValueError('ERROR: Not all URLs returned a data file')
+            # CHECK
+            if len(self.source_list) != len(self.data_files):
+                raise ValueError('ERROR: Not all URLs returned a data file')
 
-        return None
+            return None
