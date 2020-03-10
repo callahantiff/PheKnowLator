@@ -47,3 +47,4 @@ scripts/python/knowledge_graph_embedder.py
 /walking-rdf-and-owl-master/
 resources/resource_info_updated.txt
 external_libraries/*
+resources/hgu133plus2_all_URIs.pkl
