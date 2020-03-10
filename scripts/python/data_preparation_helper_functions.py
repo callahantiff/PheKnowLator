@@ -405,3 +405,38 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
     node_metadata_final = node_metadata_final.astype(str)
 
     return node_metadata_final
+
+
+def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, genomic2: str, genomic_type: str = None)\
+                      -> None:
+    """Searches a dictionary of genomic identifier mappings and processes them, writing out
+
+    Args:
+        id_dict: A dictionary where the key is genomic identifier and the value is a list of other genomic
+            identifiers mapped to the key.
+        filename: A string containing a filename to write results to.
+        genomic1: A string indicating a genomic identifier type (i.e. transcript_stable_id, ensembl_gene_id,
+            entrez_id, hgnc_id, symbol).
+        genomic2: A string indicating a genomic identifier type (i.e. transcript_stable_id, ensembl_gene_id,
+            entrez_id, hgnc_id, symbol).
+        genomic_type: A string indicating whether or not to save the gene or transcript type.
+
+    Return:
+        None.
+    """
+
+    with open(filename, 'w') as outfile:
+        for key in tqdm(id_dict.keys()):
+            id_data = id_dict[key]
+            gene_type = [x.split('_')[-1] for x in id_data if x.startswith(genomic_type)][0] if genomic_type else None
+
+            for res in id_data:
+                if genomic1 in key and res.startswith(genomic2):
+                    outfile.write(key.split('_')[-1] + '\t' + res.split('_')[-1] + '\t' + gene_type + '\n')
+                elif genomic2 in key and res.startswith(genomic1):
+                    outfile.write(res.split('_')[-1] + '\t' + key.split('_')[-1] + '\t' + gene_type + '\n')
+                else:
+                    continue
+    outfile.close()
+
+    return None
