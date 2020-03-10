@@ -428,7 +428,8 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
     with open(filename, 'w') as outfile:
         for key in tqdm(id_dict.keys()):
             id_data = id_dict[key]
-            gene_type = [x.split('_')[-1] for x in id_data if x.startswith(genomic_type)][0] if genomic_type else None
+            gene_type = [x.split('_')[-1] for x in id_data if x.startswith(genomic_type)][0] if genomic_type else \
+                'Nones'
 
             for res in id_data:
                 if genomic1 in key and res.startswith(genomic2):
