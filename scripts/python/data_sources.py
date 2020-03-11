@@ -6,13 +6,14 @@
 import datetime
 import glob
 import os.path
+import re
 
 from abc import ABCMeta, abstractmethod
 from owlready2 import subprocess  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Tuple
 
-from scripts.python.data_preparation_helper_functions import *
+from scripts.python.data_preparation_helper_functions import Utility
 
 
 class DataSource(object):
@@ -46,6 +47,7 @@ class DataSource(object):
                       'phenotype': 'resources/ontologies/hp_with_imports.owl'
                       }
         metadata: A list that stores metadata information for each downloaded data source.
+        help_funcs: Initializing the utility class to access data helper functions.
     """
 
     __metaclass__ = ABCMeta
@@ -58,6 +60,9 @@ class DataSource(object):
         self.source_list: Dict[str, str] = {}
         self.data_files: Dict[str, str] = {}
         self.metadata: List[List[str]] = []
+
+        # initialize utility class
+        self.helper_funcs = Utility()
 
     def parses_resource_file(self) -> None:
         """Verifies that an input file contains data and then outputs a dictionary where each item is a line from the
@@ -122,15 +127,15 @@ class DataSource(object):
         # get filtering information
         filtering = ['None' if x == 'None'
                      else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
-                     if ('in' in x.split(';')[1] and x != 'None')
-                     else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+        if ('in' in x.split(';')[1] and x != 'None')
+        else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
                      for x in edge.split('|')[-1].strip('\n').split('::')]
 
         # get evidence criteria
         evidence = ['None' if x == 'None'
                     else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
-                    if ('in' in x.split(';')[1] and x != 'None')
-                    else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+        if ('in' in x.split(';')[1] and x != 'None')
+        else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
                     for x in edge.split('|')[-2].strip('\n').split('::')]
 
         return ' | '.join(mapping), ' | '.join(filtering), ' | '.join(evidence)
@@ -172,7 +177,6 @@ class DataSource(object):
                 map_info = resource_info[0]
                 filter_info = resource_info[1]
                 evidence_info = resource_info[2]
-
             else:
                 map_info, filter_info, evidence_info = 'None', 'None', 'None'
 
@@ -334,6 +338,10 @@ class OntData(DataSource):
                     data_downloader(source, './resources/ontologies/', str(file_prefix) + '_with_imports.owl')
                     self.data_files[i] = './resources/ontologies/' + str(file_prefix) + '_with_imports.owl'
 
+            # print stats
+            self.helper_funcs.gets_ontology_statistics('./resources/ontologies/' + str(file_prefix) +
+                                                       '_with_imports.owl')
+
         # CHECK - make sure all files were processed
         if len(self.source_list) != len(self.data_files):
             raise ValueError('ERROR: Not all URLs returned a data file')
@@ -363,7 +371,6 @@ class Data(DataSource):
 
         if os.stat(self.data_path).st_size == 0:
             raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
-
         else:
             self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
                                 for row in open(self.data_path).read().split('\n')}
@@ -410,9 +417,8 @@ class Data(DataSource):
                     except shutil.SameFileError:
                         pass
                 else:
-                    # download data
                     self.data_files[i] = write_path + i + '_' + file_name
-                    data_downloader(source, write_path, i + '_' + file_name)
+                    self.helper_funcs.data_downloader(source, write_path, i + '_' + file_name)
 
             # CHECK
             if len(self.source_list) != len(self.data_files):
