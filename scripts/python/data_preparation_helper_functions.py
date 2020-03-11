@@ -464,8 +464,8 @@ class Utility(object):
             output = subprocess.check_output(['./resources/lib/owltools', file_location, '--info'])
 
         # print stats
-        res = output.decode('utf-8').split('\n')
-        cls, axs, op, ind = res[1].split(':')[-1], res[4].split(':')[-1], res[3].split(':')[-1], res[2].split(':')[-1]
+        res = output.decode('utf-8').split('\n')[-5:]
+        cls, axs, op, ind = res[0].split(':')[-1], res[3].split(':')[-1], res[2].split(':')[-1], res[1].split(':')[-1]
         sent = '\nThe knowledge graph contains {0} classes, {1} axioms, {2} object properties, and {3} individuals\n'
 
         print(sent.format(cls, axs, op, ind))
