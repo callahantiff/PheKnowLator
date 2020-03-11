@@ -261,8 +261,7 @@ class OntData(DataSource):
                            for row in open(self.data_path).read().split('\n')}
 
             # CHECK - verify formatting of urls
-            valid_sources = [url for url in source_list.values()
-                             if 'purl.obolibrary.org/obo' in url or 'owl' in url]
+            valid_sources = [url for url in source_list.values() if 'purl.obolibrary.org/obo' in url or 'owl' in url]
 
             if len(source_list) == len(valid_sources):
                 self.source_list = source_list
