@@ -2,7 +2,6 @@
 
 # Distribution/packaging/Environments
 __pycache__/
-__init__.py
 .idea/
 scripts/python/*.pyc
 scripts/*.pyc
@@ -24,8 +23,8 @@ scripts/python/.ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
 /resources/embeddings/*
 Untitled*
 scripts/python/scratch.py
-scripts/python/kg_embedding_visualizer.py
-scripts/python/knowledge_graph_embedder.py
+PheKnowLator/kg_embedding_visualizer.py
+PheKnowLator/knowledge_graph_embedder.py
 
 # ignoring resource preparation files and metadata information
 !/resources/ontologies/ontology_source_metadata.txt
