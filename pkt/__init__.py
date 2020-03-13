@@ -1,5 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 """ PheKnowLator: Phenotype Knowledge Translator
-.. module:: pheknowlator
+.. module:: pkt
    :platform: Unix
    :synopsis: knowledge graph construction library
 
@@ -7,20 +11,23 @@
 
 """
 
-from .data_sources import DataSource
-from .data_sources import Data
-from .data_sources import OntData
-from .edge_dictionary import EdgeList
-from .knowledge_graph import KGBuilder
-from .knowledge_graph import PartialBuild
-from .knowledge_graph import PostClosureBuild
-from .knowledge_graph import FullBuild
-from .knowledge_graph_metadata import Metadata
-from .removes_owl_semantics import OWLNETS
-from .utils.data_utils import DataUtilities
-
-
 __all__ = [
-    "DataSource", "OntData", "Data", "EdgeList", "KGBuilder", "PartialBuild", "PostClosureBuild", "FullBuild",
-    "Metadata", "OWLNETS", "DataUtilities"
+    'OntData',
+    'LinkedData',
+
+    'EdgeList',
+
+    'KGBuilder',
+    'PartialBuild',
+    'PostClosureBuild',
+    'FullBuild',
+
+    'Metadata',
+    'OwlNets'
 ]
+
+from pkt.downloads import LinkedData, OntData
+from pkt.edge_list import CreatesEdgeList
+from pkt.knowledge_graph import PartialBuild, PostClosureBuild, FullBuild
+from pkt.metadata import Metadata
+from pkt.owlnets import OwlNets

@@ -16,9 +16,9 @@ from rdflib.namespace import RDF  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Callable, Dict, List, Optional
 
-from pkt import DataUtilities
-from pkt import Metadata
-from pkt import OWLNETS
+from pkt.utils import gets_ontology_statistics
+from pkt.metadata import Metadata
+from pkt.owlnets import OwlNets
 
 # TODO: mypy throws errors for optional[dict] usage, this is an existing bug in mypy
 # https://github.com/python/mypy/issues/4359
@@ -83,7 +83,6 @@ class KGBuilder(object):
               'https://github.com/callahantiff/PheKnowLator/obo/ext/d1552fc9-a91b-414a-86cb-885f8c4822e7'}
         graph: An rdflib graph object which stores the knowledge graph.
         nx_mdg: A networkx MultiDiGraph object which is only created if the user requests owl semantics be removed.
-        help_funcs: Initializing the utility class to access data helper functions.
 
     Raises:
         ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
@@ -103,9 +102,6 @@ class KGBuilder(object):
     def __init__(self, kg_version: str, write_location: str, edge_data: Optional[str] = None,
                  node_data: Optional[str] = None, inverse_relations: Optional[str] = None,
                  decode_owl_semantics: Optional[str] = None) -> None:
-
-        # initialize utility class
-        self.helper_funcs = Utility()
 
         # initialize variables
         self.build: str = self.gets_build_type().lower().split()[0]
@@ -242,7 +238,7 @@ class KGBuilder(object):
         """
 
         if not self.ontologies:
-            self.helper_funcs.gets_ontology_statistics(self.write_location + self.merged_ont_kg)
+            gets_ontology_statistics(self.write_location + self.merged_ont_kg)
         else:
             if self.write_location + self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
                 ont1, ont2 = self.ontologies.pop(), self.write_location + self.merged_ont_kg
@@ -537,7 +533,7 @@ class KGBuilder(object):
         self.ontology_file_formatter()
 
         # print statistics on kg
-        self.helper_funcs.gets_ontology_statistics(self.write_location + self.full_kg)
+        ontology_statistics(self.write_location + self.full_kg)
 
         # write class-instance uuid mapping dictionary to file
         json.dump(self.kg_uuid_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
@@ -748,7 +744,7 @@ class PartialBuild(KGBuilder):
             self.graph.parse(self.write_location + self.merged_ont_kg)
 
             # print stats
-            self.helper_funcs.gets_ontology_statistics(self.write_location + self.full_kg)
+            gets_ontology_statistics(self.write_location + self.full_kg)
         else:
             if len(self.ontologies) == 0:
                 raise TypeError('ERROR: the ontologies directory: {} is empty'.format(
@@ -869,7 +865,7 @@ class PostClosureBuild(KGBuilder):
             self.graph.parse(closed_kg_location)
 
             # print stats
-            self.helper_funcs.gets_ontology_statistics(closed_kg_location)
+            gets_ontology_statistics(closed_kg_location)
 
         # STEP 5: ADD ANNOTATION ASSERTIONS
         if '.txt' not in annotation_assertions:
@@ -961,7 +957,7 @@ class FullBuild(KGBuilder):
             self.graph.parse(self.write_location + self.merged_ont_kg)
 
             # print stats
-            self.helper_funcs.gets_ontology_statistics(self.write_location + self.merged_ont_kg)
+            gets_ontology_statistics(self.write_location + self.merged_ont_kg)
         else:
             if len(self.ontologies) == 0:
                 raise TypeError('ERROR: the ontologies directory: {} is empty'.format(
