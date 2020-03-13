@@ -26,7 +26,7 @@ pd.options.mode.chained_assignment = None
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-class Utility(object):
+class DataUtilities(object):
     """Class stores utility functions used to help with data preprocessing and/or to support the construction of
     knowledge graphs.
     """

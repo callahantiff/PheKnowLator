@@ -17,10 +17,10 @@ from .knowledge_graph import PostClosureBuild
 from .knowledge_graph import FullBuild
 from .knowledge_graph_metadata import Metadata
 from .removes_owl_semantics import OWLNETS
-from .utils.data_preparation_helper_functions import Utility
+from .utils.data_utils import DataUtilities
 
 
 __all__ = [
     "DataSource", "OntData", "Data", "EdgeList", "KGBuilder", "PartialBuild", "PostClosureBuild", "FullBuild",
-    "Metadata", "OWLNETS", "Utility"
+    "Metadata", "OWLNETS", "DataUtilities"
 ]

@@ -1,3 +1,3 @@
-from .data_preparation_helper_functions import Utility
+from .data_utils import DataUtilities
 
-__all__ = ["Utility"]
+__all__ = ["DataUtilities"]

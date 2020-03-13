@@ -16,7 +16,7 @@ from rdflib.namespace import RDF  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Callable, Dict, List, Optional
 
-from pkt import Utility
+from pkt import DataUtilities
 from pkt import Metadata
 from pkt import OWLNETS
 
