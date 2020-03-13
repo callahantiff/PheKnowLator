@@ -30,11 +30,11 @@ PheKnowLator/knowledge_graph_embedder.py
 !/resources/knowledge_graphs/OWL_NETS_Property_Types.txt
 
 # releases
-/releases/
+/releases/*
 
 # API keys/passwords
 /resources/bioportal_api_key.txt
 
 # external libraries
-libs/walking-rdf-and-owl-master/
-libs/deepwalk_c_master
+PheKnowLator/libs/walking-rdf-and-owl-master/*
+PheKnowLator/libs/deepwalk_c_master/*
