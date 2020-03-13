@@ -1,4 +1,3 @@
-chemical-complex, https://www.dropbox.com/s/qoetjt0vfy6qb3y/REACTOME_CHEMICAL_COMPLEX.txt?dl=1
 chemical-disease, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
 chemical-gene, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
 chemical-gobp, http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
@@ -7,7 +6,6 @@ chemical-gomf, http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
 chemical-pathway, https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
 chemical-phenotype, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
 chemical-protein, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-chemical-reaction, https://reactome.org/download/current/ChEBI2ReactomeReactions.txt
 chemical-rna, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
 disease-phenotype, http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastSuccessfulBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt
 gene-disease, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
@@ -20,13 +18,11 @@ protein-anatomy, https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PRO
 protein-catalyst, https://www.dropbox.com/s/pvopvs0iq8x3oq2/UNIPROT_PROTEIN_CATALYST.txt?dl=1
 protein-cell, https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
 protein-cofactor, https://www.dropbox.com/s/ij9t89botd8nmmj/UNIPROT_PROTEIN_COFACTOR.txt?dl=1
-protein-complex, https://www.dropbox.com/s/7meu0cdz1mrnsz7/REACTOME_PROTEIN_COMPLEX.txt?dl=1
 protein-gobp, http://geneontology.org/gene-associations/goa_human.gaf.gz
 protein-gocc, http://geneontology.org/gene-associations/goa_human.gaf.gz
 protein-gomf, http://geneontology.org/gene-associations/goa_human.gaf.gz
 protein-pathway, https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
 protein-protein, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
-protein-reaction, https://reactome.org/download/current/UniProt2ReactomeReactions.txt
 rna-anatomy, https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
 rna-cell, https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
 rna-protein, https://www.dropbox.com/s/ckrw11nfyu6a08c/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt?dl=1
