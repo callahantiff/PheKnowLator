@@ -38,3 +38,6 @@ PheKnowLator/knowledge_graph_embedder.py
 # external libraries
 PheKnowLator/libs/walking-rdf-and-owl-master/*
 PheKnowLator/libs/deepwalk_c_master/*
+
+# test files in progress (tests for helper functions/utilities)
+tests/test_ncbo_rest_api.py
