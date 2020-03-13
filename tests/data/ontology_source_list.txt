@@ -1,0 +1,2 @@
+phenotype, http://purl.obolibrary.org/obo/hp.owl
+genomic, http://purl.obolibrary.org/obo/so.owl
