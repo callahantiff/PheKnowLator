@@ -16,5 +16,6 @@ from .utils.data_preparation_helper_functions import Utility
 
 
 __all__ = [
-    "DataSource", "EdgeList", "KGBuilder", "Metadata", "OWLNETS", "Utility"
+    "DataSource", "OntData", "Data", "EdgeList", "KGBuilder", "PartialBuild", "PostClosureBuild", "FullBuild",
+    "Metadata", "OWLNETS", "Utility"
 ]
