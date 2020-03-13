@@ -249,7 +249,7 @@ class KGBuilder(object):
 
             print('\nMerging Ontologies: {ont1}, {ont2}\n'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
             try:
-                subprocess.check_call(['./resources/lib/owltools', str(ont1), str(ont2),
+                subprocess.check_call(['./PheKnowLator/libs/owltools', str(ont1), str(ont2),
                                        '--merge-support-ontologies',
                                        '-o', self.write_location + self.merged_ont_kg])
             except subprocess.CalledProcessError as error:

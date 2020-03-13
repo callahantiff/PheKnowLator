@@ -449,7 +449,7 @@ class Utility(object):
         elif os.stat(file_location).st_size == 0:
             raise TypeError('FILE ERROR: input file: {} is empty'.format(file_location))
         else:
-            output = subprocess.check_output(['./resources/lib/owltools', file_location, '--info'])
+            output = subprocess.check_output(['./PheKnowLator/libs/owltools', file_location, '--info'])
 
         # print stats
         res = output.decode('utf-8').split('\n')[-5:]

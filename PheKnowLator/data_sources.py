@@ -128,15 +128,15 @@ class DataSource(object):
         # get filtering information
         filtering = ['None' if x == 'None'
                      else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
-        if ('in' in x.split(';')[1] and x != 'None')
-        else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+                     if ('in' in x.split(';')[1] and x != 'None')
+                     else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
                      for x in edge.split('|')[-1].strip('\n').split('::')]
 
         # get evidence criteria
         evidence = ['None' if x == 'None'
                     else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
-        if ('in' in x.split(';')[1] and x != 'None')
-        else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
+                    if ('in' in x.split(';')[1] and x != 'None')
+                    else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
                     for x in edge.split('|')[-2].strip('\n').split('::')]
 
         return ' | '.join(mapping), ' | '.join(filtering), ' | '.join(evidence)
@@ -315,7 +315,7 @@ class OntData(DataSource):
             else:
                 if download_type == 'imports' and 'purl' in source:
                     try:
-                        subprocess.check_call(['./resources/lib/owltools',
+                        subprocess.check_call(['./PheKnowLator/libs/owltools',
                                                str(source),
                                                '--merge-import-closure',
                                                '-o',
@@ -326,7 +326,7 @@ class OntData(DataSource):
                         print(error.output)
                 elif download_type != 'imports' and 'purl' in source:
                     try:
-                        subprocess.check_call(['./resources/lib/owltools',
+                        subprocess.check_call(['./PheKnowLator/libs/owltools',
                                                str(source),
                                                '-o',
                                                str(write_loc) + '_without_imports.owl'])
