@@ -29,8 +29,7 @@ scripts/python/knowledge_graph_embedder.py
 
 # ignoring resource preparation files and metadata information
 !/resources/ontologies/ontology_source_metadata.txt
-!/resources/edge_data/class_source_metadata.txt
-!/resources/edge_data/instance_source_metadata.txt
+!/resources/edge_data/edge_data_source_metadata.txt
 !/resources/node_data/README.md
 !/resources/relations_data/README.md
 !/resources/embeddings/README.md
