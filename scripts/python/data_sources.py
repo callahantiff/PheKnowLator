@@ -7,6 +7,7 @@ import datetime
 import glob
 import os.path
 import re
+import shutil
 
 from abc import ABCMeta, abstractmethod
 from owlready2 import subprocess  # type: ignore
