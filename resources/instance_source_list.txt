@@ -1,4 +1,0 @@
-gene-gene, http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
-gene-pathway, http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
-gene-rna, https://www.dropbox.com/s/yqnofd8h90luygu/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
-variant-gene, https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
