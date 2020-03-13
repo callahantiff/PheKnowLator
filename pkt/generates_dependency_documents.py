@@ -1,6 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Some Random Utility Functions.
+
+Downloads Data from a Url
+* url_download
+* ftp_url_download
+* gzipped_ftp_url_download
+* zipped_url_download
+* gzipped_url_download
+* data_downloader
+
+Interacts with Pandas DataFrames
+* explodes_data
+
+Generates Metadata
+* chunks
+* metadata_dictionary_mapper
+* metadata_api_mapper
+
+Miscellaneous data Processing Methods
+* mesh_finder
+* genomic_id_mapper
+
+Miscellaneous Knowledge Graph Methods
+* gets_ontology_statistics
+"""
+
 # import needed libraries
 from typing import Dict, Tuple
 

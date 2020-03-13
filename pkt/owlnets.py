@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 # https://github.com/python/mypy/issues/4359
 
 
-class OWLNETS(object):
+class OwlNets(object):
     """Class removes OWL semantics from an ontology or knowledge graph using the OWL-NETS method.
 
     OWL Semantics are nodes and edges in the graph that are needed in order to create a rich semantic representation

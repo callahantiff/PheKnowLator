@@ -14,7 +14,7 @@ from owlready2 import subprocess  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Tuple
 
-from pkt import DataUtilities
+from pkt.utils import gets_ontology_statistics
 
 
 class DataSource(object):
@@ -48,7 +48,6 @@ class DataSource(object):
                       'phenotype': 'resources/ontologies/hp_with_imports.owl'
                       }
         metadata: A list that stores metadata information for each downloaded data source.
-        help_funcs: Initializing the utility class to access data helper functions.
     """
 
     __metaclass__ = ABCMeta
@@ -61,9 +60,6 @@ class DataSource(object):
         self.source_list: Dict[str, str] = {}
         self.data_files: Dict[str, str] = {}
         self.metadata: List[List[str]] = []
-
-        # initialize utility class
-        self.helper_funcs = Utility()
 
     def parses_resource_file(self) -> None:
         """Verifies that an input file contains data and then outputs a dictionary where each item is a line from the
@@ -339,8 +335,7 @@ class OntData(DataSource):
                     self.data_files[i] = './resources/ontologies/' + str(file_prefix) + '_with_imports.owl'
 
             # print stats
-            self.helper_funcs.gets_ontology_statistics('./resources/ontologies/' + str(file_prefix) +
-                                                       '_with_imports.owl')
+            gets_ontology_statistics('./resources/ontologies/' + str(file_prefix) + '_with_imports.owl')
 
         # CHECK - make sure all files were processed
         if len(self.source_list) != len(self.data_files):
@@ -349,7 +344,7 @@ class OntData(DataSource):
         return None
 
 
-class Data(DataSource):
+class LinkedData(DataSource):
 
     def gets_data_type(self) -> str:
         """"A string representing the type of data being processed."""

@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 # TODO: using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
 
 
-class EdgeList(object):
+class CreatesEdgeList(object):
     """Class creates edge lists based off data type.
 
     The class takes as input a string that represents the type of data being stored and a list of lists, where each item
