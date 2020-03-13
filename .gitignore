@@ -3,15 +3,10 @@
 # Distribution/packaging/Environments
 __pycache__/
 .idea/
-scripts/python/*.pyc
-scripts/*.pyc
-.ipynb_checkpoints/main-checkpoint.ipynb
-.ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
-scripts/python/.ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
+.ipynb_checkpoints/*
 .mypy*
 
 # data and scripts
-/resources/releases/archive.zip
 /resources/processed_data/
 /resources/edge_data/*
 /resources/node_data/*
@@ -22,7 +17,6 @@ scripts/python/.ipynb_checkpoints/Data_Preparation-checkpoint.ipynb
 /resources/*.json
 /resources/embeddings/*
 Untitled*
-scripts/python/scratch.py
 PheKnowLator/kg_embedding_visualizer.py
 PheKnowLator/knowledge_graph_embedder.py
 
@@ -42,8 +36,5 @@ PheKnowLator/knowledge_graph_embedder.py
 /resources/bioportal_api_key.txt
 
 # external libraries
-/resources/lib/
-/walking-rdf-and-owl-master/
-resources/resource_info_updated.txt
-external_libraries/*
-resources/hgu133plus2_all_URIs.pkl
+libs/walking-rdf-and-owl-master/
+libs/deepwalk_c_master
