@@ -17,8 +17,8 @@ __pycache__/
 /resources/*.json
 /resources/embeddings/*
 Untitled*
-PheKnowLator/kg_embedding_visualizer.py
-PheKnowLator/knowledge_graph_embedder.py
+pkt/kg_embedding_visualizer.py
+pkt/knowledge_graph_embedder.py
 
 # ignoring resource preparation files and metadata information
 !/resources/ontologies/ontology_source_metadata.txt
@@ -36,8 +36,8 @@ PheKnowLator/knowledge_graph_embedder.py
 /resources/bioportal_api_key.txt
 
 # external libraries
-PheKnowLator/libs/walking-rdf-and-owl-master/*
-PheKnowLator/libs/deepwalk_c_master/*
+pkt/libs/walking-rdf-and-owl-master/*
+pkt/libs/deepwalk_c_master/*
 
 # test files in progress (tests for helper functions/utilities)
 tests/test_ncbo_rest_api.py

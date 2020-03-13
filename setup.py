@@ -21,7 +21,7 @@ extras = {
 }
 
 setup(
-    name='PheKnowLator',
+    name='pkt',
     version='2.0.0',
     description='A Python library for scalable knowledge semantic graph construction',
     long_description=readme(),
@@ -31,7 +31,7 @@ setup(
     author='Tiffany J. Callahan, William A. Baumgartner, Jr.',
     author_email='tiffany.callahan@cusanchutz.edu, william.baumgartner@cusanchutz.edu',
     license='Apache 2.0',
-    packages=['PheKnowLator'],
+    packages=['pkt'],
     install_requires=[
         'argparse>=1.4.0',
         'Cython==0.29.14',

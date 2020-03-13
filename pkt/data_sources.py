@@ -14,7 +14,7 @@ from owlready2 import subprocess  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Tuple
 
-from PheKnowLator import Utility
+from pkt import Utility
 
 
 class DataSource(object):
