@@ -20,28 +20,16 @@ from typing import Dict, Generator, List, Union
 from urllib.request import urlopen
 from zipfile import ZipFile
 
+# disable chained assignment warning
+# rationale: https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
+pd.options.mode.chained_assignment = None
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 
 class Utility(object):
-    """Class creates a semantic knowledge graph.
-
-    The class implements several methods, which are designed to construct a semantic knowledge graph given a
-
-
-    Attributes:
-        kg_version: A string that contains the version of the knowledge graph build.
-        build: A string that indicates what kind of build.
-
-    Raises:
-        ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
-
+    """Class stores utility functions used to help with data preprocessing and/or to support the
+    construction of knowledge graphs.
     """
-
-    def __init__(self) -> None:
-
-        # disable chained assignment warning
-        # rationale: https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
-        pd.options.mode.chained_assignment = None
-        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
     @staticmethod
     def url_download(url: str, write_location: str, filename: str) -> None:
