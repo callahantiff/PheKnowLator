@@ -27,8 +27,8 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 class Utility(object):
-    """Class stores utility functions used to help with data preprocessing and/or to support the
-    construction of knowledge graphs.
+    """Class stores utility functions used to help with data preprocessing and/or to support the construction of
+    knowledge graphs.
     """
 
     @staticmethod
