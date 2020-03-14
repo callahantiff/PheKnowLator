@@ -70,12 +70,15 @@ def url_download(url: str, write_location: str, filename: str) -> None:
         while r.ok and int(r.headers['Content-Length']) < 1000:
             r = requests.get(url, allow_redirects=True, verify=False)
 
-        data = r.content
-        open(write_location + '{filename}'.format(filename=filename), 'wb').write(data)
+        downloaded_data = open(write_location + '{filename}'.format(filename=filename), 'wb')
+        downloaded_data.write(r.content)
+        downloaded_data.close()
 
     else:
         if len(r.content) > 10:
-            open(write_location + '{filename}'.format(filename=filename), 'wb').write(r.content)
+            downloaded_data = open(write_location + '{filename}'.format(filename=filename), 'wb')
+            downloaded_data.write(r.content)
+            downloaded_data.close()
 
     return None
 
@@ -97,6 +100,7 @@ def ftp_url_download(url: str, write_location: str, filename: str) -> None:
     with closing(urlopen(url)) as r:
         with open(write_location + '{filename}'.format(filename=filename), 'wb') as f:
             shutil.copyfileobj(r, f)
+    r.close()
 
     return None
 
@@ -158,6 +162,7 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
     with requests.get(url, allow_redirects=True) as zip_data:
         with ZipFile(BytesIO(zip_data.content)) as zip_file:
             zip_file.extractall(write_location[:-1])
+    zip_data.close()
 
     # change filename
     if filename != '':
@@ -181,6 +186,7 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
     print('Downloading Gzipped Data from {}'.format(url))
     with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
         outfile.write(gzip.decompress(requests.get(url, allow_redirects=True, verify=False).content))
+    outfile.close()
 
     return None
 
