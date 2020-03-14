@@ -165,6 +165,35 @@ class DataSource(object):
 
         return ' | '.join(mapping), ' | '.join(filtering), ' | '.join(evidence)
 
+    def _writes_source_metadata_locally(self) -> None:
+        """Writes metadata for each imported data source to a text file.
+
+        Returns:
+            None
+        """
+
+        # open file to write to and specify output location
+        write_loc_part1 = str('/'.join(list(self.data_files.values())[0].split('/')[:-1]) + '/')
+        write_loc_part2 = str('_'.join(self.data_type.split('_')[:-1]))
+
+        outfile = open(write_loc_part1 + write_loc_part2 + '_metadata.txt', 'w')
+        outfile.write('=' * 35 + '\n{}'.format(self.metadata[0][0]) + '=' * 35 + '\n\n')
+
+        for i in tqdm(range(1, len(self.data_files.keys()) + 1)):
+            outfile.write(str(self.metadata[i][0]) + '\n')
+            outfile.write(str(self.metadata[i][1]) + '\n')
+            outfile.write(str(self.metadata[i][2]) + '\n')
+            outfile.write(str(self.metadata[i][3]) + '\n')
+            outfile.write(str(self.metadata[i][4]) + '\n')
+            outfile.write(str(self.metadata[i][5]) + '\n')
+            outfile.write(str(self.metadata[i][6]) + '\n')
+            outfile.write(str(self.metadata[i][7]) + '\n')
+            outfile.write('\n')
+
+        outfile.close()
+
+        return None
+
     def generates_source_metadata(self) -> None:
         """Extracts and stores metadata for imported data sources and save the information to the metadata attribute.
         Metadata includes the following information:
@@ -217,36 +246,8 @@ class DataSource(object):
 
             self.metadata.append(source_metadata)
 
-        return None
-
-    def writes_source_metadata_locally(self) -> None:
-        """Writes metadata for each imported data source to a text file.
-
-        Returns:
-            None
-        """
-
-        self.generates_source_metadata()
-
-        # open file to write to and specify output location
-        write_loc_part1 = str('/'.join(list(self.data_files.values())[1].split('/')[:-1]) + '/')
-        write_loc_part2 = str('_'.join(self.data_type.split('_')[:-1]))
-
-        outfile = open(write_loc_part1 + write_loc_part2 + '_metadata.txt', 'w')
-        outfile.write('=' * 35 + '\n{}'.format(self.metadata[0][0]) + '=' * 35 + '\n\n')
-
-        for i in tqdm(range(1, len(self.data_files.keys()) + 1)):
-            outfile.write(str(self.metadata[i][0]) + '\n')
-            outfile.write(str(self.metadata[i][1]) + '\n')
-            outfile.write(str(self.metadata[i][2]) + '\n')
-            outfile.write(str(self.metadata[i][3]) + '\n')
-            outfile.write(str(self.metadata[i][4]) + '\n')
-            outfile.write(str(self.metadata[i][5]) + '\n')
-            outfile.write(str(self.metadata[i][6]) + '\n')
-            outfile.write(str(self.metadata[i][7]) + '\n')
-            outfile.write('\n')
-
-        outfile.close()
+        # write metadata
+        self._writes_source_metadata_locally()
 
         return None
 
