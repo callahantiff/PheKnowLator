@@ -12,9 +12,9 @@ import shutil
 from abc import ABCMeta, abstractmethod
 from owlready2 import subprocess  # type: ignore
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, TextIO, Tuple
 
-from pkt.utils import gets_ontology_statistics
+from pkt.utils import gets_ontology_statistics, data_downloader
 
 
 class DataSource(object):
@@ -80,9 +80,9 @@ class DataSource(object):
         elif os.stat(resource_data[0]).st_size == 0:
             raise TypeError('Input file: {} is empty'.format(resource_data[0]))
         else:
-            resource_data = open(resource_data[0])
-            self.resource_info: List[str] = resource_data.readlines()
-            resource_data.close()
+            resource_data_file: TextIO = open(resource_data[0])
+            self.resource_info: List = resource_data_file.readlines()
+            resource_data_file.close()
 
         self.resource_dict: Dict[str, List[str]] = {}
         self.source_list: Dict[str, str] = {}
@@ -127,7 +127,7 @@ class DataSource(object):
         pass
 
     @staticmethod
-    def extracts_edge_metadata(edge) -> Tuple[str]:
+    def extracts_edge_metadata(edge) -> Tuple[str, str, str]:
         """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are
         a list containing mapping and filtering information.
 
@@ -444,7 +444,7 @@ class LinkedData(DataSource):
                         pass
                 else:
                     self.data_files[i] = write_path + i + '_' + file_name
-                    self.helper_funcs.data_downloader(source, write_path, i + '_' + file_name)
+                    data_downloader(source, write_path, i + '_' + file_name)
 
             # CHECK
             if len(self.source_list) != len(self.data_files):
