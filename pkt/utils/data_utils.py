@@ -39,6 +39,7 @@ from contextlib import closing
 from io import BytesIO
 from reactome2py import content  # type: ignore
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from tqdm import tqdm  # type: ignore
 from typing import Dict, Generator, List, Union
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -266,7 +267,7 @@ def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: s
         # return columns in original order
         res = res[list(df)]
 
-        return explode(res, lst_cols, splitter)
+        return explodes_data(res, lst_cols, splitter)
 
 
 def chunks(lst: List[str], chunk_size: int) -> Generator:
@@ -392,7 +393,7 @@ def mesh_finder(data: pd.DataFrame, xid: str, id_typ: str, id_dic: Dict[str, Lis
     for x in list(data.loc[data['code'] == xid]['diseaseId']):
         for idx, row in data.loc[data['diseaseId'] == x].iterrows():
 
-            if id_type + xid in id_dic.keys():
+            if id_typ + xid in id_dic.keys():
                 if row['vocabulary'] == 'HPO' and row['code'].replace('HP:', 'HP_') not in id_dic[id_typ + xid]:
                     id_dic[id_typ + xid].append(row['code'].replace('HP:', 'HP_'))
 
