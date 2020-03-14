@@ -31,7 +31,7 @@ def gets_ontology_statistics(file_location: str) -> None:
     elif os.stat(file_location).st_size == 0:
         raise TypeError('FILE ERROR: input file: {} is empty'.format(file_location))
     else:
-        output = subprocess.check_output(['./PheKnowLator/libs/owltools', file_location, '--info'])
+        output = subprocess.check_output(['./pkt/libs/owltools', file_location, '--info'])
 
     # print stats
     res = output.decode('utf-8').split('\n')[-5:]

@@ -48,14 +48,42 @@ class DataSource(object):
                       'phenotype': 'resources/ontologies/hp_with_imports.owl'
                       }
         metadata: A list that stores metadata information for each downloaded data source.
+
+    Raises:
+        OSError: If the file pointed to by data_path does not exist.
+        TypeError: If the file pointed to by data_path is empty.
+        ValueError: If resource_info.txt cannot be found in working directory.
+        OSError: If resource_info.txt file does not exist.
+        TypeError: If resource_info.txt is an empty file.
     """
 
     __metaclass__ = ABCMeta
 
     def __init__(self, data_path: str) -> None:
-        self.data_path: str = data_path
-        self.data_type: str = data_path.split('/')[-1].split('.')[0]
-        self.resource_info: List[str] = open(glob.glob('**/**/*resource**info*.txt', recursive=True)[0]).readlines()
+
+        # read in data source file
+        if not os.path.exists(data_path):
+            raise OSError('The {} file does not exist!'.format(data_path))
+        elif os.stat(data_path).st_size == 0:
+            raise TypeError('Input file: {} is empty'.format(data_path))
+        else:
+            self.data_path: str = data_path
+            self.data_type: str = data_path.split('/')[-1].split('.')[0]
+
+        # read in resource data
+        resource_data = glob.glob('**/*resource**info*.txt', recursive=True)
+
+        if len(resource_data) == 0:
+            raise ValueError('Could not find resource_info.txt in directory. Please provide this file.')
+        elif not os.path.exists(resource_data[0]):
+            raise IOError('The {} file does not exist!'.format(resource_data[0]))
+        elif os.stat(resource_data[0]).st_size == 0:
+            raise TypeError('Input file: {} is empty'.format(resource_data[0]))
+        else:
+            resource_data = open(resource_data[0])
+            self.resource_info: List[str] = resource_data.readlines()
+            resource_data.close()
+
         self.resource_dict: Dict[str, List[str]] = {}
         self.source_list: Dict[str, str] = {}
         self.data_files: Dict[str, str] = {}
@@ -254,8 +282,10 @@ class OntData(DataSource):
         if os.stat(self.data_path).st_size == 0:
             raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
+            data_path_file = open(self.data_path)
             source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
-                           for row in open(self.data_path).read().split('\n')}
+                           for row in data_path_file.read().split('\n')}
+            data_path_file.close()
 
             # CHECK - verify formatting of urls
             valid_sources = [url for url in source_list.values() if 'purl.obolibrary.org/obo' in url or 'owl' in url]
@@ -294,14 +324,14 @@ class OntData(DataSource):
         self.parses_resource_file()
 
         # set location where to write data
-        file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/ontologies/'
+        file_loc = './' + '/'.join(self.data_path.split('/')[:-1]) + '/ontologies/'
         print('\n ***Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
 
         # process data
         for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]
             file_prefix = source.split('/')[-1].split('.')[0]
-            write_loc = './resources/ontologies/' + file_prefix
+            write_loc = file_loc + file_prefix
 
             print('\nDownloading: {}'.format(str(file_prefix)))
 
@@ -311,7 +341,7 @@ class OntData(DataSource):
             else:
                 if download_type == 'imports' and 'purl' in source:
                     try:
-                        subprocess.check_call(['./PheKnowLator/libs/owltools',
+                        subprocess.check_call(['./pkt/libs/owltools',
                                                str(source),
                                                '--merge-import-closure',
                                                '-o',
@@ -322,7 +352,7 @@ class OntData(DataSource):
                         print(error.output)
                 elif download_type != 'imports' and 'purl' in source:
                     try:
-                        subprocess.check_call(['./PheKnowLator/libs/owltools',
+                        subprocess.check_call(['./pkt/libs/owltools',
                                                str(source),
                                                '-o',
                                                str(write_loc) + '_without_imports.owl'])
@@ -331,11 +361,11 @@ class OntData(DataSource):
                     except subprocess.CalledProcessError as error:
                         print(error.output)
                 else:
-                    data_downloader(source, './resources/ontologies/', str(file_prefix) + '_with_imports.owl')
-                    self.data_files[i] = './resources/ontologies/' + str(file_prefix) + '_with_imports.owl'
+                    data_downloader(source, file_loc, str(file_prefix) + '_with_imports.owl')
+                    self.data_files[i] = file_loc + str(file_prefix) + '_with_imports.owl'
 
             # print stats
-            gets_ontology_statistics('./resources/ontologies/' + str(file_prefix) + '_with_imports.owl')
+            gets_ontology_statistics(file_loc + str(file_prefix) + '_with_imports.owl')
 
         # CHECK - make sure all files were processed
         if len(self.source_list) != len(self.data_files):
@@ -394,13 +424,13 @@ class LinkedData(DataSource):
             self.parses_resource_file()
 
             # set location where to write data
-            file_loc = './' + str(self.data_path.split('/')[:-1][0]) + '/edge_data/'
+            file_loc = './' + '/'.join(self.data_path.split('/')[:-1]) + '/edge_data/'
             print('\n*** Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
 
             for i in tqdm(self.source_list.keys()):
                 source = self.source_list[i]
                 file_name = re.sub('.gz|.zip|\?.*', '', source.split('/')[-1])
-                write_path = './resources/edge_data/'
+                write_path = file_loc
                 print('\nEdge: {edge}'.format(edge=i))
 
                 # if file has already been downloaded, rename it
