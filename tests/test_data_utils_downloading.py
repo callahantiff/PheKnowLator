@@ -1,6 +1,5 @@
 import ftplib
 import gzip
-import mock
 import os.path
 import requests
 import responses
@@ -8,14 +7,12 @@ import shutil
 import unittest
 
 from contextlib import closing
-from io import BytesIO
 from urllib.request import urlopen
-from zipfile import ZipFile
 
 from pkt.utils import *
 
 
-class TestDataUtils(unittest.TestCase):
+class TestDataUtilsDownloading(unittest.TestCase):
     """Class to test the downloading methods from the data utility script."""
 
     def setUp(self):
