@@ -22,14 +22,19 @@ def gets_ontology_statistics(file_location: str) -> None:
 
     Returns:
         None.
+
+    Raises:
+        TypeError: If the file_location is not type str.
+        OSError: If file_location points to a non-existent file.
+        ValueError: If file_location points to an empty file.
     """
 
     if not isinstance(file_location, str):
-        raise ValueError('ERROR: file_location must be a string')
+        raise TypeError('ERROR: file_location must be a string')
     elif not os.path.exists(file_location):
-        raise IOError('The {} file does not exist!'.format(file_location))
+        raise OSError('The {} file does not exist!'.format(file_location))
     elif os.stat(file_location).st_size == 0:
-        raise TypeError('FILE ERROR: input file: {} is empty'.format(file_location))
+        raise ValueError('FILE ERROR: input file: {} is empty'.format(file_location))
     else:
         output = subprocess.check_output(['./pkt/libs/owltools', file_location, '--info'])
 
