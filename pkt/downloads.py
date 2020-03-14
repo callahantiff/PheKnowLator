@@ -50,11 +50,11 @@ class DataSource(object):
         metadata: A list that stores metadata information for each downloaded data source.
 
     Raises:
+        TypeError: If the file pointed to by data_path is not type str.
         OSError: If the file pointed to by data_path does not exist.
-        TypeError: If the file pointed to by data_path is empty.
-        ValueError: If resource_info.txt cannot be found in working directory.
-        OSError: If resource_info.txt file does not exist.
-        TypeError: If resource_info.txt is an empty file.
+        ValueError: If the file pointed to by data_path is empty.
+        OSError: If the file pointed to by resource_info does not exist.
+        ValueError: If the file pointed to by resource_info is empty.
     """
 
     __metaclass__ = ABCMeta
@@ -62,10 +62,12 @@ class DataSource(object):
     def __init__(self, data_path: str) -> None:
 
         # read in data source file
-        if not os.path.exists(data_path):
+        if not isinstance(data_path, str):
+            raise TypeError('data_path must be type str.')
+        elif not os.path.exists(data_path):
             raise OSError('The {} file does not exist!'.format(data_path))
         elif os.stat(data_path).st_size == 0:
-            raise TypeError('Input file: {} is empty'.format(data_path))
+            raise ValueError('Input file: {} is empty'.format(data_path))
         else:
             self.data_path: str = data_path
             self.data_type: str = data_path.split('/')[-1].split('.')[0]
@@ -73,12 +75,10 @@ class DataSource(object):
         # read in resource data
         resource_data = glob.glob('**/*resource**info*.txt', recursive=True)
 
-        if len(resource_data) == 0:
-            raise ValueError('Could not find resource_info.txt in directory. Please provide this file.')
-        elif not os.path.exists(resource_data[0]):
+        if not os.path.exists(resource_data[0]):
             raise IOError('The {} file does not exist!'.format(resource_data[0]))
         elif os.stat(resource_data[0]).st_size == 0:
-            raise TypeError('Input file: {} is empty'.format(resource_data[0]))
+            raise ValueError('Input file: {} is empty'.format(resource_data[0]))
         else:
             resource_data_file: TextIO = open(resource_data[0])
             self.resource_info: List = resource_data_file.readlines()
@@ -101,7 +101,7 @@ class DataSource(object):
                  }
 
         Raises:
-            TypeError: If the file does not contain data.
+            ValueError: If the file does not contain data.
             ValueError: If there some of the input URLs were improperly formatted.
         """
 
@@ -275,13 +275,13 @@ class OntData(DataSource):
                                 }
 
         Raises:
-            TypeError: If the file does not contain data.
+            ValueError: If the file does not contain data.
             ValueError: If there some of the input URLs were improperly formatted.
         """
 
         # CHECK - file has data
         if os.stat(self.data_path).st_size == 0:
-            raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
+            raise ValueError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
             data_path_file = open(self.data_path)
             source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
@@ -392,11 +392,11 @@ class LinkedData(DataSource):
                                 }
 
         Raises:
-            TypeError: If the file does not contain data.
+            ValueError: If the file does not contain data.
         """
 
         if os.stat(self.data_path).st_size == 0:
-            raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
+            raise ValueError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
             self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
                                 for row in open(self.data_path).read().split('\n')}
