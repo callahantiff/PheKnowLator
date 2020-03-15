@@ -12,15 +12,13 @@ Downloads Data from a Url
 * gzipped_url_download
 * data_downloader
 
-Interacts with Pandas DataFrames
-* explodes_data
-
 Generates Metadata
 * chunks
 * metadata_dictionary_mapper
 * metadata_api_mapper
 
 Miscellaneous data Processing Methods
+* explodes_data
 * mesh_finder
 * genomic_id_mapper
 """
@@ -222,60 +220,6 @@ def data_downloader(url: str, write_location: str, filename: str = '') -> None:
     return None
 
 
-def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: str = 'None',
-                  preserve_idx: bool = False) -> pd.DataFrame:
-    """Function takes a Pandas DataFrame containing a mix of nested and un-nested data and un-nests the data by
-    expanding each column in a user-defined list. This function is a modification of the explode function provided
-    in the following stack overflow post:
-    https://stackoverflow.com/questions/12680754/split-explode-pandas-dataframe-string-entry-to-separate-rows.
-    The original function was unable to handle multiple columns which expand to different lengths. The modification
-    treats the user-provided column list as a stack and recursively un-nests each column.
-
-    Args:
-        df: A Pandas DataFrame containing nested columns
-        lst_cols: A list of columns to unnest
-        splitter: A character delimiter used in nested columns
-        fill_value: A string value to fill empty cell values with
-        preserve_idx: Whether or not thee original index should be preserved or reset.
-
-    Returns:
-        An exploded Pandas DataFrame.
-    """
-
-    if not lst_cols:
-        return df
-    else:
-        lst = [lst_cols.pop()]  # pop column to process off the stack
-        df[lst[0]] = df[lst[0]].apply(lambda x: [j for j in x.split(splitter) if j != ''])  # convert col to list
-        idx_cols = df.columns.difference(lst)  # all columns except `lst_cols`
-        lens = df[lst[0]].str.len()  # calculate lengths of lists
-        idx = np.repeat(df.index.values, lens)  # preserve original index values
-
-        # create "exploded" DF
-        res = (pd.DataFrame({
-            col: np.repeat(df[col].values, lens)
-            for col in idx_cols},
-            index=idx).assign(**{col: np.concatenate(df.loc[lens > 0, col].values)
-                                 for col in lst}))
-
-        # append those rows that have empty lists
-        if (lens == 0).any():
-            # at least one list in cells is empty
-            res = (res.append(df.loc[lens == 0, idx_cols], sort=False).fillna(fill_value))
-
-        # revert the original index order
-        res = res.sort_index()
-
-        # reset index if requested
-        if not preserve_idx:
-            res = res.reset_index(drop=True)
-
-        # return columns in original order
-        res = res[list(df)]
-
-        return explodes_data(res, lst_cols, splitter)
-
-
 def chunks(lst: List[str], chunk_size: int) -> Generator:
     """Takes a list an integer and creates a list of lists, where each nested list is length chunk_size.
 
@@ -379,6 +323,60 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
     node_metadata_final = node_metadata_final.astype(str)
 
     return node_metadata_final
+
+
+def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: str = 'None',
+                  preserve_idx: bool = False) -> pd.DataFrame:
+    """Function takes a Pandas DataFrame containing a mix of nested and un-nested data and un-nests the data by
+    expanding each column in a user-defined list. This function is a modification of the explode function provided
+    in the following stack overflow post:
+    https://stackoverflow.com/questions/12680754/split-explode-pandas-dataframe-string-entry-to-separate-rows.
+    The original function was unable to handle multiple columns which expand to different lengths. The modification
+    treats the user-provided column list as a stack and recursively un-nests each column.
+
+    Args:
+        df: A Pandas DataFrame containing nested columns
+        lst_cols: A list of columns to unnest
+        splitter: A character delimiter used in nested columns
+        fill_value: A string value to fill empty cell values with
+        preserve_idx: Whether or not thee original index should be preserved or reset.
+
+    Returns:
+        An exploded Pandas DataFrame.
+    """
+
+    if not lst_cols:
+        return df
+    else:
+        lst = [lst_cols.pop()]  # pop column to process off the stack
+        df[lst[0]] = df[lst[0]].apply(lambda x: [j for j in x.split(splitter) if j != ''])  # convert col to list
+        idx_cols = df.columns.difference(lst)  # all columns except `lst_cols`
+        lens = df[lst[0]].str.len()  # calculate lengths of lists
+        idx = np.repeat(df.index.values, lens)  # preserve original index values
+
+        # create "exploded" DF
+        res = (pd.DataFrame({
+            col: np.repeat(df[col].values, lens)
+            for col in idx_cols},
+            index=idx).assign(**{col: np.concatenate(df.loc[lens > 0, col].values)
+                                 for col in lst}))
+
+        # append those rows that have empty lists
+        if (lens == 0).any():
+            # at least one list in cells is empty
+            res = (res.append(df.loc[lens == 0, idx_cols], sort=False).fillna(fill_value))
+
+        # revert the original index order
+        res = res.sort_index()
+
+        # reset index if requested
+        if not preserve_idx:
+            res = res.reset_index(drop=True)
+
+        # return columns in original order
+        res = res[list(df)]
+
+        return explodes_data(res, lst_cols, splitter)
 
 
 def mesh_finder(data: pd.DataFrame, xid: str, id_typ: str, id_dic: Dict[str, List[str]]) -> None:
