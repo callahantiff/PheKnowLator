@@ -6,7 +6,7 @@
 from typing import Dict, Tuple
 
 
-# TODO: Need to add checks to make sure that user input is correct
+# TODO: Need to add checks to make sure that user input is correct + currently only covers onts and class (no instances)
 
 class DocumentationMaker(object):
     """Has functionality to interact with a user and gather the information needed in order to prepare the input
