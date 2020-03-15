@@ -1,32 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-Some Random Utility Functions.
-
-Downloads Data from a Url
-* url_download
-* ftp_url_download
-* gzipped_ftp_url_download
-* zipped_url_download
-* gzipped_url_download
-* data_downloader
-
-Interacts with Pandas DataFrames
-* explodes_data
-
-Generates Metadata
-* chunks
-* metadata_dictionary_mapper
-* metadata_api_mapper
-
-Miscellaneous data Processing Methods
-* mesh_finder
-* genomic_id_mapper
-
-Miscellaneous Knowledge Graph Methods
-* gets_ontology_statistics
-"""
 
 # import needed libraries
 from typing import Dict, Tuple
@@ -35,53 +9,67 @@ from typing import Dict, Tuple
 # TODO: Need to add checks to make sure that user input is correct
 
 class DocumentationMaker(object):
-    """Has functionality to interact with a user and gather the information needed in order to prepare the three
-    input documents needed to run the PheKnowLator program.
+    """Has functionality to interact with a user and gather the information needed in order to prepare the input
+    documents needed to run the PheKnowLator program.
 
     If successfully run, the class will write the following three documents to the ./resources directory:
         1. resource_info.txt
         2. class_source_list.txt
-        3. instance_source_list.txt
 
     Attributes:
         edge_count: an integer specifying the number of edges to create.
         write_location: A string containing a filename.
     """
 
-    def __init__(self, edge_count: int, write_location: str = './resources/') -> None:
+    def __init__(self, edge_count: int, write_location: str = './resources') -> None:
         self.edge_count = edge_count
         self.write_location = write_location
 
     def information_getter(self) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, str]]:
         """Creates three dictionaries from information provided by a user. The three dictionaries store information
-        for each of the three required documents.
+        for each of the two required documents.
 
         Returns:
-            A list of three dictionaries:
-                1. Information needed to create the resource_info.txt file
-                2. Information needed to create the class_source_list.txt file
-                3. Information needed to create the instance_source_list.txt file
+            A list of two dictionaries:
+                1. Information needed to create the resource_info.txt file.
+                2. Information needed to create the class_source_list.txt file.
+                3. Information needed to create the ontology_source_list.txt file.
         """
 
         # store input
-        edge_data, class_data, instance_data = {}, {}, {}
+        edge_data, class_data, ont_data = {}, {}, {}
 
         # get edge information
         for edge in range(self.edge_count):
             print('\n' + '#' * 40)
-            print('GATHERING INFORMATION FOR EDGE: {count}/{total}'.format(count=edge + 1, total=self.edge_count + 1))
+            print('GATHERING INFORMATION FOR EDGE: {count}/{total}'.format(count=edge, total=self.edge_count))
             print('#' * 40)
 
             edge_name = input('Please enter the edge type (e.g. gene-protein): ')
             print('\n')
+
+            ont = input('Is one or both of the nodes in edge an ontology? Please enter "one" or "both": ')
+            if ont == 'one':
+                ont_edge = input('Enter the node in edge that is from an ontology: ')
+                ont_data[ont_edge] = input('Provide a URL for this ontology: ')
+            else:
+                for i in range(2):
+                    ont_edge = input('Enter node name for ontology: ')
+                    ont_data[ont_edge] = input('Provide a URL for this ontology: ')
+
+            print('\n')
             data_type = input('Provide the data types for each node in the edge (e.g. gene-drug --> class-instance): ')
             print('\n')
+
             row_splitter = input('Provide the character used to split input text into rows (e.g. n or !): ')
             print('\n')
+
             col_splitter = input('Provide the character used to split each row into columns (e.g. t or ,): ')
             print('\n')
+
             col_idx = input('Provide the column index for each node in the input data, separated by ";" (e.g. 0;3): ')
             print('\n')
+
             id_maps = input('Provide identifier mapping information for each node: col:./filepath '
                             '(col = edge[node_idx], filepath = mapping data location)\n'
                             '  - If both nodes require mapping, separate each set of mapping information by a ";" '
@@ -103,14 +91,19 @@ class DocumentationMaker(object):
                               '  - If there are no evidence columns, please enter "None"\nProvide evidence '
                               'information now: ') or 'None'
             print('\n')
-            edge_relation = input('Provide the Relation Ontology property class used to connect the nodes: ')
+            edge_relation = input('Provide the Relation Ontology property class used to connect the nodes (e.g. '
+                                  'RO_0000056): ')
             print('\n')
-            subj_uri = input('Provide the Universal Resource Identifier that will be connected to the subject node: ')
+
+            subj_uri = input('Provide the Universal Resource Identifier that will be connected to the subject node ('
+                             '(e.g. http://purl.obolibrary.org/obo/): ')
             print('\n')
+
             obj_uri = input('Provide the Universal Resource Identifier that will be connected to the object node: ')
             print('\n')
+
             source_label = input('Source Identifier Formatting (i.e. GO:12838340, when we need '
-                                 'GO_12838340).\n\nProvide the following 3 items:\n(1) Character to split existing'
+                                 'GO_12838340).\n\nProvide the following 3 items:\n(1) Character to split existing '
                                  'source labels (e.g. : in GO:1283834);\n(2) Label to use (or replace existing label) '
                                  'for subject node (e.g. GO_);\n(3) Label to use (or replace existing label) for object'
                                  ' node (e.g. GO_).\n\nEnter each item separated by ";". If the existing label is '
@@ -125,12 +118,9 @@ class DocumentationMaker(object):
                                                                                          evi_crit, filt_crit)
 
             # get edge data sources
-            if 'class' in data_type:
-                class_data[edge_name] = input('Provide a URL or file path to data used to create this edge: ')
-            else:
-                instance_data[edge_name] = input('Provide a URL or file path to data used to create this edge: ')
+            class_data[edge_name] = input('Provide a URL or file path to data used to create this edge: ')
 
-        return edge_data, class_data, instance_data
+        return edge_data, class_data, ont_data
 
     def writes_out_document(self, data: Dict[str, str], delimiter: str, filename: str) -> None:
         """Function takes a dictionary of file information and writes it to a user-provided location.
@@ -144,7 +134,7 @@ class DocumentationMaker(object):
             None
         """
 
-        with open(self.write_location + filename, 'w') as outfile:
+        with open(self.write_location + '/' + filename, 'w') as outfile:
             for edge, values in data.items():
                 outfile.write(edge + delimiter + values + '\n')
         outfile.close()
@@ -169,13 +159,13 @@ def main():
 
     # write out resource info data
     print('***' * 12 + '\nWRITING REQUIRED INPUT DOCUMENTATION\n' + '***' * 12)
-    edge_maker.writes_out_document(edge_data[0], '|', 'TEST_resource_info.txt')
+    edge_maker.writes_out_document(edge_data[0], '|', 'resource_info.txt')
 
     # write out class data
-    edge_maker.writes_out_document(edge_data[1], ', ', 'TEST_class_source_list.txt')
+    edge_maker.writes_out_document(edge_data[1], ', ', 'class_source_list.txt')
 
-    # write out instance data
-    edge_maker.writes_out_document(edge_data[2], ', ', 'TEST__instance_source_list.txt')
+    # write out class data
+    edge_maker.writes_out_document(edge_data[2], ', ', 'ontology_source_list.txt')
 
 
 if __name__ == '__main__':
