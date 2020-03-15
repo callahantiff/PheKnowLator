@@ -42,9 +42,12 @@ from typing import Dict, Generator, List, Union
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-# disable chained assignment warning
-# rationale: https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
+# ENVIRONMENT WARNINGS
+# WARNING 1 - Pandas: disable chained assignment warning rationale:
+# https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
 pd.options.mode.chained_assignment = None
+
+# WARNING 2 - urllib3: disable insecure request warning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
@@ -56,7 +59,7 @@ def url_download(url: str, write_location: str, filename: str) -> None:
         write_location: A string that points to a file directory.
         filename: A string containing a filepath for where to write data to.
 
-    Return:
+    Returns:
         None.
     """
 
@@ -89,8 +92,8 @@ def ftp_url_download(url: str, write_location: str, filename: str) -> None:
         write_location: A string that points to a file directory.
         filename: A string containing a filepath for where to write data to.
 
-    Return:
-        None
+    Returns:
+        None.
     """
 
     print('Downloading Data from FTP Server: {}'.format(url))
@@ -111,8 +114,8 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> No
         write_location: A string that points to a file directory.
         filename: A string containing a filepath for where to write data to.
 
-    Return:
-        None
+    Returns:
+        None.
     """
 
     # get ftp server info
@@ -151,8 +154,8 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
         write_location: A string that points to a file directory.
         filename: A string containing a filepath for where to write data to.
 
-    Return:
-        None
+    Returns:
+        None.
     """
 
     print('Downloading Zipped Data from {}'.format(url))
@@ -177,8 +180,8 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
         write_location: A string that points to a file directory.
         filename: A string containing a filepath for where to write data to.
 
-    Return:
-        None
+    Returns:
+        Nones
     """
 
     print('Downloading Gzipped Data from {}'.format(url))
@@ -197,8 +200,8 @@ def data_downloader(url: str, write_location: str, filename: str = '') -> None:
         write_location: A string that points to a file directory.
         filename: A string containing a filepath for where to write data to.
 
-    Return:
-        None
+    Returns:
+        None.
     """
 
     # get filename from url
@@ -246,7 +249,7 @@ def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str
         metadata_dictionaries: A metadata dictionary to obtain metadata from.
 
     Returns:
-        A pandas.DataFrame of metadata results.
+        A pandas.DataFrame that contains the metadata results.
     """
 
     # data to gather
