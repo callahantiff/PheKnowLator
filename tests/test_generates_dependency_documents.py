@@ -35,12 +35,12 @@ class TestDocumentationMaker(unittest.TestCase):
         # create result dicts
         resource_info = {'go-gene': ':;GO_;|class-class|RO_0000056|http://purl.obolibrary.org/obo/|http://purl'
                                     '.uniprot.org/geneid/|n|t|0;1|None|None|None'}
-        class_info = {'go-gene': 'http://geneontology.org/gene-associations/goa_human.gaf.gz'}
         ont_info = {'go': 'http://purl.obolibrary.org/obo/go.owl'}
+        edge_info = {'go-gene': 'http://geneontology.org/gene-associations/goa_human.gaf.gz'}
 
         self.assertEqual(self.result[0], resource_info)
-        self.assertEqual(self.result[1], class_info)
-        self.assertEqual(self.result[2], ont_info)
+        self.assertEqual(self.result[1], ont_info)
+        self.assertEqual(self.result[2], edge_info)
 
         return None
 
@@ -60,13 +60,13 @@ class TestDocumentationMaker(unittest.TestCase):
         self.edge_maker.writes_out_document(self.result[0], '|', 'resource_info.txt')
         self.assertTrue(os.path.exists('./data/resources/resource_info.txt'))
 
-        # write out class data
-        self.edge_maker.writes_out_document(self.result[1], ', ', 'class_source_list.txt')
-        self.assertTrue(os.path.exists('./data/resources/class_source_list.txt'))
-
         # write out ontology data
-        self.edge_maker.writes_out_document(self.result[2], ', ', 'ontology_source_list.txt')
+        self.edge_maker.writes_out_document(self.result[1], ', ', 'ontology_source_list.txt')
         self.assertTrue(os.path.exists('./data/resources/ontology_source_list.txt'))
+
+        # write out class data
+        self.edge_maker.writes_out_document(self.result[2], ', ', 'edge_source_list.txt')
+        self.assertTrue(os.path.exists('./data/resources/edge_source_list.txt'))
 
         return None
 
