@@ -18,6 +18,8 @@ There are two ways to run PheKnowLator:
 """
 
 __all__ = [
+    'DocumentationMaker',
+
     'OntData',
     'LinkedData',
 
@@ -32,6 +34,7 @@ __all__ = [
     'OwlNets'
 ]
 
+from pkt.generates_dependency_documents import DocumentationMaker
 from pkt.downloads import LinkedData, OntData
 from pkt.edge_list import CreatesEdgeList
 from pkt.knowledge_graph import PartialBuild, PostClosureBuild, FullBuild
