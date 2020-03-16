@@ -70,7 +70,7 @@ optional arguments:
 
 ***
 
-#### Workflow   
+#### WORKFLOW   
 The [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction) Wiki page provides a detailed description of the knowledge construction process. A brief overview of this process is also provided
   provided below. 
 
@@ -113,8 +113,9 @@ _DOWNLOAD DATA:_
 <br>
 
 **STEP 3: Process Ontology Data and Build Edge Lists**  
- - Create edges between classes and instances of classes.  
- - Create edges between instances of classes and instances of data.  
+ - Process ontologies to verify they are error free, consistent, and normalized to integrate overlapping edge data
+  sources. 
+ - Create new edges between ontology classes and edge data sources.    
 
 <br>
 
