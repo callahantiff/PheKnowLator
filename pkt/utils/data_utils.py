@@ -36,7 +36,7 @@ import shutil
 from contextlib import closing
 from io import BytesIO
 from reactome2py import content  # type: ignore
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from requests.packages.urllib3.exceptions import InsecureRequestWarning, HTTPError
 from tqdm import tqdm  # type: ignore
 from typing import Dict, Generator, List, Union
 from urllib.request import urlopen
@@ -163,6 +163,9 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
 
     Returns:
         None.
+
+    Raises:
+        HTTPError: If the response returns a status code other than 200.
     """
 
     print('Downloading Zipped Data from {}'.format(url))
@@ -192,7 +195,10 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
         filename: A string containing a filepath for where to write data to.
 
     Returns:
-        Nones
+        None.
+
+    Raises:
+        HTTPError: If the response returns a status code other than 200.
     """
 
     print('Downloading Gzipped Data from {}'.format(url))
