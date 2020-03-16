@@ -61,25 +61,31 @@ def url_download(url: str, write_location: str, filename: str) -> None:
 
     Returns:
         None.
+
+    Raises:
+        HTTPError: If the response returns a status code other than 200.
     """
 
     print('Downloading Data from {}'.format(url))
-
     r = requests.get(url, allow_redirects=True, verify=False)
 
-    if 'Content-Length' in r.headers:
-        while r.ok and int(r.headers['Content-Length']) < 1000:
-            r = requests.get(url, allow_redirects=True, verify=False)
-
-        downloaded_data = open(write_location + '{filename}'.format(filename=filename), 'wb')
-        downloaded_data.write(r.content)
-        downloaded_data.close()
-
+    if r.ok is False:
+        raise HTTPError('{status} error! Data could not be downloaded from {url}'.format(status=r.status_code, url=url))
     else:
-        if len(r.content) > 10:
-            downloaded_data = open(write_location + '{filename}'.format(filename=filename), 'wb')
-            downloaded_data.write(r.content)
-            downloaded_data.close()
+        data = None
+        if 'Content-Length' in r.headers:
+            while r.ok and int(r.headers['Content-Length']) < 1000:
+                r = requests.get(url, allow_redirects=True, verify=False)
+            data = r.content
+        else:
+            if len(r.content) > 10:
+                data = r.content
+
+        # download and save data
+        if data:
+            with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
+                outfile.write(data)
+            outfile.close()
 
     return None
 
@@ -98,10 +104,10 @@ def ftp_url_download(url: str, write_location: str, filename: str) -> None:
 
     print('Downloading Data from FTP Server: {}'.format(url))
 
-    with closing(urlopen(url)) as r:
-        with open(write_location + '{filename}'.format(filename=filename), 'wb') as f:
-            shutil.copyfileobj(r, f)
-    r.close()
+    with closing(urlopen(url)) as downloaded_data:
+        with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
+            shutil.copyfileobj(downloaded_data, outfile)
+        outfile.close()
 
     return None
 
@@ -134,13 +140,14 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> No
     # read in gzipped file,uncompress, and write to directory
     print('Decompressing and Writing Gzipped Data to File')
     with gzip.open(write_loc, 'rb') as fid_in:
-        with open(write_loc.replace('.gz', ''), 'wb') as f:
-            f.write(fid_in.read())
+        with open(write_loc.replace('.gz', ''), 'wb') as file_loc:
+            file_loc.write(fid_in.read())
 
     # change filename and remove gzipped and original files
     if filename != '':
         os.rename(re.sub('.gz|.zip', '', write_loc), write_location + filename)
 
+    # remove compressed file
     os.remove(write_loc)
 
     return None
@@ -159,15 +166,19 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
     """
 
     print('Downloading Zipped Data from {}'.format(url))
+    r = requests.get(url, allow_redirects=True)
 
-    with requests.get(url, allow_redirects=True) as zip_data:
-        with ZipFile(BytesIO(zip_data.content)) as zip_file:
-            zip_file.extractall(write_location[:-1])
-    zip_data.close()
+    if r.ok is False:
+        raise HTTPError('{status} error! Data could not be downloaded from {url}'.format(status=r.status_code, url=url))
+    else:
+        with r as zip_data:
+            with ZipFile(BytesIO(zip_data.content)) as zip_file:
+                zip_file.extractall(write_location[:-1])
+        zip_data.close()
 
-    # change filename
-    if filename != '':
-        os.rename(write_location + re.sub('.gz|.zip', '', url.split('/')[-1]), write_location + filename)
+        # change filename
+        if filename != '':
+            os.rename(write_location + re.sub('.gz|.zip', '', url.split('/')[-1]), write_location + filename)
 
     return None
 
@@ -185,9 +196,14 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
     """
 
     print('Downloading Gzipped Data from {}'.format(url))
-    with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
-        outfile.write(gzip.decompress(requests.get(url, allow_redirects=True, verify=False).content))
-    outfile.close()
+    r = requests.get(url, allow_redirects=True, verify=False)
+
+    if r.ok is False:
+        raise HTTPError('{status} error! Data could not be downloaded from {url}'.format(status=r.status_code, url=url))
+    else:
+        with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
+            outfile.write(gzip.decompress(r.content))
+        outfile.close()
 
     return None
 
