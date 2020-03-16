@@ -107,7 +107,7 @@ class DataSource(object):
 
         pass
 
-    def downloads_data_from_url(self, download_type: str) -> None:
+    def downloads_data_from_url(self, download_type: Optional[str] = None) -> None:
         """Downloads each data source from a list and writes the downloaded file to a directory.
 
         Args:
