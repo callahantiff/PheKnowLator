@@ -56,16 +56,16 @@ Biomedical Ontologies and linked open data. The programs takes the following
 arguments:
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h,      --help        show this help message and exit
   -g ONTS, --onts ONTS  name/path to text file containing ontologies
-  -c CLS,  --cls CLS     name/path to text file containing class sources
+  -c CLS,  --cls CLS    name/path to text file containing class sources
   -i INST, --inst INST  name/path to text file containing instance sources
-  -t RES,  --res RES     name/path to text file containing resource_info
-  -b KG,   --kg KG        the build, can be "partial", "full", or "post-closure"
-  -o OUT,  --out OUT     name/path to directory where to write knowledge graph
-  -n NDE,  --nde NDE     yes/no - adding node metadata to knowledge graph
-  -r REL,  --rel REL     yes/no - adding inverse relations to knowledge graph
-  -s OWL,  --owl OWL     yes/no - removing OWL Semantics from knowledge graph
+  -t RES,  --res RES    name/path to text file containing resource_info
+  -b KG,   --kg KG      the build, can be "partial", "full", or "post-closure"
+  -o OUT,  --out OUT    name/path to directory where to write knowledge graph
+  -n NDE,  --nde NDE    yes/no - adding node metadata to knowledge graph
+  -r REL,  --rel REL    yes/no - adding inverse relations to knowledge graph
+  -s OWL,  --owl OWL    yes/no - removing OWL Semantics from knowledge graph
 ```   
 
 ***
@@ -74,15 +74,18 @@ optional arguments:
 The [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction) Wiki page provides a detailed description of the knowledge construction process. A brief overview of this process is also provided
   provided below. 
 
+<br>
+
  **STEP 0: Select the Build Type**  
  The knowledge graph build algorithm has been designed to run from three different stages of development: `full`, `partial`, and `post-closure`. For details on each of these, please see the table below.
 
 Build Type | Description | Use Cases  
 :--: | -- | --   
 `full` | Runs all build steps in the algorithm | You want to build a knowledge graph and will not use a reasoner  
-`partial` | Runs all of the build steps in the algorithm through adding the edges<br><br> If `node_data` is
- provided, it will not be added to the knowledge graph, but instead used to filter the edges such that only those edges with valid node metadata are added to the knowledge graph<br><br> Node metadata can always be added to a `partial` built knowledge graph by running the build as `post-closure` | You want to build a knowledge graph and plan to run a reasoner over it<br><br> You want to build a knowledge graph, but do not want to include node metadata, filter OWL semantics, or generate triple lists  
-`post-closure` | Determines whether owl semantics should be filtered, then creates and writes triple lists.<br>Adds node metadata (if `node_data='yes'`) | You have run the `partial` build, ran a reasoner over it, and now want to complete the algorithm<br><br> You want to use the algorithm to process metadata and owl semantics for an externally built knowledge graph
+`partial` | Runs all of the build steps in the algorithm through adding the edges<br><br> If `node_data` is provided, it will not be added to the knowledge graph, but instead used to filter the edges such that only those edges with valid node metadata are added to the knowledge graph<br><br> Node metadata can always be added to a `partial` built knowledge graph by running the build as `post-closure` | You want to build a knowledge graph and plan to run a reasoner over it<br><br> You want to build a knowledge graph, but do not want to include node metadata, filter OWL semantics, or generate triple lists  
+`post-closure` | Assumes that a reasoner was run over a knowledge graph and that the remaining build steps should be applied to a closed knowledge graph. The remaining build steps include determining whether OWL semantics should be filtered and creating and writing triple lists | You have run the `partial` build, ran a reasoner over it, and now want to complete the algorithm<br><br> You want to use the algorithm to process metadata and owl semantics for an externally built knowledge graph
+
+<br>
 
 **STEP 1: Prepare Input Documents**  
 This code depends on four documents in order to run successfully. For information on what's included in these documents, see the [Document Dependencies](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies) Wiki page.
