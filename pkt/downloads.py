@@ -371,6 +371,8 @@ class OntData(DataSource):
         # CHECK - make sure all files were processed
         if len(self.source_list) != len(self.data_files):
             raise ValueError('ERROR: Not all URLs returned a data file')
+        else:
+            self.generates_source_metadata()
 
         return None
 
@@ -449,5 +451,7 @@ class LinkedData(DataSource):
             # CHECK
             if len(self.source_list) != len(self.data_files):
                 raise ValueError('ERROR: Not all URLs returned a data file')
+            else:
+                self.generates_source_metadata()
 
             return None
