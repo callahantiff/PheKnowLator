@@ -58,14 +58,14 @@ arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -g ONTS, --onts ONTS  name/path to text file containing ontologies
-  -c CLS, --cls CLS     name/path to text file containing class sources
+  -c CLS,  --cls CLS     name/path to text file containing class sources
   -i INST, --inst INST  name/path to text file containing instance sources
-  -t RES, --res RES     name/path to text file containing resource_info
-  -b KG, --kg KG        the build, can be "partial", "full", or "post-closure"
-  -o OUT, --out OUT     name/path to directory where to write knowledge graph
-  -n NDE, --nde NDE     yes/no - adding node metadata to knowledge graph
-  -r REL, --rel REL     yes/no - adding inverse relations to knowledge graph
-  -s OWL, --owl OWL     yes/no - removing OWL Semantics from knowledge graph
+  -t RES,  --res RES     name/path to text file containing resource_info
+  -b KG,   --kg KG        the build, can be "partial", "full", or "post-closure"
+  -o OUT,  --out OUT     name/path to directory where to write knowledge graph
+  -n NDE,  --nde NDE     yes/no - adding node metadata to knowledge graph
+  -r REL,  --rel REL     yes/no - adding inverse relations to knowledge graph
+  -s OWL,  --owl OWL     yes/no - removing OWL Semantics from knowledge graph
 ```   
 
 ***
@@ -80,15 +80,16 @@ The [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Const
 Build Type | Description | Use Cases  
 :--: | -- | --   
 `full` | Runs all build steps in the algorithm | You want to build a knowledge graph and will not use a reasoner  
-`partial` | Runs all of the build steps in the algorithm through adding the `class-class`, `instance-class`, `class-instance`, and `instance-instance` edges<br><br> If `node_data` is provided, it will not be added to the knowledge graph, but instead used to filter the edges such that only those edges with valid node metadata are added to the knowledge graph<br><br> Node metadata can always be added to a `partial` built knowledge graph by running the build as `post-closure` | You want to build a knowledge graph and plan to run a reasoner over it<br><br> You want to build a knowledge graph, but do not want to include node metadata, filter OWL semantics, or generate triple lists  
+`partial` | Runs all of the build steps in the algorithm through adding the edges<br><br> If `node_data` is
+ provided, it will not be added to the knowledge graph, but instead used to filter the edges such that only those edges with valid node metadata are added to the knowledge graph<br><br> Node metadata can always be added to a `partial` built knowledge graph by running the build as `post-closure` | You want to build a knowledge graph and plan to run a reasoner over it<br><br> You want to build a knowledge graph, but do not want to include node metadata, filter OWL semantics, or generate triple lists  
 `post-closure` | Determines whether owl semantics should be filtered, then creates and writes triple lists.<br>Adds node metadata (if `node_data='yes'`) | You have run the `partial` build, ran a reasoner over it, and now want to complete the algorithm<br><br> You want to use the algorithm to process metadata and owl semantics for an externally built knowledge graph
 
 **STEP 1: Prepare Input Documents**  
 This code depends on four documents in order to run successfully. For information on what's included in these documents, see the [Document Dependencies](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies) Wiki page.
 
-For assistance in creating these documents, please run the following:
+For assistance in creating these documents, please run the following from the root directory:
 ```bash
-   python ./scripts/python/CreatesInputDocuments.py
+   python3 pkt/generates_dependency_documents.py
 ```
 
 <br>
@@ -96,22 +97,19 @@ For assistance in creating these documents, please run the following:
 **STEP 2: Download and Preprocess Data**  
    <br>
 _PREPROCESS DATA:_  
- - <u>Create Mapping, Filtering, and Labeling Data</u>: The **[`data_preparation.ipynb`](https://github.com
- /callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)** assists with the downloading and processing of all data needed to help build the knowledge graph.   
+ - <u>Create Mapping, Filtering, and Labeling Data</u>: The **[`data_preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)** assists with the downloading and processing of all data needed to help build the knowledge graph.   
 
 _DOWNLOAD DATA:_  
  - <u>Download Ontologies</u>: Downloads ontologies with or without imports from the [`ontology_source_list.txt
    `](https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontology_source_list.txt) file. Metadata
     information from each ontology is saved to [`ontology_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/ontology_source_metadata.txt) directory.
- - <u>Download Class Data</u>: Downloads data that is used to create connections between ontology concepts treated
-   as classes and instance data from the [`class_source_list.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/class_source_list.txt) file. Metadata information from each source is saved
-    to [`class_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/class_source_metadata.txt) directory. 
- - <u>Download Instance Data</u>: Downloads data from the [`instance_source_list.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/instance_source_list.txt) file. Metadata information
-    from each source is saved to [`instance_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/instance_source_metadata.txt) directory.   
+ - <u>Download Edge Data</u>: Downloads data that is used to create connections between ontology concepts treated
+   as classes and instance data from the [`edge_source_list.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_source_list.txt) file. Metadata information from each source is saved
+    to [`edge_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/edge_source_metadata.txt) directory. 
 
 <br>
 
-**STEP 3: Create Edge Lists**  
+**STEP 3: Process Ontology Data and Build Edge Lists**  
  - Create edges between classes and instances of classes.  
  - Create edges between instances of classes and instances of data.  
 
