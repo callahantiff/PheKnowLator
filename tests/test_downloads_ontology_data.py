@@ -22,7 +22,7 @@ class TestOntData(TestCase):
     def test_gets_data_type(self):
         """Tests class initialization to ensure correct data type is registered."""
 
-        self.assertTrue(isinstance(self.ontologies.gets_data_type(), str))
+        self.assertIsInstance(self.ontologies.gets_data_type(), str)
         self.assertEqual('Ontology Data', self.ontologies.gets_data_type())
 
         return None
@@ -30,7 +30,7 @@ class TestOntData(TestCase):
     def test_input_file(self):
         """Tests data file passed to initialize class."""
 
-        self.assertTrue(isinstance(self.ontologies.data_path, str))
+        self.assertIsInstance(self.ontologies.data_path, str)
         self.assertTrue(os.stat(self.ontologies.data_path).st_size != 0)
 
         return None
@@ -42,7 +42,7 @@ class TestOntData(TestCase):
         self.ontologies.parses_resource_file()
 
         # make sure a dictionary is returned
-        self.assertTrue(isinstance(self.ontologies.source_list, dict))
+        self.assertIsInstance(self.ontologies.source_list, dict)
 
         # check and make sure dictionary value contains an owl or obo ontology
         self.assertTrue(all(x for x in list(self.ontologies.source_list.values()) if 'owl' in x))
