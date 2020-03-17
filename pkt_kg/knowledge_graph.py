@@ -16,9 +16,9 @@ from rdflib.namespace import RDF  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Callable, Dict, List, Optional
 
-from pkt.utils import gets_ontology_statistics
-from pkt.metadata import Metadata
-from pkt.owlnets import OwlNets
+from pkt_kg.utils import gets_ontology_statistics
+from pkt_kg.metadata import Metadata
+from pkt_kg.owlnets import OwlNets
 
 # TODO: mypy throws errors for optional[dict] usage, this is an existing bug in mypy
 # https://github.com/python/mypy/issues/4359

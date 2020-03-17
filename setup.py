@@ -1,8 +1,8 @@
 import os
 import re
+
 # To use a consistent encoding
 from codecs import open as copen
-
 from setuptools import find_packages, setup
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -28,7 +28,7 @@ def find_version(*file_paths):
 
 __version__ = find_version("pkt_kg", "__version__.py")
 
-test_deps =[
+test_deps = [
     "pytest",
     "pytest-cov",
     "coveralls",
@@ -43,11 +43,15 @@ extras = {
 setup(
     name='pkt_kg',
     version=__version__,
-    description="TODO add description",
+    description="A Python library for scalable knowledge semantic graph construction",
     long_description=long_description,
     url="https://github.com/callahantiff/PheKnowLator",
-    author="Tiffany J. Callahan",
-    author_email="callahantiff@gmail.com",
+    keywords='knowledge-graph, ontologies, formal-logic, reasoner, deep-learning, biomedical-applications, '
+             'mechanisms, translation-research, linked-open-data, owl, semantic-web, symbolic-ai, '
+             'knowledge-representation',
+    author="Tiffany J. Callahan, William A. Baumgartner, Jr.",
+    author_email="tiffany.callahan@cusanchutz.edu, william.baumgartner@cusanchutz.edu",
+
     # Choose your license
     license='MIT',
     include_package_data=True,
@@ -58,7 +62,18 @@ setup(
     ],
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     tests_require=test_deps,
+
     # Add here the package dependencies
-    install_requires=[],
+    install_requires=['argparse>=1.4.0',
+                      'Cython==0.29.14',
+                      'networkx',
+                      'nose',
+                      'numpy==1.18.1',
+                      'Owlready2==0.14',
+                      'pandas>=0.25.3',
+                      'rdflib>=4.2.2',
+                      'reactome2py>=0.0.8',
+                      'requests>=2.22.0',
+                      'tqdm'],
     extras_require=extras,
 )

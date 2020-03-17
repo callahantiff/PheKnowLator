@@ -14,7 +14,7 @@ from owlready2 import subprocess  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, TextIO, Tuple
 
-from pkt.utils import gets_ontology_statistics, data_downloader
+from pkt_kg.utils import gets_ontology_statistics, data_downloader
 
 
 class DataSource(object):

@@ -1,44 +1,51 @@
-.mypy*
-/releases/*
-coverage.xml
-/resources/knowledge_graphs/
-!/resources/node_data/README.md
-# releases
 # Created by .ignore support plugin (hsz.mobi)
-!/resources/ontologies/ontology_source_metadata.txt
-.notipy.json
-/resources/relations_data/*
-pkt/kg_embedding_visualizer.py
+
 # Distribution/packaging/Environments
-/resources/edge_data/*
-/resources/*.json
-**/__pycache__/*
-/resources/bioportal_api_key.txt
-# ignoring resource preparation files and metadata information
-/resources/processed_data/
-/resources/ontologies/*
-\.vscode/
-\.DS_Store
-/resources/embeddings/*
-!/resources/knowledge_graphs/OWL_NETS_Property_Types.txt
-# API keys/passwords
-!/resources/embeddings/README.md
 __pycache__
-/resources/kr_model/
-# data and scripts
-pkt/knowledge_graph_embedder.py
-# external libraries
-.ipynb_checkpoints/*
-/resources/node_data/*
-tests/test_ncbo_rest_api.py
-Untitled*
 __pycache__/
-pkt/libs/walking-rdf-and-owl-master/*
-!/resources/relations_data/README.md
+**/__pycache__/*
 .idea/
-*/__pycache__/*
-.coverage*
-# test files in progress (tests for helper functions/utilities)
-.single_run
-pkt/libs/deepwalk_c_master/*
+.ipynb_checkpoints/*
+.mypy*
+\.DS_Store
+
+# data
+/resources/processed_data/
+/resources/edge_data/*
+/resources/node_data/*
+/resources/relations_data/*
+/resources/knowledge_graphs/
+/resources/kr_model/
+/resources/ontologies/*
+/resources/*.json
+/resources/embeddings/*
+
+# scripts
+pkt_kg/kg_embedding_visualizer.py
+pkt_kg/knowledge_graph_embedder.py
+Untitled*
+
+# ignoring resource preparation files and metadata information
+!/resources/ontologies/ontology_source_metadata.txt
 !/resources/edge_data/edge_source_metadata.txt
+!/resources/node_data/README.md
+!/resources/relations_data/README.md
+!/resources/embeddings/README.md
+!/resources/knowledge_graphs/OWL_NETS_Property_Types.txt
+
+# releases
+/releases/*
+
+# API keys/passwords
+/resources/bioportal_api_key.txt
+
+# external libraries
+pkt_kg/libs/walking-rdf-and-owl-master/*
+pkt_kg/libs/deepwalk_c_master/*
+
+# testing files
+.single_run
+.coverage*
+coverage.xml
+.notipy.json
+\.vscode/

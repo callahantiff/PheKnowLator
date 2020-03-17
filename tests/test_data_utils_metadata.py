@@ -4,7 +4,7 @@ import unittest
 
 from typing import Generator
 
-from pkt.utils import *
+from pkt_kg.utils import *
 
 
 class TestDataUtilsMetadata(unittest.TestCase):

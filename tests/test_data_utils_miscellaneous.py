@@ -6,7 +6,7 @@ import unittest
 
 from tqdm import tqdm
 
-from pkt.utils import *
+from pkt_kg.utils import *
 
 
 class TestDataUtilsMisc(unittest.TestCase):

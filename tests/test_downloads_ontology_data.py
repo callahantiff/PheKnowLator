@@ -6,7 +6,7 @@ import glob
 
 from unittest import TestCase
 
-from pkt.downloads import OntData
+from pkt_kg.downloads import OntData
 
 
 class TestOntData(TestCase):

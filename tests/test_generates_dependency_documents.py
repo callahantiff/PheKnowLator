@@ -5,7 +5,7 @@ import unittest
 
 from unittest import mock
 
-from pkt import DocumentationMaker
+from pkt_kg import DocumentationMaker
 
 
 class TestDocumentationMaker(unittest.TestCase):

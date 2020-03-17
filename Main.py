@@ -4,9 +4,9 @@
 # import needed libraries
 import argparse
 
-from pkt.downloads import OntData, LinkedData
-from pkt.edge_list import CreatesEdgeList
-from pkt.knowledge_graph import KGBuilder
+from pkt_kg.downloads import OntData, LinkedData
+from pkt_kg.edge_list import CreatesEdgeList
+from pkt_kg.knowledge_graph import KGBuilder
 
 
 def main():

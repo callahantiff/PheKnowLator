@@ -1,6 +1,6 @@
 import unittest
 
-from pkt.utils import *
+from pkt_kg.utils import *
 
 
 class TestKGUtils(unittest.TestCase):

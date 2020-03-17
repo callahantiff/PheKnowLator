@@ -9,7 +9,7 @@ import unittest
 from contextlib import closing
 from urllib.request import urlopen
 
-from pkt.utils import *
+from pkt_kg.utils import *
 
 
 class TestDataUtilsDownloading(unittest.TestCase):

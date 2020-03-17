@@ -6,7 +6,7 @@ import glob
 
 from unittest import TestCase
 
-from pkt.downloads import LinkedData
+from pkt_kg.downloads import LinkedData
 
 
 class TestLinkedData(TestCase):
