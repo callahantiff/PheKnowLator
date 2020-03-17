@@ -1,0 +1,15 @@
+===================================
+#Sat Mar 14 04:37:52 UTC 2020 
+===================================
+
+EDGE: chemical-disease
+DATA PROCESSING INFO
+  - IDENTIFIER MAPPING = chemical (./resources/processed_data/MESH_CHEBI_MAP.txt) | disease (./resources/processed_data/DISEASE_DOID_MAP.txt)
+  - FILTERING CRITERIA = None
+  - EVIDENCE CRITERIA = data[5]!=' '
+DATA INFO
+  - DOWNLOAD_URL = http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
+  - DOWNLOAD_DATE = 03/13/2020
+  - FILE_SIZE_IN_BYTES = 0
+  - DOWNLOADED_FILE_LOCATION = ./data/edge_data/chemical-disease_CTD_chemicals_diseases.tsv
+

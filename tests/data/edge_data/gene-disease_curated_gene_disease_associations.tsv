@@ -1,0 +1,16 @@
+geneId	geneSymbol	DSI	DPI	diseaseId	diseaseName	diseaseType	diseaseClass	diseaseSemanticType	score	EI	YearInitial	YearFinal	NofPmids	NofSnps	source
+        1	A1BG	0.857	0.172	C0019209	Hepatomegaly	phenotype	C06;C23	Finding	0.30		2017	2017	   1	   0	CTD_human
+       10	NAT2	0.466	0.828	C0086457	Industrial Dermatosis	disease	C17;C24	Disease or Syndrome	0.30		2010	2010	   1	   0	CTD_human
+       12	SERPINA3	0.572	0.69	C0023794	Lipoidosis	disease	C16;C18	Disease or Syndrome	0.30		2005	2007	   3	   0	CTD_human
+       12	SERPINA3	0.572	0.69	C0033578	Prostatic Neoplasms	group	C04;C12	Neoplastic Process	0.30		2008	2008	   1	   0	CTD_human
+       15	AANAT	0.696	0.414	C0393770	Delayed Sleep Phase Syndrome	disease	C10;C24;F03	Disease or Syndrome	0.32	1	2003	2007	   1	   0	CTD_human
+       18	ABAT	0.639	0.276	C0034933	Reflex, Abnormal	phenotype	C10;C23	Sign or Symptom	0.30		1999	1999	   1	   0	CTD_human
+       18	ABAT	0.639	0.276	C4505436	Generalized Absence Seizures	disease	C10;C23	Disease or Syndrome	0.30		1999	1999	   1	   0	CTD_human
+       19	ABCA1	0.484	0.793	C0004153	Atherosclerosis	disease	C14	Disease or Syndrome	0.40	1	2000	2017	   1	   0	CTD_human
+       25	ABL1	0.475	0.69	C0205644	Carcinoma, Granular Cell	disease	C04	Neoplastic Process	0.30		2011	2011	   1	   0	CTD_human
+       28	ABO	0.491	0.828	C0010474	Curling Ulcer	disease	C06	Disease or Syndrome	0.30		2012	2012	   1	   0	CTD_human
+       31	ACACA	0.552	0.759	C0268603	Acetyl-CoA: carboxylase deficiency	disease	C16;C18	Disease or Syndrome	0.30				   0	   0	CTD_human
+     2622	GAS8	0.752	0.241	C4317124	Polynesian Bronchiectasis	disease	C08;C09;C14;C16	Disease or Syndrome	0.30				   0	   0	ORPHANET
+     5621	PRNP	0.474	0.897	C2931022	Amyloidosis, Cerebral, with Spongiform Encephalopathy	disease	C10;F03	Disease or Syndrome	0.33	0.6666667	1989	2010	  11	   8	UNIPROT
+     5621	PRNP	0.474	0.897	C3805618	CEREBRAL AMYLOID ANGIOPATHY, PRNP-RELATED	disease		Disease or Syndrome	0.40		1989	2011	  11	  11	UNIPROT
+109580095	HBB-LCR	0.815	0.069	C0271979	Thalassemia Intermedia	disease	C15;C16	Disease or Syndrome	0.30				   0	   0	CTD_human

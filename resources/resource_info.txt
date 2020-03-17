@@ -7,7 +7,8 @@ chemical-pathway|;CHEBI_;|class-subclass|RO_0000056|http://purl.obolibrary.org/o
 chemical-phenotype|:;MESH_;|class-class|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|5;!=;' '|None
 chemical-protein|;MESH_;|class-class|RO_0002434|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt|None|6;==;Homo sapiens::5;.startswith('protein');
 chemical-rna|;MESH_;|class-subclass|RO_0002434|http://purl.obolibrary.org/obo/|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|#|t|1;3|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt|None|6;==;Homo sapiens::5;.startswith('mRNA');
-disease-phenotype|:;;HP_|class-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|#|t|0;3|0:./resources/processed_data/DISEASE_DOID_MAP.txt|None|None|None
+disease-phenotype|:;;HP_|class-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary
+.org/obo/|#|t|1;4|0:./resources/processed_data/DISEASE_DOID_MAP.txt|None|None|None
 gene-disease|;;|subclass-class|RO_0003302|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|n|t|0;4|1:./resources/processed_data/DISEASE_DOID_MAP.txt|10;>=;0.70|None
 gene-gene|;;|subclass-subclass|RO_0002435|http://purl.uniprot.org/geneid/|http://purl.uniprot.org/geneid/|n|t|0;1|0:./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt;1:./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt|2;>=;0.00012|None
 gene-pathway|:;;|subclass-subclass|RO_0000056|http://purl.uniprot.org/geneid/|https://reactome.org/content/detail/|#|t|1;3|None|None|3;.startswith('REACT:R-HSA-');

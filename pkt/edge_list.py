@@ -9,7 +9,7 @@ import re
 
 from difflib import SequenceMatcher
 from tqdm import tqdm  # type: ignore
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, TextIO, Tuple, Union
 
 # TODO: using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
 
@@ -18,7 +18,7 @@ class CreatesEdgeList(object):
     """Class creates edge lists based off data type.
 
     The class takes as input a string that represents the type of data being stored and a list of lists, where each item
-    in the list is a file path/name of a data source. With these inputs the class reads and processes the data and then
+    in the list is a file path/name of a data source. With these inputs, the class reads and processes the data and then
     assembles it into a dictionary where the keys are tuples storing an entity identifier and a relation that connects
     the entity to another entity, which is stored as a value. The class returns a dictionary, keyed by data source, that
     contains a dictionary of edge relations.
@@ -29,9 +29,8 @@ class CreatesEdgeList(object):
         source_info: A nested dictionary that contains information about each edge-type. Keys are the edge-type (e.g.
             'chemical-gene' and values are a dictionary with keys for all of the information provided in the
             resource_info.txt file, which is used to process and generate the data. Additionally, this information
-            also includes the type of edge (e.g. class-class, instance-instance, or class-instance/instance-class)
-            and a nested edge list. For additional information and an example, see the creates_knowledge_graph_edges()
-            method.
+            also includes the type of edge (e.g. class, instance or subclass) and a nested edge list. For additional
+            information and an example, see the creates_knowledge_graph_edges() method.
 
     """
 
@@ -42,8 +41,9 @@ class CreatesEdgeList(object):
 
         # convert edge data to a dictionary
         self.source_info: Dict[str, Dict[str, Any]] = dict()
+        source_file_data: TextIO = open(source_file)
 
-        for row in open(source_file).read().split('\n'):
+        for row in source_file_data.read().split('\n'):
             cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
             self.source_info[cols[0].strip('"').strip("'")] = {}
             self.source_info[cols[0].strip('"').strip("'")]['source_labels'] = cols[1].strip('"').strip("'")
@@ -58,6 +58,8 @@ class CreatesEdgeList(object):
             self.source_info[cols[0].strip('"').strip("'")]['evidence_criteria'] = cols[10].strip('"').strip("'")
             self.source_info[cols[0].strip('"').strip("'")]['filter_criteria'] = cols[11].strip('"').strip("'")
             self.source_info[cols[0].strip('"').strip("'")]['edge_list'] = []
+
+        source_file_data.close()
 
     @staticmethod
     def identify_header(file_path: str, file_delimiter: str) -> Optional[int]:
@@ -92,7 +94,7 @@ class CreatesEdgeList(object):
         elif with_header_test >= without_header_test:
             return None
         else:
-            return 0
+            return None
 
     def data_reader(self, file_path: str, file_splitter: str = '\n', line_splitter: str = 't') -> pandas.DataFrame:
         """Takes a filepath pointing to data source and reads it into a Pandas DataFrame using information in the
@@ -338,7 +340,7 @@ class CreatesEdgeList(object):
         Returns:
             source_info: A dictionary that contains all of the master information for each edge type resource. For
                 example: {'chemical-complex': {'source_labels': ';;',
-                                               'data_type': 'class-instance',
+                                               'data_type': 'class-subclass',
                                                'edge_relation': 'RO_0002436',
                                                'uri': ['http://purl.obolibrary.org/obo/',
                                                        'https://reactome.org/content/detail/'],
