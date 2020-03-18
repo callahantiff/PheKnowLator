@@ -1,6 +1,6 @@
 import unittest
 
-from pkt.edge_list import CreatesEdgeList
+from pkt_kg.edge_list import CreatesEdgeList
 
 
 class TestEdgeList(unittest.TestCase):
@@ -51,8 +51,3 @@ class TestEdgeList(unittest.TestCase):
         self.assertEqual(0, self.master_edge_list.identify_header(gene_dis_file, splitter))
 
         return None
-
-    def test_
-
-
-
