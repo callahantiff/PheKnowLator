@@ -3,74 +3,63 @@ pkt_kg
 |travis| |sonar_quality| |sonar_maintainability| |codacy|
 |code_climate_maintainability| |pip| |downloads|
 
-TODO add description
 
-How do I install this package?
+PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information regarding this project can be found on the associated `Wiki`_.
+
+
+**This is a Reproducible Research Repository:** 
+
+This repository contains more than just code, it provides a detailed and transparent narrative of our research process. For detailed information on how we use GitHub as a reproducible research platform, click `here`_.
+
+**Project Stats:** |GitHub contributors| |Github all releases|
+    
+.. role:: raw-html(raw) :format: html
+
+--------------
+
+Tests Coverage
 ----------------------------------------------
-As usual, just download it using pip:
+Since some software handling coverages sometime get slightly different results, here's three of them:
+
+|coveralls| |sonar_coverage| |code_climate_coverage|
+
+--------------
+
+Releases
+----------------------------------------------
+
+All code and output for each release are free to download, see `Wiki <https://github.com/callahantiff/PheKnowLator/wiki>`__ for full release archive.
+
+**Current Release:** `v2.0.0`_. Data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0#generated-output>`__.
+
+--------------
+
+
+Getting Started
+----------------------------------------------
+
+🛑 Dependencies 🛑
+~~~~~~~~~~~~~~~~~~~~
+
+* This program requires Python version 3.6. To install it, run the following:
 
 .. code:: shell
 
     pip install pkt_kg
 
-Tests Coverage
-----------------------------------------------
-Since some software handling coverages sometime
-get slightly different results, here's three of them:
+* Run the `data_preparation.ipynb`_ notebook to build mapping, filtering, and labeling datasets.
 
-|coveralls| |sonar_coverage| |code_climate_coverage|
+* **Important.** This code depends on four documents in order to run successfully. See *STEP 1: Prepare Input Documents* below for more details.
 
+    * `OWLTools`_ library. Please download it to ``resources/lib/`` prior to running ``main.py``.
 
-A repository for building biomedical knowledge graphs of human disease mechanisms. Detailed information regarding this project can be found on the associated `Wiki`_.
-
-**This is a Reproducible Research Repository:** This repository contains more than just code, it provides a detailed and transparent narrative of our research process. For detailed information on how we use GitHub as a reproducible research platform, click `here`_.
-
-**Project Stats:** |GitHub contributors| |Github all releases|
-
---------------
-
-Releases
-~~~~~~~~
-
-All code and output for each release are free to download, see `Wiki <https://github.com/callahantiff/PheKnowLator/wiki>`__ for full release archive.
-
-**Current Release:** `v2.0.0`_. Data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0#generated-output>`__
-
---------------
-
-Getting Started
-~~~~~~~~~~~~~~~
-
-**🛑 Dependencies 🛑**
-- This program requires Python version 3.6. To install required modules, run the following:
-  
-  \``\` 
-  pip install -r requirements.txt
-   \``\`
-
--  Run the ```Data_Preparation.ipynb```_ notebook to build mapping, filtering, and labeling datasets.
--  **Important.** This code depends on four documents in order to run successfully. See \**STEP 1: Prepare Input Documents*\* below for more details.
--  `OWLTools`_ library. Please download it to ``resources/lib/`` prior to running ``main.py``.
--  Knowledge graph embeddings are generated using `n1-standard1`_ Google Compute virtual machines.
+    * Knowledge graph embeddings are generated using `n1-standard1`_ Google Compute virtual machines.
 
 **Data Sources:** This knowledge graph is built entirely on publicly available linked open data and `Open Biomedical Ontologies`_.
--  Please see the `Data Source`_ Wiki page for information.
 
-**Running Code:** This program can be run using a Jupyter Notebook (```main.ipynb```_) or from the command line (```main.py```_) by:
-.. _Wiki: https://github.com/callahantiff/PheKnowLater/wiki
-.. _here: https://github.com/callahantiff/Abra-Collaboratory/wiki/Using-GitHub-as-a-Reproducible-Research-Platform
-.. _v2.0.0: https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0
-.. _``Data_Preparation.ipynb``: https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb
-.. _OWLTools: https://github.com/owlcollab/owltools
-.. _n1-standard1: https://cloud.google.com/compute/vm-instance-pricing#n1_predefined
-.. _Open Biomedical Ontologies: http://obofoundry.org/
-.. _Data Source: https://github.com/callahantiff/PheKnowLator/wiki/Data-Sources
-.. _``main.ipynb``: https://github.com/callahantiff/pheknowlator/blob/master/main.ipynb
-.. _``main.py``: https://github.com/callahantiff/pheknowlator/blob/master/main.py
+* Please see the `Data Source`_ Wiki page for information.
 
-.. |GitHub contributors| image:: https://img.shields.io/github/contributors/callahantiff/PheKnowLater.svg?color=yellow&style=flat-square
-.. |Github all releases| image:: https://img.shields.io/github/downloads/callahantiff/PheKnowLater/total.svg?color=dodgerblue&style=flat-square
-
+**Running Code:** This program can be run using a Jupyter Notebook (`main.ipynb`_) or from the command line (`main.py`_) by:
 
 .. code:: bash
 
@@ -78,9 +67,8 @@ Getting Started
    python3 Main.py -h
    usage: Main.py [-h] -g ONTS -c CLS -i INST -t RES -b KG -o OUT -n NDE -r REL -s OWL
 
-   PheKnowLator: This program builds a biomedical knowledge graph using Open
-   Biomedical Ontologies and linked open data. The programs takes the following
-   arguments:
+   PheKnowLator: This program builds a biomedical knowledge graph using Open Biomedical
+   Ontologies and linked open data. The programs takes the following arguments:
 
    optional arguments:
      -h,      --help        show this help message and exit
@@ -96,17 +84,18 @@ Getting Started
 
 --------------
 
-WORKFLOW
-^^^^^^^^
+Workflow
+--------------
 
-The `KG Construction`_ Wiki page provides a detailed description of the
-knowledge construction process. A brief overview of this process is also
-provided provided below.
+The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process. A brief overview of this process is also provided provided below.
 
-**STEP 0: Select the Build Type** The knowledge graph build algorithm
-has been designed to run from three different stages of development:
-``full``, ``partial``, and ``post-closure``. For details on each of
-these, please see the table below.
+
+
+STEP 0: Select the Build Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The knowledge graph build algorithm has been designed to run from three different stages of development:
+``full``, ``partial``, and ``post-closure``. For details on each of these, please see the table below.
 
 +-----------------------------------+-----------------+-----------------+
 | Build Type                        | Description     | Use Cases       |
@@ -121,7 +110,7 @@ these, please see the table below.
 |                                   | build steps in  | build a         |
 |                                   | the algorithm   | knowledge graph |
 |                                   | through adding  | and plan to run |
-|                                   | the edges If    | a reasoner over |
+|                                   | the edges. If   | a reasoner over |
 |                                   | ``node_data``   | it You want to  |
 |                                   | is provided, it | build a         |
 |                                   | will not be     | knowledge       |
@@ -171,70 +160,47 @@ these, please see the table below.
 |                                   | lists           |                 |
 +-----------------------------------+-----------------+-----------------+
 
-.. _KG Construction: https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction
+--------------
 
+STEP 1: Prepare Input Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``` bash
-python3 Main.py -h
-usage: Main.py [-h] -g ONTS -c CLS -i INST -t RES -b KG -o OUT -n NDE -r REL -s OWL
-
-PheKnowLator: This program builds a biomedical knowledge graph using Open
-Biomedical Ontologies and linked open data. The programs takes the following arguments:
-
-optional arguments:
-  -h,      --help        show this help message and exit
-  -g ONTS, --onts ONTS  name/path to text file containing ontologies
-  -c CLS,  --cls CLS    name/path to text file containing class sources
-  -i INST, --inst INST  name/path to text file containing instance sources
-  -t RES,  --res RES    name/path to text file containing resource_info
-  -b KG,   --kg KG      the build, can be "partial", "full", or "post-closure"
-  -o OUT,  --out OUT    name/path to directory where to write knowledge graph
-  -n NDE,  --nde NDE    yes/no - adding node metadata to knowledge graph
-  -r REL,  --rel REL    yes/no - adding inverse relations to knowledge graph
-  -s OWL,  --owl OWL    yes/no - removing OWL Semantics from knowledge graph
-
-```   
-
-***
-
-#### WORKFLOW   
-The [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction) Wiki page provides a detailed description of the knowledge construction process. A brief overview of this process is also provided provided below. 
-
-<br>
-
- **STEP 0: Select the Build Type**  
- The knowledge graph build algorithm has been designed to run from three different stages of development: `full`, `partial`, and `post-closure`. For details on each of these, please see the table below.
-
-Build Type | Description | Use Cases  
-:--: | -- | --   
-`full` | Runs all build steps in the algorithm | You want to build a knowledge graph and will not use a reasoner 
-`partial` | Runs all of the build steps in the algorithm through adding the edges<br><br> If `node_data` is provided, it will not be added to the knowledge graph, but instead used to filter the edges such that only those edges with valid node metadata are added to the knowledge graph<br><br> Node metadata can always be added to a `partial` built knowledge graph by running the build as `post-closure` | You want to build a knowledge graph and plan to run a reasoner over it<br><br> You want to build a knowledge graph, but do not want to include node metadata, filter OWL semantics, or generate triple lists  
-`post-closure` | Assumes that a reasoner was run over a knowledge graph and that the remaining build steps should be applied to a closed knowledge graph. The remaining build steps include determining whether OWL semantics should be filtered and creating and writing triple lists | You have run the `partial` build, ran a reasoner over it, and now want to complete the algorithm<br><br> You want to use the algorithm to process metadata and owl semantics for an externally built knowledge graph
-
-<br>
-
-**STEP 1: Prepare Input Documents**  
 This code depends on four documents in order to run successfully. For information on what’s included in these documents, see the `Document Dependencies`_ Wiki page.
 
 For assistance in creating these documents, please run the following from the root directory:
 .. code:: bash
 python3 pkt/generates_dependency_documents.py
 
-**STEP 2: Download and Preprocess Data**
+--------------
+
+STEP 2: Download and Preprocess Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 *PREPROCESS DATA:*  
-- Create Mapping, Filtering, and Labeling Data: The ```data_preparation.ipynb```_ assists with the downloading and processing of all data needed to help build the knowledge graph.
 
-*DOWNLOAD DATA:*  
-- Download Ontologies: Downloads ontologies with or without imports from the [``ontology_source_list.txt``]
-(https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontology_source_list.txt)
-file. Metadata information from each ontology is saved to ```ontology_source_metadata.txt```_ directory.  
-- Download Edge Data: Downloads data that is used to create connections between ontology concepts treated as classes and instance data from the ```edge_source_list.txt```_ file. Metadata information from each source is saved to ```edge_source_metadata.txt```_ directory.
+* Create Mapping, Filtering, and Labeling Data: The `data_preparation.ipynb`_ assists with the downloading and processing of all data needed to help build the knowledge graph.
 
-**STEP 3: Process Ontology Data and Build Edge Lists**  
-- Process ontologies to verify they are error free, consistent, and normalized to integrate overlapping edge data sources.  
-- Create new edges between ontology classes and edge data sources.
+*DOWNLOAD DATA:* 
 
-**STEP 4: Build Knowledge Graph**  
+* Download Ontologies: Downloads ontologies with or without imports from the `ontology_source_list.txt`_
+file. Metadata information from each ontology is saved to `ontology_source_metadata.txt`_ directory.  
+
+* Download Edge Data: Downloads data that is used to create connections between ontology concepts treated as classes and instance data from the `edge_source_list.txt`_ file. Metadata information from each source is saved to `edge_source_metadata.txt`_ directory.
+
+--------------
+
+STEP 3: Process Ontology Data and Build Edge Lists  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Process ontologies to verify they are error free, consistent, and normalized to integrate overlapping edge data sources.  
+
+* Create new edges between ontology classes and edge data sources.
+
+--------------
+
+STEP 4: Build Knowledge Graph
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 1. Merge ontologies used as classes.
 2. Add class-instance and instance-instance edges to merged ontologies.
 3. Remove disjointness axioms.  
@@ -245,27 +211,23 @@ file. Metadata information from each ontology is saved to ```ontology_source_met
 
 --------------
 
+
 Contributing
-~~~~~~~~~~~~
+------------
 
 Please read `CONTRIBUTING.md`_ for details on our code of conduct, and the process for submitting pull requests to us.
 
 --------------
 
-.. _Document Dependencies: https://github.com/callahantiff/PheKnowLator/wiki/Dependencies
-.. _``data_preparation.ipynb``: https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb
-.. _``ontology_source_metadata.txt``: https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/ontology_source_metadata.txt
-.. _``edge_source_list.txt``: https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_source_list.txt
-.. _``edge_source_metadata.txt``: https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/edge_source_metadata.txt
-.. _Elk reasoner: https://www.cs.ox.ac.uk/isg/tools/ELK/
-.. _CONTRIBUTING.md: https://github.com/callahantiff/pheknowlator/blob/master/CONTRIBUTING.md
 
 License
-~~~~~~~
+--------------
 
 This project is licensed under Apache License 2.0 - see the `LICENSE.md`_ file for details.
 
-**Citing this Work:**
+
+Citing this Work
+--------------
 
 ::
    @misc{callahan_tj_2019_3401437,
@@ -284,9 +246,56 @@ Contact
 
 We’d love to hear from you! To get in touch with us, please `create an issue`_ or `send us an email`_ 💌
 
+
+
+.. _Wiki: https://github.com/callahantiff/PheKnowLater/wiki
+
+.. _here: https://github.com/callahantiff/Abra-Collaboratory/wiki/Using-GitHub-as-a-Reproducible-Research-Platform
+
+.. _v2.0.0: https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0
+
+.. _data_preparation.ipynb: https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb
+
+.. _OWLTools: https://github.com/owlcollab/owltools
+
+.. _n1-standard1: https://cloud.google.com/compute/vm-instance-pricing#n1_predefined
+
+.. _`Open Biomedical Ontologies`: http://obofoundry.org/
+
+.. _`Data Source`: https://github.com/callahantiff/PheKnowLator/wiki/Data-Sources
+
+.. _main.ipynb: https://github.com/callahantiff/pheknowlator/blob/master/main.ipynb
+
+.. _main.py: https://github.com/callahantiff/pheknowlator/blob/master/main.py
+
+.. _`KG Construction`: https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction
+
+.. _`Document Dependencies`: https://github.com/callahantiff/PheKnowLator/wiki/Dependencies
+
+.. _`data_preparation.ipynb`: https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb
+
+.. _`ontology_source_list.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontology_source_list.txt
+
+.. _`ontology_source_metadata.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/ontology_source_metadata.txt
+
+.. _`edge_source_list.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_source_list.txt
+
+.. _`edge_source_metadata.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/edge_source_metadata.txt
+
+.. _`Elk reasoner`: https://www.cs.ox.ac.uk/isg/tools/ELK/
+
+.. _CONTRIBUTING.md: https://github.com/callahantiff/pheknowlator/blob/master/CONTRIBUTING.md
+
 .. _LICENSE.md: https://github.com/callahantiff/pheknowlator/blob/master/LICENSE
-.. _create an issue: https://github.com/callahantiff/PheKnowLator/issues/new/choose
-.. _send us an email: https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=callahantiff@gmail.com
+
+.. _`create an issue`: https://github.com/callahantiff/PheKnowLator/issues/new/choose
+
+.. _`send us an email`: https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=callahantiff@gmail.com
+
+
+.. |GitHub contributors| image:: https://img.shields.io/github/contributors/callahantiff/PheKnowLater.svg?color=yellow&style=flat-square
+
+.. |Github all releases| image:: https://img.shields.io/github/downloads/callahantiff/PheKnowLater/total.svg?color=dodgerblue&style=flat-square 
 
 
 .. |travis| image:: https://travis-ci.org/callahantiff/pkt_kg.png
