@@ -15,7 +15,10 @@ class TestLinkedData(TestCase):
     def setUp(self):
 
         # initialize OntData instance
-        self.data = LinkedData('data/class_source_list.txt')
+        current_directory = os.path.dirname(__file__)
+        dir_loc = os.path.join(current_directory, 'data')
+        self.dir_loc = os.path.abspath(dir_loc)
+        self.data = LinkedData(self.dir_loc + '/class_source_list.txt')
 
         return None
 
@@ -50,11 +53,13 @@ class TestLinkedData(TestCase):
         """Tests downloads_data_from_url method."""
 
         # check path to write linked data correctly derived
-        derived_path = './' + '/'.join(self.data.data_path.split('/')[:-1]) + '/edge_data/'
-        self.assertEqual('./data/edge_data/', derived_path)
+        derived_path = '/'.join(self.data.data_path.split('/')[:-1]) + '/edge_data/'
+        self.assertEqual(self.dir_loc + '/edge_data/', derived_path)
 
         # checks that the file downloads
         self.assertTrue(os.path.exists(derived_path + 'chemical-disease_CTD_chemicals_diseases.tsv'))
+
+        return None
 
     def test_generates_source_metadata(self):
         """Tests whether or not metadata is being generated."""
@@ -79,3 +84,5 @@ class TestLinkedData(TestCase):
         self.assertTrue('DOWNLOAD_DATE' in self.data.metadata[1][5])
         self.assertTrue('FILE_SIZE_IN_BYTES' in self.data.metadata[1][6])
         self.assertTrue('DOWNLOADED_FILE_LOCATION' in self.data.metadata[1][7])
+
+        return None

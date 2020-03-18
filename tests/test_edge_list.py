@@ -1,3 +1,4 @@
+import os.path
 import unittest
 
 from pkt_kg.edge_list import CreatesEdgeList
@@ -7,13 +8,21 @@ class TestEdgeList(unittest.TestCase):
     """Class to test functions used when processing edge data sources."""
 
     def setUp(self):
+        # initialize file location
+        current_directory = os.path.dirname(__file__)
+        dir_loc = os.path.join(current_directory, 'data')
+        self.dir_loc = os.path.abspath(dir_loc)
 
         # create dictionary to store data
-        self.edge_data_files = {'chemical-disease': './data/edge_data/chemical-disease_CTD_chemicals_diseases.tsv',
-                                'gene-disease': './data/edge_data/gene-disease_curated_gene_disease_associations.tsv'}
+        file_loc1 = self.dir_loc + '/edge_data/chemical-disease_CTD_chemicals_diseases.tsv'
+        file_loc2 = self.dir_loc + '/edge_data/gene-disease_curated_gene_disease_associations.tsv'
+
+        self.edge_data_files = {'chemical-disease': file_loc1,
+                                'gene-disease': file_loc2}
 
         # initialize class
-        self.master_edge_list = CreatesEdgeList(data_files=self.edge_data_files, source_file='./data/resource_info.txt')
+        file_loc = self.dir_loc + '/resource_info.txt'
+        self.master_edge_list = CreatesEdgeList(data_files=self.edge_data_files, source_file=file_loc)
 
         return None
 

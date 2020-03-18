@@ -14,10 +14,13 @@ class TestDocumentationMaker(unittest.TestCase):
     def setUp(self):
 
         # create temporary directory to store data for testing
-        os.mkdir('./data/resources')
+        current_directory = os.path.dirname(__file__)
+        dir_loc = os.path.join(current_directory, 'data/resources')
+        self.dir_loc = os.path.abspath(dir_loc)
+        os.mkdir(self.dir_loc)
 
         # initialize class
-        self.edge_maker = DocumentationMaker(1, './data/resources')
+        self.edge_maker = DocumentationMaker(1, self.dir_loc)
 
         return None
 
@@ -58,21 +61,21 @@ class TestDocumentationMaker(unittest.TestCase):
 
         # write out ontology data
         self.edge_maker.writes_out_document(self.result[0], '|', 'resource_info.txt')
-        self.assertTrue(os.path.exists('./data/resources/resource_info.txt'))
+        self.assertTrue(os.path.exists(self.dir_loc + '/resource_info.txt'))
 
         # write out ontology data
         self.edge_maker.writes_out_document(self.result[1], ', ', 'ontology_source_list.txt')
-        self.assertTrue(os.path.exists('./data/resources/ontology_source_list.txt'))
+        self.assertTrue(os.path.exists(self.dir_loc + '/ontology_source_list.txt'))
 
         # write out class data
         self.edge_maker.writes_out_document(self.result[2], ', ', 'edge_source_list.txt')
-        self.assertTrue(os.path.exists('./data/resources/edge_source_list.txt'))
+        self.assertTrue(os.path.exists(self.dir_loc + '/edge_source_list.txt'))
 
         return None
 
     def tearDown(self):
 
         # remove temp directory
-        shutil.rmtree('./data/resources')
+        shutil.rmtree(self.dir_loc)
 
         return None

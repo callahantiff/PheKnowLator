@@ -15,7 +15,10 @@ class TestOntData(TestCase):
     def setUp(self):
 
         # initialize OntData instance
-        self.ontologies = OntData('data/ontology_source_list.txt')
+        current_directory = os.path.dirname(__file__)
+        dir_loc = os.path.join(current_directory, 'data')
+        self.dir_loc = os.path.abspath(dir_loc)
+        self.ontologies = OntData(self.dir_loc + '/ontology_source_list.txt')
 
         return None
 
@@ -54,8 +57,8 @@ class TestOntData(TestCase):
         """Tests downloads_data_from_url method."""
 
         # check path to write ontology data correctly derived
-        derived_path = './' + '/'.join(self.ontologies.data_path.split('/')[:-1]) + '/ontologies/'
-        self.assertEqual('./data/ontologies/', derived_path)
+        derived_path = '/'.join(self.ontologies.data_path.split('/')[:-1]) + '/ontologies/'
+        self.assertEqual(self.dir_loc + '/ontologies/', derived_path)
 
         # checks that the file downloads
         self.assertTrue(os.path.exists(derived_path + 'hp_with_imports.owl'))
@@ -65,7 +68,7 @@ class TestOntData(TestCase):
 
         # set dict for downloaded data
         self.ontologies.source_list = {'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
-        self.ontologies.data_files = {'phenotype': './data/ontologies/hp_with_imports.owl'}
+        self.ontologies.data_files = {'phenotype': self.dir_loc + '/ontologies/hp_with_imports.owl'}
 
         # generate metadata for downloaded file
         self.ontologies.generates_source_metadata()

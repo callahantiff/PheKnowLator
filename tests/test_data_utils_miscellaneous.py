@@ -15,7 +15,10 @@ class TestDataUtilsMisc(unittest.TestCase):
     def setUp(self):
 
         # create temporary directory to store data for testing
-        os.mkdir('./data/temp')
+        current_directory = os.path.dirname(__file__)
+        dir_loc = os.path.join(current_directory, 'data/temp')
+        self.dir_loc = os.path.abspath(dir_loc)
+        os.mkdir(self.dir_loc)
 
         # set-up pandas data frame
         hgnc_ids = ['HGNC:5', 'HGNC:37133', 'HGNC:24086', 'HGNC:7', 'HGNC:27057']
@@ -27,10 +30,10 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         # create pandas DataFrame with MeSH identifiers
         url = 'https://www.disgenet.org/static/disgenet_ap1/files/downloads/disease_mappings.tsv.gz'
-        data_downloader(url, './data/temp/')
+        data_downloader(url, self.dir_loc + '/')
 
         # read in small random sample (10% of original size)
-        self.disease_data = pandas.read_csv('./data/temp/disease_mappings.tsv',
+        self.disease_data = pandas.read_csv(self.dir_loc + '/disease_mappings.tsv',
                                             header=0,
                                             delimiter='|',
                                             skiprows=lambda i: i > 0 and random.random() > 0.10)
@@ -92,7 +95,7 @@ class TestDataUtilsMisc(unittest.TestCase):
         """Tests the genomic_id_mapper method."""
 
         # write location
-        write_location = './data/temp/genomic_maps.txt'
+        write_location = self.dir_loc + '/genomic_maps.txt'
 
         genomic_id_mapper(self.genomic_id_dict, write_location, 'ensembl_gene_id', 'entrez_id', 'gene_type_update')
         self.assertTrue(os.path.exists(write_location))
@@ -102,6 +105,6 @@ class TestDataUtilsMisc(unittest.TestCase):
     def tearDown(self):
 
         # remove temp directory
-        shutil.rmtree('./data/temp')
+        shutil.rmtree(self.dir_loc)
 
         return None
