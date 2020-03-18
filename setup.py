@@ -74,7 +74,7 @@ setup(
                       'rdflib>=4.2.2',
                       'reactome2py>=0.0.8',
                       'requests>=2.22.0',
-                      'responses'
+                      'responses',
                       'tqdm'],
     extras_require=extras,
 )
