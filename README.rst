@@ -52,7 +52,7 @@ This program requires Python version 3.6. To install it, run the following:
 
 * **Important.** This code depends on four documents in order to run successfully. See *STEP 1: Prepare Input Documents* below for more details.
 
-    * `OWLTools`_ library. Please download it to ``resources/lib/`` prior to running ``main.py``.
+  * `OWLTools`_ library. Please download it to ``resources/lib/`` prior to running ``main.py``.
 
 
 * **Data Sources:** This knowledge graph is built entirely on publicly available linked open data and `Open Biomedical Ontologies`_. Please see the `Data Source`_ Wiki page for information.
@@ -178,14 +178,13 @@ STEP 2: Download and Preprocess Data
 
 *PREPROCESS DATA:*  
 
-* Create Mapping, Filtering, and Labeling Data: The `data_preparation.ipynb`_ assists with the downloading and processing of all data needed to help build the knowledge graph.
+* *Create Mapping, Filtering, and Labeling Data*: The `data_preparation.ipynb`_ assists with the downloading and processing of all data needed to help build the knowledge graph.
 
 *DOWNLOAD DATA:* 
 
-* Download Ontologies: Downloads ontologies with or without imports from the `ontology_source_list.txt`_
-file. Metadata information from each ontology is saved to `ontology_source_metadata.txt`_ directory.  
+* *Download Ontologies*: Downloads ontologies with or without imports from the `ontology_source_list.txt`_. Metadata information from each ontology is saved to `ontology_source_metadata.txt`_ directory.  
 
-* Download Edge Data: Downloads data that is used to create connections between ontology concepts treated as classes and instance data from the `edge_source_list.txt`_ file. Metadata information from each source is saved to `edge_source_metadata.txt`_ directory.
+* *Download Edge Data*: Downloads data that is used to create connections between ontology concepts treated as classes and instance data from the `edge_source_list.txt`_ file. Metadata information from each source is saved to `edge_source_metadata.txt`_ directory.
 
 
 STEP 3: Process Ontology Data and Build Edge Lists  
@@ -209,20 +208,19 @@ STEP 4: Build Knowledge Graph
 
 --------------
 
+--------------
+
+
 Contributing
 ------------
 
 Please read `CONTRIBUTING.md`_ for details on our code of conduct, and the process for submitting pull requests to us.
-
---------------
 
 
 License
 --------------
 
 This project is licensed under Apache License 2.0 - see the `LICENSE.md`_ file for details.
-
---------------
 
 
 Citing this Work
@@ -239,10 +237,9 @@ Citing this Work
      url          = {https://doi.org/10.5281/zenodo.3401437}
    }
 
---------------
 
 Contact
-~~~~~~~
+--------------
 
 We’d love to hear from you! To get in touch with us, please `create an issue`_ or `send us an email`_ 💌
 
