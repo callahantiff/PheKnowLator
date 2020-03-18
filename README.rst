@@ -9,6 +9,7 @@ PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 librar
 
 |DOI|
 
+|
 
 **This is a Reproducible Research Repository:** 
 
@@ -16,8 +17,7 @@ This repository contains more than just code, it provides a detailed and transpa
 
 |ABRA| 
     
-.. role:: raw-html(raw) :format: html
-
+|
 
 Tests Coverage
 ----------------------------------------------
@@ -25,7 +25,7 @@ Since some software handling coverages sometime get slightly different results, 
 
 |coveralls| |sonar_coverage| |code_climate_coverage|
 
-
+|
 
 Releases
 ----------------------------------------------
@@ -34,8 +34,7 @@ All code and output for each release are free to download, see `Wiki <https://gi
 
 **Current Release:** `v2.0.0`_. Data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0#generated-output>`__.
 
---------------
-
+|
 
 Getting Started
 ----------------------------------------------
@@ -84,14 +83,13 @@ This program requires Python version 3.6. To install it, run the following:
        -r REL,  --rel REL    yes/no - adding inverse relations to knowledge graph
        -s OWL,  --owl OWL    yes/no - removing OWL Semantics from knowledge graph
   
-
---------------
+|
+|
 
 Workflow
 --------------
 
 The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process. A brief overview of this process is also provided provided below.
-
 
 
 STEP 0: Select the Build Type
@@ -163,7 +161,7 @@ The knowledge graph build algorithm has been designed to run from three differen
 |                                   | lists           |                 |
 +-----------------------------------+-----------------+-----------------+
 
---------------
+|
 
 STEP 1: Prepare Input Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -173,7 +171,6 @@ This code depends on four documents in order to run successfully. For informatio
 For assistance in creating these documents, please run the following from the root directory:
 .. code:: bash
 python3 pkt/generates_dependency_documents.py
-
 
 
 STEP 2: Download and Preprocess Data
@@ -213,18 +210,21 @@ STEP 4: Build Knowledge Graph
 
 --------------
 
+|
 
 Contributing
 ------------
 
 Please read `CONTRIBUTING.md`_ for details on our code of conduct, and the process for submitting pull requests to us.
 
+|
 
 License
 --------------
 
 This project is licensed under Apache License 2.0 - see the `LICENSE.md`_ file for details.
 
+|
 
 Citing this Work
 --------------
@@ -240,6 +240,7 @@ Citing this Work
      url          = {https://doi.org/10.5281/zenodo.3401437}
    }
 
+|
 
 Contact
 --------------
