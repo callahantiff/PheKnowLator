@@ -11,7 +11,11 @@ language: python
 python:
 - '3.6'
 before_install:
-- pip install --upgrade pytest
+- pip install pip --upgrade
+- pip uninstall -y numpy
+- pip install numpy --upgrade
+- pip install --upgrade mypy
+- pip install --upgrade pylint
 install:
 - pip install .[test]
 before_script:
