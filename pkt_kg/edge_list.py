@@ -263,7 +263,7 @@ class CreatesEdgeList(object):
         """
 
         # check if node needs to be mapped to an outside data source
-        if str(node) in re.sub('(?:(?!:)\D)*', '', mapping_data).split(':'):
+        if str(node) in re.sub('(?:(?!:)\\D)*', '', mapping_data).split(':'):
             node2map = list(edge_data)[node]
 
             # MAPPING TO OUTSIDE DATA SOURCE

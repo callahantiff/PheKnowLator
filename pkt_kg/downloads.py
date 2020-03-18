@@ -432,7 +432,7 @@ class LinkedData(DataSource):
 
             for i in tqdm(self.source_list.keys()):
                 source = self.source_list[i]
-                file_name = re.sub('.gz|.zip|\?.*', '', source.split('/')[-1])
+                file_name = re.sub('.gz|.zip|\\?.*', '', source.split('/')[-1])
                 write_path = file_loc
                 print('\nEdge: {edge}'.format(edge=i))
 
