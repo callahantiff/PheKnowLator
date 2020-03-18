@@ -13,7 +13,6 @@ class TestLinkedData(TestCase):
     """Class to test functions used when downloading linked data sources."""
 
     def setUp(self):
-
         # initialize OntData instance
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
@@ -66,7 +65,8 @@ class TestLinkedData(TestCase):
 
         # set dict for downloaded data
         self.data.source_list = {'chemical-disease': 'http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz'}
-        self.data.data_files = {'chemical-disease': './data/edge_data/chemical-disease_CTD_chemicals_diseases.tsv'}
+        self.data.data_files = {
+            'chemical-disease': self.dir_loc + '/edge_data/chemical-disease_CTD_chemicals_diseases.tsv'}
 
         # generate metadata for downloaded file
         self.data.generates_source_metadata()
