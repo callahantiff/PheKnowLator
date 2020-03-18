@@ -300,24 +300,24 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory   
 
-.. |travis| image:: https://travis-ci.org/callahantiff/pkt_kg.png
-   :target: https://travis-ci.org/callahantiff/pkt_kg
+.. |travis| image:: https://travis-ci.org/callahantiff/PheKnowLator.png
+   :target: https://travis-ci.org/callahantiff/PheKnowLator
    :alt: Travis CI build
 
-.. |sonar_quality| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=alert_status
-    :target: https://sonarcloud.io/dashboard/index/callahantiff_pkt_kg
+.. |sonar_quality| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_PheKnowLator&metric=alert_status
+    :target: https://sonarcloud.io/dashboard/index/callahantiff_PheKnowLator
     :alt: SonarCloud Quality
 
-.. |sonar_maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=sqale_rating
+.. |sonar_maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_PheKnowLator&metric=sqale_rating
     :target: https://sonarcloud.io/dashboard/index/callahantiff_pkt_kg
     :alt: SonarCloud Maintainability
 
-.. |sonar_coverage| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=coverage
-    :target: https://sonarcloud.io/dashboard/index/callahantiff_pkt_kg
+.. |sonar_coverage| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_PheKnowLator&metric=coverage
+    :target: https://sonarcloud.io/dashboard/index/callahantiff_PheKnowLator
     :alt: SonarCloud Coverage
 
-.. |coveralls| image:: https://coveralls.io/repos/github/callahantiff/pkt_kg/badge.svg?branch=master
-    :target: https://coveralls.io/github/callahantiff/pkt_kg?branch=master
+.. |coveralls| image:: https://coveralls.io/repos/github/callahantiff/PheKnowLator/badge.svg?branch=master
+    :target: https://coveralls.io/github/callahantiff/PheKnowLator?branch=master
     :alt: Coveralls Coverage
 
 .. |pip| image:: https://badge.fury.io/py/pkt_kg.svg
@@ -333,9 +333,9 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
     :alt: Codacy Maintainability
 
 .. |code_climate_maintainability| image:: https://api.codeclimate.com/v1/badges/29b7199d02f90c80130d/maintainability
-    :target: https://codeclimate.com/github/callahantiff/pkt_kg/maintainability
+    :target: https://codeclimate.com/github/callahantiff/PheKnowLator/maintainability
     :alt: Maintainability
 
 .. |code_climate_coverage| image:: https://api.codeclimate.com/v1/badges/29b7199d02f90c80130d/test_coverage
-    :target: https://codeclimate.com/github/callahantiff/pkt_kg/test_coverage
+    :target: https://codeclimate.com/github/callahantiff/PheKnowLator/test_coverage
     :alt: Code Climate Coverate
