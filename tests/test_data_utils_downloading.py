@@ -18,7 +18,10 @@ class TestDataUtilsDownloading(unittest.TestCase):
     def setUp(self):
 
         # create temporary directory to store data for testing
-        os.mkdir('./data/temp')
+        current_directory = os.path.dirname(__file__)
+        dir_loc = os.path.join(current_directory, 'data/temp')
+        self.dir_loc = os.path.abspath(dir_loc)
+        os.mkdir(self.dir_loc)
 
         # set some urls
         self.url = 'https://proconsortium.org/download/current/promapping.txt'
@@ -28,7 +31,7 @@ class TestDataUtilsDownloading(unittest.TestCase):
         self.gzipped_url = 'https://www.disgenet.org/static/disgenet_ap1/files/downloads/disease_mappings.tsv.gz'
 
         # set write location
-        self.write_location = './data/temp/'
+        self.write_location = self.dir_loc + '/'
 
         return None
 
@@ -281,6 +284,6 @@ class TestDataUtilsDownloading(unittest.TestCase):
     def tearDown(self):
 
         # remove temp directory
-        shutil.rmtree('./data/temp')
+        shutil.rmtree(self.dir_loc)
 
         return None
