@@ -28,6 +28,8 @@ script:
 - coverage combine --append || true
 - coverage report
 - coverage xml
+- pylint --errors-only --exit-zero pkt_kg
+- mypy --strict-optional pkt_kg
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sonar-scanner; fi
 after_success:
 - coveralls
