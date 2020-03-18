@@ -309,7 +309,7 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
     :alt: SonarCloud Quality
 
 .. |sonar_maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_PheKnowLator&metric=sqale_rating
-    :target: https://sonarcloud.io/dashboard/index/callahantiff_pkt_kg
+    :target: https://sonarcloud.io/dashboard/index/callahantiff_PheKnowLator
     :alt: SonarCloud Maintainability
 
 .. |sonar_coverage| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_PheKnowLator&metric=coverage
