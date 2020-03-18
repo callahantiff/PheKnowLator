@@ -1,17 +1,20 @@
 pkt_kg
 =========================================================================================
+
 |travis| |sonar_quality| |sonar_maintainability| |codacy|
 |code_climate_maintainability| |pip| |downloads|
 
 
-PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information regarding this project can be found on the associated `Wiki`_.
+PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information regarding this project can be found on the associated `Wiki`_. 
+
+|DOI|
 
 
 **This is a Reproducible Research Repository:** 
 
 This repository contains more than just code, it provides a detailed and transparent narrative of our research process. For detailed information on how we use GitHub as a reproducible research platform, click `here`_.
 
-**Project Stats:** |GitHub contributors| |Github all releases|
+|ABRA| 
     
 .. role:: raw-html(raw) :format: html
 
@@ -178,13 +181,13 @@ STEP 2: Download and Preprocess Data
 
 *PREPROCESS DATA:*  
 
-* *Create Mapping, Filtering, and Labeling Data*: The `data_preparation.ipynb`_ assists with the downloading and processing of all data needed to help build the knowledge graph.
+* **Create Mapping, Filtering, and Labeling Data**: The `data_preparation.ipynb`_ assists with the downloading and processing of all data needed to help build the knowledge graph.
 
 *DOWNLOAD DATA:* 
 
-* *Download Ontologies*: Downloads ontologies with or without imports from the `ontology_source_list.txt`_. Metadata information from each ontology is saved to `ontology_source_metadata.txt`_ directory.  
+* **Download Ontologies**: Downloads ontologies with or without imports from the `ontology_source_list.txt`_. Metadata information from each ontology is saved to `ontology_source_metadata.txt`_ directory.  
 
-* *Download Edge Data*: Downloads data that is used to create connections between ontology concepts treated as classes and instance data from the `edge_source_list.txt`_ file. Metadata information from each source is saved to `edge_source_metadata.txt`_ directory.
+* **Download Edge Data**: Downloads data that is used to create connections between ontology concepts treated as classes and instance data from the `edge_source_list.txt`_ file. Metadata information from each source is saved to `edge_source_metadata.txt`_ directory.
 
 
 STEP 3: Process Ontology Data and Build Edge Lists  
@@ -289,11 +292,12 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 
 .. _`send us an email`: https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=callahantiff@gmail.com
 
-
-.. |GitHub contributors| image:: https://img.shields.io/github/contributors/callahantiff/PheKnowLater.svg?color=yellow&style=flat-square
-
-.. |Github all releases| image:: https://img.shields.io/github/downloads/callahantiff/PheKnowLater/total.svg?color=dodgerblue&style=flat-square 
-
+   
+.. |DOI| image:: https://zenodo.org/badge/DOI/10.5281/34014365.svg
+   :target: https://doi.org/10.5281/34014365
+   
+.. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg?style=flat-square
+   :target: https://github.com/callahantiff/Abra-Collaboratory   
 
 .. |travis| image:: https://travis-ci.org/callahantiff/pkt_kg.png
    :target: https://travis-ci.org/callahantiff/pkt_kg
