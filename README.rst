@@ -296,7 +296,7 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 .. |DOI| image:: https://zenodo.org/badge/DOI/10.5281/34014365.svg
    :target: https://doi.org/10.5281/34014365
    
-.. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg?style=flat-square
+.. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory   
 
 .. |travis| image:: https://travis-ci.org/callahantiff/pkt_kg.png
