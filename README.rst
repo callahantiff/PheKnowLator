@@ -57,7 +57,7 @@ This program requires Python version 3.6. To install it, run the following:
   * `OWLTools`_ library. Please download it to ``resources/lib/`` prior to running ``main.py``.
 
 
-* **Data Sources:** This knowledge graph is built entirely on publicly available linked open data and `Open Biomedical Ontologies`_. Please see the `Data Source`_ Wiki page for information.
+* **Data Sources:** This knowledge graph is built entirely on publicly available linked open data and `Open Biomedical Ontologies`_.  🙏 🙇‍♀ Please see the `Data Source`_ Wiki page for information.
 
 
 * **Running Code:** This program can be run using a Jupyter Notebook (`main.ipynb`_) or from the command line (`main.py`_) by:
