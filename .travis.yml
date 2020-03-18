@@ -19,22 +19,21 @@ before_install:
 install:
 - pip install .[test]
 before_script:
-- curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
-  > ./cc-test-reporter
+- curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
 - chmod +x ./cc-test-reporter
-- "./cc-test-reporter before-build"
+- ./cc-test-reporter before-build
 after_script:
-- "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
+- ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
 script:
 - rm -rf .coverage
 - coverage erase
-- pytest --cov=pkt_kg --cov-report xml:coverage.xml
+- nosetests --with-coverage --cover-package=pkt_kg --cover-xml
 - coverage combine --append || true
 - coverage report
 - coverage xml
 - pylint --errors-only --exit-zero pkt_kg
-- mypy --strict-optional pkt_kg
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sonar-scanner; fi
+#- mypy --strict-optional pkt_kg
+- 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sonar-scanner; fi' # sonar only on non-PRs
 after_success:
 - coveralls
 - python-codacy-coverage -r coverage.xml
