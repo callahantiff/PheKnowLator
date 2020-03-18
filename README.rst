@@ -15,7 +15,6 @@ This repository contains more than just code, it provides a detailed and transpa
     
 .. role:: raw-html(raw) :format: html
 
---------------
 
 Tests Coverage
 ----------------------------------------------
@@ -23,7 +22,7 @@ Since some software handling coverages sometime get slightly different results, 
 
 |coveralls| |sonar_coverage| |code_climate_coverage|
 
---------------
+
 
 Releases
 ----------------------------------------------
@@ -38,49 +37,50 @@ All code and output for each release are free to download, see `Wiki <https://gi
 Getting Started
 ----------------------------------------------
 
-🛑 Dependencies 🛑
-~~~~~~~~~~~~~~~~~~~~
-
-* This program requires Python version 3.6. To install it, run the following:
+This program requires Python version 3.6. To install it, run the following:
 
 .. code:: shell
 
     pip install pkt_kg
 
-* Run the `data_preparation.ipynb`_ notebook to build mapping, filtering, and labeling datasets.
+
+🛑 Dependencies 🛑
+~~~~~~~~~~~~~~~~~~~~
+
+* **Mapping, Filtering, and Labeling Data:** Run the `data_preparation.ipynb`_ notebook to build mapping, filtering, and labeling datasets.
+
 
 * **Important.** This code depends on four documents in order to run successfully. See *STEP 1: Prepare Input Documents* below for more details.
 
     * `OWLTools`_ library. Please download it to ``resources/lib/`` prior to running ``main.py``.
 
-    * Knowledge graph embeddings are generated using `n1-standard1`_ Google Compute virtual machines.
 
-**Data Sources:** This knowledge graph is built entirely on publicly available linked open data and `Open Biomedical Ontologies`_.
-
-* Please see the `Data Source`_ Wiki page for information.
-
-**Running Code:** This program can be run using a Jupyter Notebook (`main.ipynb`_) or from the command line (`main.py`_) by:
-
-.. code:: bash
+* **Data Sources:** This knowledge graph is built entirely on publicly available linked open data and `Open Biomedical Ontologies`_. Please see the `Data Source`_ Wiki page for information.
 
 
-   python3 Main.py -h
-   usage: Main.py [-h] -g ONTS -c CLS -i INST -t RES -b KG -o OUT -n NDE -r REL -s OWL
+* **Running Code:** This program can be run using a Jupyter Notebook (`main.ipynb`_) or from the command line (`main.py`_) by:
 
-   PheKnowLator: This program builds a biomedical knowledge graph using Open Biomedical
-   Ontologies and linked open data. The programs takes the following arguments:
+  .. code:: bash
+  
 
-   optional arguments:
-     -h,      --help        show this help message and exit
-     -g ONTS, --onts ONTS  name/path to text file containing ontologies
-     -c CLS,  --cls CLS    name/path to text file containing class sources
-     -i INST, --inst INST  name/path to text file containing instance sources
-     -t RES,  --res RES    name/path to text file containing resource_info
-     -b KG,   --kg KG      the build, can be "partial", "full", or "post-closure"
-     -o OUT,  --out OUT    name/path to directory where to write knowledge graph
-     -n NDE,  --nde NDE    yes/no - adding node metadata to knowledge graph
-     -r REL,  --rel REL    yes/no - adding inverse relations to knowledge graph
-     -s OWL,  --owl OWL    yes/no - removing OWL Semantics from knowledge graph
+     python3 Main.py -h
+     usage: Main.py [-h] -g ONTS -c CLS -i INST -t RES -b KG -o OUT -n NDE -r REL -s OWL
+
+     PheKnowLator: This program builds a biomedical knowledge graph using Open Biomedical
+     Ontologies and linked open data. The programs takes the following arguments:
+  
+     optional arguments:
+       -h,      --help        show this help message and exit
+       -g ONTS, --onts ONTS  name/path to text file containing ontologies
+       -c CLS,  --cls CLS    name/path to text file containing class sources
+       -i INST, --inst INST  name/path to text file containing instance sources
+       -t RES,  --res RES    name/path to text file containing resource_info
+       -b KG,   --kg KG      the build, can be "partial", "full", or "post-closure"
+       -o OUT,  --out OUT    name/path to directory where to write knowledge graph
+       -n NDE,  --nde NDE    yes/no - adding node metadata to knowledge graph
+       -r REL,  --rel REL    yes/no - adding inverse relations to knowledge graph
+       -s OWL,  --owl OWL    yes/no - removing OWL Semantics from knowledge graph
+  
 
 --------------
 
@@ -171,7 +171,7 @@ For assistance in creating these documents, please run the following from the ro
 .. code:: bash
 python3 pkt/generates_dependency_documents.py
 
---------------
+
 
 STEP 2: Download and Preprocess Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,7 +187,6 @@ file. Metadata information from each ontology is saved to `ontology_source_metad
 
 * Download Edge Data: Downloads data that is used to create connections between ontology concepts treated as classes and instance data from the `edge_source_list.txt`_ file. Metadata information from each source is saved to `edge_source_metadata.txt`_ directory.
 
---------------
 
 STEP 3: Process Ontology Data and Build Edge Lists  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -196,7 +195,6 @@ STEP 3: Process Ontology Data and Build Edge Lists
 
 * Create new edges between ontology classes and edge data sources.
 
---------------
 
 STEP 4: Build Knowledge Graph
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -211,7 +209,6 @@ STEP 4: Build Knowledge Graph
 
 --------------
 
-
 Contributing
 ------------
 
@@ -225,11 +222,14 @@ License
 
 This project is licensed under Apache License 2.0 - see the `LICENSE.md`_ file for details.
 
+--------------
+
 
 Citing this Work
 --------------
 
-::
+..
+
    @misc{callahan_tj_2019_3401437,
      author       = {Callahan, TJ},
      title        = {PheKnowLator},
