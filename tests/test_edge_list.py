@@ -7,7 +7,7 @@ from typing import Tuple
 from pkt_kg.edge_list import CreatesEdgeList
 
 
-class TestEdgeList(unittest.TestCase):
+class TestCreatesEdgeList(unittest.TestCase):
     """Class to test functions used when processing edge data sources."""
 
     def setUp(self):
