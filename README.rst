@@ -2,7 +2,9 @@ pkt_kg
 =========================================================================================
 
 |travis| |sonar_quality| |sonar_maintainability| |codacy|
-|code_climate_maintainability| |pip| |downloads|
+|code_climate_maintainability| 
+
+#|pip| |downloads|
 
 
 PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information regarding this project can be found on the associated `Wiki`_. 
