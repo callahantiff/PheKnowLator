@@ -38,14 +38,14 @@ def main():
 
     # STEP 3: PROCESS ONTOLOGIES (1183.154 seconds)
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
-    # ont = OntData(data_path=args.onts)
-    ont = OntData(data_path='resources/ontology_source_list.txt')
+    ont = OntData(data_path=args.onts)
+    # ont = OntData(data_path='resources/ontology_source_list.txt')
     ont.downloads_data_from_url('imports')
 
     # STEP 4: PROCESS EDGE DATA (4980.956 seconds)
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
-    # edges = LinkedData(data_path=args.cls)
-    edges = LinkedData(data_path='resources/edge_source_list.txt')
+    edges = LinkedData(data_path=args.cls)
+    # edges = LinkedData(data_path='resources/edge_source_list.txt')
     edges.downloads_data_from_url()
 
     #####################
@@ -56,8 +56,8 @@ def main():
 
     # STEP 1: create master resource dictionary
     combined_edges = dict(edges.data_files, **ont.data_files)
-    master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
-    # master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
+    # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
+    master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     master_edges.creates_knowledge_graph_edges()
 
     #########################
@@ -66,80 +66,29 @@ def main():
 
     print('\n' + '=' * 33 + '\nBUILDING KNOWLEDGE GRAPH\n' + '=' * 33 + '\n')
 
-    import time
-
-    # set some vars for writing data
-    start = time.time()
-    kg = pkt.FullBuild(kg_version='v2.0.0',
-                       write_location='./resources/knowledge_graphs',
+    if args.kg == 'partial':
+        kg = PartialBuild(kg_version='v2.0.0',
+                          write_location=args.out,
+                          edge_data='./resources/Master_Edge_List_Dict.json',
+                          node_data=args.nde,
+                          inverse_relations=args.rel,
+                          decode_owl_semantics=args.owl)
+    elif args.kg == 'post-closure':
+        kg = PostClosureBuild(kg_version='v2.0.0',
+                              write_location=args.out,
+                              edge_data='./resources/Master_Edge_List_Dict.json',
+                              node_data=args.nde,
+                              inverse_relations=args.rel,
+                              decode_owl_semantics=args.owl)
+    else:
+        kg = FullBuild(kg_version='v2.0.0',
+                       write_location=args.out,
                        edge_data='./resources/Master_Edge_List_Dict.json',
-                       node_data='yes',
-                       inverse_relations='no',
-                       decode_owl_semantics='no')
-    kg.construct_knowledge_graph()
-    del kg
-    end = time.time()
-    print('Total run time: {}'.format(end - start))
+                       node_data=args.nde,
+                       inverse_relations=args.rel,
+                       decode_owl_semantics=args.owl)
 
-    start = time.time()
-    kg = pkt.FullBuild(kg_version='v2.0.0',
-                       write_location='./resources/knowledge_graphs',
-                       edge_data='./resources/Master_Edge_List_Dict.json',
-                       node_data='yes',
-                       inverse_relations='yes',
-                       decode_owl_semantics='no')
     kg.construct_knowledge_graph()
-    del kg
-    end = time.time()
-    print('Total run time: {}'.format(end - start))
-
-    start = time.time()
-    kg = pkt.FullBuild(kg_version='v2.0.0',
-                       write_location='./resources/knowledge_graphs',
-                       edge_data='./resources/Master_Edge_List_Dict.json',
-                       node_data='yes',
-                       inverse_relations='no',
-                       decode_owl_semantics='yes')
-    kg.construct_knowledge_graph()
-    del kg
-    end = time.time()
-    print('Total run time: {}'.format(end - start))
-
-    start = time.time()
-    kg = pkt.FullBuild(kg_version='v2.0.0',
-                       write_location='./resources/knowledge_graphs',
-                       edge_data='./resources/Master_Edge_List_Dict.json',
-                       node_data='yes',
-                       inverse_relations='yes',
-                       decode_owl_semantics='yes')
-    kg.construct_knowledge_graph()
-    del kg
-    end = time.time()
-    print('Total run time: {}'.format(end - start))
-
-    # if args.kg == 'partial':
-    #     kg = pkt.knowledge_graph.PartialBuild(kg_version='v2.0.0',
-    #                                           write_location=args.out,
-    #                                           edge_data='./resources/Master_Edge_List_Dict.json',
-    #                                           node_data=args.nde,
-    #                                           inverse_relations=args.rel,
-    #                                           decode_owl_semantics=args.owl)
-    # elif args.kg == 'post-closure':
-    #     kg = pkt.knowledge_graph.PostClosureBuild(kg_version='v2.0.0',
-    #                                               write_location=args.out,
-    #                                               edge_data='./resources/Master_Edge_List_Dict.json',
-    #                                               node_data=args.nde,
-    #                                               inverse_relations=args.rel,
-    #                                               decode_owl_semantics=args.owl)
-    # else:
-    #     kg = pkt.knowledge_graph.FullBuild(kg_version='v2.0.0',
-    #                                        write_location=args.out,
-    #                                        edge_data='./resources/Master_Edge_List_Dict.json',
-    #                                        node_data=args.nde,
-    #                                        inverse_relations=args.rel,
-    #                                        decode_owl_semantics=args.owl)
-    #
-    # kg.construct_knowledge_graph()
 
 
 if __name__ == '__main__':
