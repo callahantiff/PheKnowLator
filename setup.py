@@ -77,9 +77,5 @@ setup(
                       'requests',
                       'responses',
                       'tqdm'],
-    test_suite='nose.collector',
-    tests_require=test_deps,
-    include_package_data=True,
-    zip_safe=False,
     extras_require=extras,
 )
