@@ -533,7 +533,7 @@ class KGBuilder(object):
         self.ontology_file_formatter()
 
         # print statistics on kg
-        ontology_statistics(self.write_location + self.full_kg)
+        gets_ontology_statistics(self.write_location + self.full_kg)
 
         # write class-instance uuid mapping dictionary to file
         json.dump(self.kg_uuid_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
@@ -886,7 +886,7 @@ class PostClosureBuild(KGBuilder):
         # STEP 7: DECODE OWL SEMANTICS
         if self.decode_owl_semantics:
             print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-            owl_nets = OWLNETS(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
+            owl_nets = OwlNets(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
             del owl_nets, self.kg_uuid_map
 
@@ -978,7 +978,7 @@ class FullBuild(KGBuilder):
         # STEP 7: DECODE OWL SEMANTICS
         if self.decode_owl_semantics:
             print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-            owl_nets = OWLNETS(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
+            owl_nets = OwlNets(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
             del owl_nets, self.kg_uuid_map
 

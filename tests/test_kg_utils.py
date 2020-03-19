@@ -18,7 +18,7 @@ class TestKGUtils(unittest.TestCase):
         self.not_string_filename = [self.dir_loc + '/hp_with_imports.owl']
         self.not_real_file_name = self.dir_loc + '/sop_with_imports.owl'
         self.empty_ontology_file_location = self.dir_loc + '/hp_with_imports.owl'
-        self.good_ontology_file_location = self.dir_loc + '/so_with_imports.owl'
+        # self.good_ontology_file_location = self.dir_loc + '/so_with_imports.owl'
 
         return None
 

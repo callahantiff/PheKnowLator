@@ -36,7 +36,7 @@ import shutil
 from contextlib import closing
 from io import BytesIO
 from reactome2py import content  # type: ignore
-from requests.packages.urllib3.exceptions import InsecureRequestWarning, HTTPError
+# from requests.packages.urllib3.exceptions import InsecureRequestWarning, HTTPError
 from tqdm import tqdm  # type: ignore
 from typing import Dict, Generator, List, Union
 from urllib.request import urlopen
@@ -48,7 +48,7 @@ from zipfile import ZipFile
 pd.options.mode.chained_assignment = None
 
 # WARNING 2 - urllib3: disable insecure request warning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+# requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 def url_download(url: str, write_location: str, filename: str) -> None:
@@ -70,7 +70,7 @@ def url_download(url: str, write_location: str, filename: str) -> None:
     r = requests.get(url, allow_redirects=True, verify=False)
 
     if r.ok is False:
-        raise HTTPError('{status} error! Data could not be downloaded from {url}'.format(status=r.status_code, url=url))
+        raise requests.HTTPError('{status}: Could not downloaded data from {url}'.format(status=r.status_code, url=url))
     else:
         data = None
         if 'Content-Length' in r.headers:
@@ -172,7 +172,7 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
     r = requests.get(url, allow_redirects=True)
 
     if r.ok is False:
-        raise HTTPError('{status} error! Data could not be downloaded from {url}'.format(status=r.status_code, url=url))
+        raise requests.HTTPError('{status}: Could not downloaded data from {url}'.format(status=r.status_code, url=url))
     else:
         with r as zip_data:
             with ZipFile(BytesIO(zip_data.content)) as zip_file:
@@ -205,7 +205,7 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
     r = requests.get(url, allow_redirects=True, verify=False)
 
     if r.ok is False:
-        raise HTTPError('{status} error! Data could not be downloaded from {url}'.format(status=r.status_code, url=url))
+        raise requests.HTTPError('{status}: Could not downloaded data from {url}'.format(status=r.status_code, url=url))
     else:
         with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
             outfile.write(gzip.decompress(r.content))

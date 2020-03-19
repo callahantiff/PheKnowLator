@@ -25,7 +25,6 @@ __all__ = [
 
     'CreatesEdgeList',
 
-    'KGBuilder',
     'PartialBuild',
     'PostClosureBuild',
     'FullBuild',
