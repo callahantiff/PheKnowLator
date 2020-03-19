@@ -41,23 +41,23 @@ class CreatesEdgeList(object):
 
         # convert edge data to a dictionary
         self.source_info: Dict[str, Dict[str, Any]] = dict()
-        source_file_data: TextIO = open(source_file)
 
-        for row in source_file_data.read().split('\n'):
-            cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
-            self.source_info[cols[0].strip('"').strip("'")] = {}
-            self.source_info[cols[0].strip('"').strip("'")]['source_labels'] = cols[1].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['data_type'] = cols[2].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['edge_relation'] = cols[3].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['uri'] = (cols[4].strip('"').strip("'"),
-                                                                      cols[5].strip('"').strip("'"))
-            self.source_info[cols[0].strip('"').strip("'")]['row_splitter'] = cols[6].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['column_splitter'] = cols[7].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['column_idx'] = cols[8].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['identifier_maps'] = cols[9].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['evidence_criteria'] = cols[10].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['filter_criteria'] = cols[11].strip('"').strip("'")
-            self.source_info[cols[0].strip('"').strip("'")]['edge_list'] = []
+        with open(source_file) as source_file_data:
+            for row in source_file_data.read().split('\n'):
+                cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
+                self.source_info[cols[0].strip('"').strip("'")] = {}
+                self.source_info[cols[0].strip('"').strip("'")]['source_labels'] = cols[1].strip('"').strip("'")
+                self.source_info[cols[0].strip('"').strip("'")]['data_type'] = cols[2].strip('"').strip("'")
+                self.source_info[cols[0].strip('"').strip("'")]['edge_relation'] = cols[3].strip('"').strip("'")
+                self.source_info[cols[0].strip('"').strip("'")]['uri'] = (cols[4].strip('"').strip("'"),
+                                                                          cols[5].strip('"').strip("'"))
+                self.source_info[cols[0].strip('"').strip("'")]['row_splitter'] = cols[6].strip('"').strip("'")
+                self.source_info[cols[0].strip('"').strip("'")]['column_splitter'] = cols[7].strip('"').strip("'")
+                self.source_info[cols[0].strip('"').strip("'")]['column_idx'] = cols[8].strip('"').strip("'")
+                self.source_info[cols[0].strip('"').strip("'")]['identifier_maps'] = cols[9].strip('"').strip("'")
+                self.source_info[cols[0].strip('"').strip("'")]['evidence_criteria'] = cols[10].strip('"').strip("'")
+                self.source_info[cols[0].strip('"').strip("'")]['filter_criteria'] = cols[11].strip('"').strip("'")
+                self.source_info[cols[0].strip('"').strip("'")]['edge_list'] = []
 
         source_file_data.close()
 
@@ -153,6 +153,10 @@ class CreatesEdgeList(object):
         if filter_criteria == 'None' and evidence_criteria == 'None':
             return edge_data
         else:
+
+            # fix known errors when filtering empty cells
+            filter_criteria = re.sub('\'\s+|\"\s+', '', filter_criteria)
+            evidence_criteria = re.sub('\'\s+|\"\s+', '', evidence_criteria)
             map_filter_criteria = filter_criteria + '::' + evidence_criteria
             edge_data_filt = None
 
