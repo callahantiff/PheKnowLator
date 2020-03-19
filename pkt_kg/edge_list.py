@@ -117,7 +117,9 @@ class CreatesEdgeList(object):
 
         if '!' in file_splitter or '#' in file_splitter:
             # ASSUMPTION: assumes data is read in without a header
-            decoded_data = open(file_path).read().split(file_splitter)[-1]
+            with open(file_path) as file_data:
+                decoded_data = file_data.read().split(file_splitter)[-1]
+            file_data.close()
             edge_data = pandas.DataFrame([x.split(splitter) for x in decoded_data.split('\n') if x != ''])
         else:
             # determine if file contains a header
@@ -143,6 +145,8 @@ class CreatesEdgeList(object):
             edge_data: A filtered Pandas DataFrame.
 
         Raises:
+            Exception: If the size of the Pandas DataFrame is the same before and after applying evidence and/or
+                filtering criteria.
             Exception: If the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
         """
 
@@ -150,6 +154,7 @@ class CreatesEdgeList(object):
             return edge_data
         else:
             map_filter_criteria = filter_criteria + '::' + evidence_criteria
+            edge_data_filt = None
 
             for crit in [x for x in map_filter_criteria.split('::') if x != 'None']:
                 # check if argument is to deduplicate data
@@ -180,10 +185,12 @@ class CreatesEdgeList(object):
                         else:
                             exp = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
 
-                    edge_data = edge_data.loc[edge_data[col].apply(lambda x: eval(exp))]
+                    edge_data_filt = edge_data.loc[edge_data[col].apply(lambda x: eval(exp))]
 
-            if len(list(edge_data)) >= 2 and len(edge_data) > 10:
-                return edge_data
+            if len(edge_data) == len(edge_data_filt):
+                raise Exception('ERROR: Filtering and/or Evidence criteria were not applied')
+            elif len(list(edge_data_filt)) >= 2 and len(edge_data_filt) >= 1:
+                return edge_data_filt
             else:
                 raise Exception('ERROR: Data could not be properly read in')
 
@@ -244,7 +251,8 @@ class CreatesEdgeList(object):
 
     def data_merger(self, node: int, mapping_data: str, edge_data: pandas.DataFrame) ->\
             List[Union[str, pandas.DataFrame]]:
-        """Processes a string that contains instructions for mapping both columns in the edge_data Pandas DataFrame.
+        """Processes a string that contains instructions for mapping a column in the edge_data Pandas DataFrame.
+
         This function assumes that the mapping data pointed to contains two columns: (1) identifier in edge_data to be
         mapped and (2) the desired identifier to map to. If one of the columns does not need to be mapped to an
         identifier then the original node's column is used for the final merge.
