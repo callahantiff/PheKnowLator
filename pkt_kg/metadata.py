@@ -195,7 +195,7 @@ class Metadata(object):
 
         # remove annotation assertions
         try:
-            subprocess.check_call(['./PheKnowLator/libs/owltools',
+            subprocess.check_call(['./pkt_kg/libs/owltools',
                                    self.write_location + self.full_kg,
                                    '--remove-annotation-assertions',
                                    '-o',
