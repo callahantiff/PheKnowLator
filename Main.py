@@ -1,189 +1,146 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 # import needed libraries
 import argparse
-import glob
 
-import scripts.python.DataSources
-import scripts.python.EdgeDictionary
-from scripts.python.KnowledgeGraph import *
-from scripts.python.KnowledgeGraphEmbedder import *
+from pkt_kg.downloads import OntData, LinkedData
+from pkt_kg.edge_list import CreatesEdgeList
+from pkt_kg.knowledge_graph import KGBuilder
 
 
 def main():
-    parser = argparse.ArgumentParser(description='PheKnowLator: This program builds a biomedical knowledge graph using'
-                                                 'Open Biomedical Ontologies and linked open data. The programs takes'
-                                                 'the following arguments:')
-    parser.add_argument('-o', '--onts', help='name/path to text file containing ontologies', required=True)
+    parser = argparse.ArgumentParser(description=('PheKnowLator: This program builds a biomedical knowledge graph using'
+                                                  ' Open Biomedical Ontologies and linked open data. The program takes '
+                                                  'the following arguments:'))
+    parser.add_argument('-g', '--onts', help='name/path to text file containing ontologies', required=True)
     parser.add_argument('-c', '--cls', help='name/path to text file containing class sources', required=True)
     parser.add_argument('-i', '--inst', help='name/path to text file containing instance sources', required=True)
+    parser.add_argument('-t', '--res', help='name/path to text file containing resource_info', required=True)
+    parser.add_argument('-b', '--kg', help='the build, can be "partial", "full", or "post-closure"', required=True)
+    parser.add_argument('-o', '--out', help='name/path to directory where to write knowledge graph', required=True)
+    parser.add_argument('-n', '--nde', help='yes/no - adding node metadata to knowledge graph', required=True)
+    parser.add_argument('-r', '--rel', help='yes/no - adding inverse relations to knowledge graph', required=True)
+    parser.add_argument('-s', '--owl', help='yes/no - removing OWL Semantics from knowledge graph', required=True)
+
     args = parser.parse_args()
 
     ######################
-    # READ IN DATA #
+    #### READ IN DATA ####
     ######################
-    # NOTE: for classes and instances you will be prompted to enter a file name for each source. Please use the
-    # following pattern: edge_source_datatype_source_type.txt --> gene-pathway_string_instance_evidence.txt
 
-    # STEP 1: BIOPORTAL MAPS
-    # get mapping between CHEBI and MESH
-    # run python/NCBO_rest_api.py file to get mappings between ChEBI and MESH, which writes to ./resources/text_files/
+    # STEP 1: CREATE INPUT DOCUMENTS
+    # NOTE: please https://github.com/callahantiff/PheKnowLator/wiki/Dependencies page for details on how to prepare
+    # input data files
 
-    # STEP 2: PROCESS ONTOLOGIES
-    print('\nPROCESSING DATA: ONTOLOGY DATA\n')
-    ont = scripts.python.DataSources.OntData(args.onts)
-    # ont = scripts.python.DataSources.OntData('resources/ontology_source_list.txt')
-    ont.parses_resource_file()
+    # STEP 2: PREPROCESS DATA
+    # see the 'Data_Preparation.ipynb' file for instructions
+
+    # STEP 3: PROCESS ONTOLOGIES (1183.154 seconds)
+    print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
+    # ont = OntData(data_path=args.onts)
+    ont = OntData(data_path='resources/ontology_source_list.txt')
     ont.downloads_data_from_url('imports')
-    ont.generates_source_metadata()
-    ont.writes_source_metadata_locally()
 
-    # STEP 3: PROCESS CLASS EDGES
-    print('\nPROCESSING DATA: CLASS DATA\n')
-    cls = scripts.python.DataSources.Data(args.cls)
-    # cls = scripts.python.DataSources.Data('resources/class_source_list.txt')
-    cls.parses_resource_file()
-    cls.downloads_data_from_url('')
-    cls.generates_source_metadata()
-    cls.writes_source_metadata_locally()
-
-    # STEP 4: PROCESS INSTANCE EDGES
-    print('\nPROCESSING DATA: INSTANCE DATA\n')
-    inst = scripts.python.DataSources.Data(args.inst)
-    # inst = scripts.python.DataSources.Data('resources/instance_source_list.txt')
-    inst.parses_resource_file()
-    inst.downloads_data_from_url('')
-    inst.generates_source_metadata()
-    inst.writes_source_metadata_locally()
+    # STEP 4: PROCESS EDGE DATA (4980.956 seconds)
+    print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
+    # edges = LinkedData(data_path=args.cls)
+    edges = LinkedData(data_path='resources/edge_source_list.txt')
+    edges.downloads_data_from_url()
 
     #####################
     # CREATE EDGE LISTS #
     #####################
 
+    print('\n' + '=' * 33 + '\nPROCESSING EDGE DATA\n' + '=' * 33 + '\n')
+
     # STEP 1: create master resource dictionary
-    combined_edges = dict(dict(cls.data_files, **inst.data_files), **ont.data_files)
-    master_edges = scripts.python.EdgeDictionary.EdgeList(combined_edges, './resources/resource_info.txt')
+    combined_edges = dict(edges.data_files, **ont.data_files)
+    master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
+    # master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     master_edges.creates_knowledge_graph_edges()
-
-    # # save nested edges locally
-    with open('./resources/kg_master_edge_dictionary.json', 'w') as filepath:
-        json.dump(master_edges.source_info, filepath)
-
-    # load existing master_edge dictionary
-    # with open('./resources/kg_master_edge_dictionary.json', 'r') as filepath:
-    #     master_edges = json.load(filepath)
 
     #########################
     # BUILD KNOWLEDGE GRAPH #
     #########################
 
-    # STEP 1: set-up vars for file manipulation
-    ont_files = './resources/ontologies/'
-    merged_onts = ont_files + 'merged_ontologies/'
+    print('\n' + '=' * 33 + '\nBUILDING KNOWLEDGE GRAPH\n' + '=' * 33 + '\n')
 
-    # create list of ontologies to merge
-    ontology_list = [
-        [ont_files + 'go_with_imports.owl', ont_files + 'hp_with_imports.owl', merged_onts + 'hp_go_merged.owl'],
-        [merged_onts + 'hp_go_merged.owl', ont_files + 'chebi_lite.owl', merged_onts + 'hp_go_chebi_merged.owl'],
-        [merged_onts + 'hp_go_chebi_merged.owl', ont_files + 'vo_with_imports.owl', merged_onts +
-         'PheKnowLator_v2_MergedOntologies_BioKG.owl']
-    ]
+    import time
 
-    # merge ontologies
-    merges_ontologies(ontology_list)
+    # set some vars for writing data
+    start = time.time()
+    kg = pkt.FullBuild(kg_version='v2.0.0',
+                       write_location='./resources/knowledge_graphs',
+                       edge_data='./resources/Master_Edge_List_Dict.json',
+                       node_data='yes',
+                       inverse_relations='no',
+                       decode_owl_semantics='no')
+    kg.construct_knowledge_graph()
+    del kg
+    end = time.time()
+    print('Total run time: {}'.format(end - start))
 
-    # STEP 2: make edge lists
-    # set file path
-    ont_kg = './resources/knowledge_graphs/'
+    start = time.time()
+    kg = pkt.FullBuild(kg_version='v2.0.0',
+                       write_location='./resources/knowledge_graphs',
+                       edge_data='./resources/Master_Edge_List_Dict.json',
+                       node_data='yes',
+                       inverse_relations='yes',
+                       decode_owl_semantics='no')
+    kg.construct_knowledge_graph()
+    del kg
+    end = time.time()
+    print('Total run time: {}'.format(end - start))
 
-    # separate edge lists by data type
-    master_edges = master_edges.source_info.copy()
-    class_edges = {}
-    other_edges = {}
+    start = time.time()
+    kg = pkt.FullBuild(kg_version='v2.0.0',
+                       write_location='./resources/knowledge_graphs',
+                       edge_data='./resources/Master_Edge_List_Dict.json',
+                       node_data='yes',
+                       inverse_relations='no',
+                       decode_owl_semantics='yes')
+    kg.construct_knowledge_graph()
+    del kg
+    end = time.time()
+    print('Total run time: {}'.format(end - start))
 
-    for edge in master_edges.keys():
-        if master_edges[edge]['data_type'] == 'class-instance' or master_edges[edge]['data_type'] == 'instance-class':
-            class_edges[edge] = master_edges[edge]
-        else:
-            other_edges[edge] = master_edges[edge]
+    start = time.time()
+    kg = pkt.FullBuild(kg_version='v2.0.0',
+                       write_location='./resources/knowledge_graphs',
+                       edge_data='./resources/Master_Edge_List_Dict.json',
+                       node_data='yes',
+                       inverse_relations='yes',
+                       decode_owl_semantics='yes')
+    kg.construct_knowledge_graph()
+    del kg
+    end = time.time()
+    print('Total run time: {}'.format(end - start))
 
-    # create class-instance edges
-    class_kg = creates_knowledge_graph_edges(class_edges,  'class',
-                                             Graph().parse(merged_onts + 'PheKnowLator_v2_MergedOntologies_BioKG.owl'),
-                                             ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG2.owl',
-                                             kg_class_iri_map={})
-
-    # create instance-instance and class-class edges
-    class_inst_kg = creates_knowledge_graph_edges(other_edges, 'other', class_kg,
-                                                  ont_kg + 'PheKnowLator_v2_Full_BioKG.owl')
-
-    # STEP 3: remove disjoint axioms
-    removes_disointness_axioms(class_inst_kg, ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness.owl')
-
-    # STEP 4: deductively close graph
-    closes_knowledge_graph(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness.owl',
-                           'elk',
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl')
-
-    # STEP 5: remove metadata node
-    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK.owl'),
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_NoMetadataNodes.owl',
-                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
-
-    # NOT CLOSED
-    removes_metadata_nodes(Graph().parse(ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness.owl'),
-                           ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_NotClosed_NoMetadataNodes.owl',
-                           ont_kg + 'PheKnowLator_v2_ClassInstancesOnly_BioKG_ClassInstanceMap.json')
-
-    # STEP 6: convert triples to ints
-    maps_str_to_int(Graph().parse(ont_kg +
-                                  'kg_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_NoMetadataNodes.owl'),
-                    ont_kg + 'kg_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                    ont_kg + 'kg_closed/PheKnowLator_v2_Full_BioKG_Closed_ELK_Triples_Integer_Labels_Map.json')
-
-    maps_str_to_int(Graph().parse(ont_kg +
-                                  'kg_not_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_NotClosed_NoMetadataNodes'
-                                  '.owl'),
-                    ont_kg + 'kg_not_closed/PheKnowLator_v2_Full_BioKG_NoDisjointness_NotClosed_Triples_Integers.txt',
-                    ont_kg + 'kg_not_closed/PheKnowLator_v2_Full_BioKG_NotClosed_Triples_Integer_Labels_Map.json')
-
-    ##############################
-    # KNOWLEDGE GRAPH EMBEDDINGS #
-    ##############################
-    # set file path
-    embed_path = './resources/embeddings/'
-
-    runs_deepwalk(input_file=ont_kg + 'PheKnowLator_v2_Full_BioKG_NoDisjointness_Closed_ELK_Triples_Integers.txt',
-                  output_file=embed_path + 'PheKnowLator_v2_Full_BioKG_DeepWalk_Embeddings_128_10_50_20.txt',
-                  threads=100,
-                  dim=128,
-                  nwalks=100,
-                  walklen=20,
-                  window=10,
-                  nprwalks=100,
-                  lr=0.01)
-
-    # read in embeddings to convert from binary compressed sparse row (BCSR) into numpy array
-    # not closed graphs
-    processes_embedded_nodes(glob.glob('./resources/embeddings/*_NotClosed_*.out'),
-                             glob.glob('./resources/knowledge_graphs/kg_not_closed/*Triples_Integers.txt')[0],
-                             glob.glob('./resources/knowledge_graphs/kg_not_closed/*.json')[0])
-
-    # closed graphs
-    processes_embedded_nodes(glob.glob('./resources/embeddings/*_Closed_*.out'),
-                             glob.glob('./resources/knowledge_graphs/kg_closed/*Triples_Integers.txt')[0],
-                             glob.glob('./resources/knowledge_graphs/kg_closed/*.json')[0])
+    # if args.kg == 'partial':
+    #     kg = pkt.knowledge_graph.PartialBuild(kg_version='v2.0.0',
+    #                                           write_location=args.out,
+    #                                           edge_data='./resources/Master_Edge_List_Dict.json',
+    #                                           node_data=args.nde,
+    #                                           inverse_relations=args.rel,
+    #                                           decode_owl_semantics=args.owl)
+    # elif args.kg == 'post-closure':
+    #     kg = pkt.knowledge_graph.PostClosureBuild(kg_version='v2.0.0',
+    #                                               write_location=args.out,
+    #                                               edge_data='./resources/Master_Edge_List_Dict.json',
+    #                                               node_data=args.nde,
+    #                                               inverse_relations=args.rel,
+    #                                               decode_owl_semantics=args.owl)
+    # else:
+    #     kg = pkt.knowledge_graph.FullBuild(kg_version='v2.0.0',
+    #                                        write_location=args.out,
+    #                                        edge_data='./resources/Master_Edge_List_Dict.json',
+    #                                        node_data=args.nde,
+    #                                        inverse_relations=args.rel,
+    #                                        decode_owl_semantics=args.owl)
+    #
+    # kg.construct_knowledge_graph()
 
 
 if __name__ == '__main__':
     main()
-
-pathways = []
-for edge in list(y):
-    if 'geneid' in str(edge[0]):
-        # print(str(edge[0]), str(edge[1]), str(edge[2]))
-        pathways.append([str(edge[0]), str(edge[1]), str(edge[2])])
-    if 'geneid' in str(edge[2]):
-        pathways.append([str(edge[0]), str(edge[1]), str(edge[2])])

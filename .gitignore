@@ -1,33 +1,51 @@
 # Created by .ignore support plugin (hsz.mobi)
 
 # Distribution/packaging/Environments
+__pycache__
 __pycache__/
-__init__.py
+**/__pycache__/*
 .idea/
-scripts/python/*.pyc
-scripts/*.pyc
-.ipynb_checkpoints/main-checkpoint.ipynb
+.ipynb_checkpoints/*
+.mypy*
+\.DS_Store
 
-# data and scripts
-/resources/releases/archive.zip
-/resources/data_maps/
-/resources/edge_data/
+# data
+/resources/processed_data/
+/resources/edge_data/*
+/resources/node_data/*
+/resources/relations_data/*
 /resources/knowledge_graphs/
 /resources/kr_model/
-/resources/ontologies/
+/resources/ontologies/*
 /resources/*.json
 /resources/embeddings/*
+
+# scripts
+pkt_kg/kg_embedding_visualizer.py
+pkt_kg/knowledge_graph_embedder.py
 Untitled*
-./scripts/python/scratch.py
+
+# ignoring resource preparation files and metadata information
+!/resources/ontologies/ontology_source_metadata.txt
+!/resources/edge_data/edge_source_metadata.txt
+!/resources/node_data/README.md
+!/resources/relations_data/README.md
+!/resources/embeddings/README.md
+!/resources/knowledge_graphs/OWL_NETS_Property_Types.txt
 
 # releases
-/resources/releases/
+/releases/*
 
 # API keys/passwords
 /resources/bioportal_api_key.txt
 
 # external libraries
-/resources/lib/
-/walking-rdf-and-owl-master/
-resources/resource_info_updated.txt
-external_libraries/*
+pkt_kg/libs/walking-rdf-and-owl-master/*
+pkt_kg/libs/deepwalk_c_master/*
+
+# testing files
+.single_run
+.coverage*
+coverage.xml
+.notipy.json
+\.vscode/

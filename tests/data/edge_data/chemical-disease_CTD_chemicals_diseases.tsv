@@ -1,0 +1,49 @@
+# The Comparative Toxicogenomics Database (CTD) - http://ctdbase.org/
+#   Copyright 2002-2012 MDI Biological Laboratory. All rights reserved.
+#   Copyright 2012-2020 MDI Biological Laboratory & NC State University. All rights reserved.
+#  
+# 
+# Use is subject to the terms set forth at http://ctdbase.org/about/legal.jsp
+# These terms include:
+# 
+#   1. All forms of publication (e.g., web sites, research papers, databases,
+#      software applications, etc.) that use or rely on CTD data must cite CTD.
+#      Citation guidelines: http://ctdbase.org/about/publications/#citing
+# 
+#   2. All electronic or online applications must include hyperlinks from 
+#      contexts that use CTD data to the applicable CTD data pages.
+#      Linking instructions: http://ctdbase.org/help/linking.jsp
+# 
+#   3. You must notify CTD, and describe your use of our data:
+#      http://ctdbase.org/help/contact.go
+# 
+#   4. For quality control purposes, you must provide CTD with periodic 
+#      access to your publication of our data.
+# 
+# More information: http://ctdbase.org/downloads/
+# 
+# Report created: Mon Mar 02 12:52:10 EST 2020
+#
+# Fields:
+# ChemicalName	ChemicalID	CasRN	DiseaseName	DiseaseID	DirectEvidence	InferenceGeneSymbol	InferenceScore	OmimIDs	PubMedIDs
+#
+06-Paris-LA-66 protocol	C046983		Precursor Cell Lymphoblastic Leukemia-Lymphoma	MESH:D054198	therapeutic				4519131
+10074-G5	C534883		Adenocarcinoma	MESH:D000230		MYC	4.43		26432044
+10074-G5	C534883		Adenocarcinoma of Lung	MESH:D000077192		MYC	4.67		26656844|27602772
+10074-G5	C534883		Burkitt Lymphoma	MESH:D002051		MYC	5.47	113970	
+10,10-bis(4-pyridinylmethyl)-9(10H)-anthracenone	C112297		Atrial Fibrillation, Familial, 3	MESH:C563817		KCNQ1	7.60	607554	
+10,10-bis(4-pyridinylmethyl)-9(10H)-anthracenone	C112297		Beckwith-Wiedemann Syndrome	MESH:D001506		KCNQ1	6.71	130650	
+10-(2-(5H-(1,2,4)triazino(5,6-b)indol-3-ylthio)butanoyl)-10H-phenothiazine	C573921		Pneumonia, Pneumococcal	MESH:D011018		SIRT1	6.65		24894820
+10-(2-(5H-(1,2,4)triazino(5,6-b)indol-3-ylthio)butanoyl)-10H-phenothiazine	C573921		Prostatic Neoplasms	MESH:D011471		SIRT1	4.54		21062352
+10-(2-pyrazolylethoxy)camptothecin	C534422		Cerebral Hemorrhage	MESH:D002543		CASP8	11.40		17971790
+10-(4'-(N-diethylamino)butyl)-2-chlorophenoxazine	C553100		Autistic Disorder	MESH:D001321		ITGB3	4.47		16721604|16724005|17203304
+10-(4'-(N-diethylamino)butyl)-2-chlorophenoxazine	C553100		Bernard-Soulier Syndrome	MESH:D001606		GP1BA	7.51	231200	
+10-(6'-ubiquinonyl)decyltriphenylphosphonium bromide	C476756		Cardiovascular Abnormalities	MESH:D018376		NOS2	3.82		19587355
+Bisoprolol	D017298	66722-44-9	Liver Cirrhosis, Experimental	MESH:D008106		IL10	13.22		12632514|15362042|16097045|16126171|16539848|16552806|16609999|16688825|18251166
+Bisoprolol	D017298	66722-44-9	Liver Cirrhosis, Experimental	MESH:D008106		IL1B	13.22		16085334
+Bisoprolol	D017298	66722-44-9	Liver Cirrhosis, Experimental	MESH:D008106		INS	13.22		26806094
+Phenylephrine	D010656	59-42-7	Asthma	MESH:D001249		NPY	20.40		9731035
+Phenylephrine	D010656	59-42-7	Asthma	MESH:D001249		PARP1	20.40		18261157
+zymosterol	C015582	128-33-6	Liver Cirrhosis	MESH:D008103		CYP27A1	5.08		24381012
+zymosterol	C015582	128-33-6	MICROCEPHALY, CONGENITAL CATARACT, AND PSORIASIFORM DERMATITIS	OMIM:616834		MSMO1	7.82	616834	
+zymosterol	C015582	128-33-6	Xanthomatosis, Cerebrotendinous	MESH:D019294		CYP27A1	7.93	213700	12117727|15795599|17444890|19801147

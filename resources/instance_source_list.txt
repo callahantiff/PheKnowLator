@@ -1,2 +1,0 @@
-gene-pathway, https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
-gene-gene, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
