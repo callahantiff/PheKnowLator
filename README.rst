@@ -338,4 +338,4 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 
 .. |code_climate_coverage| image:: https://api.codeclimate.com/v1/badges/29b7199d02f90c80130d/test_coverage
     :target: https://codeclimate.com/github/callahantiff/PheKnowLator/test_coverage
-    :alt: Code Climate Coverate
+    :alt: Code Climate Coverage
