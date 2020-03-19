@@ -20,9 +20,7 @@ class TestCreatesEdgeList(unittest.TestCase):
         # create dictionary to store data
         file_loc1 = self.dir_loc + '/edge_data/chemical-disease_CTD_chemicals_diseases.tsv'
         file_loc2 = self.dir_loc + '/edge_data/gene-disease_curated_gene_disease_associations.tsv'
-
-        self.edge_data_files = {'chemical-disease': file_loc1,
-                                'gene-disease': file_loc2}
+        self.edge_data_files = {'chemical-disease': file_loc1, 'gene-disease': file_loc2}
 
         # initialize class
         file_loc = self.dir_loc + '/resource_info.txt'
