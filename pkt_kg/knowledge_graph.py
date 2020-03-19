@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# mypy: ignore-errors
 
 # import needed libraries
 import glob
@@ -19,9 +20,6 @@ from typing import Callable, Dict, List, Optional
 from pkt_kg.utils import gets_ontology_statistics
 from pkt_kg.metadata import Metadata
 from pkt_kg.owlnets import OwlNets
-
-# TODO: mypy throws errors for optional[dict] usage, this is an existing bug in mypy
-# https://github.com/python/mypy/issues/4359
 
 
 class KGBuilder(object):

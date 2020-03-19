@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# mypy: ignore-errors
 
 # import needed libraries
 import glob
@@ -11,9 +12,6 @@ import rdflib  # type: ignore
 from collections import Counter
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, List, Optional, Set, Tuple
-
-# TODO: mypy throws errors for lines 319 and 441 for optional[dict] usage, this is an existing bug in mypy
-# https://github.com/python/mypy/issues/4359
 
 
 class OwlNets(object):
@@ -49,7 +47,7 @@ class OwlNets(object):
         else:
             self.knowledge_graph = knowledge_graph
 
-        self.uuid_map = uuid_class_map if uuid_class_map else None  # type: ignore
+        self.uuid_map = uuid_class_map
         self.write_location = write_location
         self.full_kg = full_kg
         self.class_list: Optional[List[rdflib.URIRef]] = None
@@ -121,7 +119,7 @@ class OwlNets(object):
 
         print('\nFiltering Triples')
 
-        removed_edge_types = set()
+        removed_edge_types: Set = set()
         reverse_uuid_map = {val: key for (key, val) in self.uuid_map.items() if self.uuid_map}
 
         for edge in tqdm(self.knowledge_graph):

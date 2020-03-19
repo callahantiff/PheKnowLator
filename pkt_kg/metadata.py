@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# mypy: ignore-errors
 
 # import needed libraries
 import datetime
@@ -14,9 +15,6 @@ from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
 from rdflib.namespace import RDF, RDFS  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Union
-
-# TODO: mypy throws errors for optional[dict] usage, this is an existing bug in mypy
-# https://github.com/python/mypy/issues/4359
 
 
 class Metadata(object):
