@@ -308,12 +308,12 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
     :target: https://sonarcloud.io/dashboard/index/callahantiff_PheKnowLator
     :alt: SonarCloud Quality
 
-.. |sonar_maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_PheKnowLator&metric=sqale_rating
-    :target: https://sonarcloud.io/dashboard/index/callahantiff_PheKnowLator
+.. |sonar_maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=sqale_rating
+    :target: https://sonarcloud.io/dashboard/index/callahantiff_pkt_kg
     :alt: SonarCloud Maintainability
 
-.. |sonar_coverage| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_PheKnowLator&metric=coverage
-    :target: https://sonarcloud.io/dashboard/index/callahantiff_PheKnowLator
+.. |sonar_coverage| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=coverage
+    :target: https://sonarcloud.io/dashboard/index/callahantiff_pkt_kg
     :alt: SonarCloud Coverage
 
 .. |coveralls| image:: https://coveralls.io/repos/github/callahantiff/PheKnowLator/badge.svg?branch=master
