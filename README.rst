@@ -2,7 +2,9 @@ pkt_kg
 =========================================================================================
 
 |travis| |sonar_quality| |sonar_maintainability| |codacy|
-|code_climate_maintainability| |pip| |downloads|
+|code_climate_maintainability| 
+
+.. |pip| |downloads|
 
 
 PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information regarding this project can be found on the associated `Wiki`_. 
@@ -304,8 +306,8 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
    :target: https://travis-ci.org/callahantiff/PheKnowLator
    :alt: Travis CI build
 
-.. |sonar_quality| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_PheKnowLator&metric=alert_status
-    :target: https://sonarcloud.io/dashboard/index/callahantiff_PheKnowLator
+.. |sonar_quality| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=alert_status
+    :target: https://sonarcloud.io/dashboard/index/callahantiff_pkt_kg
     :alt: SonarCloud Quality
 
 .. |sonar_maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=sqale_rating
