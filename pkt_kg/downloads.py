@@ -342,7 +342,7 @@ class OntData(DataSource):
             else:
                 if download_type == 'imports' and 'purl' in source:
                     try:
-                        subprocess.check_call(['./pkt/libs/owltools',
+                        subprocess.check_call(['./pkt_kg/libs/owltools',
                                                str(source),
                                                '--merge-import-closure',
                                                '-o',
@@ -353,7 +353,7 @@ class OntData(DataSource):
                         print(error.output)
                 elif download_type != 'imports' and 'purl' in source:
                     try:
-                        subprocess.check_call(['./pkt/libs/owltools',
+                        subprocess.check_call(['./pkt_kg/libs/owltools',
                                                str(source),
                                                '-o',
                                                str(write_loc) + '_without_imports.owl'])
