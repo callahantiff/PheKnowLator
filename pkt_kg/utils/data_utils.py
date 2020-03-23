@@ -32,7 +32,7 @@ import pandas as pd  # type: ignore
 import re
 import requests
 import shutil
-import urllib3
+import urllib3  # type: ignore
 
 from contextlib import closing
 from io import BytesIO
