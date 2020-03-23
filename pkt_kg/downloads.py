@@ -8,7 +8,7 @@ import glob
 import os.path
 import re
 import shutil
-import urllib3
+import urllib3  # type: ignore
 
 from abc import ABCMeta, abstractmethod
 from owlready2 import subprocess  # type: ignore
