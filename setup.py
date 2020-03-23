@@ -75,6 +75,7 @@ setup(
                       'reactome2py>=0.0.8',
                       'requests',
                       'responses',
-                      'tqdm'],
+                      'tqdm',
+                      'urllib3'],
     extras_require=extras,
 )
