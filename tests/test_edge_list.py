@@ -1,5 +1,6 @@
 import os.path
 import pandas
+import re
 import unittest
 
 from typing import Tuple
@@ -57,17 +58,18 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # test chemical-disease data (no header)
         chem_dis_file = self.edge_data_files['chemical-disease']
-        chem_splitter = self.master_edge_list.source_info['chemical-disease']['column_splitter']
-        splitter = '\t' if 't' in chem_splitter else " " if ' ' in chem_splitter else chem_splitter
+        delimiter1 = self.master_edge_list.source_info['chemical-disease']['delimiter']
+        splitter = '\t' if 't' in delimiter1 else " " if ' ' in delimiter1 else delimiter1
+        skip_rows = list(range(27)) + [29]
 
-        self.assertIsNone(self.master_edge_list.identify_header(chem_dis_file, splitter))
+        self.assertEqual(0, self.master_edge_list.identify_header(chem_dis_file, splitter, skip_rows))
 
         # test gene-disease data (header)
         gene_dis_file = self.edge_data_files['gene-disease']
-        gene_splitter = self.master_edge_list.source_info['gene-disease']['column_splitter']
-        splitter = '\t' if 't' in gene_splitter else " " if ' ' in gene_splitter else gene_splitter
+        delimiter2 = self.master_edge_list.source_info['gene-disease']['delimiter']
+        splitter = '\t' if 't' in delimiter2 else " " if ' ' in delimitir2 else delimiter2
 
-        self.assertEqual(0, self.master_edge_list.identify_header(gene_dis_file, splitter))
+        self.assertEqual(0, self.master_edge_list.identify_header(gene_dis_file, splitter, []))
 
         return None
 
@@ -76,20 +78,32 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # set up input variables
         file_path1 = self.edge_data_files['chemical-disease']
-        file_splitter1 = self.master_edge_list.source_info['chemical-disease']['row_splitter']
-        line_splitter1 = self.master_edge_list.source_info['chemical-disease']['column_splitter']
+        delimiter1 = self.master_edge_list.source_info['chemical-disease']['delimiter']
 
         file_path2 = self.edge_data_files['gene-disease']
-        file_splitter2 = self.master_edge_list.source_info['gene-disease']['row_splitter']
-        line_splitter2 = self.master_edge_list.source_info['gene-disease']['column_splitter']
+        delimiter2 = self.master_edge_list.source_info['gene-disease']['delimiter']
 
         # read in data set 1
-        data1 = self.master_edge_list.data_reader(file_path1, file_splitter1, line_splitter1)
+        data1 = self.master_edge_list.data_reader(file_path1, delimiter1)
         self.assertIsInstance(data1, pandas.DataFrame)
 
         # read in data set 2
-        data2 = self.master_edge_list.data_reader(file_path2, file_splitter2, line_splitter2)
+        data2 = self.master_edge_list.data_reader(file_path2, delimiter2)
         self.assertIsInstance(data2, pandas.DataFrame)
+
+        return None
+
+    def test_filter_fixer(self):
+        """Tests the filter_fixer method."""
+
+        test_string1 = '5;!=;'
+        self.assertEqual('5;!=;None', self.master_edge_list.filter_fixer(test_string1))
+
+        test_string2 = '5;!=;" '
+        self.assertEqual('5;!=;None', self.master_edge_list.filter_fixer(test_string2))
+
+        test_string3 = '5;!=;2'
+        self.assertEqual('5;!=;2', self.master_edge_list.filter_fixer(test_string3))
 
         return None
 
@@ -98,9 +112,8 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # data set 1
         file_path1 = self.edge_data_files['chemical-disease']
-        file_splitter1 = self.master_edge_list.source_info['chemical-disease']['row_splitter']
-        line_splitter1 = self.master_edge_list.source_info['chemical-disease']['column_splitter']
-        edge_data1 = self.master_edge_list.data_reader(file_path1, file_splitter1, line_splitter1)
+        delimiter1 = self.master_edge_list.source_info['chemical-disease']['delimiter']
+        edge_data1 = self.master_edge_list.data_reader(file_path1, delimiter1)
         evidence1 = self.master_edge_list.source_info['chemical-disease']['evidence_criteria']
         filtering1 = self.master_edge_list.source_info['chemical-disease']['filter_criteria']
 
@@ -111,9 +124,8 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # data set 2
         file_path2 = self.edge_data_files['gene-disease']
-        file_splitter2 = self.master_edge_list.source_info['gene-disease']['row_splitter']
-        line_splitter2 = self.master_edge_list.source_info['gene-disease']['column_splitter']
-        edge_data2 = self.master_edge_list.data_reader(file_path2, file_splitter2, line_splitter2)
+        delimiter2 = self.master_edge_list.source_info['gene-disease']['delimiter']
+        edge_data2 = self.master_edge_list.data_reader(file_path2, delimiter2)
         evidence2 = self.master_edge_list.source_info['gene-disease']['evidence_criteria']
         filtering2 = self.master_edge_list.source_info['gene-disease']['filter_criteria']
 
@@ -129,9 +141,8 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # data set 1
         file_path1 = self.edge_data_files['chemical-disease']
-        file_splitter1 = self.master_edge_list.source_info['chemical-disease']['row_splitter']
-        line_splitter1 = self.master_edge_list.source_info['chemical-disease']['column_splitter']
-        edge_data1 = self.master_edge_list.data_reader(file_path1, file_splitter1, line_splitter1)
+        delimiter1 = self.master_edge_list.source_info['chemical-disease']['delimiter']
+        edge_data1 = self.master_edge_list.data_reader(file_path1, delimiter1)
         col1 = self.master_edge_list.source_info['chemical-disease']['column_idx']
 
         self.assertEqual(len(col1.split(';')), 2)
@@ -143,9 +154,8 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # data set 2
         file_path2 = self.edge_data_files['gene-disease']
-        file_splitter2 = self.master_edge_list.source_info['gene-disease']['row_splitter']
-        line_splitter2 = self.master_edge_list.source_info['gene-disease']['column_splitter']
-        edge_data2 = self.master_edge_list.data_reader(file_path2, file_splitter2, line_splitter2)
+        delimiter2 = self.master_edge_list.source_info['gene-disease']['delimiter']
+        edge_data2 = self.master_edge_list.data_reader(file_path2, delimiter2)
         col2 = self.master_edge_list.source_info['gene-disease']['column_idx']
 
         self.assertEqual(len(col2.split(';')), 2)
@@ -162,22 +172,20 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # data set 1
         file_path1 = self.edge_data_files['chemical-disease']
-        file_splitter1 = self.master_edge_list.source_info['chemical-disease']['row_splitter']
-        line_splitter1 = self.master_edge_list.source_info['chemical-disease']['column_splitter']
-        edge_data1 = self.master_edge_list.data_reader(file_path1, file_splitter1, line_splitter1)
+        delimiter1 = self.master_edge_list.source_info['chemical-disease']['delimiter']
+        edge_data1 = self.master_edge_list.data_reader(file_path1, delimiter1)
         label_criteria1 = self.master_edge_list.source_info['chemical-disease']['source_labels']
 
         # read in filtered data
         labeled_data1 = self.master_edge_list.label_formatter(edge_data1, label_criteria1)
         self.assertIsInstance(labeled_data1, pandas.DataFrame)
-        self.assertTrue(all(x for x in labeled_data1[4] if x.startswith(label_criteria1.split(';')[1][:-1])))
-        self.assertEqual(list(edge_data1[1]), list(labeled_data1[1]))
+        self.assertTrue(all(x for x in labeled_data1['DiseaseID'] if x.startswith(label_criteria1.split(';')[1][:-1])))
+        self.assertEqual(list(edge_data1['ChemicalID']), list(labeled_data1['ChemicalID']))
 
         # data set 2
         file_path2 = self.edge_data_files['gene-disease']
-        file_splitter2 = self.master_edge_list.source_info['gene-disease']['row_splitter']
-        line_splitter2 = self.master_edge_list.source_info['gene-disease']['column_splitter']
-        edge_data2 = self.master_edge_list.data_reader(file_path2, file_splitter2, line_splitter2)
+        delimiter2 = self.master_edge_list.source_info['gene-disease']['delimiter']
+        edge_data2 = self.master_edge_list.data_reader(file_path2, delimiter2)
         label_criteria2 = self.master_edge_list.source_info['gene-disease']['source_labels']
 
         # read in filtered data
@@ -193,9 +201,8 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # data set 1
         file_path1 = self.edge_data_files['chemical-disease']
-        file_splitter1 = self.master_edge_list.source_info['chemical-disease']['row_splitter']
-        line_splitter1 = self.master_edge_list.source_info['chemical-disease']['column_splitter']
-        edge_data1 = self.master_edge_list.data_reader(file_path1, file_splitter1, line_splitter1)
+        delimiter1 = self.master_edge_list.source_info['chemical-disease']['delimiter']
+        edge_data1 = self.master_edge_list.data_reader(file_path1, delimiter1)
 
         # reduce data
         col1 = self.master_edge_list.source_info['chemical-disease']['column_idx']
@@ -219,9 +226,8 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # data set 2
         file_path2 = self.edge_data_files['gene-disease']
-        file_splitter2 = self.master_edge_list.source_info['gene-disease']['row_splitter']
-        line_splitter2 = self.master_edge_list.source_info['gene-disease']['column_splitter']
-        edge_data2 = self.master_edge_list.data_reader(file_path2, file_splitter2, line_splitter2)
+        delimiter2 = self.master_edge_list.source_info['gene-disease']['delimiter']
+        edge_data2 = self.master_edge_list.data_reader(file_path2, delimiter2)
 
         # reduce data
         col2 = self.master_edge_list.source_info['gene-disease']['column_idx']
@@ -245,9 +251,8 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # data set 1
         file_path1 = self.edge_data_files['chemical-disease']
-        file_splitter1 = self.master_edge_list.source_info['chemical-disease']['row_splitter']
-        line_splitter1 = self.master_edge_list.source_info['chemical-disease']['column_splitter']
-        edge_data1 = self.master_edge_list.data_reader(file_path1, file_splitter1, line_splitter1)
+        delimiter1 = self.master_edge_list.source_info['chemical-disease']['delimiter']
+        edge_data1 = self.master_edge_list.data_reader(file_path1, delimiter1)
 
         # reduce data
         col1 = self.master_edge_list.source_info['chemical-disease']['column_idx']
@@ -267,9 +272,8 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # data set 2
         file_path2 = self.edge_data_files['gene-disease']
-        file_splitter2 = self.master_edge_list.source_info['gene-disease']['row_splitter']
-        line_splitter2 = self.master_edge_list.source_info['gene-disease']['column_splitter']
-        edge_data2 = self.master_edge_list.data_reader(file_path2, file_splitter2, line_splitter2)
+        delimiter2 = self.master_edge_list.source_info['gene-disease']['delimiter']
+        edge_data2 = self.master_edge_list.data_reader(file_path2, delimiter2)
 
         # reduce data
         col2 = self.master_edge_list.source_info['gene-disease']['column_idx']
@@ -284,7 +288,7 @@ class TestCreatesEdgeList(unittest.TestCase):
         process_mapping_data2 = self.master_edge_list.process_mapping_data(mapping_data2, labeled_data2)
         self.assertIsInstance(process_mapping_data2, Tuple)
         self.assertIsInstance(process_mapping_data2[0], Tuple)
-        self.assertEqual(6, len(process_mapping_data2))
+        self.assertEqual(23, len(process_mapping_data2))
         self.assertIn(('19', 'DOID_1936'), process_mapping_data2)
 
         return None
