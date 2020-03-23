@@ -13,7 +13,7 @@ python:
 before_install:
 - pip install pip --upgrade
 #- pip uninstall -y numpy
-- pip install numpy --upgrade
+#- pip install numpy --upgrade
 #- pip install --upgrade mypy
 #- pip install --upgrade pylint
 install:
