@@ -46,24 +46,23 @@ class CreatesEdgeList(object):
         with open(source_file) as source_file_data:
             for row in source_file_data.read().split('\n'):
                 cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
-                self.source_info[cols[0].strip('"').strip("'")] = {}
-                self.source_info[cols[0].strip('"').strip("'")]['source_labels'] = cols[1].strip('"').strip("'")
-                self.source_info[cols[0].strip('"').strip("'")]['data_type'] = cols[2].strip('"').strip("'")
-                self.source_info[cols[0].strip('"').strip("'")]['edge_relation'] = cols[3].strip('"').strip("'")
-                self.source_info[cols[0].strip('"').strip("'")]['uri'] = (cols[4].strip('"').strip("'"),
-                                                                          cols[5].strip('"').strip("'"))
-                self.source_info[cols[0].strip('"').strip("'")]['row_splitter'] = cols[6].strip('"').strip("'")
-                self.source_info[cols[0].strip('"').strip("'")]['column_splitter'] = cols[7].strip('"').strip("'")
-                self.source_info[cols[0].strip('"').strip("'")]['column_idx'] = cols[8].strip('"').strip("'")
-                self.source_info[cols[0].strip('"').strip("'")]['identifier_maps'] = cols[9].strip('"').strip("'")
-                self.source_info[cols[0].strip('"').strip("'")]['evidence_criteria'] = cols[10].strip('"').strip("'")
-                self.source_info[cols[0].strip('"').strip("'")]['filter_criteria'] = cols[11].strip('"').strip("'")
-                self.source_info[cols[0].strip('"').strip("'")]['edge_list'] = []
+                key = cols[0].strip('"').strip("'")
+                self.source_info[key] = {}
+                self.source_info[key]['source_labels'] = cols[1].strip('"').strip("'")
+                self.source_info[key]['data_type'] = cols[2].strip('"').strip("'")
+                self.source_info[key]['edge_relation'] = cols[3].strip('"').strip("'")
+                self.source_info[key]['uri'] = (cols[4].strip('"').strip("'"), cols[5].strip('"').strip("'"))
+                self.source_info[key]['delimiter'] = cols[6].strip('"').strip("'")
+                self.source_info[key]['column_idx'] = cols[7].strip('"').strip("'")
+                self.source_info[key]['identifier_maps'] = cols[8].strip('"').strip("'")
+                self.source_info[key]['evidence_criteria'] = cols[9].strip('"').strip("'")
+                self.source_info[key]['filter_criteria'] = cols[10].strip('"').strip("'")
+                self.source_info[key]['edge_list'] = []
 
         source_file_data.close()
 
     @staticmethod
-    def identify_header(file_path: str, file_delimiter: str) -> Optional[int]:
+    def identify_header(file_path: str, delimiter: str, skip_rows: List[int]) -> Optional[int]:
         """Compares the similarity of the first line of a Pandas DataFrame to the column headers when read in with and
         without a header to determine whether or not the data frame should be built with a header or not. This
         function was modified from a Stack Overflow post:
@@ -71,7 +70,8 @@ class CreatesEdgeList(object):
 
         Args:
             file_path: A filepath to a data file.
-            file_delimiter: A character specifying how the rows of the data are delimited.
+            delimiter: A character specifying how the rows of the data are delimited.
+            skip_rows: A list of indices to skip when reading in the data.
 
         Returns:
             - 0, if the data should be read in with a header.
@@ -79,8 +79,8 @@ class CreatesEdgeList(object):
         """
 
         # read in data
-        df_with_header = pandas.read_csv(file_path, header='infer', nrows=1, delimiter=file_delimiter)
-        df_without_header = pandas.read_csv(file_path, header=None, nrows=1, delimiter=file_delimiter)
+        df_with_header = pandas.read_csv(file_path, header='infer', nrows=1, delimiter=delimiter, skiprows=skip_rows)
+        df_without_header = pandas.read_csv(file_path, header=None, nrows=1, delimiter=delimiter, skiprows=skip_rows)
 
         # calculate similarity between header and first row
         with_header_test = SequenceMatcher(None, '|'.join([str(x) for x in list(df_with_header.iloc[0])]),
@@ -90,21 +90,20 @@ class CreatesEdgeList(object):
                                               '|'.join([str(x) for x in list(df_without_header)])).ratio()
 
         # determine if header should be used
-        if abs(with_header_test-without_header_test) < 0.05:
+        if abs(with_header_test-without_header_test) < 0.5:
             return 0
         elif with_header_test >= without_header_test:
             return None
         else:
             return None
 
-    def data_reader(self, file_path: str, file_splitter: str = '\n', line_splitter: str = 't') -> pandas.DataFrame:
+    def data_reader(self, file_path: str, delimiter: str = 't') -> pandas.DataFrame:
         """Takes a filepath pointing to data source and reads it into a Pandas DataFrame using information in the
         file and line splitter variables.
 
         Args:
             file_path: A Filepath to data.
-            file_splitter: A Character to split data, used when a file contains metadata information.
-            line_splitter: A Character used to split rows into columns.
+            delimiter: A Character used to split rows into columns.
 
         Return:
             A Pandas DataFrame containing the data from the data_filepath.
@@ -113,27 +112,54 @@ class CreatesEdgeList(object):
             Exception: If the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
         """
 
-        # identify line splitter
-        splitter = '\t' if 't' in line_splitter else " " if ' ' in line_splitter else line_splitter
+        # temporarily read in the data
+        try:
+            with open(file_path, 'r') as input_data:
+                data = input_data.read().split('\n')
+            input_data.close()
+        except ValueError:
+            with open(file_path, 'rb') as input_data:
+                data = input_data.read().split('\n')
+            input_data.close()
 
-        if '!' in file_splitter or '#' in file_splitter:
-            # ASSUMPTION: assumes data is read in without a header
-            with open(file_path) as file_data:
-                decoded_data = file_data.read().split(file_splitter)[-1]
-            file_data.close()
-            edge_data = pandas.DataFrame([x.split(splitter) for x in decoded_data.split('\n') if x != ''])
+        # clean up data to only keep valid rows (rows that are not empty space or metadata
+        splitter = '\t' if 't' in delimiter else r"\s+" if '' in delimiter else delimiter
+        if delimiter == '' or delimiter == ' ':
+            skip = [row for row in range(0, len(data)) if delimiter not in data[row]]
         else:
-            # determine if file contains a header
-            header = self.identify_header(file_path, splitter)
-            edge_data = pandas.read_csv(file_path, header=header, delimiter=splitter, low_memory=False)
+            skip = [row for row in range(0, len(data)) if splitter not in data[row]]
+
+        # determine if file contains a header
+        edge_data = pandas.read_csv(file_path, header=self.identify_header(file_path, splitter, skip),
+                                    delimiter=splitter, low_memory=False, skiprows=skip)
+        del data, skip
 
         if len(list(edge_data)) >= 2 and len(edge_data) > 10:
-            return edge_data.dropna(inplace=False)
+            return edge_data.fillna('None', inplace=False)
         else:
             raise ValueError('ERROR: Data could not be properly read in')
 
     @staticmethod
-    def filter_data(edge_data: pandas.DataFrame, filter_criteria: str, evidence_criteria: str) -> pandas.DataFrame:
+    def filter_fixer(criteria):
+        """Processes empty strings by converting them to None.
+
+        Args:
+            criteria: A '::' delimited string; each delimited item is a set of filtering or evidence criteria.
+
+        Returns:
+            A string
+        """
+
+        # replace space with empty string
+        no_spaces = re.sub(r"\'\s+|\"\s+", '', criteria)
+
+        # replace empty strings at end of criteria with 'None'
+        fixed_string = ';'.join([re.sub('^(?![\\s\\S])', x, 'None') if x == '' else x for x in no_spaces.split(';')])
+
+        return fixed_string
+
+    def filter_data(self, edge_data: pandas.DataFrame, filter_criteria: str, evidence_criteria: str) -> \
+            pandas.DataFrame:
         """Applies a set of filtering and/or evidence criteria to specific columns in a Pandas DataFrame and returns a
         filtered data frame.
 
@@ -154,11 +180,8 @@ class CreatesEdgeList(object):
         if filter_criteria == 'None' and evidence_criteria == 'None':
             return edge_data
         else:
-
             # fix known errors when filtering empty cells
-            filter_criteria = re.sub('\'\s+|\"\s+', '', filter_criteria)
-            evidence_criteria = re.sub('\'\s+|\"\s+', '', evidence_criteria)
-            map_filter_criteria = filter_criteria + '::' + evidence_criteria
+            map_filter_criteria = self.filter_fixer(filter_criteria) + '::' + self.filter_fixer(evidence_criteria)
             edge_data_filt = None
 
             for crit in [x for x in map_filter_criteria.split('::') if x != 'None']:
@@ -175,6 +198,8 @@ class CreatesEdgeList(object):
                     col = list(edge_data)[int(crit.split(';')[0])]
                     try:
                         if type(float(crit.split(';')[2])) is float or type(int(crit.split(';')[2])) is int:
+                            edge_data[col] = edge_data[col].apply(lambda x: 0 if x == 'None' else x)
+
                             if type(float(crit.split(';')[2])) is float:
                                 edge_data[col] = edge_data[col].astype(float)
                             else:
@@ -357,8 +382,7 @@ class CreatesEdgeList(object):
                                                'edge_relation': 'RO_0002436',
                                                'uri': ['http://purl.obolibrary.org/obo/',
                                                        'https://reactome.org/content/detail/'],
-                                               'row_splitter': 'n',
-                                               'column_splitter': 't',
+                                               'delimiter': 't',
                                                'column_idx': '0;1',
                                                'identifier_maps': 'None',
                                                'evidence_criteria': 'None',
@@ -372,9 +396,8 @@ class CreatesEdgeList(object):
 
             # STEP 1: read in data
             print('*** Reading Edge Data ***')
-            edge_data = self.data_reader(self.data_files[edge_type],
-                                         self.source_info[edge_type]['row_splitter'],
-                                         self.source_info[edge_type]['column_splitter'])
+            edge_data = self.data_reader(self.data_files[edge_type], self.source_info[edge_type]['delimiter'])
+            print('Pre-Filtering data size={}'.format(len(edge_data)))
 
             # STEP 2: apply filtering and evidence criteria
             print('*** Applying Filtering and/or Mapping Criteria to Edge Data ***')
@@ -388,6 +411,8 @@ class CreatesEdgeList(object):
             # STEP 4: update node column values
             print('*** Reformatting Node Values ***')
             edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
+
+            print('Post-Filtering data size={}'.format(len(edge_data)))
 
             # STEP 5: rename nodes
             edge_data.rename(columns={list(edge_data)[0]: str(list(edge_data)[0]) + '-' + edge_type.split('-')[0],
