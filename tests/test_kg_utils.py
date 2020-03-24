@@ -15,6 +15,9 @@ class TestKGUtils(unittest.TestCase):
         dir_loc = os.path.join(current_directory, 'data/ontologies')
         self.dir_loc = os.path.abspath(dir_loc)
 
+        # path to owltools
+        self.owltools_location = os.path.relpath('PheKnowLator/pkt_kg/libs/owltools', self.dir_loc)
+
         # set some real and fake file name variables
         self.not_string_filename = [self.dir_loc + '/hp_with_imports.owl']
         self.not_real_file_name = self.dir_loc + '/sop_with_imports.owl'
@@ -40,8 +43,7 @@ class TestKGUtils(unittest.TestCase):
         self.assertRaises(ValueError, gets_ontology_statistics, self.empty_ontology_file_location)
 
         # test good file
-        owltools_loc = '../pkt_kg/libs/owltools'
-        self.assertIsNone(gets_ontology_statistics(self.good_ontology_file_location, owltools_loc))
+        self.assertIsNone(gets_ontology_statistics(self.good_ontology_file_location, self.owltools_location))
 
         return None
 
@@ -52,8 +54,7 @@ class TestKGUtils(unittest.TestCase):
         self.assertFalse(os.path.exists(self.dir_loc + self.merged_ontology_file))
 
         # run merge function and check that file was generated
-        owltools_loc = '../pkt_kg/libs/owltools'
-        merges_ontologies(self.ontology_repository, self.dir_loc, self.merged_ontology_file, owltools_loc)
+        merges_ontologies(self.ontology_repository, self.dir_loc, self.merged_ontology_file, self.owltools_location)
         self.assertTrue(os.path.exists(self.dir_loc + self.merged_ontology_file))
 
         # remove file
