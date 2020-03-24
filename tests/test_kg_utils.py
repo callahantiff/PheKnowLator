@@ -15,8 +15,9 @@ class TestKGUtils(unittest.TestCase):
         dir_loc = os.path.join(current_directory, 'data/ontologies')
         self.dir_loc = os.path.abspath(dir_loc)
 
-        # path to owltools
-        self.owltools_location = os.path.relpath('PheKnowLator/pkt_kg/libs/owltools', self.dir_loc)
+        # pointer to owltools
+        dir_loc2 = os.path.join(current_directory, 'utils/owltools')
+        self.owltools_location = os.path.abspath(dir_loc2)
 
         # set some real and fake file name variables
         self.not_string_filename = [self.dir_loc + '/hp_with_imports.owl']
