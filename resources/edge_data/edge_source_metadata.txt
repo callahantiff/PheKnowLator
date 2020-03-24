@@ -1,5 +1,5 @@
 ===================================
-#Mon Mar 23 15:10:16 UTC 2020 
+#Mon Mar 23 23:10:20 UTC 2020 
 ===================================
 
 EDGE: chemical-disease
@@ -164,7 +164,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/ufbp5o6zgagriw7/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt?dl=1
   - DOWNLOAD_DATE = 03/23/2020
-  - FILE_SIZE_IN_BYTES = 9900739
+  - FILE_SIZE_IN_BYTES = 4456749
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-protein_ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
 
 EDGE: gene-rna
@@ -175,7 +175,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/yqnofd8h90luygu/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
   - DOWNLOAD_DATE = 03/23/2020
-  - FILE_SIZE_IN_BYTES = 26652866
+  - FILE_SIZE_IN_BYTES = 16378762
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/gene-rna_ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt
 
 EDGE: gobp-pathway
@@ -340,7 +340,7 @@ DATA PROCESSING INFO
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/ckrw11nfyu6a08c/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt?dl=1
   - DOWNLOAD_DATE = 03/23/2020
-  - FILE_SIZE_IN_BYTES = 41466281
+  - FILE_SIZE_IN_BYTES = 38370727
   - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/rna-protein_ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt
 
 EDGE: variant-disease
