@@ -2,7 +2,7 @@ import glob
 import os.path
 import unittest
 
-from pkt_kg.utils import *
+from pkt_kg.utils import gets_ontology_statistics, merges_ontologies
 
 
 class TestKGUtils(unittest.TestCase):
@@ -40,7 +40,7 @@ class TestKGUtils(unittest.TestCase):
         self.assertRaises(ValueError, gets_ontology_statistics, self.empty_ontology_file_location)
 
         # test good file
-        owltools_loc = '/Users/tiffanycallahan/Dropbox/GraduateSchool/PhD/LabWork/PheKnowLator/pkt_kg/libs/owltools'
+        owltools_loc = '../pkt_kg/libs/owltools'
         self.assertIsNone(gets_ontology_statistics(self.good_ontology_file_location, owltools_loc))
 
         return None
@@ -52,7 +52,7 @@ class TestKGUtils(unittest.TestCase):
         self.assertFalse(os.path.exists(self.dir_loc + self.merged_ontology_file))
 
         # run merge function and check that file was generated
-        owltools_loc = '/Users/tiffanycallahan/Dropbox/GraduateSchool/PhD/LabWork/PheKnowLator/pkt_kg/libs/owltools'
+        owltools_loc = '../pkt_kg/libs/owltools'
         merges_ontologies(self.ontology_repository, self.dir_loc, self.merged_ontology_file, owltools_loc)
         self.assertTrue(os.path.exists(self.dir_loc + self.merged_ontology_file))
 
