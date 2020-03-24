@@ -3,7 +3,7 @@ import pandas
 import re
 import unittest
 
-from typing import Tuple
+from typing import List, Tuple
 
 from pkt_kg.edge_list import CreatesEdgeList
 
@@ -299,11 +299,11 @@ class TestCreatesEdgeList(unittest.TestCase):
         self.master_edge_list.creates_knowledge_graph_edges()
 
         # edge type 1
-        self.assertIsInstance(self.master_edge_list.source_info['chemical-disease']['edge_list'], Tuple)
+        self.assertIsInstance(self.master_edge_list.source_info['chemical-disease']['edge_list'], List)
         self.assertEqual(0, len(self.master_edge_list.source_info['chemical-disease']['edge_list']))
 
         # edge type 2
-        self.assertIsInstance(self.master_edge_list.source_info['gene-disease']['edge_list'], Tuple)
+        self.assertIsInstance(self.master_edge_list.source_info['gene-disease']['edge_list'], List)
         self.assertIsInstance(self.master_edge_list.source_info['gene-disease']['edge_list'][0], Tuple)
         self.assertEqual(5, len(self.master_edge_list.source_info['gene-disease']['edge_list']))
         self.assertIn(('19', 'DOID_1936'), self.master_edge_list.source_info['gene-disease']['edge_list'])

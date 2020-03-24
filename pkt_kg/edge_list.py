@@ -147,16 +147,17 @@ class CreatesEdgeList(object):
             criteria: A '::' delimited string; each delimited item is a set of filtering or evidence criteria.
 
         Returns:
-            A string
+            A string where empty strings have been replaced with "None".
         """
 
-        # replace space with empty string
-        no_spaces = re.sub(r"\'\s+|\"\s+", '', criteria)
+        if '(' in criteria:
+            return criteria
+        else:
+            # replace space with empty string and then replace empty strings at end of criteria with 'None'
+            no_spaces = re.sub(r"\'\s+|\"\s+", '', criteria)
+            fix_string = ';'.join([re.sub('^(?![\\s\\S])', x, 'None') if x == '' else x for x in no_spaces.split(';')])
 
-        # replace empty strings at end of criteria with 'None'
-        fixed_string = ';'.join([re.sub('^(?![\\s\\S])', x, 'None') if x == '' else x for x in no_spaces.split(';')])
-
-        return fixed_string
+            return fix_string
 
     def filter_data(self, edge_data: pandas.DataFrame, filter_criteria: str, evidence_criteria: str) -> \
             pandas.DataFrame:
@@ -172,8 +173,6 @@ class CreatesEdgeList(object):
             edge_data: A filtered Pandas DataFrame.
 
         Raises:
-            Exception: If the size of the Pandas DataFrame is the same before and after applying evidence and/or
-                filtering criteria.
             Exception: If the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
         """
 
@@ -182,7 +181,6 @@ class CreatesEdgeList(object):
         else:
             # fix known errors when filtering empty cells
             map_filter_criteria = self.filter_fixer(filter_criteria) + '::' + self.filter_fixer(evidence_criteria)
-            edge_data_filt = None
 
             for crit in [x for x in map_filter_criteria.split('::') if x != 'None']:
                 # check if argument is to deduplicate data
@@ -215,12 +213,10 @@ class CreatesEdgeList(object):
                         else:
                             exp = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
 
-                    edge_data_filt = edge_data.loc[edge_data[col].apply(lambda x: eval(exp))]
+                    edge_data = edge_data.loc[edge_data[col].apply(lambda x: eval(exp))]
 
-            if len(edge_data) == len(edge_data_filt):
-                raise Exception('ERROR: Filtering and/or Evidence criteria were not applied')
-            elif len(list(edge_data_filt)) >= 2 and len(edge_data_filt) >= 1:
-                return edge_data_filt
+            if len(list(edge_data)) >= 2 and len(edge_data) >= 1:
+                return edge_data
             else:
                 raise Exception('ERROR: Data could not be properly read in')
 
@@ -301,14 +297,13 @@ class CreatesEdgeList(object):
         """
 
         # check if node needs to be mapped to an outside data source
-        if str(node) in re.sub('(?:(?!:)\\D)*', '', mapping_data).split(':'):
+        if str(node) in re.sub('(?:(?!:)\\D)*', '', mapping_data).split(':'):  # MAPPING TO OUTSIDE DATA SOURCE
             node2map = list(edge_data)[node]
 
-            # MAPPING TO OUTSIDE DATA SOURCE
             try:
-                map_data = self.data_reader(mapping_data.split(';')[node].split(':')[1])
+                map_data = self.data_reader(mapping_data.split(';')[node].split(':')[1]).astype(str)
             except IndexError:
-                map_data = self.data_reader(mapping_data.split(';')[0].split(':')[1])
+                map_data = self.data_reader(mapping_data.split(';')[0].split(':')[1]).astype(str)
 
             # process mapping data
             map_col = list(map_data)[0]
@@ -324,9 +319,7 @@ class CreatesEdgeList(object):
 
             # drop all columns but merge key and value columns
             merged_data = merged_data[[list(edge_data)[0], list(edge_data)[1], col_to_map]]
-
-        # NOT MAPPING TO OUTSIDE DATA SOURCE
-        else:
+        else:   # NOT MAPPING TO OUTSIDE DATA SOURCE
             col_to_map = str(list(edge_data)[node]) + '_mapped'
             edge_data[col_to_map] = edge_data[[list(edge_data)[node]]]
             merged_data = edge_data[[list(edge_data)[0], list(edge_data)[1], col_to_map]]
@@ -358,14 +351,13 @@ class CreatesEdgeList(object):
 
             # merge mapping data merge result DataFrames
             merged_cols = list(set(maps[0][1]).intersection(set(maps[1][1])))
-            merged_data = pandas.merge(maps[0][1], maps[1][1], left_on=merged_cols, right_on=merged_cols, how='inner')
+            merged_data = pandas.merge(maps[0][1].astype(str),
+                                       maps[1][1].astype(str),
+                                       left_on=merged_cols, right_on=merged_cols, how='inner')
 
             # remove unwanted columns
             keep_cols = [x for x in merged_data.columns if 'mapped' in str(x)]
             merged_data = merged_data[keep_cols].drop_duplicates(subset=None, keep='first', inplace=False)
-
-            # make sure that both columns are type string
-            merged_data = merged_data.astype(str)
 
             return tuple(zip(list(merged_data[maps[0][0]]), list(merged_data[maps[1][0]])))
 
@@ -396,8 +388,8 @@ class CreatesEdgeList(object):
 
             # STEP 1: read in data
             print('*** Reading Edge Data ***')
-            edge_data = self.data_reader(self.data_files[edge_type], self.source_info[edge_type]['delimiter'])
-            print('Pre-Filtering data size={}'.format(len(edge_data)))
+            edge_data = self.data_reader(self.data_files[edge_type],
+                                         self.source_info[edge_type]['delimiter'])
 
             # STEP 2: apply filtering and evidence criteria
             print('*** Applying Filtering and/or Mapping Criteria to Edge Data ***')
@@ -412,8 +404,6 @@ class CreatesEdgeList(object):
             print('*** Reformatting Node Values ***')
             edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
 
-            print('Post-Filtering data size={}'.format(len(edge_data)))
-
             # STEP 5: rename nodes
             edge_data.rename(columns={list(edge_data)[0]: str(list(edge_data)[0]) + '-' + edge_type.split('-')[0],
                                       list(edge_data)[1]: str(list(edge_data)[1]) + '-' + edge_type.split('-')[1]},
@@ -421,8 +411,10 @@ class CreatesEdgeList(object):
 
             # STEP 6: map identifiers
             print('*** Performing Identifier Mapping ***')
-            mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'], edge_data)
-            self.source_info[edge_type]['edge_list'] = mapped_data
+            mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'],
+                                                    edge_data)
+
+            self.source_info[edge_type]['edge_list'] = [edge for edge in mapped_data if 'None' not in edge]
 
             # print edge statistics
             unique_edges = [list(y) for y in set([tuple(x) for x in self.source_info[edge_type]['edge_list']])]
@@ -430,7 +422,6 @@ class CreatesEdgeList(object):
             print('Total Unique Edge Count: {}'.format(len(unique_edges)))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(set([x[0] for x in unique_edges]))))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(set([x[1] for x in unique_edges]))))
-            print('\n\n')
 
         # save a copy of the final master edge list
         with open('/'.join(self.source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:
