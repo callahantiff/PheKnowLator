@@ -100,8 +100,6 @@ STEP 0: Select the Build and Construction Type
 The knowledge graph build algorithm has been designed to run from three different stages of development (i.e. build types):
 ``full``, ``partial``, and ``post-closure``. It can also be built using two different construction types: ``instance-based`` and ``subclass-based``. Please see the knowledge graph `README`_ for more information.  
 
-|
-
 STEP 1: Prepare Input Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -129,7 +127,7 @@ STEP 2: Download and Preprocess Data
 STEP 3: Process Ontology Data and Build Edge Lists  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Process ontologies to verify they are error free, consistent, and normalized to integrate overlapping edge data sources.  
+* Process ontologies to verify they are error free, consistent, and normalized to integrate overlapping edge data sources (see the `Ontology README`_ for more information).  
 
 * Create new edges between ontology classes and edge data sources.
 
@@ -210,7 +208,9 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 
 .. _`KG Construction`: https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction
 
-.. _`README`: https://github.com/callahantiff/blob/PheKnowLator/master/resources/knowledge_graphs
+.. _`Ontology README`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/README.md
+
+.. _`README`: https://github.com/callahantiff/blob/PheKnowLator/master/resources/knowledge_graphs/README.md
 
 .. _`Document Dependencies`: https://github.com/callahantiff/PheKnowLator/wiki/Dependencies
 
