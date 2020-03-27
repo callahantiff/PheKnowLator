@@ -6,7 +6,7 @@ import argparse
 
 from pkt_kg.downloads import OntData, LinkedData
 from pkt_kg.edge_list import CreatesEdgeList
-from pkt_kg.knowledge_graph import KGBuilder
+from pkt_kg.knowledge_graph import PartialBuild, FullBuild, PostClosureBuild
 
 
 def main():
@@ -36,16 +36,16 @@ def main():
     # STEP 2: PREPROCESS DATA
     # see the 'Data_Preparation.ipynb' file for instructions
 
-    # STEP 3: PROCESS ONTOLOGIES (1183.154 seconds)
+    # STEP 3: PROCESS ONTOLOGIES
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
-    ont = OntData(data_path=args.onts)
-    # ont = OntData(data_path='resources/ontology_source_list.txt')
+    # ont = OntData(data_path=args.onts)
+    ont = OntData(data_path='resources/ontology_source_list.txt')
     ont.downloads_data_from_url('imports')
 
-    # STEP 4: PROCESS EDGE DATA (4980.956 seconds)
+    # STEP 4: PROCESS EDGE DATA
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
-    edges = LinkedData(data_path=args.cls)
-    # edges = LinkedData(data_path='resources/edge_source_list.txt')
+    # edges = LinkedData(data_path=args.cls)
+    edges = LinkedData(data_path='resources/edge_source_list.txt')
     edges.downloads_data_from_url()
 
     #####################
@@ -56,8 +56,8 @@ def main():
 
     # STEP 1: create master resource dictionary
     combined_edges = dict(edges.data_files, **ont.data_files)
-    # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
-    master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
+    master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
+    # master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     master_edges.creates_knowledge_graph_edges()
 
     #########################
@@ -65,6 +65,15 @@ def main():
     #########################
 
     print('\n' + '=' * 33 + '\nBUILDING KNOWLEDGE GRAPH\n' + '=' * 33 + '\n')
+
+    kg = PartialBuild(kg_version='v2.0.0',
+                      write_location='./resources/knowledge_graphs',
+                      edge_data='./resources/Master_Edge_List_Dict.json',
+                      node_data='no',
+                      inverse_relations='yes',
+                      decode_owl_semantics='no')
+
+
 
     if args.kg == 'partial':
         kg = PartialBuild(kg_version='v2.0.0',
