@@ -5,12 +5,13 @@
 
 **Wiki Page:** **[`KG-Construction`](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction)**  
 
-___
+____
 
 ### Purpose
 Describe the different parameters and arguments that can be passed when using PheKnowLator to build a knowledge graph. The different options include: [build type](#build-type), [construction approach](#construction-approach), [relation or edge directionality](#relationsedge-directionality), [node metadata](#node-metadata) use, and [decoding of owl semantics](#decoding-owl-semantics). Each of these parameters is explained below.  
 
 <br>
+
 _____
 
 
