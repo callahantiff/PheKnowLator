@@ -8,7 +8,7 @@ import json
 import networkx   # type: ignore
 import os
 import pandas   # type: ignore
-import subprocess
+import subprocess2
 import uuid
 
 from abc import ABCMeta, abstractmethod
@@ -17,7 +17,7 @@ from rdflib.namespace import RDF  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Callable, Dict, List, Optional
 
-from pkt_kg.utils import gets_ontology_statistics
+from pkt_kg.utils import gets_ontology_statistics, merges_ontologies
 from pkt_kg.metadata import Metadata
 from pkt_kg.owlnets import OwlNets
 
@@ -50,8 +50,7 @@ class KGBuilder(object):
                                   'data_type': 'class-instance',
                                   'edge_relation': 'RO_0002436',
                                   'uri': ['http://purl.obolibrary.org/obo/', 'https://reactome.org/content/detail/'],
-                                  'row_splitter': 'n',
-                                  'column_splitter': 't',
+                                  'delimiter': 't',
                                   'column_idx': '0;1',
                                   'identifier_maps': 'None',
                                   'evidence_criteria': 'None',
@@ -123,7 +122,7 @@ class KGBuilder(object):
         else:
             self.write_location = write_location
 
-        # KNOWLEDGE GRAPH EDDE LIST
+        # KNOWLEDGE GRAPH EDGE LIST
         if edge_data is None:
             raise ValueError('ERROR: edge_data must not contain a valid filepath')
         elif not os.path.exists(edge_data):
@@ -225,33 +224,6 @@ class KGBuilder(object):
                     self.relations_dict = df.to_dict('index')
 
         return None
-
-    def merges_ontologies(self) -> None:
-        """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into
-        a master merged ontology file and saved locally to the provided file path via the merged_ontology attribute.
-        The function assumes that the file is written to the directory specified by the write_location attribute.
-
-        Returns:
-            None.
-        """
-
-        if not self.ontologies:
-            gets_ontology_statistics(self.write_location + self.merged_ont_kg)
-        else:
-            if self.write_location + self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
-                ont1, ont2 = self.ontologies.pop(), self.write_location + self.merged_ont_kg
-            else:
-                ont1, ont2 = self.ontologies.pop(), self.ontologies.pop()
-
-            print('\nMerging Ontologies: {ont1}, {ont2}\n'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
-            try:
-                subprocess.check_call(['./pkt_kg/libs/owltools', str(ont1), str(ont2),
-                                       '--merge-support-ontologies',
-                                       '-o', self.write_location + self.merged_ont_kg])
-            except subprocess.CalledProcessError as error:
-                print(error.output)
-
-            return self.merges_ontologies()
 
     def checks_for_inverse_relations(self, relation: str, edge_list: List[List[str]]) -> Optional[str]:
         """Checks a relation to determine whether or not edges for an inverse relation should be created and added to
@@ -749,7 +721,7 @@ class PartialBuild(KGBuilder):
                     self.write_location + '/' + glob.glob('*/ontologies')[0]))
             else:
                 print('*** Merging Ontology Data ***')
-                self.merges_ontologies()
+                merges_ontologies(self.ontologies, self.write_location, self.merged_ont_kg)
 
         # STEP 5: ADD MASTER EDGE DATA TO KNOWLEDGE GRAPH
         # create temporary directory to store partial builds
@@ -962,7 +934,7 @@ class FullBuild(KGBuilder):
                     self.write_location + '/' + glob.glob('*/ontologies')[0]))
             else:
                 print('*** Merging Ontology Data ***')
-                self.merges_ontologies()
+                merges_ontologies(self.ontologies, self.write_location, self.merged_ont_kg)
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
