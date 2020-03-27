@@ -8,7 +8,7 @@ import json
 import networkx   # type: ignore
 import os
 import pandas   # type: ignore
-import subprocess2
+import subprocess
 import uuid
 
 from abc import ABCMeta, abstractmethod
