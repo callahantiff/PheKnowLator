@@ -3,7 +3,7 @@
 ***
 ***
 
-**Wiki Page:** **[`Data Sources`](https://github.com/callahantiff/PheKnowLator/wiki/v2-Data-Sources)**  
+**Wiki Page:** **[`Data Sources`](https://github.com/callahantiff/PheKnowLator/wiki/v2-Data-Sources#data-sources)**  
 **Jupyter Notebook:** **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)**  
 **Script:** **[`edge_list.py`](https://github.com/callahantiff/PheKnowLator/blob/master/pkt_kg/edge_list.py)** 
 
