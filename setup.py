@@ -29,11 +29,12 @@ def find_version(*file_paths):
 __version__ = find_version("pkt_kg", "__version__.py")
 
 test_deps = [
-    "pytest",
-    "pytest-cov",
+    "codacy-coverage",
     "coveralls",
+    'nose',
+    "nose-cov",
     "validate_version_code",
-    "codacy-coverage"
+    "pylint"
 ]
 
 extras = {
@@ -53,11 +54,11 @@ setup(
     author_email="tiffany.callahan@cusanchutz.edu, william.baumgartner@cusanchutz.edu",
 
     # Choose your license
-    license='MIT',
+    license='Apache 2.0',
     include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: Apache 2.0 License',
         'Programming Language :: Python :: 3'
     ],
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
