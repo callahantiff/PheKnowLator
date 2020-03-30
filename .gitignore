@@ -27,11 +27,14 @@ Untitled*
 
 # ignoring resource preparation files and metadata information
 !/resources/ontologies/ontology_source_metadata.txt
+!/resources/ontologies/README.md
 !/resources/edge_data/edge_source_metadata.txt
+!/resources/edge_data/README.md
 !/resources/node_data/README.md
 !/resources/relations_data/README.md
 !/resources/embeddings/README.md
 !/resources/knowledge_graphs/OWL_NETS_Property_Types.txt
+!/resources/knowledge_graphs/README.md
 
 # releases
 /releases/*
