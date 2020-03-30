@@ -94,76 +94,11 @@ Workflow
 The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process. A brief overview of this process is also provided provided below.
 
 
-STEP 0: Select the Build Type
+STEP 0: Select the Build and Construction Type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The knowledge graph build algorithm has been designed to run from three different stages of development:
-``full``, ``partial``, and ``post-closure``. For details on each of these, please see the table below.
-
-+-----------------------------------+-----------------+-----------------+
-| Build Type                        | Description     | Use Cases       |
-+===================================+=================+=================+
-| ``full``                          | Runs all build  | You want to     |
-|                                   | steps in the    | build a         |
-|                                   | algorithm       | knowledge graph |
-|                                   |                 | and will not    |
-|                                   |                 | use a reasoner  |
-+-----------------------------------+-----------------+-----------------+
-| ``partial``                       | Runs all of the | You want to     |
-|                                   | build steps in  | build a         |
-|                                   | the algorithm   | knowledge graph |
-|                                   | through adding  | and plan to run |
-|                                   | the edges. If   | a reasoner over |
-|                                   | ``node_data``   | it You want to  |
-|                                   | is provided, it | build a         |
-|                                   | will not be     | knowledge       |
-|                                   | added to the    | graph, but do   |
-|                                   | knowledge       | not want to     |
-|                                   | graph, but      | include node    |
-|                                   | instead used to | metadata,       |
-|                                   | filter the      | filter OWL      |
-|                                   | edges such that | semantics, or   |
-|                                   | only those      | generate triple |
-|                                   | edges with      | lists           |
-|                                   | valid node      |                 |
-|                                   | metadata are    |                 |
-|                                   | added to the    |                 |
-|                                   | knowledge graph |                 |
-|                                   | Node metadata   |                 |
-|                                   | can always be   |                 |
-|                                   | added to a      |                 |
-|                                   | ``partial``     |                 |
-|                                   | built knowledge |                 |
-|                                   | graph by        |                 |
-|                                   | running the     |                 |
-|                                   | build as        |                 |
-|                                   | `               |                 |
-|                                   | `post-closure`` |                 |
-+-----------------------------------+-----------------+-----------------+
-| ``post-closure``                  | Assumes that a  | You have run    |
-|                                   | reasoner was    | the ``partial`` |
-|                                   | run over a      | build, ran a    |
-|                                   | knowledge graph | reasoner over   |
-|                                   | and that the    | it, and now     |
-|                                   | remaining build | want to         |
-|                                   | steps should be | complete the    |
-|                                   | applied to a    | algorithm You   |
-|                                   | closed          | want to use the |
-|                                   | knowledge       | algorithm to    |
-|                                   | graph. The      | process         |
-|                                   | remaining build | metadata and    |
-|                                   | steps include   | owl semantics   |
-|                                   | determining     | for an          |
-|                                   | whether OWL     | externally      |
-|                                   | semantics       | built knowledge |
-|                                   | should be       | graph           |
-|                                   | filtered and    |                 |
-|                                   | creating and    |                 |
-|                                   | writing triple  |                 |
-|                                   | lists           |                 |
-+-----------------------------------+-----------------+-----------------+
-
-|
+The knowledge graph build algorithm has been designed to run from three different stages of development (i.e. build types):
+``full``, ``partial``, and ``post-closure``. It can also be built using two different construction types: ``instance-based`` and ``subclass-based``. Please see the knowledge graph `README`_ for more information.  
 
 STEP 1: Prepare Input Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -192,7 +127,7 @@ STEP 2: Download and Preprocess Data
 STEP 3: Process Ontology Data and Build Edge Lists  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Process ontologies to verify they are error free, consistent, and normalized to integrate overlapping edge data sources.  
+* Process ontologies to verify they are error free, consistent, and normalized to integrate overlapping edge data sources (see the `Ontology README`_ for more information).  
 
 * Create new edges between ontology classes and edge data sources.
 
@@ -272,6 +207,10 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 .. _main.py: https://github.com/callahantiff/pheknowlator/blob/master/main.py
 
 .. _`KG Construction`: https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction
+
+.. _`Ontology README`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/README.md
+
+.. _`README`: https://github.com/callahantiff/blob/PheKnowLator/master/resources/knowledge_graphs/README.md
 
 .. _`Document Dependencies`: https://github.com/callahantiff/PheKnowLator/wiki/Dependencies
 
