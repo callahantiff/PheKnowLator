@@ -32,11 +32,11 @@ import pandas as pd  # type: ignore
 import re
 import requests
 import shutil
+import urllib3  # type: ignore
 
 from contextlib import closing
 from io import BytesIO
 from reactome2py import content  # type: ignore
-# from requests.packages.urllib3.exceptions import InsecureRequestWarning, HTTPError
 from tqdm import tqdm  # type: ignore
 from typing import Dict, Generator, List, Union
 from urllib.request import urlopen
@@ -48,7 +48,7 @@ from zipfile import ZipFile
 pd.options.mode.chained_assignment = None
 
 # WARNING 2 - urllib3: disable insecure request warning
-# requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def url_download(url: str, write_location: str, filename: str) -> None:
@@ -443,7 +443,7 @@ def mesh_finder(data: pd.DataFrame, xid: str, id_typ: str, id_dic: Dict[str, Lis
 
 
 def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, genomic2: str,
-                      genomic_type: str = None) -> None:
+                      genomic_type: str = None, save_prefix1: bool = False, save_prefix2: bool = False) -> None:
     """Searches a dictionary of genomic identifier mappings and processes them, writing out
 
     Args:
@@ -455,6 +455,10 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
         genomic2: A string indicating a genomic identifier type (i.e. transcript_stable_id, ensembl_gene_id,
             entrez_id, hgnc_id, symbol).
         genomic_type: A string indicating whether or not to save the gene or transcript type.
+        save_prefix1: A flag indicating whether or not genomic identifier 1's prefix should be saved or removed from the
+            dictionary string value.
+        save_prefix2: A flag indicating whether or not genomic identifier 2's prefix should be saved or removed from the
+            dictionary string value.
 
     Return:
         None.
@@ -463,16 +467,33 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
     with open(filename, 'w') as outfile:
         for key in tqdm(id_dict.keys()):
             id_data = id_dict[key]
-            gene_type = [x.split('_')[-1] for x in id_data if x.startswith(genomic_type)][0] if genomic_type else \
-                'Nones'
+            g_type = [x.split('_')[-1] for x in id_data if x.startswith(genomic_type)][0] if genomic_type else 'None'
 
             for res in id_data:
                 if genomic1 in key and res.startswith(genomic2):
-                    outfile.write(key.split('_')[-1] + '\t' + res.split('_')[-1] + '\t' + gene_type + '\n')
+                    if save_prefix1 and save_prefix2:
+                        res1, res2 = '_'.join(key.split('_')[-2:]), '_'.join(res.split('_')[-2:])
+                    elif not save_prefix1 and save_prefix2:
+                        res1, res2 = key.split('_')[-1], '_'.join(res.split('_')[-2:])
+                    elif save_prefix1 and not save_prefix2:
+                        res1, res2 = '_'.join(key.split('_')[-2:]), res.split('_')[-1]
+                    else:
+                        res1, res2 = key.split('_')[-1], res.split('_')[-1]
                 elif genomic2 in key and res.startswith(genomic1):
-                    outfile.write(res.split('_')[-1] + '\t' + key.split('_')[-1] + '\t' + gene_type + '\n')
+                    if save_prefix1 and save_prefix2:
+                        res1, res2 = '_'.join(res.split('_')[-2:]), '_'.join(key.split('_')[-2:])
+                    elif not save_prefix1 and save_prefix2:
+                        res1, res2 = res.split('_')[-1], '_'.join(key.split('_')[-2:])
+                    elif save_prefix1 and not save_prefix2:
+                        res1, res2 = '_'.join(res.split('_')[-2:]), key.split('_')[-1]
+                    else:
+                        res1, res2 = res.split('_')[-1], key.split('_')[-1]
                 else:
                     continue
+
+                if res1 != 'None' and res2 != 'None':
+                    outfile.write(res1 + '\t' + res2 + '\t' + g_type + '\n')
+
     outfile.close()
 
     return None

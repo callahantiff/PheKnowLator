@@ -32,7 +32,7 @@ script:
 - coverage report
 - coverage xml
 - pylint --errors-only --exit-zero pkt_kg
-#- mypy --strict-optional pkt_kg
+- mypy --strict-optional pkt_kg
 - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sonar-scanner; fi' # sonar only on non-PRs
 after_success:
 - coveralls

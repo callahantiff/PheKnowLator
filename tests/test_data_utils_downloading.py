@@ -5,11 +5,15 @@ import requests
 import responses
 import shutil
 import unittest
+import urllib3
 
 from contextlib import closing
 from urllib.request import urlopen
 
 from pkt_kg.utils import *
+
+# disable warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # TODO - Travis failing - Need to adjust timeout settings
 

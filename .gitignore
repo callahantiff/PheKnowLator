@@ -1,24 +1,24 @@
 # Created by .ignore support plugin (hsz.mobi)
 
 # Distribution/packaging/Environments
-__pycache__
-__pycache__/
-**/__pycache__/*
+\.DS_Store
 .idea/
 .ipynb_checkpoints/*
 .mypy*
-\.DS_Store
+__pycache__
+__pycache__/
+**/__pycache__/*
 
 # data
-/resources/processed_data/
+/resources/*.json
 /resources/edge_data/*
-/resources/node_data/*
-/resources/relations_data/*
+/resources/embeddings/*
 /resources/knowledge_graphs/
 /resources/kr_model/
+/resources/node_data/*
 /resources/ontologies/*
-/resources/*.json
-/resources/embeddings/*
+/resources/processed_data/
+/resources/relations_data/*
 
 # scripts
 pkt_kg/kg_embedding_visualizer.py
@@ -39,12 +39,12 @@ Untitled*
 # releases
 /releases/*
 
-# API keys/passwords
+# api keys/passwords
 /resources/bioportal_api_key.txt
 
 # external libraries
-pkt_kg/libs/walking-rdf-and-owl-master/*
 pkt_kg/libs/deepwalk_c_master/*
+pkt_kg/libs/walking-rdf-and-owl-master/*
 
 # testing files
 .single_run

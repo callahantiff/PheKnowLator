@@ -6,19 +6,25 @@ Knowledge Graph Utility Functions.
 
 Interacts with OWL Tools API
 * gets_ontology_statistics
+*
 """
 
 # import needed libraries
+import glob
 import os
+import os.path
 import subprocess
 
+from typing import List
 
-def gets_ontology_statistics(file_location: str) -> None:
+
+def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt_kg/libs/owltools') -> None:
     """Uses the OWL Tools API to generate summary statistics (i.e. counts of axioms, classes, object properties, and
     individuals).
 
     Args:
         file_location: A string that contains the file path and name of an ontology.
+        owltools_location: A string pointing to the location of the owl tools library.
 
     Returns:
         None.
@@ -36,7 +42,7 @@ def gets_ontology_statistics(file_location: str) -> None:
     elif os.stat(file_location).st_size == 0:
         raise ValueError('FILE ERROR: input file: {} is empty'.format(file_location))
     else:
-        output = subprocess.check_output(['./pkt_kg/libs/owltools', file_location, '--info'])
+        output = subprocess.check_output([os.path.abspath(owltools_location), file_location, '--info'])
 
     # print stats
     res = output.decode('utf-8').split('\n')[-5:]
@@ -46,3 +52,40 @@ def gets_ontology_statistics(file_location: str) -> None:
     print(sent.format(cls, axs, op, ind))
 
     return None
+
+
+def merges_ontologies(ontology_files: List[str], write_location: str, merged_ont_kg: str,
+                      owltools_location: str = './pkt_kg/libs/owltools') -> None:
+    """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into a
+    master merged ontology file and saved locally to the provided file path via the merged_ontology attribute. The
+    function assumes that the file is written to the directory specified by the write_location attribute.
+
+    Args:
+        ontology_files: A list of ontology file paths.
+        write_location: A string pointing to a local directory for writing data.
+        merged_ont_kg: A string pointing to the location of the merged ontology file.
+        owltools_location: A string pointing to the location of the owl tools library.
+
+    Returns:
+        None.
+    """
+
+    if not ontology_files:
+        # gets_ontology_statistics(write_location + merged_ont_kg, owltools_location)
+        return None
+    else:
+        if write_location + merged_ont_kg in glob.glob(write_location + '/*.owl'):
+            ont1, ont2 = ontology_files.pop(), write_location + merged_ont_kg
+        else:
+            ont1, ont2 = ontology_files.pop(), ontology_files.pop()
+
+        try:
+            print('\nMerging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
+
+            subprocess.check_call([os.path.abspath(owltools_location), str(ont1), str(ont2),
+                                   '--merge-support-ontologies',
+                                   '-o', write_location + merged_ont_kg])
+        except subprocess.CalledProcessError as error:
+            print(error.output)
+
+        return merges_ontologies(ontology_files, write_location, merged_ont_kg)

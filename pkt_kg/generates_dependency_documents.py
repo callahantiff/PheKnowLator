@@ -83,10 +83,7 @@ class DocumentationMaker(object):
                               '"instance" or each node in the edge separated by "-" --> "class-subclass"): ')
             print('\n')
 
-            row_splitter = input('Provide the character used to split input text into rows (e.g. "n" or "!"): ')
-            print('\n')
-
-            col_splitter = input('Provide the character used to split each row into columns (e.g. "t" or ","): ')
+            delimiter = input('Provide the character used to split each row into columns (e.g. "t" or ","): ')
             print('\n')
 
             col_idx = input('Provide the column index for each node in the input data, separated by ";" (e.g. "0;3"): ')
@@ -133,12 +130,10 @@ class DocumentationMaker(object):
             print('\n')
 
             # add edge data to dictionary
-            resource_data[edge_name] = '{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}|{9}|{10}'.format(source_label, data_type,
-                                                                                             edge_relation, subj_uri,
-                                                                                             obj_uri, row_splitter,
-                                                                                             col_splitter, col_idx,
-                                                                                             id_maps, evi_crit,
-                                                                                             filt_crit)
+            resource_data[edge_name] = '{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}|{9}'.format(source_label, data_type,
+                                                                                        edge_relation, subj_uri,
+                                                                                        obj_uri, delimiter, col_idx,
+                                                                                        id_maps, evi_crit, filt_crit)
 
             # get edge data sources
             edge_data[edge_name] = input('Provide a URL or file path to data used to create this edge: ')
@@ -174,7 +169,7 @@ def main():
           'you create three documents: (1) resource_info.txt; (2) ontology_source_info.txt; and (3) '
           'edge_source_info.txt.\nAn example of the data this program expects to find within each of these '
           'documents is shown below:\n\n(1) resource_info.txt: This document represents each edge type as a single '
-          '"|" delimited string and contains a total of 12 items:\n\t(1) Edge Type: A string containing a "-" '
+          '"|" delimited string and contains a total of 11 items:\n\t(1) Edge Type: A string containing a "-" '
           'delimited edge label (node1-node2)\n\t(2) Source Labels: 3 ";"-delimited strings (e.g. ":;GO_;GO_)":\n\t\t'
           '-the character to split existing labels (e.g. ":" in GO:1283834)\n\t\t-a new label for the subject '
           'node\n\t\t-a new label for the object node. If the existing label is correct, use ";;";\n\t(3) Data '
@@ -183,18 +178,17 @@ def main():
           'nodes (e.g. "RO_0000056")\n\t(5) Subject URI: A Universal Resource Identifier that will be connected to '
           'the subject node in the Edge Type (e.g. "http://purl.uniprot.org/geneid/");\n\t(6) Object URI: A Universal '
           'Resource Identifier that will be connected to the object node in the Edge Type (e.g. '
-          '"http://purl.obolibrary.org/obo/");\n\t(7) Row Splitter: A character used to split input text into rows ('
-          'i.e. "n" or "!");\n\t(8) Column Splitter: A character used to split input text rows into columns (e.g. "t" '
-          'or ",");\n\t(9) Column Indices: two column indices separated by ";" (e.g. 0;4 for the first and third '
-          'columns);\n\t(10) Identifier Maps: A string indicating the column index in the input data source needing '
-          'identifier mapping and a file pointing to mapping data, for example:\n'
+          '"http://purl.obolibrary.org/obo/");\n\t(7) Delimiter: A character used to split input text rows into '
+          'columns (e.g. "t" or ",");\n\t(8) Column Indices: two column indices separated by ";" (e.g. 0;4 for the '
+          'first and third columns);\n\t(9) Identifier Maps: A string indicating the column index in the input data'
+          ' source needing identifier mapping and a file pointing to mapping data, for example:\n'
           '\t\t"2:./resources/processed_data/mapping_file_1.txt;4:./resources/processed_data/mapping_file_2.txt" '
           'means:\n\t\t\t-mapping data from the first node in the edge to the 0th column in '
           '"mapping_file_1.txt"\n\t\t\t-mapping data from the second node in the edge to the 4th column in '
-          '"mapping_file_2.txt");\n\t(11) Evidence Criteria: Sets of 3 "::"-separated items, where each set is '
+          '"mapping_file_2.txt");\n\t(10) Evidence Criteria: Sets of 3 "::"-separated items, where each set is '
           'composed of three pieces of ";"-separated information (e.g. "4;!=;IEA::8;<;0.0001" - means:\n\t\t-filter '
           'the 4th column to keep rows that do not contain "IEA"\n\t\t-filter the 8th column to keep rows with a '
-          'value less than "0.0001");\n\t(12) Filter Criteria: Sets of 3 "::"-separated items, where each set is '
+          'value less than "0.0001");\n\t(11) Filter Criteria: Sets of 3 "::"-separated items, where each set is '
           'composed of three pieces of ";"-separated information (e.g. "5;==;P::7;==;9606" - means:\n\t\t-filter the '
           '5th column to only include rows with "P"\n\t\tfilter the 7th column to only include rows containing '
           '"99606").\n\n\tAn example line from the resource_info.txt file is shown '

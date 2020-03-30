@@ -29,7 +29,7 @@ class TestDocumentationMaker(unittest.TestCase):
         """Tests the information_getter method."""
 
         mocked_input.side_effect = ['go-gene', 'one', 'go', 'http://purl.obolibrary.org/obo/go.owl', 'class-class',
-                                    'n', 't', '0;1', 'None', 'None', 'None', 'RO_0000056',
+                                    't', '0;1', 'None', 'None', 'None', 'RO_0000056',
                                     'http://purl.obolibrary.org/obo/', 'http://purl.uniprot.org/geneid/', ':;GO_;',
                                     'http://geneontology.org/gene-associations/goa_human.gaf.gz']
 
@@ -37,7 +37,7 @@ class TestDocumentationMaker(unittest.TestCase):
 
         # create result dicts
         resource_info = {'go-gene': ':;GO_;|class-class|RO_0000056|http://purl.obolibrary.org/obo/|http://purl'
-                                    '.uniprot.org/geneid/|n|t|0;1|None|None|None'}
+                                    '.uniprot.org/geneid/|t|0;1|None|None|None'}
         ont_info = {'go': 'http://purl.obolibrary.org/obo/go.owl'}
         edge_info = {'go-gene': 'http://geneontology.org/gene-associations/goa_human.gaf.gz'}
 
