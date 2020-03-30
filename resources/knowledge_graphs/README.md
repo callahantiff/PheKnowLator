@@ -60,7 +60,7 @@ Would require adding:
 Method | Inputs 
 :--: | ---   
 Instance-Based | [`Master_Edge_List_Dict.json`](https://www.dropbox.com/s/4j0vrwx26dh8hd1/Master_Edge_List_Dict.json?dl=1) (Steps 1-3 of [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction))  
-Subclass-Based | [`Master_Edge_List_Dict.json`](https://www.dropbox.com/s/4j0vrwx26dh8hd1/Master_Edge_List_Dict.json?dl=1) (Steps 1-3 of [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction))<br><br>[`sublass_construction_map.pkl`]()  
+Subclass-Based | [`Master_Edge_List_Dict.json`](https://www.dropbox.com/s/4j0vrwx26dh8hd1/Master_Edge_List_Dict.json?dl=1) (Steps 1-3 of [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction))<br><br>[`sublass_construction_map.pkl`](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0#creation-of-mapping-filtering-and-labeling-data)  
 
 <br>
 
