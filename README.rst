@@ -7,7 +7,9 @@ pkt_kg
 .. |pip| |downloads|
 
 
-PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information regarding this project can be found on the associated `Wiki`_. 
+PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 library explicitly designed for optimized
+construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information
+regarding this project can be found on the project `Wiki`_.
 
 |DOI|
 
@@ -23,9 +25,8 @@ This repository contains more than just code, it provides a detailed and transpa
 
 Tests Coverage
 ----------------------------------------------
-Since some software handling coverages sometime get slightly different results, here's three of them:
 
-|coveralls| |sonar_coverage| |code_climate_coverage|
+|coveralls| |sonar_coverage|
 
 |
 
@@ -54,9 +55,9 @@ This program requires Python version 3.6. To install it, run the following:
 * **Mapping, Filtering, and Labeling Data:** Run the `data_preparation.ipynb`_ notebook to build mapping, filtering, and labeling datasets.
 
 
-* **Important.** This code depends on four documents in order to run successfully. See *STEP 1: Prepare Input Documents* below for more details.
-
-  * `OWLTools`_ library. Please download it to ``resources/lib/`` prior to running ``main.py``.
+* **Important.** This code depends on several documents in order to run successfully. See *STEP 1: Prepare Input
+Documents*
+below for more details.
 
 
 * **Data Sources:** This knowledge graph is built entirely on publicly available linked open data and `Open Biomedical Ontologies`_.  🙏 🙇‍♀ Please see the `Data Source`_ Wiki page for information.
@@ -127,7 +128,9 @@ STEP 2: Download and Preprocess Data
 STEP 3: Process Ontology Data and Build Edge Lists  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Process ontologies to verify they are error free, consistent, and normalized to integrate overlapping edge data sources (see the `Ontology README`_ for more information).  
+* Process ontologies to verify they are error free, consistent, and normalized prior to constructing the knowledge graph
+(see the
+`Ontology README`_ for more information).
 
 * Create new edges between ontology classes and edge data sources.
 
@@ -136,12 +139,11 @@ STEP 4: Build Knowledge Graph
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Merge ontologies used as classes.
-2. Add class-instance and instance-instance edges to merged ontologies.
-3. Remove disjointness axioms.  
-4. Deductively close knowledge graph using `Elk reasoner`_  
-5. Remove edges that are not clinically meaningful.  
-6. Write edges (as triples) to local directory.  
-7. Convert original edges to integers and write to local directory (required input format for generating embeddings).
+2. Add new edges to merged ontologies.
+3. Deductively close knowledge graph using `Elk reasoner`_
+4. Remove edges that are not clinically meaningful (OWL-NETS).
+5. Write edges (as triples) to local directory.
+6. Convert original edges to integers and write to local directory (required input format for generating embeddings).
 
 --------------
 
