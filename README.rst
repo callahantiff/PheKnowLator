@@ -55,9 +55,7 @@ This program requires Python version 3.6. To install it, run the following:
 * **Mapping, Filtering, and Labeling Data:** Run the `data_preparation.ipynb`_ notebook to build mapping, filtering, and labeling datasets.
 
 
-* **Important.** This code depends on several documents in order to run successfully. See *STEP 1: Prepare Input
-Documents*
-below for more details.
+* **Important.** This code depends on several documents in order to run successfully. See *STEP 1: Prepare Input Documents* below for more details.
 
 
 * **Data Sources:** This knowledge graph is built entirely on publicly available linked open data and `Open Biomedical Ontologies`_.  🙏 🙇‍♀ Please see the `Data Source`_ Wiki page for information.
