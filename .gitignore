@@ -11,12 +11,14 @@ __pycache__/
 
 # data
 /resources/*.json
+/resources/construction_approach/*
 /resources/edge_data/*
 /resources/embeddings/*
 /resources/knowledge_graphs/
 /resources/kr_model/
 /resources/node_data/*
 /resources/ontologies/*
+/resources/owl_decoding/*
 /resources/processed_data/
 /resources/relations_data/*
 
@@ -26,15 +28,18 @@ pkt_kg/knowledge_graph_embedder.py
 Untitled*
 
 # ignoring resource preparation files and metadata information
-!/resources/ontologies/ontology_source_metadata.txt
-!/resources/ontologies/README.md
+!/resources/construction_approach/instance/README.md
+!/resources/construction_approach/subclass/README.md
 !/resources/edge_data/edge_source_metadata.txt
 !/resources/edge_data/README.md
-!/resources/node_data/README.md
-!/resources/relations_data/README.md
 !/resources/embeddings/README.md
 !/resources/knowledge_graphs/OWL_NETS_Property_Types.txt
 !/resources/knowledge_graphs/README.md
+!/resources/ontologies/ontology_source_metadata.txt
+!/resources/ontologies/README.md
+!/resources/node_data/README.md
+!/resources/owl_decoding/README.md
+!/resources/relations_data/README.md
 
 # releases
 /releases/*
