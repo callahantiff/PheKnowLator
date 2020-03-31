@@ -42,10 +42,10 @@ class TestMetadata(unittest.TestCase):
         self.assertIsInstance(self.metadata.node_dict, Dict)
         self.assertTrue('gene-phenotype' in self.metadata.node_dict.keys())
         self.assertIsInstance(self.metadata.node_dict['gene-phenotype'], Dict)
-        self.assertTrue(len(self.metadata.node_dict['gene-phenotype']) == 4182)
-        self.assertIn('Label', self.metadata.node_dict['gene-phenotype']['3115'].keys())
-        self.assertIn('Synonym', self.metadata.node_dict['gene-phenotype']['3115'].keys())
-        self.assertIn('Description', self.metadata.node_dict['gene-phenotype']['3115'].keys())
+        self.assertTrue(len(self.metadata.node_dict['gene-phenotype']) == 3)
+        self.assertIn('Label', self.metadata.node_dict['gene-phenotype']['2'].keys())
+        self.assertIn('Synonym', self.metadata.node_dict['gene-phenotype']['2'].keys())
+        self.assertIn('Description', self.metadata.node_dict['gene-phenotype']['2'].keys())
 
         return None
 
@@ -58,7 +58,7 @@ class TestMetadata(unittest.TestCase):
         org_graph_len = len(graph)
 
         # test when the node has metadata
-        updated_graph_good = self.metadata.creates_node_metadata(node='3115',
+        updated_graph_good = self.metadata.creates_node_metadata(node='2',
                                                                  edge_type='gene-phenotype',
                                                                  url='https://www.ncbi.nlm.nih.gov/gene/',
                                                                  graph=graph)
@@ -67,7 +67,7 @@ class TestMetadata(unittest.TestCase):
 
         # check that the right number of new edges were added to the graph
         graph_diff = len(updated_graph_good) - org_graph_len
-        new_edges = sum([len(x[1].split('|')) for x in self.metadata.node_dict['gene-phenotype']['3115'].items()])
+        new_edges = sum([len(x[1].split('|')) for x in self.metadata.node_dict['gene-phenotype']['2'].items()])
         self.assertTrue(graph_diff == new_edges)
 
         # test when the node does not have metadata
