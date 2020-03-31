@@ -28,6 +28,7 @@ pkt_kg/knowledge_graph_embedder.py
 Untitled*
 
 # ignoring resource preparation files and metadata information
+!/resources/construction_approach/README.md
 !/resources/construction_approach/instance/.gitkeep
 !/resources/construction_approach/subclass/.gitkeep
 !/resources/edge_data/edge_source_metadata.txt
