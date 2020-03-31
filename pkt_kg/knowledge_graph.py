@@ -23,21 +23,34 @@ from pkt_kg.owlnets import OwlNets
 
 
 class KGBuilder(object):
-    """Class creates a semantic knowledge graph.
+    """Class creates a semantic knowledge graph (KG). The class is designed to facilitate two KG construction
+    approaches and three build types:
 
-    The class implements several methods, which are designed to construct a semantic knowledge graph given a
-    dictionary of pre-processed knowledge graph edges, a directory of ontology relation data, and a directory of node
-    metadata. The class is designed to facilitate three types of knowledge graph builds:
-        (1) Full: Runs all build steps in the algorithm.
-        (2) Partial: Runs all of the build steps in the algorithm through adding the class-class, instance-class,
-            class-instance, and instance-instance edges. Designed for those wanting to run a reasoner on a pure logic
-            subset of the knowledge graph.
-        (3) Post-Closure: Assumes that a reasoner was run over a knowledge graph and that the remaining build steps
-            should be applied to a closed knowledge graph.
+        Two Construction Approaches:
+            (1) Instance-based: Adds edge data that is not from an ontology by connecting each non-ontology data
+                node to an instances of existing ontology class. For example, adding the edge (Morphine,
+                isSubstanceThatTreats, Migraine), where Morphine is a non-ontology data node and Migraine is an HPO
+                ontology term, would require adding (x1, rdf:Type, Migraine) and (Morphine, isSubstanceThatTreats, x1).
+            (2) Subclass-based: Adds edge data that is not from an ontology by connecting each non-ontology data node
+                to an existing ontology class. For example, adding the edge (TGFB1, participatesIn, Influenza Virus
+                Induced Apoptosis), where TGFB1 is an PR ontology term and Influenza Virus Induced Apoptosis is a
+                non-ontology data node, would require adding (Influenza Virus Induced Apoptosis, rdfs:subClassOf,
+                Influenza A pathway), (Influenza Virus Induced Apoptosis, rdf:Type, owl:Class), and (TGFB1,
+                participatesIn, Influenza Virus Induced Apoptosis). In this example, Influenza A pathway is an
+                existing ontology class.
+
+        Three Build Types:
+            (1) Full: Runs all build steps in the algorithm.
+            (2) Partial: Runs all of the build steps in the algorithm through adding the class-class, instance-class,
+                class-instance, and instance-instance edges. Designed for those wanting to run a reasoner on a pure logic
+                subset of the knowledge graph.
+            (3) Post-Closure: Assumes that a reasoner was run over a knowledge graph and that the remaining build steps
+                should be applied to a closed knowledge graph.
 
     Attributes:
         kg_version: A string that contains the version of the knowledge graph build.
-        build: A string that indicates what kind of build.
+        construction: A string that indicates what type of construction approach to use (i.e. instance or subclass).
+        build: A string that indicates what kind of build (i.e. partial, post-closure, or full).
         write_location: A file path used for writing knowledge graph data.
         edge_data: A path to a file that references a dictionary of edge list tuples used to build the knowledge graph.
         node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
