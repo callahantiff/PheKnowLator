@@ -11,7 +11,8 @@ __pycache__/
 
 # data
 /resources/*.json
-/resources/construction_approach/*
+/resources/construction_approach/subclass/*
+/resources/construction_approach/instance/*
 /resources/edge_data/*
 /resources/embeddings/*
 /resources/knowledge_graphs/
