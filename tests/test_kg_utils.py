@@ -2,14 +2,13 @@ import glob
 import os.path
 import unittest
 
-from pkt_kg.utils import gets_ontology_statistics, merges_ontologies
+from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter
 
 
 class TestKGUtils(unittest.TestCase):
     """Class to test knowledge graph utility methods."""
 
     def setUp(self):
-
         # initialize data location
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data/ontologies')
@@ -28,6 +27,10 @@ class TestKGUtils(unittest.TestCase):
         # set-up pointer to ontology repo
         self.ontology_repository = glob.glob(self.dir_loc + '/*.owl')
         self.merged_ontology_file = '/PheKnowLator_MergedOntologies.owl'
+
+        # pointer to owltools
+        dir_loc2 = os.path.join(current_directory, 'utils/owltools')
+        self.owltools_location = os.path.abspath(dir_loc2)
 
         return None
 
@@ -60,5 +63,28 @@ class TestKGUtils(unittest.TestCase):
 
         # remove file
         os.remove(self.dir_loc + self.merged_ontology_file)
+
+        return None
+
+    def test_ontology_file_formatter(self):
+        """Tests the ontology_file_formatter method."""
+
+        # set-up input methods
+        owltools = self.owltools_location
+
+        # test method handling of bad file types
+        # not an owl file
+        self.assertRaises(TypeError, ontology_file_formatter, self.dir_loc, '/so_with_imports.txt', owltools)
+
+        # a file that does not exist
+        self.assertRaises(IOError, ontology_file_formatter, self.dir_loc, '/sop_with_imports.owl', owltools)
+
+        # an empty file
+        self.assertRaises(TypeError, ontology_file_formatter, self.dir_loc, '/hp_with_imports.txt', owltools)
+
+        # make sure method runs on legitimate file
+        self.assertTrue(ontology_file_formatter(write_location=self.dir_loc,
+                                                full_kg='/so_with_imports.owl',
+                                                owltools_location=owltools) is None)
 
         return None

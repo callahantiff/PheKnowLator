@@ -6,7 +6,8 @@ Knowledge Graph Utility Functions.
 
 Interacts with OWL Tools API
 * gets_ontology_statistics
-*
+* merges_ontologies
+* ontology_file_formatter
 """
 
 # import needed libraries
@@ -89,3 +90,43 @@ def merges_ontologies(ontology_files: List[str], write_location: str, merged_ont
             print(error.output)
 
         return merges_ontologies(ontology_files, write_location, merged_ont_kg)
+
+
+def ontology_file_formatter(write_location: str, full_kg: str, owltools_location: str = './pkt_kg/libs/owltools') -> \
+        None:
+    """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
+    referenced by graph_location is read in and output to the same location via the OWLTools API.
+
+    Args:
+        write_location: A string pointing to a local directory for writing data.
+        full_kg: A string containing the subdirectory and name of the the knowledge graph file.
+        owltools_location: A string pointing to the location of the owl tools library.
+
+    Returns:
+        None.
+
+    Raises:
+        TypeError: If something other than an .owl file is passed to function.
+        IOError: If the graph_location file is empty.
+        TypeError: If the input file contains no data.
+    """
+
+    print('\n*** Applying OWL API Formatting to Knowledge Graph OWL File ***')
+    graph_write_location = write_location + full_kg
+
+    # check input owl file
+    if '.owl' not in graph_write_location:
+        raise TypeError('ERROR: The provided file is not type .owl')
+    elif not os.path.exists(graph_write_location):
+        raise IOError('The {} file does not exist!'.format(graph_write_location))
+    elif os.stat(graph_write_location).st_size == 0:
+        raise TypeError('ERROR: input file: {} is empty'.format(graph_write_location))
+    else:
+        try:
+            subprocess.check_call([os.path.abspath(owltools_location),
+                                   graph_write_location,
+                                   '-o', graph_write_location])
+        except subprocess.CalledProcessError as error:
+            print(error.output)
+
+    return None
