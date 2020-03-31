@@ -7,6 +7,7 @@ import datetime
 import glob
 import json
 import os
+import os.path
 import pandas  # type: ignore
 import re
 import subprocess
@@ -183,12 +184,15 @@ class Metadata(object):
 
         return graph
 
-    def removes_annotation_assertions(self) -> None:
+    def removes_annotation_assertions(self, owltools_location: str = './pkt_kg/libs/owltools') -> None:
         """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
         removes annotation assertions to make a pure logic subset', which reduces the overall size of the knowledge
         graph, while still being compatible with a reasoner.
 
         Note. This method is usually only applied to partial builds.
+
+        Args:
+            owltools_location: A string pointing to the location of the owl tools library.
 
         Returns:
             None.
@@ -196,7 +200,7 @@ class Metadata(object):
 
         # remove annotation assertions
         try:
-            subprocess.check_call(['./pkt_kg/libs/owltools',
+            subprocess.check_call([os.path.abspath(owltools_location),
                                    self.write_location + self.full_kg,
                                    '--remove-annotation-assertions',
                                    '-o',
