@@ -25,7 +25,7 @@ class Metadata(object):
         node_metadata_flag: A string indicating whether or not node metadata should be added to the knowledge graph.
         write_location: A filepath to the knowledge graph directory (e.g. './resources/knowledge_graphs).
         full_kg: The subdirectory and name of the knowledge graph (e.g.'/relations_only/KG.owl').
-        node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
+        node_data: A filepath to a directory called 'node_data' containing a file for each instance/subclass node.
         node_dict: A nested dictionary storing metadata for the nodes in the edge_dict. Where the outer key is a node
             identifier and each inner key is an identifier type keyed by the identifier type with the value being the
             corresponding metadata for that identifier type. For example:
@@ -151,10 +151,12 @@ class Metadata(object):
         """
 
         for edge_type in edge_dict.keys():
-            if 'instance' not in edge_dict[edge_type]['data_type']:
+            edge_data_type = edge_dict[edge_type]['data_type']
+            if edge_data_type.split('-')[0] == 'class' and edge_data_type.split('-')[1] == 'class':
                 pass
             else:
-                node_idx = [x for x in range(2) if edge_dict[edge_type]['data_type'].split('-')[x] == 'instance']
+                inst_sub_type = 'instance' if 'instance' in edge_data_type else 'subclass'
+                node_idx = [x for x in range(2) if edge_data_type.split('-')[x] == inst_sub_type]
 
                 for edge in tqdm(edge_dict[edge_type]['edge_list']):
                     if self.node_dict and edge_type in self.node_dict.keys():
@@ -176,6 +178,7 @@ class Metadata(object):
         # print kg statistics
         edges = len(set(list(graph)))
         nodes = len(set([str(node) for edge in list(graph) for node in edge[0::2]]))
+
         print('\nThe KG with node metadata contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
         return graph
@@ -292,7 +295,7 @@ class Metadata(object):
         self.extracts_class_metadata(graph)
 
         # create and write edge list data locally
-        print('\nWriting Class and Instance Metadata')
+        print('\nWriting Class Metadata')
         with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w') as outfile:
             outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
 
