@@ -30,56 +30,14 @@ _____
 
 
 ### Construction Method   
-New data can be added to the knowledge graph using 2 different construciton approaches: (1) `instance-based` or (2) `subclass-based`:  
-
-**Instance-Based:** In this approach, each new edge is added as an `instance` of an existing class (via `rdf:Type`) in the knowledge graph.  
-  
-EXAMPLE: Adding the edge: Morphine ➞ `isSubstanceThatTreats` ➞ Migraine
-
-Would require adding:
-- `isSubstanceThatTreats`(Morphine, `x1`)
-- `Type`(`x1`, Migraine)
-
-While the instance of the class Migraines can be treated as an anonymous node in the knowledge graph, we generate a new international resource identifier for each asserted instance.
-
-<br>
-
-**Subclass-Based:**  In this approach, each new edge is added as a subclass of aan existing ontology class (via `rdfs:subClassOf`) in the knowledge graph.
-
-EXAMPLE: Adding the edge: TGFB1 ➞ `participatesIn` ➞ Influenza Virus Induced Apoptosis
-
-Would require adding:
-- `participatesIn`(TGFB1, Influenza Virus Induced Apoptosis)
-- `subClassOf`(Influenza Virus Induced Apoptosis, Influenza A pathway)   
-- `Type`(Influenza Virus Induced Apoptosis, `owl:Class`)  
-
-<br>
-
-**REQUIREMENTS:**  
-
-Method | Inputs 
-:--: | ---   
-Instance-Based | [`Master_Edge_List_Dict.json`](https://www.dropbox.com/s/4j0vrwx26dh8hd1/Master_Edge_List_Dict.json?dl=1) (Steps 1-3 of [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction))  
-Subclass-Based | [`Master_Edge_List_Dict.json`](https://www.dropbox.com/s/4j0vrwx26dh8hd1/Master_Edge_List_Dict.json?dl=1) (Steps 1-3 of [KG Construction](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction))<br><br>[`sublass_construction_map.pkl`](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0#creation-of-mapping-filtering-and-labeling-data)  
-
-<br>
-
-The `subclass_construction_map.pkl` file is a dictionary where keys are node or entity identifiers and values are lists of ontology class URIs to subclass, for example:  
-
-```python
-{
-  'R-HSA-168277': ['http://purl.obolibrary.org/obo/PW_0001054',
-                  'http://purl.obolibrary.org/obo/GO_0046730']
-}                  
-
-```
+New data can be added to the knowledge graph using 2 different construciton approaches: (1) `instance-based` or (2) `subclass-based`. Please see this [`README.md`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/construction_approach/README.md) for more information.   
 
 <br> 
 
 _____
 
 ### Relations/Edge Directionality   
-PheKnowLator can be built using a single set of provided relations (i.e. the `owl:ObjectProperty` or edge which is used to connect the nodes in the graph) with or without the inclusion of each relation's inverse. Please see [this](https://github.com/callahantiff/PheKnowLator/blob/master/resources/relations_data/README.md) README for additional information.  
+PheKnowLator can be built using a single set of provided relations (i.e. the `owl:ObjectProperty` or edge which is used to connect the nodes in the graph) with or without the inclusion of each relation's inverse. Please see this [`README.md`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/relations_data/README.md) for additional information.  
 
 <br> 
 
@@ -87,7 +45,7 @@ _____
 
 
 ### Node Metadata
-The knowledge graph can be built with or without the inclusion of instance node metadata (i.e. labels, descriptions or definitions, and, synonyms). Please see [this](https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md) README for additional information. 
+The knowledge graph can be built with or without the inclusion of instance node metadata (i.e. labels, descriptions or definitions, and, synonyms). Please see this [`README.md`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md) for additional information. 
 
 <br> 
 
@@ -95,7 +53,7 @@ _____
 
 
 ### Decoding OWL Semantics  
-The knowledge graph can be built with or without the inclusion of edges that contain OWL Semantics. Please see [this](https://github.com/callahantiff/PheKnowLator/wiki/OWL-NETS-2.0) Wiki page for additional information. 
+The knowledge graph can be built with or without the inclusion of edges that contain OWL Semantics. Please see this [`README.md`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/owl_decoding/README.md) for additional information. 
 
 <br>
 
