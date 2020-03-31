@@ -23,18 +23,18 @@ def find_version(*file_paths):
                               version_file, re.M)
     if version_match:
         return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+    raise RuntimeError('Unable to find version string.')
 
 
-__version__ = find_version("pkt_kg", "__version__.py")
+__version__ = find_version('pkt_kg', '__version__.py')
 
 test_deps = [
-    "codacy-coverage",
-    "coveralls",
+    'codacy-coverage',
+    'coveralls',
     'nose',
-    "nose-cov",
-    "validate_version_code",
-    "pylint"
+    'nose-cov',
+    'validate_version_code',
+    'pylint'
 ]
 
 extras = {
@@ -44,14 +44,13 @@ extras = {
 setup(
     name='pkt_kg',
     version=__version__,
-    description="A Python library for scalable knowledge semantic graph construction",
+    description='A Python library for scalable knowledge semantic graph construction',
     long_description=long_description,
-    url="https://github.com/callahantiff/PheKnowLator",
-    keywords='knowledge-graph, ontologies, formal-logic, reasoner, deep-learning, biomedical-applications, '
-             'mechanisms, translation-research, linked-open-data, owl, semantic-web, symbolic-ai, '
-             'knowledge-representation',
-    author="Tiffany J. Callahan, William A. Baumgartner, Jr.",
-    author_email="tiffany.callahan@cusanchutz.edu, william.baumgartner@cusanchutz.edu",
+    url='https://github.com/callahantiff/PheKnowLator',
+    keywords='knowledge-graph, ontologies, formal-logic, biomedical-applications, '
+             'mechanisms, translation-research, linked-open-data, owl, semantic-web, symbolic-ai, ',
+    author='Tiffany J. Callahan, William A. Baumgartner, Jr.',
+    author_email='tiffany.callahan@cuanschutz.edu, william.baumgartner@cuanschutz.edu',
 
     # Choose your license
     license='Apache 2.0',
