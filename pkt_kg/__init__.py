@@ -25,6 +25,7 @@ __all__ = [
 
     'CreatesEdgeList',
 
+    'KGBuilder',
     'PartialBuild',
     'PostClosureBuild',
     'FullBuild',
@@ -36,6 +37,6 @@ __all__ = [
 from pkt_kg.generates_dependency_documents import DocumentationMaker
 from pkt_kg.downloads import LinkedData, OntData
 from pkt_kg.edge_list import CreatesEdgeList
-from pkt_kg.knowledge_graph import PartialBuild, PostClosureBuild, FullBuild
+from pkt_kg.knowledge_graph import KGBuilder, PartialBuild, PostClosureBuild, FullBuild
 from pkt_kg.metadata import Metadata
 from pkt_kg.owlnets import OwlNets
