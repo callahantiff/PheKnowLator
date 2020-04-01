@@ -1,1 +1,0 @@
-chemical-disease, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
