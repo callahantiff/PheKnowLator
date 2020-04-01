@@ -5,9 +5,11 @@
 # import needed libraries
 import glob
 import json
-import networkx   # type: ignore
+import networkx  # type: ignore
 import os
-import pandas   # type: ignore
+import os.path
+import pandas  # type: ignore
+import pickle
 import subprocess
 import uuid
 
@@ -17,7 +19,7 @@ from rdflib.namespace import RDF  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Callable, Dict, List, Optional
 
-from pkt_kg.utils import gets_ontology_statistics, merges_ontologies
+from pkt_kg.utils import *
 from pkt_kg.metadata import Metadata
 from pkt_kg.owlnets import OwlNets
 
@@ -42,20 +44,21 @@ class KGBuilder(object):
         Three Build Types:
             (1) Full: Runs all build steps in the algorithm.
             (2) Partial: Runs all of the build steps in the algorithm through adding the class-class, instance-class,
-                class-instance, and instance-instance edges. Designed for those wanting to run a reasoner on a pure logic
-                subset of the knowledge graph.
+                class-instance, and instance-instance edges. Designed for those wanting to run a reasoner on a pure
+                logic subset of the knowledge graph.
             (3) Post-Closure: Assumes that a reasoner was run over a knowledge graph and that the remaining build steps
                 should be applied to a closed knowledge graph.
 
     Attributes:
         kg_version: A string that contains the version of the knowledge graph build.
-        construction: A string that indicates what type of construction approach to use (i.e. instance or subclass).
         build: A string that indicates what kind of build (i.e. partial, post-closure, or full).
         write_location: A file path used for writing knowledge graph data.
+        construction: A string that indicates what type of construction approach to use (i.e. instance or subclass).
         edge_data: A path to a file that references a dictionary of edge list tuples used to build the knowledge graph.
         node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
         inverse_relations: A filepath to a directory called 'relations_data' containing the relations data.
         decode_owl_semantics: A string indicating whether edges containing owl semantics should be removed.
+        subclass_data_dict: A
         edge_dict: A nested dictionary storing the master edge list for building the knowledge graph. Where the outer
             key is an edge-type (e.g. gene-cell) and each inner key contains a dictionary storing details from the
             resource_info.txt input document. For example:
@@ -93,6 +96,9 @@ class KGBuilder(object):
               'https://github.com/callahantiff/PheKnowLator/obo/ext/d1552fc9-a91b-414a-86cb-885f8c4822e7'}
         graph: An rdflib graph object which stores the knowledge graph.
         nx_mdg: A networkx MultiDiGraph object which is only created if the user requests owl semantics be removed.
+        owltools: A string pointing to the location of the owl tools library.
+        adds_node_metadata_to_kg: A string that indicates whether or not node metadata should be added to the
+            knowledge graph (default="no").
 
     Raises:
         ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
@@ -109,9 +115,12 @@ class KGBuilder(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, kg_version: str, write_location: str, edge_data: Optional[str] = None,
+    def __init__(self, kg_version: str, write_location: str, construction: str, edge_data: Optional[str] = None,
                  node_data: Optional[str] = None, inverse_relations: Optional[str] = None,
                  decode_owl_semantics: Optional[str] = None) -> None:
+
+        # initialize file location
+        self.resource_dir_loc = os.path.relpath('/'.join(write_location.split('/')[:-1]))
 
         # initialize variables
         self.build: str = self.gets_build_type().lower().split()[0]
@@ -125,13 +134,13 @@ class KGBuilder(object):
 
         # BUILD VARIABLES
         if kg_version is None:
-            raise ValueError('ERROR: kg_version must not contain a valid version e.g. v.2.0.0')
+            raise ValueError('ERROR: kg_version must contain a valid version e.g. v.2.0.0')
         else:
             self.kg_version = kg_version
 
         # WRITE LOCATION
         if write_location is None:
-            raise ValueError('ERROR: write_location must not contain a valid filepath')
+            raise ValueError('ERROR: write_location must contain a valid filepath')
         else:
             self.write_location = write_location
 
@@ -143,17 +152,18 @@ class KGBuilder(object):
         elif os.stat(edge_data).st_size == 0:
             raise TypeError('FILE ERROR: input file: {} is empty'.format(edge_data))
         else:
-            self.edge_dict = json.load(open(edge_data, 'r'))
+            with open(edge_data, 'r') as filepath:
+                self.edge_dict = json.load(filepath)
 
         # RELATIONS DATA
         if inverse_relations and inverse_relations.lower() not in ['yes', 'no']:
             raise ValueError('ERROR: relations_data must be "no" or "yes"')
         else:
             if inverse_relations and inverse_relations.lower() == 'yes':
-                if len(glob.glob('*/relations_data/*.txt', recursive=True)) == 0:
+                if len(glob.glob(self.resource_dir_loc + '/relations_data/*.txt', recursive=True)) == 0:
                     raise TypeError('ERROR: the relations_data directory is empty')
                 else:
-                    self.inverse_relations = glob.glob('*/relations_data/*.txt', recursive=True)
+                    self.inverse_relations = glob.glob(self.resource_dir_loc + '/relations_data/*.txt', recursive=True)
                     self.relations_dict, self.inverse_relations_dict = dict(), dict()
                     kg_rel = '/inverse_relations' + '/PheKnowLator_' + self.build + '_InverseRelations_'
             else:
@@ -165,10 +175,11 @@ class KGBuilder(object):
             raise ValueError('ERROR: node_data must be "no" or "yes"')
         else:
             if node_data and node_data.lower() == 'yes':
-                if len(glob.glob('*/node_data/*.txt', recursive=True)) == 0:
+                if len(glob.glob(self.resource_dir_loc + '/node_data/*.txt', recursive=True)) == 0:
                     raise TypeError('ERROR: the node_data directory is empty')
                 else:
-                    self.node_data, self.node_dict = glob.glob('*/node_data/*.txt', recursive=True), dict()
+                    self.node_data, self.node_dict = glob.glob(self.resource_dir_loc + '/node_data/*.txt',
+                                                               recursive=True), dict()
                     kg_node = kg_rel + 'Closed_' if self.build == 'post-closure' else kg_rel + 'NotClosed_'
             else:
                 self.node_data, self.node_dict = None, None
@@ -185,11 +196,37 @@ class KGBuilder(object):
                 self.full_kg = kg_node + 'OWLSemantics_KG.owl'
                 self.decode_owl_semantics = None
 
+        # ONTOLOGIES
+        if len(glob.glob(self.resource_dir_loc + '/ontologies/*.owl')) == 0:
+            raise TypeError('ERROR: the ontologies directory is empty')
+        else:
+            self.ontologies: List[str] = glob.glob(self.resource_dir_loc + '/ontologies/*.owl')
+
+        # CONSTRUCTION APPROACH
+        if construction is None:
+            raise ValueError('ERROR: construction must contain a valid filepath')
+        else:
+            self.construct_approach = construction
+
+            # read in subclass construction data
+            if self.construct_approach == 'subclass':
+                if len(glob.glob(self.resource_dir_loc + '/*/subclass/*.pkl')) == 0:
+                    raise TypeError('ERROR: the subclass directory is empty')
+                else:
+                    with open(glob.glob(self.resource_dir_loc + '/*/subclass/*.pkl')[0], 'rb') as filepath:
+                        self.subclass_data_dict: Optional[Dict] = pickle.load(filepath, encoding='bytes')
+            else:
+                self.subclass_data_dict: Optional[Dict] = None
+
+        # merged ontology data
+        merged_onts = glob.glob(self.write_location + '/PheKnowLator_MergedOntologies*.owl')
+        self.merged_ont_kg: str = merged_onts[0] if len(merged_onts) > 0 else '/PheKnowLator_MergedOntologies.owl'
+
         # set remaining attributes
-        self.merged_ont_kg: str = '/PheKnowLator_MergedOntologies.owl'
-        self.ontologies: List[str] = glob.glob('*/ontologies/*.owl')
-        self.kg_uuid_map: Dict[str, str] = dict()
+        self.kg_uuid_map: Optional[Dict[str, str]] = dict() if self.construct_approach == 'instance' else None
         self.graph: Graph = Graph()
+        self.owltools = './pkt_kg/libs/owltools'
+        self.adds_node_metadata_to_kg: str = 'no'
 
     def sets_up_environment(self) -> None:
         """Sets-up the environment by checking for the existence of the following directories and if either do not
@@ -204,14 +241,12 @@ class KGBuilder(object):
             None.
         """
 
-        if self.write_location not in glob.glob('./resources/**'): os.mkdir(self.write_location)
-
         if self.build in ['full', 'partial']:
             if isinstance(self.inverse_relations, list):
-                if self.write_location + '/inverse_relations' not in glob.glob('./resources/**/**'):
+                if not os.path.isdir(self.write_location + '/inverse_relations'):
                     os.mkdir(self.write_location + '/inverse_relations')
             else:
-                if self.write_location + '/relations_only' not in glob.glob('./resources/**/**'):
+                if not os.path.isdir(self.write_location + '/relations_only'):
                     os.mkdir(self.write_location + '/relations_only')
 
         return None
@@ -464,8 +499,8 @@ class KGBuilder(object):
 
         return edge_counts
 
-    def creates_knowledge_graph_edges(self, creates_node_metadata_func: Callable, ontology_annotator_func: Callable) ->\
-            None:
+    def creates_knowledge_graph_edges(self, creates_node_metadata_func: Callable, ontology_annotator_func: Callable) \
+            -> None:
         """Takes a nested dictionary of edge lists and adds them to an existing knowledge graph. The function
         performs different tasks in order to add the edges according to whether or not the edge is of type
         instance-instance, class-class, class-instance/instance-class.
@@ -513,44 +548,13 @@ class KGBuilder(object):
 
         # serialize graph
         self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
-        self.ontology_file_formatter()
+        ontology_file_formatter(self.write_location, self.full_kg)
 
         # print statistics on kg
-        gets_ontology_statistics(self.write_location + self.full_kg)
+        gets_ontology_statistics(self.write_location + self.full_kg, self.owltools)
 
         # write class-instance uuid mapping dictionary to file
         json.dump(self.kg_uuid_map, open(self.write_location + self.full_kg[:-7] + '_ClassInstanceMap.json', 'w'))
-
-        return None
-
-    def ontology_file_formatter(self) -> None:
-        """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
-        referenced by graph_location is read in and output to the same location via the OWLTools API.
-
-        Returns:
-            None.
-
-        Raises:
-            TypeError: If something other than an .owl file is passed to function.
-            IOError: If the graph_location file is empty.
-            TypeError: If the input file contains no data.
-        """
-
-        print('\n*** Applying OWL API Formatting to Knowledge Graph OWL File ***')
-        graph_write_location = self.write_location + self.full_kg
-
-        # check input owl file
-        if '.owl' not in graph_write_location:
-            raise TypeError('ERROR: The provided file is not type .owl')
-        elif not os.path.exists(graph_write_location):
-            raise IOError('The {} file does not exist!'.format(graph_write_location))
-        elif os.stat(graph_write_location).st_size == 0:
-            raise TypeError('ERROR: input file: {} is empty'.format(graph_write_location))
-        else:
-            try:
-                subprocess.check_call(['./pkt_kg/lib/owltools', graph_write_location, '-o', graph_write_location])
-            except subprocess.CalledProcessError as error:
-                print(error.output)
 
         return None
 
@@ -575,103 +579,6 @@ class KGBuilder(object):
         """
 
         pass
-
-    def maps_node_ids_to_integers(self, output_triple_integers: str, output_triple_integers_map: str) -> None:
-        """Loops over the knowledge graph in order to create three different types of files:
-            - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
-            subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
-            - Identifiers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
-            subject, predicate, object). Both the subject and object identifiers have not been mapped to integers.
-            - Identifier-Integer Map: a `.json` file containing a dictionary where the keys are node identifiers and
-            the values are integers.
-
-        Args:
-            output_triple_integers: the name and file path to write out results.
-            output_triple_integers_map: the name and file path to write out results.
-
-        Returns:
-            None.
-
-        Raises:
-            ValueError: If the length of the graph is not the same as the number of extracted triples.
-        """
-
-        # create dictionary for mapping and list to write edges to
-        node_map, output_triples, node_counter = {}, 0, 0  # type: ignore
-        graph_len = len(self.graph)
-
-        # build graph from input file and set counter
-        out_ints = open(self.write_location + output_triple_integers, 'w')
-        out_ids = open(self.write_location + '_'.join(output_triple_integers.split('_')[:-1]) + '_Identifiers.txt', 'w')
-
-        # write file headers
-        out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
-        out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
-
-        for edge in tqdm(self.graph):
-            self.graph.remove(edge)
-
-            if str(edge[0]) not in node_map:
-                node_counter += 1
-                node_map[str(edge[0])] = node_counter
-            if str(edge[1]) not in node_map:
-                node_counter += 1
-                node_map[str(edge[1])] = node_counter
-            if str(edge[2]) not in node_map:
-                node_counter += 1
-                node_map[str(edge[2])] = node_counter
-
-            # convert edge labels to ints
-            subj, pred, obj = str(edge[0]), str(edge[1]), str(edge[2])
-            out_ints.write('%d' % node_map[subj] + '\t' + '%d' % node_map[pred] + '\t' + '%d' % node_map[obj] + '\n')
-            out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
-            output_triples += 1
-
-        out_ints.close(), out_ids.close()
-        del self.graph
-
-        # CHECK - verify we get the number of edges that we would expect to get
-        if graph_len != output_triples:
-            raise ValueError('ERROR: The number of triples is incorrect!')
-        else:
-            json.dump(node_map, open(self.write_location + '/' + output_triple_integers_map, 'w'))
-
-        return None
-
-    def converts_rdflib_to_networkx(self) -> None:
-        """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally.
-
-        Returns:
-            None.
-
-        Raises:
-            IOError: If the file referenced by filename does not exist.
-        """
-
-        print('\nConverting Knowledge Graph to MultiDiGraph')
-
-        # read in knowledge graph if class graph attribute is not present
-        try:
-            graph = self.graph
-        except (AttributeError, NameError):
-            graph = Graph()
-            graph.parse(self.write_location + self.full_kg)
-
-        # convert graph to networkx object
-        nx_mdg = networkx.MultiDiGraph()
-
-        for s, p, o in tqdm(graph):
-            graph.remove((s, p, o))
-            nx_mdg.add_edge(s, o, **{'key': p})
-
-        # pickle networkx graph
-        print('\nPickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
-        networkx.write_gpickle(nx_mdg, self.write_location + self.full_kg[:-4] + '_Networkx_MultiDiGraph.gpickle')
-
-        # clean up environment
-        del graph, nx_mdg
-
-        return None
 
     @abstractmethod
     def gets_build_type(self) -> str:
@@ -718,7 +625,8 @@ class PartialBuild(KGBuilder):
 
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
-        metadata = Metadata(self.kg_version, 'no', self.write_location, self.full_kg, self.node_data, self.node_dict)
+        metadata = Metadata(self.kg_version, self.adds_node_metadata_to_kg, self.write_location, self.full_kg,
+                            self.node_data, self.node_dict)
         metadata.node_metadata_processor()
 
         # STEP 4: MERGE ONTOLOGIES
@@ -811,7 +719,8 @@ class PostClosureBuild(KGBuilder):
 
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
-        metadata = Metadata(self.kg_version, 'yes', self.write_location, self.full_kg, self.node_data, self.node_dict)
+        metadata = Metadata(self.kg_version, self.adds_node_metadata_to_kg, self.write_location, self.full_kg,
+                            self.node_data, self.node_dict)
         metadata.node_metadata_processor()
 
         # STEP 4: LOAD CLOSED KNOWLEDGE GRAPH DATA
@@ -876,11 +785,12 @@ class PostClosureBuild(KGBuilder):
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         # output knowledge graph edge lists
         print('*** Writing Knowledge Graph Edge Lists ***')
-        self.maps_node_ids_to_integers(self.full_kg[:-6] + 'Triples_Integers.txt',
-                                       self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
+        maps_node_ids_to_integers(self.graph, self.write_location,
+                                  self.full_kg[:-6] + 'Triples_Integers.txt',
+                                  self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
 
         # convert graph into Networkx MultiDiGraph
-        self.converts_rdflib_to_networkx()
+        converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
 
         # remove partial build temp directory
         remove_partial_dir = input('\nDelete the "partial" directory?: (please type "yes" or "no")')
@@ -931,7 +841,8 @@ class FullBuild(KGBuilder):
 
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
-        metadata = Metadata(self.kg_version, 'no', self.write_location, self.full_kg, self.node_data, self.node_dict)
+        metadata = Metadata(self.kg_version, self.adds_node_metadata_to_kg, self.write_location, self.full_kg,
+                            self.node_data, self.node_dict)
         metadata.node_metadata_processor()
 
         # STEP 4: MERGE ONTOLOGIES
@@ -968,10 +879,11 @@ class FullBuild(KGBuilder):
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         # output knowledge graph edge lists
         print('\n*** Writing Knowledge Graph Edge Lists ***')
-        self.maps_node_ids_to_integers(self.full_kg[:-6] + 'Triples_Integers.txt',
-                                       self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
+        maps_node_ids_to_integers(self.graph, self.write_location,
+                                  self.full_kg[:-6] + 'Triples_Integers.txt',
+                                  self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
 
         # convert graph into Networkx MultiDiGraph
-        self.converts_rdflib_to_networkx()
+        converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
 
         return None
