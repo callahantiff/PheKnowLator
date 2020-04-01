@@ -8,15 +8,25 @@ Interacts with OWL Tools API
 * gets_ontology_statistics
 * merges_ontologies
 * ontology_file_formatter
+
+Writes Triple Lists
+* maps_node_ids_to_integers
+
+File Type Conversion
+* converts_rdflib_to_networkx
 """
 
 # import needed libraries
 import glob
+import json
+import networkx
 import os
 import os.path
+from rdflib import Graph
 import subprocess
 
-from typing import List
+from tqdm import tqdm  # type: ignore
+from typing import List, Optional
 
 
 def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt_kg/libs/owltools') -> None:
@@ -128,5 +138,113 @@ def ontology_file_formatter(write_location: str, full_kg: str, owltools_location
                                    '-o', graph_write_location])
         except subprocess.CalledProcessError as error:
             print(error.output)
+
+    return None
+
+
+def maps_node_ids_to_integers(graph: Graph, write_location: str, output_triple_integers: str,
+                              output_triple_integers_map: str) -> None:
+    """Loops over the knowledge graph in order to create three different types of files:
+        - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
+        subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
+        - Identifiers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
+        subject, predicate, object). Both the subject and object identifiers have not been mapped to integers.
+        - Identifier-Integer Map: a `.json` file containing a dictionary where the keys are node identifiers and
+        the values are integers.
+
+    Args:
+        graph: An rdflib graph object.
+        write_location: A string pointing to a local directory for writing data.
+        output_triple_integers: the name and file path to write out results.
+        output_triple_integers_map: the name and file path to write out results.
+
+    Returns:
+        None.
+
+    Raises:
+        ValueError: If the length of the graph is not the same as the number of extracted triples.
+    """
+
+    # create dictionary for mapping and list to write edges to
+    node_map, output_triples, node_counter = {}, 0, 0  # type: ignore
+    graph_len = len(graph)
+
+    # build graph from input file and set counter
+    out_ints = open(write_location + output_triple_integers, 'w')
+    out_ids = open(write_location + '_'.join(output_triple_integers.split('_')[:-1]) + '_Identifiers.txt', 'w')
+
+    # write file headers
+    out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
+    out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
+
+    for edge in tqdm(graph):
+        graph.remove(edge)
+
+        if str(edge[0]) not in node_map:
+            node_counter += 1
+            node_map[str(edge[0])] = node_counter
+        if str(edge[1]) not in node_map:
+            node_counter += 1
+            node_map[str(edge[1])] = node_counter
+        if str(edge[2]) not in node_map:
+            node_counter += 1
+            node_map[str(edge[2])] = node_counter
+
+        # convert edge labels to ints
+        subj, pred, obj = str(edge[0]), str(edge[1]), str(edge[2])
+        out_ints.write('%d' % node_map[subj] + '\t' + '%d' % node_map[pred] + '\t' + '%d' % node_map[obj] + '\n')
+        out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
+        output_triples += 1
+
+    out_ints.close(), out_ids.close()
+
+    # CHECK - verify we get the number of edges that we would expect to get
+    if graph_len != output_triples:
+        raise ValueError('ERROR: The number of triples is incorrect!')
+    else:
+        with open(write_location + '/' + output_triple_integers_map, 'w') as file_name:
+            json.dump(node_map,file_name)
+
+    # clean up environment
+    del graph
+
+    return None
+
+
+def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:
+    """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally.
+
+    Args:
+        write_location: A string pointing to a local directory for writing data.
+        full_kg: A string containing the subdirectory and name of the the knowledge graph file.
+        graph: An rdflib graph object.
+
+    Returns:
+        None.
+
+    Raises:
+        IOError: If the file referenced by filename does not exist.
+    """
+
+    print('\nConverting Knowledge Graph to MultiDiGraph')
+
+    # read in knowledge graph if class graph attribute is not present
+    if not graph:
+        graph = Graph()
+        graph.parse(write_location + full_kg)
+
+    # convert graph to networkx object
+    nx_mdg = networkx.MultiDiGraph()
+
+    for s, p, o in tqdm(graph):
+        graph.remove((s, p, o))
+        nx_mdg.add_edge(s, o, **{'key': p})
+
+    # pickle networkx graph
+    print('\nPickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
+    networkx.write_gpickle(nx_mdg, write_location + full_kg[:-4] + '_Networkx_MultiDiGraph.gpickle')
+
+    # clean up environment
+    del graph, nx_mdg
 
     return None
