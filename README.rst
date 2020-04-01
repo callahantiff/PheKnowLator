@@ -126,9 +126,7 @@ STEP 2: Download and Preprocess Data
 STEP 3: Process Ontology Data and Build Edge Lists  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Process ontologies to verify they are error free, consistent, and normalized prior to constructing the knowledge graph
-(see the
-`Ontology README`_ for more information).
+* Process ontologies to verify they are error free, consistent, and normalized prior to constructing the knowledge graph (see the `Ontology README`_ for more information).
 
 * Create new edges between ontology classes and edge data sources.
 
