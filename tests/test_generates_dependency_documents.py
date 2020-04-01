@@ -24,6 +24,16 @@ class TestDocumentationMaker(unittest.TestCase):
 
         return None
 
+    def test_class_initialization(self):
+        """Tests the initialization of the Documentation Maker class."""
+
+        # check that the integer parameter is handled properly
+        self.assertRaises(ValueError, DocumentationMaker, "1", self.dir_loc)
+        self.assertRaises(ValueError, DocumentationMaker, "one", self.dir_loc)
+        self.assertEqual(1, self.edge_maker.edge_count)
+
+        return None
+
     @mock.patch('builtins.input', create=True)
     def test_information_getter(self, mocked_input):
         """Tests the information_getter method."""
