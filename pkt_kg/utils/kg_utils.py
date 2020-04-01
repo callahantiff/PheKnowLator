@@ -19,10 +19,10 @@ File Type Conversion
 # import needed libraries
 import glob
 import json
-import networkx
+import networkx  # type: ignore
 import os
 import os.path
-from rdflib import Graph
+from rdflib import Graph  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
