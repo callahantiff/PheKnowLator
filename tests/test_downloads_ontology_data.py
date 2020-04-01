@@ -18,7 +18,39 @@ class TestOntData(TestCase):
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
         self.dir_loc = os.path.abspath(dir_loc)
-        self.ontologies = OntData(self.dir_loc + '/ontology_source_list.txt')
+        self.ontologies = OntData(self.dir_loc + '/ontology_source_list.txt', self.dir_loc + '/resource_info.txt')
+
+        return None
+
+    def test_initialization_data_path(self):
+        """Test class initialization for data_path attribute."""
+
+        resource_data = self.dir_loc + '/resource_info.txt'
+
+        # test if file is type string
+        self.assertRaises(TypeError, OntData, list(self.dir_loc + '/ontology_source_list.txt'), resource_data)
+
+        # test if file exists
+        self.assertRaises(OSError, OntData, self.dir_loc + '/ontology_sources_lists.txt', resource_data)
+
+        # test if file is empty
+        self.assertRaises(TypeError, OntData, self.dir_loc + '/ontology_source_list_empty.txt', resource_data)
+
+        return None
+
+    def test_initialization_resource_data(self):
+        """Test class initialization for resource_info attribute."""
+
+        data_path = self.dir_loc + '/ontology_source_list.txt'
+
+        # test if file is type string
+        self.assertRaises(TypeError, OntData, data_path, list(self.dir_loc + '/resource_info.txt'))
+
+        # test if file exists
+        self.assertRaises(OSError, OntData, data_path, self.dir_loc + '/resource_infos.txt')
+
+        # test if file is empty
+        self.assertRaises(TypeError, OntData, data_path, self.dir_loc + '/resource_info_empty.txt')
 
         return None
 
