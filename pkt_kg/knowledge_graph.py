@@ -104,7 +104,7 @@ class KGBuilder(object):
         ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
         ValueError: If write_location does not contain a valid filepath.
         ValueError: If edge_data does not contain a valid filepath.
-        IOError: If the edge_data file is empty.
+        OSError: If the edge_data file is empty.
         TypeError: If the edge_data contains no data.
         ValueError: If relations_data does not contain "yes" or "no".
         TypeError: If the relations_data directory does not contain any data files.
@@ -148,7 +148,7 @@ class KGBuilder(object):
         if edge_data is None:
             raise ValueError('ERROR: edge_data must not contain a valid filepath')
         elif not os.path.exists(edge_data):
-            raise IOError('The {} file does not exist!'.format(edge_data))
+            raise OSError('The {} file does not exist!'.format(edge_data))
         elif os.stat(edge_data).st_size == 0:
             raise TypeError('FILE ERROR: input file: {} is empty'.format(edge_data))
         else:
