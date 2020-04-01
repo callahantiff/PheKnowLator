@@ -18,9 +18,9 @@ class TestKGUtils(unittest.TestCase):
         self.dir_loc = os.path.abspath(dir_loc)
 
         # set some real and fake file name variables
-        self.not_string_filename = [self.dir_loc + '/hp_with_imports.owl']
+        self.not_string_filename = [self.dir_loc + '/empty_hp_with_imports.owl']
         self.not_real_file_name = self.dir_loc + '/sop_with_imports.owl'
-        self.empty_ontology_file_location = self.dir_loc + '/hp_with_imports.owl'
+        self.empty_ontology_file_location = self.dir_loc + '/empty_hp_with_imports.owl'
         self.good_ontology_file_location = self.dir_loc + '/so_with_imports.owl'
 
         # set-up pointer to ontology repo
@@ -79,7 +79,7 @@ class TestKGUtils(unittest.TestCase):
         self.assertRaises(IOError, ontology_file_formatter, self.dir_loc, '/sop_with_imports.owl', owltools)
 
         # an empty file
-        self.assertRaises(TypeError, ontology_file_formatter, self.dir_loc, '/hp_with_imports.txt', owltools)
+        self.assertRaises(TypeError, ontology_file_formatter, self.dir_loc, '/empty_hp_with_imports.txt', owltools)
 
         # make sure method runs on legitimate file
         self.assertTrue(ontology_file_formatter(write_location=self.dir_loc,
