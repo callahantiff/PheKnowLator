@@ -57,6 +57,10 @@ class TestKGBuilder(unittest.TestCase):
         shutil.copyfile(self.dir_loc + '/INVERSE_RELATIONS.txt',
                         self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt')
 
+        # empty master edges
+        shutil.copyfile(self.dir_loc + '/Master_Edge_List_Dict_empty.json',
+                        self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json')
+
         # create edge list
         edge_dict = {"gene-phenotype": {"data_type": "subclass-class",
                                         "edge_relation": "RO_0003302",
@@ -119,6 +123,65 @@ class TestKGBuilder(unittest.TestCase):
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
         self.kg_subclass.owltools = os.path.abspath(dir_loc_owltools)
         self.kg_instance.owltools = os.path.abspath(dir_loc_owltools)
+
+        return None
+
+    def test_class_initialization_parameters(self):
+        """Tests the class initialization parameters."""
+
+        # edge data
+        self.assertRaises(ValueError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          None, 'yes', 'yes', 'yes')
+
+        self.assertRaises(OSError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dicts.json', 'yes', 'yes', 'yes')
+
+        self.assertRaises(TypeError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json', 'yes', 'yes', 'yes')
+
+        # relations
+        self.assertRaises(ValueError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'ye', 'yes')
+
+        # remove relations and inverse relations data
+        os.remove(self.dir_loc_resources + '/relations_data/RELATIONS_LABELS.txt')
+        os.remove(self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt')
+        self.assertRaises(TypeError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'yes')
+
+        # add back deleted data
+        shutil.copyfile(self.dir_loc + '/RELATIONS_LABELS.txt',
+                        self.dir_loc_resources + '/relations_data/RELATIONS_LABELS.txt')
+        shutil.copyfile(self.dir_loc + '/INVERSE_RELATIONS.txt',
+                        self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt')
+
+        # node metadata
+        self.assertRaises(ValueError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'ye', 'yes', 'yes')
+
+        # remove node metadata
+        os.remove(self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
+        os.remove(self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt')
+        self.assertRaises(TypeError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'yes')
+
+        # add back deleted data
+        shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt',
+                        self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
+        shutil.copyfile(self.dir_loc + '/node_data/gene-gene_GENE_METADATA.txt',
+                        self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt')
+
+        # decoding owl
+        self.assertRaises(ValueError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'ye')
 
         return None
 
