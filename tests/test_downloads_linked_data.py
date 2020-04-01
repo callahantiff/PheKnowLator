@@ -17,7 +17,7 @@ class TestLinkedData(TestCase):
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
         self.dir_loc = os.path.abspath(dir_loc)
-        self.data = LinkedData(self.dir_loc + '/class_source_list.txt', self.dir_loc + '/resource_info.txt')
+        self.data = LinkedData(self.dir_loc + '/edge_source_list.txt', self.dir_loc + '/resource_info.txt')
 
         return None
 
@@ -27,20 +27,20 @@ class TestLinkedData(TestCase):
         resource_data = self.dir_loc + '/resource_info.txt'
 
         # test if file is type string
-        self.assertRaises(TypeError, LinkedData, list(self.dir_loc + '/class_source_list.txt'), resource_data)
+        self.assertRaises(TypeError, LinkedData, list(self.dir_loc + '/edge_source_list.txt'), resource_data)
 
         # test if file exists
-        self.assertRaises(OSError, LinkedData, self.dir_loc + '/class_sources_lists.txt', resource_data)
+        self.assertRaises(OSError, LinkedData, self.dir_loc + '/edge_sources_lists.txt', resource_data)
 
         # test if file is empty
-        self.assertRaises(TypeError, LinkedData, self.dir_loc + '/class_source_list_empty.txt', resource_data)
+        self.assertRaises(TypeError, LinkedData, self.dir_loc + '/edge_source_list_empty.txt', resource_data)
 
         return None
 
     def test_initialization_resource_data(self):
         """Test class initialization for resource_info attribute."""
 
-        data_path = self.dir_loc + '/class_source_list.txt'
+        data_path = self.dir_loc + '/edge_source_list.txt'
 
         # test if file is type string
         self.assertRaises(TypeError, LinkedData, data_path, list(self.dir_loc + '/resource_info.txt'))
@@ -72,7 +72,12 @@ class TestLinkedData(TestCase):
     def test_parses_resource_file(self):
         """Tests parses_resource_file method."""
 
-        # load data
+        # load data -- bad file
+        self.data.data_path = self.dir_loc + '/edge_source_list_empty.txt'
+        self.assertRaises(TypeError, self.data.parses_resource_file)
+
+        # load data -- good file
+        self.data.data_path = self.dir_loc + '/edge_source_list.txt'
         self.data.parses_resource_file()
 
         # make sure a dictionary is returned
@@ -116,5 +121,11 @@ class TestLinkedData(TestCase):
         self.assertTrue('DOWNLOAD_DATE' in self.data.metadata[1][5])
         self.assertTrue('FILE_SIZE_IN_BYTES' in self.data.metadata[1][6])
         self.assertTrue('DOWNLOADED_FILE_LOCATION' in self.data.metadata[1][7])
+
+        # check for metadata
+        self.assertTrue(os.path.exists(self.dir_loc + '/edge_data/edge_source_metadata.txt'))
+
+        # clean up environment
+        os.remove(self.dir_loc + '/edge_data/edge_source_metadata.txt')
 
         return None

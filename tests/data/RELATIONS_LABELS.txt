@@ -1,0 +1,3 @@
+Relation	Label
+RO_0002435	genetically interacts with
+RO_0003302	causes or contributes to condition
