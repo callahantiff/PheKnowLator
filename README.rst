@@ -76,7 +76,7 @@ This program requires Python version 3.6. To install it, run the following:
        -h,      --help        show this help message and exit
        -g ONTS, --onts ONTS  name/path to text file containing ontologies
        -e EDG,  --edg EDG    name/path to text file containing edge sources
-       -a APP, --APP APP     construction approach to use (i.e. instance or subclass)
+       -a APP,  --APP APP     construction approach to use (i.e. instance or subclass)
        -t RES,  --res RES    name/path to text file containing resource_info
        -b KG,   --kg KG      the build, can be "partial", "full", or "post-closure"
        -o OUT,  --out OUT    name/path to directory where to write knowledge graph
