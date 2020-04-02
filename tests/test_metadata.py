@@ -24,7 +24,6 @@ class TestMetadata(unittest.TestCase):
 
         # set-up input arguments
         self.metadata = Metadata(kg_version='v2.0.0',
-                                 flag='yes',
                                  write_location=self.dir_loc,
                                  kg_location=self.dir_loc + '/ontologies/so_with_imports.owl',
                                  node_data=glob.glob(self.dir_loc + '/node_data/*.txt'),

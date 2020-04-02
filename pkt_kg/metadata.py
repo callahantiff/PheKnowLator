@@ -23,7 +23,6 @@ class Metadata(object):
 
     Attributes:
         kg_version: A string that contains the version of the knowledge graph build.
-        node_metadata_flag: A string indicating whether or not node metadata should be added to the knowledge graph.
         write_location: A filepath to the knowledge graph directory (e.g. './resources/knowledge_graphs).
         full_kg: The subdirectory and name of the knowledge graph (e.g.'/relations_only/KG.owl').
         node_data: A filepath to a directory called 'node_data' containing a file for each instance/subclass node.
@@ -38,11 +37,10 @@ class Metadata(object):
                 }
     """
 
-    def __init__(self, kg_version: str, flag: str, write_location: str, kg_location: str, node_data: Optional[List],
+    def __init__(self, kg_version: str, write_location: str, kg_location: str, node_data: Optional[List],
                  node_dict: Optional[Dict]) -> None:
 
         self.kg_version = kg_version
-        self.node_metadata_flag = flag
         self.write_location = write_location
         self.full_kg = kg_location
         self.node_data = node_data
@@ -91,8 +89,6 @@ class Metadata(object):
         """Given a node in the knowledge graph, if the node has metadata information, new edges are created to add
         the metadata to the knowledge graph. Metadata that is added includes: labels, descriptions, and synonyms.
 
-        Note. Metadata edges will only be added to the knowledge graph if node_metadata_flag='yes'.
-
         Args:
             node: A node identifier (e.g. 'HP_0003269', 'rs765907815').
             edge_type: A string which specifies the edge type (e.g. chemical-gene).
@@ -111,16 +107,13 @@ class Metadata(object):
         # create metadata dictionary
         metadata = self.node_dict[edge_type][node]
 
-        if self.node_metadata_flag == 'yes':
-            if 'Label' in metadata.keys() and metadata['Label'] != 'None':
-                graph.add((URIRef(url + str(node)), RDFS.label, Literal(metadata['Label'])))
-            if 'Description' in metadata.keys() and metadata['Description'] != 'None':
-                graph.add((URIRef(url + str(node)), URIRef(obo + 'IAO_0000115'), Literal(metadata['Description'])))
-            if 'Synonym' in metadata.keys() and metadata['Synonym'] != 'None':
-                for syn in metadata['Synonym'].split('|'):
-                    graph.add((URIRef(url + str(node)), URIRef(oboinowl + 'hasExactSynonym'), Literal(syn)))
-        else:
-            pass
+        if 'Label' in metadata.keys() and metadata['Label'] != 'None':
+            graph.add((URIRef(url + str(node)), RDFS.label, Literal(metadata['Label'])))
+        if 'Description' in metadata.keys() and metadata['Description'] != 'None':
+            graph.add((URIRef(url + str(node)), URIRef(obo + 'IAO_0000115'), Literal(metadata['Description'])))
+        if 'Synonym' in metadata.keys() and metadata['Synonym'] != 'None':
+            for syn in metadata['Synonym'].split('|'):
+                graph.add((URIRef(url + str(node)), URIRef(oboinowl + 'hasExactSynonym'), Literal(syn)))
 
         return graph
 
