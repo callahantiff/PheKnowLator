@@ -75,14 +75,15 @@ This program requires Python version 3.6. To install it, run the following:
      optional arguments:
        -h,      --help        show this help message and exit
        -g ONTS, --onts ONTS  name/path to text file containing ontologies
-       -c CLS,  --cls CLS    name/path to text file containing class sources
-       -i INST, --inst INST  name/path to text file containing instance sources
+       -e EDG,  --edg EDG    name/path to text file containing edge sources
+       -a APP, --APP APP     construction approach to use (i.e. instance or subclass)
        -t RES,  --res RES    name/path to text file containing resource_info
        -b KG,   --kg KG      the build, can be "partial", "full", or "post-closure"
        -o OUT,  --out OUT    name/path to directory where to write knowledge graph
        -n NDE,  --nde NDE    yes/no - adding node metadata to knowledge graph
        -r REL,  --rel REL    yes/no - adding inverse relations to knowledge graph
        -s OWL,  --owl OWL    yes/no - removing OWL Semantics from knowledge graph
+       -m KGM,  --kgm KGM    yes/no - adding node metadata to knowledge graph
   
 |
 |
