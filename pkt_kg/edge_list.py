@@ -11,7 +11,9 @@ from difflib import SequenceMatcher
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, TextIO, Tuple, Union
 
-# TODO: using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
+# TODO:
+#  (1) using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
+#  (2) modify data_reader to stream/chunk large data files
 
 
 class CreatesEdgeList(object):
