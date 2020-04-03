@@ -24,6 +24,9 @@ from pkt_kg.metadata import Metadata
 from pkt_kg.owlnets import OwlNets
 
 
+# TODO: extend functionality to improve KR for instance-based builds that include connections between 2 instance nodes
+
+
 class KGBuilder(object):
     """Class creates a semantic knowledge graph (KG). The class is designed to facilitate two KG construction
     approaches and three build types.
@@ -626,10 +629,10 @@ class PostClosureBuild(KGBuilder):
         if self.node_data is not None: metadata.output_knowledge_graph_metadata(self.graph)
         del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
 
-        # # STEP 7: DECODE OWL SEMANTICS
+        # STEP 7: DECODE OWL SEMANTICS
         # if self.decode_owl_semantics:
         #     print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-        #     owl_nets = OwlNets(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
+        #     owl_nets = OwlNets(self.graph, self.kg_uuid_map, self.write_location, self.full_kg, self.construct_approach)
         #     self.graph = owl_nets.run_owl_nets()
         #     del owl_nets, self.kg_uuid_map
 
@@ -704,10 +707,10 @@ class FullBuild(KGBuilder):
         if self.node_data is not None: metadata.output_knowledge_graph_metadata(self.graph)
         del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
 
-        # # STEP 7: DECODE OWL SEMANTICS
+        # STEP 7: DECODE OWL SEMANTICS
         # if self.decode_owl_semantics:
         #     print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-        #     owl_nets = OwlNets(self.graph, self.kg_uuid_map, self.write_location, self.full_kg)
+        #     owl_nets = OwlNets(self.graph, self.kg_uuid_map, self.write_location, self.full_kg, self.construct_approach)
         #     self.graph = owl_nets.run_owl_nets()
         #     del owl_nets, self.kg_uuid_map
 
