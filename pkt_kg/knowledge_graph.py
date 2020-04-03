@@ -344,15 +344,15 @@ class KGBuilder(object):
         cls, ent1, ent2 = self.finds_node_type(edge_info)
         added_edge_counter: List = []
 
-        if not ent2[0] and (cls[0] and cls[1]):
+        if not ent2[0] and (cls[0] and cls[1]):  # type: ignore
             if cls[1] + cls[0] in self.kg_uuid_map.keys():  # type: ignore
                 ont_class_iri = self.kg_uuid_map[cls[1] + cls[0]]  # type: ignore
             else:
                 ont_class_iri = pkt_kg + str(uuid.uuid4())
                 self.kg_uuid_map[cls[1] + cls[0]] = ont_class_iri  # type: ignore
 
-            self.graph.add((URIRef(ont_class_iri), RDF.type, URIRef(cls[1] + cls[0])))
-            added_edge_counter = [(URIRef(ont_class_iri), RDF.type, URIRef(cls[1] + cls[0]))]
+            self.graph.add((URIRef(ont_class_iri), RDF.type, URIRef(cls[1] + cls[0])))  # type: ignore
+            added_edge_counter = [(URIRef(ont_class_iri), RDF.type, URIRef(cls[1] + cls[0]))]  # type: ignore
 
             # update edge_info dictionary to replace class identifier with UUID map
             edge_info['edges'][0] = ont_class_iri if edge_info['n1'] == 'class' else edge_info['edges'][0]
