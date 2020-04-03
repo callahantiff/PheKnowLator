@@ -316,7 +316,6 @@ class Metadata(object):
                             syn = syn_list
 
                         outfile.write(node_id + '\t' + label + '\t' + desc + '\t' + syn + '\n')
-
             outfile.close()
 
         return None
@@ -345,6 +344,7 @@ class Metadata(object):
         # convert filename to permanent url
         parsed_filename = '_'.join(filename.lower().split('/')[-1].split('_')[2:])
         url = 'https://pheknowlator.com/pheknowlator_' + parsed_filename
+        pkt_url = 'https://github.com/callahantiff/PheKnowLator'
 
         # query ontology to obtain existing ontology annotations
         results = graph.query(
@@ -362,10 +362,10 @@ class Metadata(object):
         # add new annotations
         graph.add((URIRef(url + '.owl'), RDF.type, URIRef(owl + 'Ontology')))
         graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
-        graph.add((URIRef(url + '.owl'), URIRef(owl + 'versionIRI'), URIRef(url + '/wiki/' + self.kg_version)))
+        graph.add((URIRef(url + '.owl'), URIRef(owl + 'versionIRI'), URIRef(pkt_url + '/wiki/' + self.kg_version)))
         graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
         graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date)))
         graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information please visit: ' + url)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information visit: ' + pkt_url)))
 
         return graph
