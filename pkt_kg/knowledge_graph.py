@@ -76,6 +76,9 @@ class KGBuilder(object):
         nx_mdg: A networkx MultiDiGraph object which is only created if the user requests owl semantics be removed.
         owltools: A string pointing to the location of the owl tools library.
         add_metata_data_to_kg: A flag that indicates whether or not to add metadata to the knowledge graph.
+        subclass_error: A dict that stores edge subclass nodes that were unable to be mapped to the
+            subclass_data_dict. Keys are edge_type and values are lists of identifiers. For example:
+                {'chemical-gene': [100490177, 34858593, 234]}
 
     Raises:
         ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
@@ -107,6 +110,7 @@ class KGBuilder(object):
         self.owltools = './pkt_kg/libs/owltools'
         self.adds_metadata_to_kg = adds_metadata_to_kg.lower()
         self.subclass_data_dict: Optional[Dict] = None
+        self.subclass_error: Dict = dict()
 
         # BUILD VARIABLES
         if kg_version is None: raise ValueError('kg_version must contain a valid version e.g. v.2.0.0')
@@ -233,7 +237,7 @@ class KGBuilder(object):
         return None
 
     @staticmethod
-    def finds_node_type(edge_info) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    def finds_node_type(edge_info: Dict) -> Tuple[Optional[List], Optional[List], Optional[List]]:
         """Takes a dictionary of edge information and parses the data type for each node in the edge. The function
         returns either None or a string containing a particular node from the edge.
 
@@ -244,28 +248,80 @@ class KGBuilder(object):
                 'edges': ['2', 'DOID_0110035']}
 
         Returns:
-            cls: None or an edge node of type ontology class.
-            ent1: None or an edge node of type instance or subclass.
-            ent2: None or an edge node of type instance or subclass.
+            cls: A list containing an edge node of type ontology class and its uri or None.
+            ent1: A list containing an edge node of type instance or subclass and its uri or None.
+            ent2: A list containing an edge node of type instance or subclass and its uri or None.
         """
 
         # initialize node types node type (cls=ontology class, ent1/ent2=instance or subclass node)
-        cls, ent1, ent2 = None, None, None
+        cls, ent1, ent2 = ([None, None] for _ in range(3))
 
         # catch and don't process class-class edge types
         if edge_info['n1'] == 'class' and edge_info['n2'] == 'class':
             pass
         elif edge_info['n1'] == 'class' and edge_info['n2'] != 'class':
-            cls, ent1, ent2 = edge_info['edges'][0], edge_info['edges'][1], None
+            cls = [edge_info['edges'][0], edge_info['uri'][0]]
+            ent1 = [edge_info['edges'][1], edge_info['uri'][1]]
+            ent2 = [None, None]
+
         elif edge_info['n1'] != 'class' and edge_info['n2'] == 'class':
-            ent1, cls, ent2 = edge_info['edges'][0], edge_info['edges'][1], None
+            ent1 = [edge_info['edges'][0], edge_info['uri'][0]]
+            cls = [edge_info['edges'][1], edge_info['uri'][1]]
+            ent2 = [None, None]
         else:
-            ent1, ent2, cls = edge_info['edges'][0], edge_info['edges'][1], None
+            ent1 = [edge_info['edges'][0], edge_info['uri'][0]]
+            ent2 = [edge_info['edges'][1], edge_info['uri'][1]]
+            cls = [None, None]
 
         return cls, ent1, ent2
 
-    def handles_edge_constructors(self, edge_info: Dict) -> Tuple[List, Dict]:
+    def subclass_constructor(self, edge_info: Dict, edge_type: str) -> Tuple[List, Optional[Dict]]:
         """Adds edges for the subclass construction approach. The following 3 edges are added: (1) node1, relation,
+        node2; (2) node1, rdfs:subClassOf, node1-ontology-class; and (3) node1, rdf:Type, owl:Class.
+
+        Assumption: All ontology class use the obo namespace.
+
+        Args:
+            edge_info: A dict of information needed to add edge to graph, for example:
+                {'n1': 'subclass', 'n2': 'class','relation': 'RO_0003302',
+                'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+                'edges': ['2', 'DOID_0110035']}
+            edge_type: A string containing the name of the edge_type (e.g. "gene-disease", "chemical-gene").
+
+        Returns:
+            added_edge_counter: A list of new edges added to the knowledge graph.
+            gene_info: A dict of edge information, with an updated node value for edges that include a subclass node.
+        """
+
+        # set namespace
+        obo = Namespace('http://purl.obolibrary.org/obo/')
+
+        # assign node type (cls=ontology class nodes, ent1/ent2=instance or subclass nodes)
+        cls, ent1, ent2 = self.finds_node_type(edge_info)  # assign node type (cls=ont class, ent1/ent2=inst or sub)
+        added_edge_counter: List = []
+
+        if self.construct_approach == 'subclass' and self.subclass_data_dict:
+            for entity, uri in [ent1, ent2]:  # type: ignore
+                if entity and entity not in self.subclass_data_dict.keys():  # catch node ids not in the
+                    if edge_type in self.subclass_error.keys():
+                        self.subclass_error[edge_type] += [uri + entity]  # type: ignore
+                    else:
+                        self.subclass_error[edge_type] = [uri + entity]  # type: ignore
+
+                    return added_edge_counter, None
+                elif entity:
+                    for class_id in self.subclass_data_dict[entity]:
+                        n1, n2 = URIRef(uri + entity), URIRef(obo + class_id)  # type: ignore
+                        self.graph.add((n1, RDFS.subClassOf, n2))
+                        self.graph.add((n1, RDF.type, OWL.Class))
+                        added_edge_counter += [(n1, RDFS.subClassOf, n2), (n1, RDF.type, OWL.Class)]
+                else:
+                    pass
+
+        return added_edge_counter, edge_info
+
+    def instance_constructor(self, edge_info: Dict) -> Tuple[List, Dict]:
+        """Adds edges for the instance construction approach. The following 3 edges are added: (1) node1, relation,
         node2; (2) node1, rdfs:subClassOf, node1-ontology-class; and (3) node1, rdf:Type, owl:Class.
 
         Assumption: All ontology class use the obo namespace.
@@ -278,42 +334,31 @@ class KGBuilder(object):
 
         Returns:
             added_edge_counter: A list of new edges added to the knowledge graph.
-            gene_info: A dict of information needed to add edge to graph with an updated node value for
-                instance-class and class-instance edge types.
+            gene_info: A dict of edge information, with an updated node value for edges that include an instance node.
         """
 
-        # define instance namespace
+        # set namespace
         pkt_kg = Namespace('https://github.com/callahantiff/PheKnowLator/obo/ext/')
-        obo = Namespace('http://purl.obolibrary.org/obo/')
 
-        # assign edge according to node type (cls=ontology class, ent1/ent2=instance or subclass node)
+        # assign node type (cls=ontology class nodes, ent1/ent2=instance or subclass nodes)
         cls, ent1, ent2 = self.finds_node_type(edge_info)
         added_edge_counter: List = []
 
-        if self.construct_approach == 'subclass' and self.subclass_data_dict:
-            for entity, uri in [[ent1, edge_info['uri'][0]], [ent2, edge_info['uri'][1]]]:
-                if entity:
-                    for class_id in self.subclass_data_dict[entity]:
-                        n1, n2 = URIRef(uri + entity), URIRef(obo + class_id)  # type: ignore
-                        self.graph.add((n1, RDFS.subClassOf, n2))
-                        self.graph.add((n1, RDF.type, OWL.Class))
-                        added_edge_counter += [(n1, RDFS.subClassOf, n2), (n1, RDF.type, OWL.Class)]
-        else:
-            if not ent2:
-                if obo + cls in self.kg_uuid_map.keys():  # type: ignore
-                    ont_class_iri = self.kg_uuid_map[obo + cls]  # type: ignore
-                else:
-                    ont_class_iri = pkt_kg + str(uuid.uuid4())
-                    self.kg_uuid_map[obo + cls] = ont_class_iri  # type: ignore
-
-                self.graph.add((URIRef(ont_class_iri), RDF.type, URIRef(obo + cls)))
-                added_edge_counter = [(URIRef(ont_class_iri), RDF.type, URIRef(obo + cls))]
-
-                # update edge_info dictionary to replace class identifier with UUID map
-                edge_info['edges'][0] = ont_class_iri if edge_info['n1'] == 'class' else edge_info['edges'][0]
-                edge_info['edges'][1] = ont_class_iri if edge_info['n2'] == 'class' else edge_info['edges'][1]
+        if not ent2[0] and (cls[0] and cls[1]):
+            if cls[1] + cls[0] in self.kg_uuid_map.keys():  # type: ignore
+                ont_class_iri = self.kg_uuid_map[cls[1] + cls[0]]  # type: ignore
             else:
-                return added_edge_counter, edge_info
+                ont_class_iri = pkt_kg + str(uuid.uuid4())
+                self.kg_uuid_map[cls[1] + cls[0]] = ont_class_iri  # type: ignore
+
+            self.graph.add((URIRef(ont_class_iri), RDF.type, URIRef(cls[1] + cls[0])))
+            added_edge_counter = [(URIRef(ont_class_iri), RDF.type, URIRef(cls[1] + cls[0]))]
+
+            # update edge_info dictionary to replace class identifier with UUID map
+            edge_info['edges'][0] = ont_class_iri if edge_info['n1'] == 'class' else edge_info['edges'][0]
+            edge_info['edges'][1] = ont_class_iri if edge_info['n2'] == 'class' else edge_info['edges'][1]
+        else:
+            return added_edge_counter, edge_info
 
         return added_edge_counter, edge_info
 
@@ -403,8 +448,7 @@ class KGBuilder(object):
         if self.edge_dict:
             for edge_type in self.edge_dict.keys():
                 node1_type, node2_type = self.edge_dict[edge_type]['data_type'].split('-')
-                relation = self.edge_dict[edge_type]['edge_relation']
-                uris = self.edge_dict[edge_type]['uri']
+                relation, uris = self.edge_dict[edge_type]['edge_relation'], self.edge_dict[edge_type]['uri']
                 edge_list = copy.deepcopy(self.edge_dict[edge_type]['edge_list'])
                 edge_results: List = []
 
@@ -413,18 +457,28 @@ class KGBuilder(object):
                 else: inverse_relation = None
 
                 print('\nCreating {} ({}-{}) Edges ***'.format(edge_type.upper(), node1_type, node2_type))
-
                 for edge in tqdm(edge_list):
                     edge_info = {'n1': node1_type, 'n2': node2_type, 'relation': relation, 'uri': uris, 'edges': edge}
-                    results = self.handles_edge_constructors(edge_info)
-                    edge_results += results[0]
-                    edge_results += self.adds_edge_relations(results[1], inverse_relation)
+                    if self.construct_approach == 'subclass': results = self.subclass_constructor(edge_info, edge_type)
+                    else: results = self.instance_constructor(edge_info)
+
+                    if isinstance(results[1], Dict):  # make sure that dictionary and not None is returned
+                        edge_results += results[0]
+                        edge_results += self.adds_edge_relations(results[1], inverse_relation)  # type: ignore
+                    else:
+                        self.edge_dict[edge_type]['edge_list'].pop(self.edge_dict[edge_type]['edge_list'].index(edge))
 
                 # print edge-type statistics
                 n1, n2 = edge_type.split('-')
                 print('\nUnique Edges: {}'.format(len([list(x) for x in set([tuple(y) for y in edge_results])])))
                 print('Unique {}: {}'.format(n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']]))))
                 print('Unique {}: {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
+
+            # output log of subclass nodes not found in user-supplied subclass-mapping dictionary
+            if self.construct_approach == 'subclass':
+                for key in self.subclass_error.keys():
+                    print('\n{} {} edges missing from subclass_data_dict: '.format(len(self.subclass_error[key]), key))
+                    print(self.subclass_error[key])
 
             # add ontology metadata and annotations, serialize graph, and apply OWL API formatting to output
             if self.adds_metadata_to_kg == 'yes': node_metadata_func(self.graph, self.edge_dict)
@@ -695,7 +749,6 @@ class FullBuild(KGBuilder):
                 raise TypeError('The ontologies directory is empty')
             else:
                 print('*** Merging Ontology Data ***')
-
                 merges_ontologies(self.ontologies,
                                   self.write_location, '/' + self.merged_ont_kg.split('/')[-1],
                                   self.owltools)
