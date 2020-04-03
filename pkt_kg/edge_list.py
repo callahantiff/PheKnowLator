@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# mypy: ignore-errors
 
 # import needed libraries
 import csv
@@ -10,7 +9,7 @@ import re
 
 from difflib import SequenceMatcher
 from tqdm import tqdm  # type: ignore
-from typing import Any, Dict, List, Optional, TextIO, Tuple, Union
+from typing import Any, Dict, IO, List, Optional, TextIO, Tuple, Union
 
 # TODO: using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
 
@@ -114,13 +113,13 @@ class CreatesEdgeList(object):
 
         # temporarily read in the data
         try:
-            with open(file_path, 'r') as input_data:
-                data = input_data.read().split('\n')
-            input_data.close()
+            with open(file_path, 'r') as input_data_r:  # type: IO[Any]
+                data = input_data_r.read().split('\n')
+            input_data_r.close()
         except ValueError:
-            with open(file_path, 'rb') as input_data:
-                data = input_data.read().split('\n')
-            input_data.close()
+            with open(file_path, 'rb') as input_data_rb:  # type: IO[Any]
+                data = input_data_rb.read().split('\n')
+            input_data_rb.close()
 
         # clean up data to only keep valid rows (rows that are not empty space or metadata
         splitter = '\t' if 't' in delimiter else r"\s+" if '' in delimiter else delimiter
@@ -351,8 +350,8 @@ class CreatesEdgeList(object):
 
             # merge mapping data merge result DataFrames
             merged_cols = list(set(maps[0][1]).intersection(set(maps[1][1])))
-            merged_data = pandas.merge(maps[0][1].astype(str),
-                                       maps[1][1].astype(str),
+            merged_data = pandas.merge(maps[0][1].astype(str),  # type: ignore
+                                       maps[1][1].astype(str),  # type: ignore
                                        left_on=merged_cols, right_on=merged_cols, how='inner')
 
             # remove unwanted columns
