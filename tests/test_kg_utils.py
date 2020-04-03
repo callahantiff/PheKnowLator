@@ -98,8 +98,8 @@ class TestKGUtils(unittest.TestCase):
         # run method
         maps_node_ids_to_integers(graph=graph,
                                   write_location=self.dir_loc,
-                                  output_triple_integers='/so_with_imports_Triples_Integers.txt',
-                                  output_triple_integers_map='/so_with_imports_Triples_Integer_Identifier_Map.json')
+                                  output_ints='/so_with_imports_Triples_Integers.txt',
+                                  output_ints_map='/so_with_imports_Triples_Integer_Identifier_Map.json')
 
         # check that files were created
         self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_Triples_Integers.txt'))
