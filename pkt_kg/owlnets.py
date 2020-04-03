@@ -36,7 +36,7 @@ class OwlNets(object):
         ValueError: If knowledge_graph is an empty rdflib.graph object.
     """
 
-    def __init__(self, knowledge_graph: rdflib.Graph, uuid_class_map: Dict, write_location: str, full_kg: str,
+    def __init__(self, knowledge_graph: rdflib.Graph, uuid_class_map: Optional[Dict], write_location: str, full_kg: str,
                  keep_property_types: Optional[List[str]] = None) -> None:
 
         # verify input graphs
@@ -45,6 +45,7 @@ class OwlNets(object):
         elif len(knowledge_graph) == 0:
             raise ValueError('knowledge_graph is empty.')
         else:
+
             self.knowledge_graph = knowledge_graph
 
         self.uuid_map = uuid_class_map
