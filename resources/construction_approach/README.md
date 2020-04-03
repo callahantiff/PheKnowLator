@@ -100,4 +100,4 @@ _____
 
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
-- If using the `subclass-based` construction approach, make sure that you have created the non-ontology node data to ontoogy class mapping dictionary (described in the [](#) section above) to the `./resources/construction_approach/subclass/` directory.     
+- If using the `subclass-based` construction approach, make sure that you have created the non-ontology node data to ontology class mapping dictionary (described above) to the `./resources/construction_approach/subclass/` directory.     
