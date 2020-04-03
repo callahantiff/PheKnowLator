@@ -24,7 +24,9 @@ from pkt_kg.metadata import Metadata
 from pkt_kg.owlnets import OwlNets
 
 
-# TODO: extend functionality to improve KR for instance-based builds that include connections between 2 instance nodes
+# TODO: extend functionality to improve KR for:
+#  (1) instance-based builds that includes connections between 2 instance nodes
+#  (2) the ability to combine instance and subclass-based methods
 
 
 class KGBuilder(object):
