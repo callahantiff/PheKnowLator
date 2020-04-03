@@ -16,7 +16,12 @@ New data can be added to the knowledge graph using 2 different construction appr
 
 _____
 
-### Instance-Based Construction     
+### Instance-Based Construction    
+
+<img src="https://user-images.githubusercontent.com/8030363/78377026-562ecb80-758c-11ea-8451-a12f89ba6ad2.png">
+
+<br>
+
 In this approach, each new edge is added as an `instance` of an existing class (via `rdf:Type`) in the knowledge graph.  
   
 EXAMPLE: Adding the edge: Morphine ➞ `isSubstanceThatTreats` ➞ Migraine
@@ -51,7 +56,13 @@ _NOTE._ While the instance of the class Migraines can be treated as an anonymous
 
 _____
 
-### Subclass-Based Construction    
+### Subclass-Based Construction   
+
+<img src="https://user-images.githubusercontent.com/8030363/78376386-79a54680-758b-11ea-8a8d-58b91b57fed2.png">
+
+<br>
+
+
 In this approach, each new edge is added as a subclass of aan existing ontology class (via `rdfs:subClassOf`) in the knowledge graph.
 
 EXAMPLE: Adding the edge: TGFB1 ➞ `participatesIn` ➞ Influenza Virus Induced Apoptosis
