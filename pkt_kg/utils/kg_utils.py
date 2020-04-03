@@ -142,8 +142,7 @@ def ontology_file_formatter(write_location: str, full_kg: str, owltools_location
     return None
 
 
-def maps_node_ids_to_integers(graph: Graph, write_location: str, output_triple_integers: str,
-                              output_triple_integers_map: str) -> None:
+def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> None:
     """Loops over the knowledge graph in order to create three different types of files:
         - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
         subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
@@ -155,8 +154,8 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_triple_i
     Args:
         graph: An rdflib graph object.
         write_location: A string pointing to a local directory for writing data.
-        output_triple_integers: the name and file path to write out results.
-        output_triple_integers_map: the name and file path to write out results.
+        output_ints: the name and file path to write out results.
+        output_ints_map: the name and file path to write out results.
 
     Returns:
         None.
@@ -170,16 +169,14 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_triple_i
     graph_len = len(graph)
 
     # build graph from input file and set counter
-    out_ints = open(write_location + output_triple_integers, 'w')
-    out_ids = open(write_location + '_'.join(output_triple_integers.split('_')[:-1]) + '_Identifiers.txt', 'w')
+    out_ints = open(write_location + output_ints, 'w')
+    out_ids = open(write_location + '_'.join(output_ints.split('_')[:-1]) + '_Identifiers.txt', 'w')
 
     # write file headers
     out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
 
     for edge in tqdm(graph):
-        graph.remove(edge)
-
         if str(edge[0]) not in node_map:
             node_counter += 1
             node_map[str(edge[0])] = node_counter
@@ -194,7 +191,10 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_triple_i
         subj, pred, obj = str(edge[0]), str(edge[1]), str(edge[2])
         out_ints.write('%d' % node_map[subj] + '\t' + '%d' % node_map[pred] + '\t' + '%d' % node_map[obj] + '\n')
         out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
+
+        # update counter and delete edge
         output_triples += 1
+        graph.remove(edge)
 
     out_ints.close(), out_ids.close()
 
@@ -202,8 +202,8 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_triple_i
     if graph_len != output_triples:
         raise ValueError('ERROR: The number of triples is incorrect!')
     else:
-        with open(write_location + '/' + output_triple_integers_map, 'w') as file_name:
-            json.dump(node_map,file_name)
+        with open(write_location + '/' + output_ints_map, 'w') as file_name:
+            json.dump(node_map, file_name)
 
     # clean up environment
     del graph
