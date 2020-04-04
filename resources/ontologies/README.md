@@ -4,7 +4,7 @@
 ***
 
 **Wiki Page:** **[`Data Sources`](https://github.com/callahantiff/PheKnowLator/wiki/v2-Data-Sources#ontologies)**  
-**Jupyter Notebook:** **[`Ontology_Cleaning.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/Ontology_Cleaning.ipynb)**  
+**Jupyter Notebook:** **[`Ontology_Cleaning.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Ontology_Cleaning.ipynb)**  
 
 ___
 
@@ -45,7 +45,7 @@ It is important to verify that there is consistency between the ontology classes
 
 <br>
 
-Please see the [`Ontology_Cleaning.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/Ontology_Cleaning.ipynb) Jupyter notebook for an example of how ontology was cleaned for the current PheKnowLator build. 
+Please see the [`Ontology_Cleaning.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Ontology_Cleaning.ipynb) Jupyter notebook for an example of how ontology was cleaned for the current PheKnowLator build. 
 
 <br>
 
@@ -57,4 +57,4 @@ We recommending performing ontology preprocessing and cleaning steps after downl
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
 - All ontologies are listed in the [`ontology_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/ontology_source_metadata.txt) document.   
-- Any data preprocessing or cleaning has been completed prior to building the knowledge graph. A Jupyter notebook containing examples of different preprocessing steps can be found [`here`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/Ontology_Cleaning.ipynb).  
+- Any data preprocessing or cleaning has been completed prior to building the knowledge graph. A Jupyter notebook containing examples of different preprocessing steps can be found [`here`](https://github.com/callahantiff/PheKnowLator/blob/master/Ontology_Cleaning.ipynb).  
