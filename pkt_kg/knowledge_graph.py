@@ -756,7 +756,7 @@ class FullBuild(KGBuilder):
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
-        kg.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
+        self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
 
         # STEP 6: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
