@@ -5,6 +5,7 @@
 Knowledge Graph Utility Functions.
 
 Interacts with OWL Tools API
+* gets
 * gets_ontology_statistics
 * merges_ontologies
 * ontology_file_formatter
@@ -22,11 +23,43 @@ import json
 import networkx  # type: ignore
 import os
 import os.path
-from rdflib import Graph  # type: ignore
+from rdflib import Graph, URIRef  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
 from typing import List, Optional
+
+
+def gets_ontology_classes(graph: Graph) -> List:
+    """Queries a knowledge graph and returns a list of all owl:Class objects in the graph.
+
+    Args:
+        graph: An rdflib Graph object.
+
+    Returns:
+        class_list: A list of all of the class in the graph.
+
+    Raises:
+        ValueError: If the query returns zero nodes with type owl:Class.
+    """
+
+    print('\nQuerying Knowledge Graph to Obtain all OWL:Class Nodes')
+
+    # find all classes in graph
+    kg_classes = graph.query(
+        """SELECT DISTINCT ?c
+             WHERE {?c rdf:type owl:Class . }
+        """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                     'owl': 'http://www.w3.org/2002/07/owl#'}
+    )
+
+    # convert results to list of classes
+    class_list = [res[0] for res in tqdm(kg_classes) if isinstance(res[0], URIRef)]
+
+    if len(class_list) > 0:
+        return class_list
+    else:
+        raise ValueError('ERROR: No classes returned from query.')
 
 
 def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt_kg/libs/owltools') -> None:

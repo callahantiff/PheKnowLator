@@ -4,8 +4,10 @@ import os.path
 from rdflib import Graph
 import unittest
 
+from typing import List
+
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
-    maps_node_ids_to_integers, converts_rdflib_to_networkx
+    maps_node_ids_to_integers, converts_rdflib_to_networkx, gets_ontology_classes
 
 
 class TestKGUtils(unittest.TestCase):
@@ -125,5 +127,20 @@ class TestKGUtils(unittest.TestCase):
 
         # clean up the environment
         os.remove(self.dir_loc + '/so_with_imports_Networkx_MultiDiGraph.gpickle')
+
+        return None
+
+    def test_gets_ontology_classes(self):
+        """Tests the gets_ontology_classes method."""
+
+        # read in ontology
+        graph = Graph()
+        graph.parse(self.good_ontology_file_location)
+
+        # retrieve classes
+        classes = gets_ontology_classes(graph)
+
+        self.assertIsInstance(classes, List)
+        self.assertEqual(2573, len(classes))
 
         return None
