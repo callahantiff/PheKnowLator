@@ -11,13 +11,14 @@ ___
 ### Purpose
 We recommend that users take stes to verify the content in their ontologies prior to building the knowledge graph. PheKnowLator does not currently provide any support for verifying the data quality of ontology data. That being said, we do recommend that users verify the following in each of their ontology sources:  
 
-**Addressing Potential Errors**  
+**Cleaning Ontologies**  
 While most ontologies are released with none or minor errors, it is still good practice to verify that the ontology is error free.  
 - WHAT: Specific things you might look for include:  
   - Invalid typing for literals  
   - Punning (i.e. illegal redeclarations of entity types)  
-  - Errors or inconsistencies in ontology identifiers. 
-- HOW: To do this, we reccommend opening the downloaded ontology file using an application like [Protége]() and running the ontology debugger. If you prefer to use Python, we recommend using the [`owlready2`](https://pypi.org/project/Owlready2/) library. 
+  - Errors or inconsistencies in ontology identifiers  
+  - Remove obsolete ontology classes  
+- HOW: To do this, we reccommend opening the downloaded ontology file using an application like [Protége](https://protege.stanford.edu/) and running the ontology debugger. If you prefer to use Python, we recommend using the [`owlready2`](https://pypi.org/project/Owlready2/) library. 
 
 **Merge Ontologies**:  
 Often times there are errors that only exist in the presense or other ontologies. The most common error which occurs as a result of merging ontology files is punning. To merge a directory of ontologies, you can run the following:  
