@@ -7,7 +7,7 @@ import unittest
 from typing import List
 
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
-    maps_node_ids_to_integers, converts_rdflib_to_networkx, gets_ontology_classes
+    maps_node_ids_to_integers, converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes
 
 
 class TestKGUtils(unittest.TestCase):
@@ -146,5 +146,21 @@ class TestKGUtils(unittest.TestCase):
         # retrieve classes form graph with no data
         no_data_graph = Graph()
         self.assertRaises(ValueError, gets_ontology_classes, no_data_graph)
+
+        return None
+
+    def test_gets_deprecated_ontology_classes(self):
+        """Tests the gets_deprecated_ontology_classes method."""
+
+        # read in ontology
+        graph = Graph()
+        graph.parse(self.good_ontology_file_location)
+
+        # retrieve classes form graph with data
+        classes = gets_deprecated_ontology_classes(graph)
+        print(len(classes))
+
+        self.assertIsInstance(classes, List)
+        self.assertEqual(336, len(classes))
 
         return None

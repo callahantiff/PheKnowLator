@@ -62,6 +62,35 @@ def gets_ontology_classes(graph: Graph) -> List:
         raise ValueError('ERROR: No classes returned from query.')
 
 
+def gets_deprecated_ontology_classes(graph: Graph) -> List:
+    """Queries a knowledge graph and returns a list of all deprecated owl:Class objects in the graph.
+
+    Args:
+        graph: An rdflib Graph object.
+
+    Returns:
+        class_list: A list of all of the deprecated OWL classes in the graph.
+
+    Raises:
+        ValueError: If the query returns zero nodes with type owl:Class.
+    """
+
+    print('\nQuerying Knowledge Graph to Obtain all deprecated OWL:Class Nodes')
+
+    # find all classes in graph
+    kg_classes = graph.query(
+        """SELECT DISTINCT ?c
+             WHERE {?c owl:deprecated true . }
+        """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                     'owl': 'http://www.w3.org/2002/07/owl#'}
+    )
+
+    # convert results to list of classes
+    class_list = [res[0] for res in tqdm(kg_classes) if isinstance(res[0], URIRef)]
+
+    return class_list
+
+
 def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt_kg/libs/owltools') -> None:
     """Uses the OWL Tools API to generate summary statistics (i.e. counts of axioms, classes, object properties, and
     individuals).
