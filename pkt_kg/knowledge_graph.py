@@ -475,10 +475,11 @@ class KGBuilder(object):
                 print('Unique {}: {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
 
             # output log of subclass nodes not found in user-supplied subclass-mapping dictionary
-            if self.construct_approach == 'subclass':
-                for key in self.subclass_error.keys():
-                    print('\n{} {} edges missing from subclass_data_dict: '.format(len(self.subclass_error[key]), key))
-                    print(self.subclass_error[key])
+            if self.construct_approach == 'subclass' and len(self.subclass_error.keys()) > 0:
+                log_file = glob.glob(self.res_dir + '/*/subclass')[0] + '/subclass_map_missing_node_log.json'
+                print('Some edge lists nodes were missing from subclass_data_dict, see log: {}'.format(log_file))
+                with open(log_file, 'w') as file_out:
+                    json.dump(self.subclass_error, file_out)
 
             # add ontology metadata and annotations, serialize graph, and apply OWL API formatting to output
             if self.adds_metadata_to_kg == 'yes': node_metadata_func(self.graph, self.edge_dict)
@@ -755,7 +756,7 @@ class FullBuild(KGBuilder):
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
-        self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
+        kg.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
 
         # STEP 6: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')

@@ -707,6 +707,38 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
+    def test_creates_knowledge_graph_edges_adding_metadata_to_kg_bad(self):
+        """Tests the creates_knowledge_graph_edges method and adds node metadata to the KG, but also makes sure that
+        a log file is writen for genes that are not in the subclass_map."""
+
+        self.kg_subclass.sets_up_environment()
+        self.kg_subclass.reverse_relation_processor()
+
+        # make sure that kg is empty
+        self.kg_subclass.graph = Graph()
+
+        # make sure to add node_metadata
+        self.kg_subclass.adds_metadata_to_kg = 'yes'
+
+        # initialize metadata class
+        metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
+                            self.kg_subclass.node_data, self.kg_subclass.node_dict)
+        metadata.node_metadata_processor()
+
+        # alter gene list - adding genes not in the subclass_map dictionary
+        self.kg_subclass.edge_dict['gene-gene']['edge_list'] = [["1", "1080"], ["1", "4267"], ["4800", "10190"],
+                                                                ["4800", "80219"], ["2729", "1962"], ["2729", "5096"],
+                                                                ["8837", "6774"], ["8837", "8754"]]
+
+        # test method
+        self.kg_subclass.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
+
+        # check that log file was written out
+        log_file = '/construction_approach/subclass/subclass_map_missing_node_log.json'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + log_file))
+
+        return None
+
     def tearDown(self):
 
         # remove resource directory
