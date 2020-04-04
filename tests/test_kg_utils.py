@@ -137,10 +137,14 @@ class TestKGUtils(unittest.TestCase):
         graph = Graph()
         graph.parse(self.good_ontology_file_location)
 
-        # retrieve classes
+        # retrieve classes form graph with data
         classes = gets_ontology_classes(graph)
 
         self.assertIsInstance(classes, List)
         self.assertEqual(2573, len(classes))
+
+        # retrieve classes form graph with no data
+        no_data_graph = Graph()
+        self.assertRaises(ValueError, gets_ontology_classes, no_data_graph)
 
         return None
