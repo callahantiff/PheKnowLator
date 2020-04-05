@@ -24,6 +24,7 @@ import networkx  # type: ignore
 import os
 import os.path
 from rdflib import Graph, URIRef  # type: ignore
+from rdflib.namespace import RDF, OWL  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
@@ -49,8 +50,7 @@ def gets_ontology_classes(graph: Graph) -> List:
     kg_classes = graph.query(
         """SELECT DISTINCT ?c
              WHERE {?c rdf:type owl:Class . }
-        """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                     'owl': 'http://www.w3.org/2002/07/owl#'}
+        """, initNs={'rdf': RDF, 'owl': OWL}
     )
 
     # convert results to list of classes
@@ -81,8 +81,7 @@ def gets_deprecated_ontology_classes(graph: Graph) -> List:
     kg_classes = graph.query(
         """SELECT DISTINCT ?c
              WHERE {?c owl:deprecated true . }
-        """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                     'owl': 'http://www.w3.org/2002/07/owl#'}
+        """, initNs={'owl': OWL}
     )
 
     # convert results to list of classes
@@ -299,7 +298,7 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     nx_mdg = networkx.MultiDiGraph()
 
     for s, p, o in tqdm(graph):
-        graph.remove((s, p, o))
+        graph.remove((s, p, o))s
         nx_mdg.add_edge(s, o, **{'key': p})
 
     # pickle networkx graph
