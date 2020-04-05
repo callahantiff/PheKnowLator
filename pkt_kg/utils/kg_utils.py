@@ -298,7 +298,7 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     nx_mdg = networkx.MultiDiGraph()
 
     for s, p, o in tqdm(graph):
-        graph.remove((s, p, o))s
+        graph.remove((s, p, o))
         nx_mdg.add_edge(s, o, **{'key': p})
 
     # pickle networkx graph
