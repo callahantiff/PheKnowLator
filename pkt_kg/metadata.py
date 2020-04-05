@@ -12,7 +12,7 @@ import re
 import subprocess
 
 from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
-from rdflib.namespace import RDF, RDFS  # type: ignore
+from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Union
 
@@ -260,9 +260,7 @@ class Metadata(object):
                           ?class rdfs:label ?class_label .
                           ?class obo:IAO_0000115 ?class_definition .
                           ?class oboinowl:hasExactSynonym ?class_syn .}
-                       """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                                    'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
-                                    'owl': 'http://www.w3.org/2002/07/owl#',
+                       """, initNs={'rdf': RDF, 'rdfs': RDFS, 'owl': OWL,
                                     'obo': 'http://purl.obolibrary.org/obo/',
                                     'oboinowl': 'http://www.geneontology.org/formats/oboInOwl#'})
 
@@ -352,8 +350,7 @@ class Metadata(object):
                 WHERE {
                     ?o rdf:type owl:Ontology .
                     ?o ?p ?s . }
-            """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                         'owl': 'http://www.w3.org/2002/07/owl#'})
+            """, initNs={'rdf': RDF, 'owl': OWL})
 
         # iterate over annotations and remove existing annotations
         for res in results:
