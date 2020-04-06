@@ -21,11 +21,15 @@ Miscellaneous data Processing Methods
 * explodes_data
 * mesh_finder
 * genomic_id_mapper
+
+Outputs data
+* outputs_dictionary_data
 """
 
 # import needed libraries
 import ftplib
 import gzip
+import json
 import numpy as np  # type: ignore
 import os
 import pandas as pd  # type: ignore
@@ -495,5 +499,22 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
                     outfile.write(res1 + '\t' + res2 + '\t' + g_type + '\n')
 
     outfile.close()
+
+    return None
+
+
+def outputs_dictionary_data(dict_object: Dict, filename: str) -> None:
+    """Outputs a dictionary of data as a json file.
+
+    Args:
+        dict_object: A dictionary object containing data.
+        filename: A string containing a filepath.
+
+    Returns:
+        None
+    """
+
+    with open(filename, 'w') as file_name:
+        json.dump(dict_object, file_name)
 
     return None
