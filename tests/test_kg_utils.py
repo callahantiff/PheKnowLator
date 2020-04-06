@@ -4,7 +4,7 @@ import os.path
 from rdflib import Graph
 import unittest
 
-from typing import List
+from typing import List, Set
 
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
     maps_node_ids_to_integers, converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes
@@ -140,7 +140,7 @@ class TestKGUtils(unittest.TestCase):
         # retrieve classes form graph with data
         classes = gets_ontology_classes(graph)
 
-        self.assertIsInstance(classes, List)
+        self.assertIsInstance(classes, Set)
         self.assertEqual(2573, len(classes))
 
         # retrieve classes form graph with no data
@@ -158,9 +158,8 @@ class TestKGUtils(unittest.TestCase):
 
         # retrieve classes form graph with data
         classes = gets_deprecated_ontology_classes(graph)
-        print(len(classes))
 
-        self.assertIsInstance(classes, List)
+        self.assertIsInstance(classes, Set)
         self.assertEqual(336, len(classes))
 
         return None
