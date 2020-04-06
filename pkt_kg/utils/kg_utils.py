@@ -28,10 +28,10 @@ from rdflib.namespace import RDF, OWL  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
-from typing import List, Optional
+from typing import List, Optional, Set
 
 
-def gets_ontology_classes(graph: Graph) -> List:
+def gets_ontology_classes(graph: Graph) -> Set:
     """Queries a knowledge graph and returns a list of all owl:Class objects in the graph.
 
     Args:
@@ -62,7 +62,7 @@ def gets_ontology_classes(graph: Graph) -> List:
         raise ValueError('ERROR: No classes returned from query.')
 
 
-def gets_deprecated_ontology_classes(graph: Graph) -> List:
+def gets_deprecated_ontology_classes(graph: Graph) -> Set:
     """Queries a knowledge graph and returns a list of all deprecated owl:Class objects in the graph.
 
     Args:
