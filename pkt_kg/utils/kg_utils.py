@@ -54,7 +54,7 @@ def gets_ontology_classes(graph: Graph) -> List:
     )
 
     # convert results to list of classes
-    class_list = [res[0] for res in tqdm(kg_classes) if isinstance(res[0], URIRef)]
+    class_list = set([res[0] for res in tqdm(kg_classes) if isinstance(res[0], URIRef)])
 
     if len(class_list) > 0:
         return class_list
@@ -85,7 +85,7 @@ def gets_deprecated_ontology_classes(graph: Graph) -> List:
     )
 
     # convert results to list of classes
-    class_list = [res[0] for res in tqdm(kg_classes) if isinstance(res[0], URIRef)]
+    class_list = set([res[0] for res in tqdm(kg_classes) if isinstance(res[0], URIRef)])
 
     return class_list
 
