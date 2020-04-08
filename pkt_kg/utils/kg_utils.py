@@ -5,8 +5,9 @@
 Knowledge Graph Utility Functions.
 
 Interacts with OWL Tools API
-* gets
+* gets_ontology_classes
 * gets_ontology_statistics
+* gets_object_properties
 * merges_ontologies
 * ontology_file_formatter
 
@@ -38,10 +39,10 @@ def gets_ontology_classes(graph: Graph) -> Set:
         graph: An rdflib Graph object.
 
     Returns:
-        class_list: A list of all of the class in the graph.
+        class_list: A list of all of the classes in the graph.
 
     Raises:
-        ValueError: If the query returns zero nodes with type owl:Class.
+        ValueError: If the query returns zero nodes with type owl:ObjectProperty.
     """
 
     print('\nQuerying Knowledge Graph to Obtain all OWL:Class Nodes')
@@ -88,6 +89,37 @@ def gets_deprecated_ontology_classes(graph: Graph) -> Set:
     class_list = set([res[0] for res in tqdm(kg_classes) if isinstance(res[0], URIRef)])
 
     return class_list
+
+
+def gets_object_properties(graph: Graph) -> Set:
+    """Queries a knowledge graph and returns a list of all owl:ObjectProperty objects in the graph.
+
+    Args:
+        graph: An rdflib Graph object.
+
+    Returns:
+        object_property_list: A list of all of the object properties in the graph.
+
+    Raises:
+        ValueError: If the query returns zero nodes with type owl:ObjectProperty.
+    """
+
+    print('\nQuerying Knowledge Graph to Obtain all OWL:ObjectProperty Nodes')
+
+    # find all classes in graph
+    kg_object_properties = graph.query(
+        """SELECT DISTINCT ?c
+             WHERE {?c rdf:type owl:ObjectProperty . }
+        """, initNs={'rdf': RDF, 'owl': OWL}
+    )
+
+    # convert results to list of classes
+    object_property_list = set([res[0] for res in tqdm(kg_object_properties) if isinstance(res[0], URIRef)])
+
+    if len(object_property_list) > 0:
+        return object_property_list
+    else:
+        raise ValueError('ERROR: No object properties returned from query.')
 
 
 def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt_kg/libs/owltools') -> None:

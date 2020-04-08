@@ -7,7 +7,8 @@ import unittest
 from typing import List, Set
 
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
-    maps_node_ids_to_integers, converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes
+    maps_node_ids_to_integers, converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes,\
+    gets_object_properties
 
 
 class TestKGUtils(unittest.TestCase):
@@ -161,5 +162,24 @@ class TestKGUtils(unittest.TestCase):
 
         self.assertIsInstance(classes, Set)
         self.assertEqual(336, len(classes))
+
+        return None
+
+    def test_gets_object_properties(self):
+        """Tests the gets_object_properties method."""
+
+        # read in ontology
+        graph = Graph()
+        graph.parse(self.good_ontology_file_location)
+
+        # retrieve object properties form graph with data
+        object_properties = gets_object_properties(graph)
+
+        self.assertIsInstance(object_properties, Set)
+        self.assertEqual(50, len(object_properties))
+
+        # retrieve object properties form graph with no data
+        no_data_graph = Graph()
+        self.assertRaises(ValueError, gets_object_properties, no_data_graph)
 
         return None
