@@ -70,6 +70,8 @@ class Metadata(object):
         """
 
         if self.node_data:
+            print('Loading and Processing Node Metadata')
+
             # create list where first item is edge type and the second item is the df
             dfs = [[re.sub('.*/', '', re.sub('((_[^/]*)_.*$)', '', x)),
                     pandas.read_csv(x, header=0, delimiter='\t')] for x in self.node_data]
