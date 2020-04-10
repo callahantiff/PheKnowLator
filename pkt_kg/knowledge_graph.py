@@ -602,9 +602,6 @@ class KGBuilder(object):
             print('Unique {}: {}'.format(n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']]))))
             print('Unique {}: {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
 
-            # kg.graph.serialize(destination='./resources/knowledge_graphs/TEST_ADD.owl', format='xml')
-            # gets_ontology_statistics('./resources/knowledge_graphs/TEST_ADD.owl', kg.owltools)
-
         # output instance and subclass files
         const_app_dir = glob.glob(self.res_dir + '/construction*')[0]
         if len(self.subclass_error.keys()) > 0:

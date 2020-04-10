@@ -123,14 +123,6 @@ class TestPostClosureBuild(unittest.TestCase):
         # check instance file reqs
         self.kg.construct_approach = 'instance'
 
-        # test wrong file extension
-        mocked_input.side_effect = [self.dir_loc + '/uuid_map.txt']
-        self.assertRaises(TypeError, self.kg.construct_knowledge_graph)
-
-        # test file does not exist
-        mocked_input.side_effect = [self.dir_loc + '/uuid_map.json']
-        self.assertRaises(OSError, self.kg.construct_knowledge_graph)
-
         # test file is empty
         mocked_input.side_effect = [self.dir_loc + '/Master_Edge_List_Dict_empty.json']
         self.assertRaises(TypeError, self.kg.construct_knowledge_graph)

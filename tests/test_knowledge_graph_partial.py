@@ -132,6 +132,9 @@ class TestPartialBuild(unittest.TestCase):
     def test_construct_knowledge_graph_with_no_ontologies(self):
         """Test construct_knowledge_graph with empty ontologies directory."""
 
+        # remove merged file
+        os.remove(self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
+
         # check with bad ontologies directory
         self.kg.ontologies = []
 
