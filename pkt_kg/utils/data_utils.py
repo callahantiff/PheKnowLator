@@ -42,7 +42,7 @@ from contextlib import closing
 from io import BytesIO
 from reactome2py import content  # type: ignore
 from tqdm import tqdm  # type: ignore
-from typing import Dict, Generator, List, Union
+from typing import Dict, Generator, List, Optional, Union
 from urllib.request import urlopen
 from zipfile import ZipFile
 
@@ -518,6 +518,6 @@ def outputs_dictionary_data(dict_object: Optional[Dict], filename: str) -> None:
         with open(filename, 'w') as file_name:
             json.dump(dict_object, file_name)
 
-        close.file_name()
+        file_name.close()
 
     return None
