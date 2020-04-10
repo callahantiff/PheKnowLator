@@ -18,10 +18,6 @@ _____
 
 ### Instance-Based Construction    
 
-<img src="https://user-images.githubusercontent.com/8030363/78377026-562ecb80-758c-11ea-8451-a12f89ba6ad2.png">
-
-<br>
-
 In this approach, each new edge is added as an `instance` of an existing class (via `rdf:Type`) in the knowledge graph.  
   
 EXAMPLE: Adding the edge: Morphine ➞ `isSubstanceThatTreats` ➞ Migraine
@@ -42,12 +38,7 @@ _____
 
 ### Subclass-Based Construction   
 
-<img src="https://user-images.githubusercontent.com/8030363/78376386-79a54680-758b-11ea-8a8d-58b91b57fed2.png">
-
-<br>
-
-
-In this approach, each new edge is added as a subclass of aan existing ontology class (via `rdfs:subClassOf`) in the knowledge graph.
+In this approach, each new edge is added as a subclass of an existing ontology class (via `rdfs:subClassOf`) in the knowledge graph.
 
 EXAMPLE: Adding the edge: TGFB1 ➞ `participatesIn` ➞ Influenza Virus Induced Apoptosis
 
@@ -65,7 +56,7 @@ _____
 **The algorithm makes the following assumptions:**
 - Make sure that you have created the non-ontology node data to ontology class mapping dictionary (described below) to the `./resources/construction_approach/` directory.    
 
-**Input Requirements for both Approaches:** A `pickled` dictionary where the keys are node identifiers (ono-ontology node data) and the values are lists of ontology class identifiers to subclass has been added to the `./resources/construction_approach/` directory. An example of this dictionary is shown below:  
+**Input Requirements for both Approaches:** A `pickled` dictionary where the keys are node identifiers (non-ontology node data) and the values are lists of ontology class identifiers to subclass has been added to the `./resources/construction_approach/` directory. An example of this dictionary is shown below:  
 
 ```python
 {
@@ -77,4 +68,4 @@ _____
 
 ```
 
-Please see the [Reactome Pathways - Pathway Ontology](https://render.githubusercontent.com/view/ipynb?commit=0dd39969d80cf99a634337c24a2f5efd8fd1a49c&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f63616c6c6168616e746966662f5068654b6e6f774c61746f722f306464333939363964383063663939613633343333376332346132663565666438666431613439632f446174615f5072657061726174696f6e2e6970796e62&nwo=callahantiff%2FPheKnowLator&path=Data_Preparation.ipynb&repository_id=149909076&repository_type=Repository#reactome-pw) and [Genomic Identifiers - Sequence Ontology](https://render.githubusercontent.com/view/ipynb?commit=0dd39969d80cf99a634337c24a2f5efd8fd1a49c&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f63616c6c6168616e746966662f5068654b6e6f774c61746f722f306464333939363964383063663939613633343333376332346132663565666438666431613439632f446174615f5072657061726174696f6e2e6970796e62&nwo=callahantiff%2FPheKnowLator&path=Data_Preparation.ipynb&repository_id=149909076&repository_type=Repository#genomic-so) sections of the [`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb) Jupyter Notebook for examples of how to consruct this document. 
+Please see the [Reactome Pathways - Pathway Ontology](https://render.githubusercontent.com/view/ipynb?commit=0dd39969d80cf99a634337c24a2f5efd8fd1a49c&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f63616c6c6168616e746966662f5068654b6e6f774c61746f722f306464333939363964383063663939613633343333376332346132663565666438666431613439632f446174615f5072657061726174696f6e2e6970796e62&nwo=callahantiff%2FPheKnowLator&path=Data_Preparation.ipynb&repository_id=149909076&repository_type=Repository#reactome-pw) and [Genomic Identifiers - Sequence Ontology](https://render.githubusercontent.com/view/ipynb?commit=0dd39969d80cf99a634337c24a2f5efd8fd1a49c&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f63616c6c6168616e746966662f5068654b6e6f774c61746f722f306464333939363964383063663939613633343333376332346132663565666438666431613439632f446174615f5072657061726174696f6e2e6970796e62&nwo=callahantiff%2FPheKnowLator&path=Data_Preparation.ipynb&repository_id=149909076&repository_type=Repository#genomic-so) sections of the [`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb) Jupyter Notebook for examples of how to construct this document. 
