@@ -284,11 +284,9 @@ class KGBuilder(object):
         else:
             if URIRef(obo + object_property) not in self.obj_properties:
                 self.graph.add((object_property, RDF.type, OWL.ObjectProperty))
+                self.obj_properties = gets_object_properties(self.graph)  # update list of object properties
             else:
                 pass
-
-        # update list of object properties
-        self.obj_properties = gets_object_properties(self.graph)
 
         return None
 
@@ -618,19 +616,19 @@ class KGBuilder(object):
         """
 
         if self.edge_dict:
-            for edge_type in self.edge_dict.keys():
-                node1_type, node2_type = self.edge_dict[edge_type]['data_type'].split('-')
-                relation, uris = self.edge_dict[edge_type]['edge_relation'], self.edge_dict[edge_type]['uri']
-                edge_list = copy.deepcopy(self.edge_dict[edge_type]['edge_list'])
+            for edge_type in kg.edge_dict.keys():
+                node1_type, node2_type = kg.edge_dict[edge_type]['data_type'].split('-')
+                relation, uris = kg.edge_dict[edge_type]['edge_relation'], kg.edge_dict[edge_type]['uri']
+                edge_list = copy.deepcopy(kg.edge_dict[edge_type]['edge_list'])
                 edge_results: List = []
 
                 print('\nCreating {} ({}-{}) Edges ***'.format(edge_type.upper(), node1_type, node2_type))
 
                 for edge in tqdm(edge_list):
                     edge_info = {'n1': node1_type, 'n2': node2_type, 'relation': relation, 'uri': uris, 'edges': edge}
-                    if self.check_ontology_class_nodes(edge_info):  # verify edges - make sure ont class nodes are in KG
-                        if self.construct_approach == 'subclass':
-                            edge_results += self.subclass_constructor(edge_info, edge_type)
+                    if kg.check_ontology_class_nodes(edge_info):  # verify edges - make sure ont class nodes are in KG
+                        if kg.construct_approach == 'subclass':
+                            edge_results += kg.subclass_constructor(edge_info, edge_type)
                         else:
                             edge_results += self.instance_constructor(edge_info, edge_type)
                     else:
