@@ -36,18 +36,6 @@ In this example, Morphine is a non-ontology data node and Migraine is an HPO ont
 
 _NOTE._ While the instance of the class Migraines can be treated as an anonymous node in the knowledge graph, we generate a new international resource identifier for each asserted instance.
 
-<br>
-
-**Outputs:** As mentioned above, a UUID is created for each anonymous node representing an instance of a class. In order to fully utilize the knowledge graph, a `.json` file containing the mapping from each UUID instance to it's ontology class is output to the `./resources/construction_approach/instance` directory. For example, 
-
-```json
-{
-"http://purl.obolibrary.org/obo/CHEBI_24505": "https://github.com/callahantiff/PheKnowLator/obo/ext/c2591241-8952-44ea-a313-e4b3c5fb6d35",
-"http://purl.obolibrary.org/obo/PR_000013648": "https://github.com/callahantiff/PheKnowLator/obo/ext/0ea74deb-0002-4f48-b7e4-81a8fd947312",
-"http://purl.obolibrary.org/obo/GO_0050031": "https://github.com/callahantiff/PheKnowLator/obo/ext/8f5c81d4-92dd-426e-a2d9-2be87edb1520",
-}
-```
-
 <br><br>
 
 _____
@@ -68,11 +56,7 @@ Would require adding:
 - `subClassOf`(Influenza Virus Induced Apoptosis, Influenza A pathway)   
 - `Type`(Influenza Virus Induced Apoptosis, `owl:Class`)  
 
-Where TGFB1 is an PR ontology term and Influenza Virus Induced Apoptosis is a non-ontology data node. In this example, Influenza A pathway is an existing ontology class.
-
-<br>
-
-**Outputs:** There are no approach-specific output files generated.  
+Where TGFB1 is an PR ontology term and Influenza Virus Induced Apoptosis is a non-ontology data node. In this example, Influenza A pathway is an existing ontology class.  
 
 <br>
 _____
@@ -81,7 +65,7 @@ _____
 **The algorithm makes the following assumptions:**
 - Make sure that you have created the non-ontology node data to ontology class mapping dictionary (described below) to the `./resources/construction_approach/` directory.    
 
-**Input Requirements for both Approaches:** A `pickled` dictionary where the keys are node identifiers (ono-ontology node data) and the values are lists of ontology class identifiers to subclass has been added to the `./resources/construction_approach/subclass/` directory. An example of this dictionary is shown below:  
+**Input Requirements for both Approaches:** A `pickled` dictionary where the keys are node identifiers (ono-ontology node data) and the values are lists of ontology class identifiers to subclass has been added to the `./resources/construction_approach/` directory. An example of this dictionary is shown below:  
 
 ```python
 {
