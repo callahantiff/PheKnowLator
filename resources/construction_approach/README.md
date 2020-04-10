@@ -60,8 +60,10 @@ _____
 
 ```python
 {
-  'R-HSA-168277'  : ['http://purl.obolibrary.org/obo/PW_0001054',         'http://purl.obolibrary.org/obo/GO_0046730'],
-  'R-HSA-9026286' : ['http://purl.obolibrary.org/obo/PW_000000001',         'http://purl.obolibrary.org/obo/GO_0019372'],
+  'R-HSA-168277'  : ['http://purl.obolibrary.org/obo/PW_0001054',
+                     'http://purl.obolibrary.org/obo/GO_0046730'],
+  'R-HSA-9026286' : ['http://purl.obolibrary.org/obo/PW_000000001',
+                     'http://purl.obolibrary.org/obo/GO_0019372'],
   '100129357'     : ['SO_0000043'],
   '100129358'     : ['SO_0000336'],
 }                  
