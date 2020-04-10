@@ -603,9 +603,8 @@ class KGBuilder(object):
             print('Unique {}: {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
 
         # output instance and subclass files
-        const_app_dir = glob.glob(self.res_dir + '/construction*')[0]
         if len(self.subclass_error.keys()) > 0:
-            log_file = const_app_dir + '/subclass_map_missing_node_log.json'
+            log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_missing_node_log.json'
             print('Some edge lists nodes were missing from subclass_dict, see log: {}'.format(log_file))
             outputs_dictionary_data(self.subclass_error, log_file)
 
