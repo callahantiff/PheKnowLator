@@ -503,7 +503,7 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
     return None
 
 
-def outputs_dictionary_data(dict_object: Dict, filename: str) -> None:
+def outputs_dictionary_data(dict_object: Optional[Dict], filename: str) -> None:
     """Outputs a dictionary of data as a json file.
 
     Args:
@@ -514,7 +514,10 @@ def outputs_dictionary_data(dict_object: Dict, filename: str) -> None:
         None
     """
 
-    with open(filename, 'w') as file_name:
-        json.dump(dict_object, file_name)
+    if dict_object:
+        with open(filename, 'w') as file_name:
+            json.dump(dict_object, file_name)
+
+        close.file_name()
 
     return None
