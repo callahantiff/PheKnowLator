@@ -159,7 +159,7 @@ def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt
 
 
 def merges_ontologies(ontology_files: List[str], write_location: str, merged_ont_kg: str,
-                      owltools_location: str = './pkt_kg/libs/owltools') -> None:
+                      owltools_location: str = './pkt_kg/libs/owltools') -> Graph:
     """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into a
     master merged ontology file and saved locally to the provided file path via the merged_ontology attribute. The
     function assumes that the file is written to the directory specified by the write_location attribute.
@@ -175,7 +175,6 @@ def merges_ontologies(ontology_files: List[str], write_location: str, merged_ont
     """
 
     if not ontology_files:
-        # gets_ontology_statistics(write_location + merged_ont_kg, owltools_location)
         return None
     else:
         if write_location + merged_ont_kg in glob.glob(write_location + '/*.owl'):
