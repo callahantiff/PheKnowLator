@@ -29,8 +29,6 @@ class TestPartialBuild(unittest.TestCase):
         os.mkdir(self.dir_loc_resources + '/node_data')
         os.mkdir(dir_loc_resources + '/ontologies')
         os.mkdir(self.dir_loc_resources + '/construction_approach')
-        os.mkdir(self.dir_loc_resources + '/construction_approach/instance')
-        os.mkdir(self.dir_loc_resources + '/construction_approach/subclass')
 
         # copy data
         # node metadata
@@ -89,7 +87,7 @@ class TestPartialBuild(unittest.TestCase):
                       "8837": ['SO_0001217'], "10190": ['SO_0001217'], "80219": ['SO_0001217']}
 
         # save data
-        with open(self.dir_loc_resources + '/construction_approach/subclass/subclass_construction_map.pkl', 'wb') as f:
+        with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
             pickle.dump(subcls_map, f, protocol=4)
 
         # set-up input arguments
@@ -137,7 +135,7 @@ class TestPartialBuild(unittest.TestCase):
         # check with bad ontologies directory
         self.kg.ontologies = []
 
-        self.assertRaises(TypeError, self.kg.construct_knowledge_graph())
+        self.assertRaises(TypeError, self.kg.construct_knowledge_graph)
 
         return None
 

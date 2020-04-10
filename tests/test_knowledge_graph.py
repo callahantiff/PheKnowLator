@@ -7,18 +7,19 @@ import pickle
 import shutil
 import unittest
 
-from rdflib import Graph
+from rdflib import Graph, URIRef, BNode
+from rdflib.namespace import OWL, RDF
 from typing import Dict, List
 
 from pkt_kg.knowledge_graph import FullBuild, PartialBuild, PostClosureBuild
 from pkt_kg.metadata import Metadata
+from pkt_kg.utils import gets_object_properties, gets_ontology_classes
 
 
 class TestKGBuilder(unittest.TestCase):
     """Class to test the KGBuilder class from the knowledge graph script."""
 
     def setUp(self):
-
         # initialize file location
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
@@ -33,8 +34,6 @@ class TestKGBuilder(unittest.TestCase):
         os.mkdir(self.dir_loc_resources + '/node_data')
         os.mkdir(dir_loc_resources + '/ontologies')
         os.mkdir(self.dir_loc_resources + '/construction_approach')
-        os.mkdir(self.dir_loc_resources + '/construction_approach/instance')
-        os.mkdir(self.dir_loc_resources + '/construction_approach/subclass')
 
         # copy data
         # node metadata
@@ -63,6 +62,10 @@ class TestKGBuilder(unittest.TestCase):
         shutil.copyfile(self.dir_loc + '/Master_Edge_List_Dict_empty.json',
                         self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json')
 
+        # empty subclass dict file
+        shutil.copyfile(self.dir_loc + '/subclass_construction_map_empty.pkl',
+                        self.dir_loc_resources + '/construction_approach/subclass_construction_map_empty.pkl')
+
         # create edge list
         edge_dict = {"gene-phenotype": {"data_type": "subclass-class",
                                         "edge_relation": "RO_0003302",
@@ -79,7 +82,15 @@ class TestKGBuilder(unittest.TestCase):
                                            "https://www.ncbi.nlm.nih.gov/gene/"],
                                    "edge_list": [["3075", "1080"], ["3075", "4267"], ["4800", "10190"],
                                                  ["4800", "80219"], ["2729", "1962"], ["2729", "5096"],
-                                                 ["8837", "6774"], ["8837", "8754"]]}
+                                                 ["8837", "6774"], ["8837", "8754"]]},
+                     "disease-disease": {"data_type": "class-class",
+                                         "edge_relation": "RO_0002435",
+                                         "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
+                                                 "https://www.ncbi.nlm.nih.gov/gene/"],
+                                         "edge_list": [["DOID_3075", "DOID_1080"], ["DOID_3075", "DOID_4267"],
+                                                       ["DOID_4800", "DOID_10190"], ["DOID_4800", "DOID_80219"],
+                                                       ["DOID_2729", "DOID_1962"], ["DOID_2729", "DOID_5096"],
+                                                       ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]}
                      }
 
         edge_dict_inst = {"gene-phenotype": {"data_type": "instance-class",
@@ -97,7 +108,15 @@ class TestKGBuilder(unittest.TestCase):
                                                 "https://www.ncbi.nlm.nih.gov/gene/"],
                                         "edge_list": [["3075", "1080"], ["3075", "4267"], ["4800", "10190"],
                                                       ["4800", "80219"], ["2729", "1962"], ["2729", "5096"],
-                                                      ["8837", "6774"], ["8837", "8754"]]}
+                                                      ["8837", "6774"], ["8837", "8754"]]},
+                          "disease-disease": {"data_type": "class-class",
+                                              "edge_relation": "RO_0002435",
+                                              "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
+                                                      "https://www.ncbi.nlm.nih.gov/gene/"],
+                                              "edge_list": [["DOID_3075", "DOID_1080"], ["DOID_3075", "DOID_4267"],
+                                                            ["DOID_4800", "DOID_10190"], ["DOID_4800", "DOID_80219"],
+                                                            ["DOID_2729", "DOID_1962"], ["DOID_2729", "DOID_5096"],
+                                                            ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]}
                           }
 
         # save data
@@ -114,7 +133,10 @@ class TestKGBuilder(unittest.TestCase):
                       "8837": ['SO_0001217'], "10190": ['SO_0001217'], "80219": ['SO_0001217']}
 
         # save data
-        with open(self.dir_loc_resources + '/construction_approach/subclass/subclass_construction_map.pkl', 'wb') as f:
+        with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
+            pickle.dump(subcls_map, f, protocol=4)
+
+        with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
             pickle.dump(subcls_map, f, protocol=4)
 
         # set-up input arguments
@@ -136,10 +158,68 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    def test_class_initialization_parameters(self):
-        """Tests the class initialization parameters."""
+    def test_class_initialization_parameters_version(self):
+        """Tests the class initialization parameters for version."""
 
-        # edge data
+        self.assertRaises(ValueError,
+                          FullBuild, None, self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          None, 'yes', 'yes', 'yes')
+
+        return None
+
+    def test_class_initialization_parameters_write_location(self):
+        """Tests the class initialization parameters for write location."""
+
+        self.assertRaises(ValueError, FullBuild, 'v2.0.0', None, 'subclass', None, 'yes', 'yes', 'yes')
+
+        return None
+
+    def test_class_initialization_parameters_ontologies(self):
+        """Tests the class initialization parameters for ontologies."""
+
+        self.kg_subclass.res_dir = 'data'
+        self.assertRaises(ValueError, FullBuild, 'v2.0.0', None, 'subclass', None, 'yes', 'yes', 'yes')
+        self.kg_subclass.res_dir = 'data/resources'
+
+        return None
+
+    def test_class_initialization_parameters_subclass_dict(self):
+        """Tests the class initialization parameters for subclass_dict."""
+
+        # test when path does not exist
+        self.kg_subclass.res_dir = 'data'
+        self.assertRaises(ValueError, FullBuild, 'v2.0.0', None, 'subclass', None, 'yes', 'yes', 'yes')
+        self.kg_subclass.res_dir = 'data/resources'
+
+        # test when the dict is empty
+        shutil.copyfile(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl',
+                        self.dir_loc + '/subclass_construction_map.pkl')
+        self.assertRaises(ValueError, FullBuild, 'v2.0.0', None, 'subclass', None, 'yes', 'yes', 'yes')
+
+        # clean up environment
+        os.remove(self.dir_loc_resources + '/construction_approach/subclass_construction_map_empty.pkl')
+        os.remove(self.dir_loc + '/subclass_construction_map.pkl')
+
+        return None
+
+    def test_class_initialization_parameters_construction_approach(self):
+        """Tests the class initialization parameters for construction_approach."""
+
+        self.assertRaises(TypeError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 1,
+                          None, 'yes', 'yes', 'yes')
+        self.assertRaises(ValueError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subcls',
+                          None, 'yes', 'yes', 'yes')
+        self.assertRaises(ValueError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'inst',
+                          None, 'yes', 'yes', 'yes')
+
+        return None
+
+    def test_class_initialization_parameters_edge_data(self):
+        """Tests the class initialization parameters for edge_data."""
+
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
                           None, 'yes', 'yes', 'yes')
@@ -152,7 +232,14 @@ class TestKGBuilder(unittest.TestCase):
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
                           self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json', 'yes', 'yes', 'yes')
 
-        # relations
+        return None
+
+    def test_class_initialization_parameter_relations(self):
+        """Tests the class initialization parameters for relations."""
+
+        self.assertRaises(TypeError, FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 1, 'yes')
+
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
                           self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'ye', 'yes')
@@ -170,14 +257,18 @@ class TestKGBuilder(unittest.TestCase):
         shutil.copyfile(self.dir_loc + '/INVERSE_RELATIONS.txt',
                         self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt')
 
-        # node metadata
+        return None
+
+    def test_class_initialization_parameters_node_metadata(self):
+        """Tests the class initialization parameters for node_metadata."""
+
+        self.assertRaises(TypeError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 1, 'yes', 'yes')
+
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
                           self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'ye', 'yes', 'yes')
-
-        self.assertRaises(Exception,
-                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'no', 'yes', 'yes', 'yes')
 
         # remove node metadata
         os.remove(self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
@@ -192,7 +283,32 @@ class TestKGBuilder(unittest.TestCase):
         shutil.copyfile(self.dir_loc + '/node_data/gene-gene_GENE_METADATA.txt',
                         self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt')
 
-        # decoding owl
+        return None
+
+    def test_class_initialization_parameters_kg_metadata_flag(self):
+        """Tests the class initialization parameters for setting the kg_metadata flag parameter."""
+
+        # initialize input parameters
+        write_loc = self.dir_loc_resources + '/knowledge_graphs'
+        edges = self.dir_loc_resources + '/Master_Edge_List_Dict.json'
+
+        # test kg_metadata flag when node_data is None
+        self.kg_subclass = FullBuild('v2.0.0', write_loc, 'subclass', edges, None, 'yes', 'yes', 'yes')
+        self.assertEqual('no', self.kg_subclass.kg_metadata)
+
+        # test kg_metadata flag when node_data is None
+        self.kg_subclass = FullBuild('v2.0.0', write_loc, 'subclass', edges, 'yes', 'yes', 'yes', 'yes')
+        self.assertEqual('yes', self.kg_subclass.kg_metadata)
+
+        return None
+
+    def test_class_initialization_parameters_decoding_owl(self):
+        """Tests the class initialization parameters for decoding owl."""
+
+        self.assertRaises(TypeError,
+                          FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 1)
+
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
                           self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'ye')
@@ -234,8 +350,8 @@ class TestKGBuilder(unittest.TestCase):
         self.assertTrue(len(self.kg_subclass.ontologies) == 1)
 
         # owl semantics
-        self.assertIsInstance(self.kg_subclass.decode_owl_semantics, str)
-        self.assertTrue(self.kg_subclass.decode_owl_semantics == 'yes')
+        self.assertIsInstance(self.kg_subclass.decode_owl, str)
+        self.assertTrue(self.kg_subclass.decode_owl == 'yes')
 
         # check post closure
         self.assertTrue(self.kg_closure.build == 'post-closure')
@@ -247,8 +363,8 @@ class TestKGBuilder(unittest.TestCase):
 
         # check construction type
         self.assertTrue(self.kg_subclass.construct_approach == 'subclass')
-        self.assertIsInstance(self.kg_subclass.subclass_data_dict, Dict)
-        self.assertTrue(len(self.kg_subclass.subclass_data_dict.keys()) == 15)
+        self.assertIsInstance(self.kg_subclass.subclass_dict, Dict)
+        self.assertTrue(len(self.kg_subclass.subclass_dict.keys()) == 15)
         self.assertIsNone(self.kg_subclass.kg_uuid_map)
 
         return None
@@ -260,12 +376,11 @@ class TestKGBuilder(unittest.TestCase):
         self.assertTrue(self.kg_instance.build == 'partial')
 
         # check relations and owl decoding
-        self.assertIsNone(self.kg_instance.decode_owl_semantics)
+        self.assertIsNone(self.kg_instance.decode_owl)
         self.assertIsNone(self.kg_instance.inverse_relations)
 
         # check construction type
         self.assertTrue(self.kg_instance.construct_approach == 'instance')
-        self.assertIsNone(self.kg_instance.subclass_data_dict)
         self.assertIsInstance(self.kg_instance.kg_uuid_map, Dict)
 
         return None
@@ -307,45 +422,183 @@ class TestKGBuilder(unittest.TestCase):
 
         # test condition for subclass-subclass
         edge_info1 = {'n1': 'subclass', 'n2': 'subclass', 'edges': ['2', '3124'],
-                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/',
-                              'https://www.ncbi.nlm.nih.gov/gene/']}
+                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/']}
         map_vals1 = self.kg_subclass.finds_node_type(edge_info1)
-        self.assertEqual(([None, None], ['2', 'https://www.ncbi.nlm.nih.gov/gene/'],
-                          ['3124', 'https://www.ncbi.nlm.nih.gov/gene/']),
+
+        self.assertEqual({'cls1': None,
+                          'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
+                          'ent2': 'https://www.ncbi.nlm.nih.gov/gene/3124'},
                          map_vals1)
 
         # test condition for instance-instance
         edge_info2 = {'n1': 'instance', 'n2': 'instance', 'edges': ['2', '3124'],
-                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/',
-                              'https://www.ncbi.nlm.nih.gov/gene/']}
+                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/']}
         map_vals2 = self.kg_subclass.finds_node_type(edge_info2)
-        self.assertEqual(([None, None], ['2', 'https://www.ncbi.nlm.nih.gov/gene/'],
-                          ['3124', 'https://www.ncbi.nlm.nih.gov/gene/']), map_vals2)
+
+        self.assertEqual({'cls1': None,
+                          'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
+                          'ent2': 'https://www.ncbi.nlm.nih.gov/gene/3124'},
+                         map_vals2)
 
         # test condition for class-subclass
         edge_info3 = {'n1': 'subclass', 'n2': 'class', 'edges': ['2', 'DOID_0110035'],
-                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/',
-                              'http://purl.obolibrary.org/obo/']}
+                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/']}
         map_vals3 = self.kg_subclass.finds_node_type(edge_info3)
-        self.assertEqual((['DOID_0110035', 'http://purl.obolibrary.org/obo/'],
-                          ['2', 'https://www.ncbi.nlm.nih.gov/gene/'],
-                          [None, None]), map_vals3)
+
+        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_0110035',
+                          'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
+                          'ent2': None},
+                         map_vals3)
 
         # test condition for subclass-class
         edge_info4 = {'n1': 'class', 'n2': 'subclass', 'edges': ['DOID_0110035', '2'],
-                      'uri': ['http://purl.obolibrary.org/obo/',
-                              'https://www.ncbi.nlm.nih.gov/gene/']}
+                      'uri': ['http://purl.obolibrary.org/obo/', 'https://www.ncbi.nlm.nih.gov/gene/']}
         map_vals4 = self.kg_subclass.finds_node_type(edge_info4)
-        self.assertEqual((['DOID_0110035', 'http://purl.obolibrary.org/obo/'],
-                          ['2', 'https://www.ncbi.nlm.nih.gov/gene/'],
-                          [None, None]), map_vals4)
+
+        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_0110035',
+                          'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
+                          'ent2': None},
+                         map_vals4)
 
         # test condition for class-class
-        edge_info5 = {'n1': 'class', 'n2': 'class', 'edges': ['2', 'DOID_0110035'],
-                      'uri': ['http://purl.obolibrary.org/obo/',
-                              'https://www.ncbi.nlm.nih.gov/gene/']}
+        edge_info5 = {'n1': 'class', 'n2': 'class', 'edges': ['DOID_162', 'DOID_0110035'],
+                      'uri': ['http://purl.obolibrary.org/obo/', 'http://purl.obolibrary.org/obo/']}
         map_vals5 = self.kg_subclass.finds_node_type(edge_info5)
-        self.assertEqual(([None, None], [None, None], [None, None]), map_vals5)
+
+        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_162',
+                          'cls2': 'http://purl.obolibrary.org/obo/DOID_0110035',
+                          'ent1': None,
+                          'ent2': None},
+                         map_vals5)
+
+        return None
+
+    def test_verifies_object_property(self):
+        """Tests the verifies_object_property method."""
+
+        # load graph
+        self.kg_subclass.graph = Graph()
+        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+
+        # get object properties
+        self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
+
+        # check for presence of existing obj_prop
+        self.assertIn(URIRef('http://purl.obolibrary.org/obo/so#position_of'), self.kg_subclass.obj_properties)
+
+        # test adding bad relation
+        self.assertRaises(TypeError, self.kg_subclass.verifies_object_property, 'RO_0002200')
+
+        # test adding a good relation
+        new_relation = URIRef('http://purl.obolibrary.org/obo/' + 'RO_0002566')
+        self.kg_subclass.verifies_object_property(new_relation)
+
+        # update list of object properties
+        self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
+
+        # make sure that object property was added to the graph
+        self.assertTrue(new_relation in self.kg_subclass.obj_properties)
+
+        return None
+
+    def test_check_ontology_class_classes(self):
+        """Tests the check_ontology_class_nodes method for class-class edges."""
+
+        # set-up inputs for class-class
+        edge_info = {'n1': 'class', 'n2': 'class', 'relation': 'RO_0003302',
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['CHEBI_81395', 'DOID_12858']}
+
+        self.kg_subclass.ont_classes = [URIRef('http://purl.obolibrary.org/obo/CHEBI_81395'),
+                                        URIRef('http://purl.obolibrary.org/obo/DOID_12858')]
+
+        self.assertTrue(self.kg_subclass.check_ontology_class_nodes(edge_info))
+
+        # set-up inputs for class-class (FALSE)
+        edge_info = {'n1': 'class', 'n2': 'class', 'relation': 'RO_0003302',
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['CHEBI_81395', 'DOID_1']}
+
+        self.kg_subclass.ont_classes = ['http://purl.obolibrary.org/obo/CHEBI_81395',
+                                        'http://purl.obolibrary.org/obo/DOID_128987']
+
+        self.assertFalse(self.kg_subclass.check_ontology_class_nodes(edge_info))
+
+        return None
+
+    def test_check_ontology_class_subclasses(self):
+        """Tests the check_ontology_class_nodes method for subclass edges."""
+
+        # set-up inputs for subclass-subclass
+        self.kg_subclass.ont_classes = {URIRef('http://purl.obolibrary.org/obo/DOID_12858')}
+
+        edge_info = {'n1': 'subclass', 'n2': 'subclass', 'relation': 'RO_0003302',
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['14', '134056']}
+
+        self.assertTrue(self.kg_subclass.check_ontology_class_nodes(edge_info))
+
+        # set-up inputs for subclass-class
+        edge_info = {'n1': 'subclass', 'n2': 'class', 'relation': 'RO_0003302',
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['14', 'DOID_12858']}
+
+        self.assertTrue(self.kg_subclass.check_ontology_class_nodes(edge_info))
+
+        # set-up inputs for class-subclass
+        edge_info = {'n1': 'class', 'n2': 'subclass', 'relation': 'RO_0003302',
+                     'uri': ['http://purl.obolibrary.org/obo/', 'https://www.ncbi.nlm.nih.gov/gene/'],
+                     'edges': ['DOID_12858', '14']}
+
+        self.assertTrue(self.kg_subclass.check_ontology_class_nodes(edge_info))
+
+        return None
+
+    def test_finds_node_in_subclass_dict(self):
+        """Tests the checks_for_node_in_subclass_dict method"""
+
+        # test when entity in subclass_dict
+        result = self.kg_subclass.finds_node_in_subclass_dict('gene-phenotype', '2', ['2', 'HP_0002511'])
+        self.assertEqual(['SO_0001217'], result)
+
+        # test when entity not in subclass_dict
+        # update subclass dict to remove an entry
+        del self.kg_subclass.subclass_dict['2']
+        edge_list_length = len(self.kg_subclass.edge_dict['gene-phenotype']['edge_list'])
+        result = self.kg_subclass.finds_node_in_subclass_dict('gene-phenotype', '2', ['2', 'HP_0002511'])
+
+        self.assertEqual(None, result)
+        self.assertTrue(edge_list_length > len(self.kg_subclass.edge_dict['gene-phenotype']['edge_list']))
+
+        return None
+
+    def test_adds_edges_to_graph(self):
+        """Tests the adds_edges_to_graph method"""
+
+        # set input variables
+        edge_list = [(BNode('01a910b4-09fc-4d06-8951-3bc278eeaca9'),
+                      URIRef('http://www.w3.org/2002/07/owl#onProperty'),
+                      URIRef('http://purl.obolibrary.org/obo/RO_0002435'))]
+        new_edges = []
+
+        # set-up graph
+        self.kg_subclass.graph = Graph()
+        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        initial_graph_len = len(self.kg_subclass.graph)
+
+        # test method
+        edges = self.kg_subclass.adds_edges_to_graph(edge_list, new_edges)
+
+        # make sure edges were added
+        self.assertTrue(initial_graph_len < len(self.kg_subclass.graph))
+
+        # make sure that
+        self.assertIsInstance(edges, List)
+        self.assertEqual(1, len(edges))
 
         return None
 
@@ -356,24 +609,24 @@ class TestKGBuilder(unittest.TestCase):
         # prepare input vars
         self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         pre_length = len(self.kg_subclass.graph)
+        del self.kg_subclass.subclass_dict['2']
 
         edge_info = {'n1': 'subclass', 'n2': 'class', 'relation': 'RO_0003302',
                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
-                     'edges': ['14', 'DOID_0110035']}
+                     'edges': ['2', 'HP_0000716']}
 
         # test method
-        results = self.kg_subclass.subclass_constructor(edge_info, 'gene-disease')
+        results = self.kg_subclass.subclass_constructor(edge_info, 'gene-phenotype')
 
         # check returned results
-        self.assertIsInstance(results[0], List)
-        self.assertEqual(len(results[0]), 0)
-        self.assertIsNone(results[1])
+        self.assertIsInstance(results, List)
+        self.assertEqual(len(results), 0)
         self.assertTrue(len(self.kg_subclass.graph) == pre_length)
 
         # check subclass error log
         self.assertIsInstance(self.kg_subclass.subclass_error, Dict)
-        self.assertIn('gene-disease', self.kg_subclass.subclass_error.keys())
-        self.assertEqual(self.kg_subclass.subclass_error['gene-disease'], ['https://www.ncbi.nlm.nih.gov/gene/14'])
+        self.assertIn('gene-phenotype', self.kg_subclass.subclass_error.keys())
+        self.assertEqual(self.kg_subclass.subclass_error['gene-phenotype'], ['2'])
 
         return None
 
@@ -386,13 +639,12 @@ class TestKGBuilder(unittest.TestCase):
 
         edge_info = {'n1': 'subclass', 'n2': 'class', 'relation': 'RO_0003302',
                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
-                     'edges': ['2', 'DOID_0110035']}
+                     'edges': ['2', 'HP_0110035']}
 
         # test method
-        results = self.kg_subclass.subclass_constructor(edge_info, 'gene-disease')
-        self.assertIsInstance(results[0], List)
-        self.assertEqual(len(results[0]), 2)
-        self.assertIsInstance(results[1], Dict)
+        results = self.kg_subclass.subclass_constructor(edge_info, 'gene-phenotype')
+        self.assertIsInstance(results, List)
+        self.assertEqual(len(results), 6)
         self.assertTrue(len(self.kg_subclass.graph) > pre_length)
 
         return None
@@ -408,13 +660,12 @@ class TestKGBuilder(unittest.TestCase):
         # edge information
         edge_info = {'n1': 'class', 'n2': 'class', 'relation': 'RO_0003302',
                      'uri': ['http://purl.obolibrary.org/obo/', 'http://purl.obolibrary.org/obo/'],
-                     'edges': ['DOID_0123512', 'DOID_0110035']}
+                     'edges': ['DOID_3075', 'DOID_1080']}
 
         results = self.kg_subclass.subclass_constructor(edge_info, 'disease-disease')
-        self.assertIsInstance(results[0], List)
-        self.assertEqual(len(results[0]), 0)
-        self.assertIsInstance(results[1], Dict)
-        self.assertTrue(len(self.kg_subclass.graph) == pre_length)
+        self.assertIsInstance(results, List)
+        self.assertEqual(len(results), 4)
+        self.assertTrue(len(self.kg_subclass.graph) > pre_length)
 
         return None
 
@@ -429,13 +680,12 @@ class TestKGBuilder(unittest.TestCase):
         # edge information
         edge_info = {'n1': 'class', 'n2': 'class', 'relation': 'RO_0003302',
                      'uri': ['http://purl.obolibrary.org/obo/', 'http://purl.obolibrary.org/obo/'],
-                     'edges': ['DOID_0123512', 'DOID_0110035']}
+                     'edges': ['DOID_3075', 'DOID_1080']}
 
-        results = self.kg_subclass.instance_constructor(edge_info)
-        self.assertIsInstance(results[0], List)
-        self.assertEqual(len(results[0]), 0)
-        self.assertIsInstance(results[1], Dict)
-        self.assertTrue(len(self.kg_subclass.graph) == pre_length)
+        results = self.kg_subclass.instance_constructor(edge_info, 'disease-disease')
+        self.assertIsInstance(results, List)
+        self.assertEqual(len(results), 4)
+        self.assertTrue(len(self.kg_subclass.graph) > pre_length)
 
         return None
 
@@ -452,11 +702,10 @@ class TestKGBuilder(unittest.TestCase):
                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/'],
                      'edges': ['2', '10']}
 
-        results = self.kg_instance.instance_constructor(edge_info)
-        self.assertIsInstance(results[0], List)
-        self.assertEqual(len(results[0]), 0)
-        self.assertIsInstance(results[1], Dict)
-        self.assertTrue(len(self.kg_instance.graph) == pre_length)
+        results = self.kg_instance.instance_constructor(edge_info, 'gene-gene')
+        self.assertIsInstance(results, List)
+        self.assertEqual(len(results), 3)
+        self.assertTrue(len(self.kg_instance.graph) > pre_length)
 
         return None
 
@@ -471,14 +720,12 @@ class TestKGBuilder(unittest.TestCase):
         # edge information
         edge_info = {'n1': 'instance', 'n2': 'class', 'relation': 'RO_0003302',
                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
-                     'edges': ['2', 'DOID_0110035']}
+                     'edges': ['2', 'HP_0110035']}
 
-        results = self.kg_instance.instance_constructor(edge_info)
+        results = self.kg_instance.instance_constructor(edge_info, 'gene-phenotype')
 
-        self.assertIsInstance(results[0], List)
-        self.assertEqual(len(results[0]), 1)
-        self.assertIsInstance(results[1], Dict)
-        self.assertIn('https://github.com/callahantiff/PheKnowLator/obo/ext/', results[1]['edges'][1])
+        self.assertIsInstance(results, List)
+        self.assertEqual(len(results), 3)
         self.assertTrue(len(self.kg_instance.graph) > pre_length)
 
         return None
@@ -497,9 +744,8 @@ class TestKGBuilder(unittest.TestCase):
                      'edges': ['2', '10']}
 
         results = self.kg_subclass.subclass_constructor(edge_info, 'gene-gene')
-        self.assertIsInstance(results[0], List)
-        self.assertEqual(len(results[0]), 4)
-        self.assertIsInstance(results[1], Dict)
+        self.assertIsInstance(results, List)
+        self.assertEqual(len(results), 8)
         self.assertTrue(len(self.kg_subclass.graph) > pre_length)
 
         return None
@@ -523,58 +769,44 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    def test_adds_edge_relations_with_inverse(self):
-        """Tests the adds_edge_relations method with inverse relations."""
+    def test_class_edge_constructor_with_inverse(self):
+        """Tests the class_edge_constructor method with inverse relations."""
 
         self.kg_subclass.reverse_relation_processor()
 
         # prepare input vars
         # graph
-        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        self.kg_subclass.graph = Graph()
         pre_length = len(self.kg_subclass.graph)
 
-        # edge information
-        edge_info = {'n1': 'subclass', 'n2': 'subclass', 'relation': 'RO_0002435',
-                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/'],
-                     'edges': ['2', '10']}
-
-        # check inverse relations
-        edge_list = self.kg_subclass.edge_dict['gene-gene']['edge_list']
-        inverse_relation = self.kg_subclass.checks_for_inverse_relations('RO_0002435', edge_list)
-
         # add edges
-        results = self.kg_subclass.adds_edge_relations(edge_info, inverse_relation)
+        results = self.kg_subclass.class_edge_constructor('https://www.ncbi.nlm.nih.gov/gene/2',
+                                                          'https://www.ncbi.nlm.nih.gov/gene/10',
+                                                          'RO_0002435', 'gene-gene')
 
         self.assertIsInstance(results, List)
-        self.assertEqual(len(results), 2)
+        self.assertEqual(len(results), 8)
         self.assertTrue(len(self.kg_subclass.graph) > pre_length)
 
         return None
 
-    def test_adds_edge_relations_without_inverse(self):
-        """Tests the adds_edge_relations method without inverse relations."""
+    def test_class_edge_constructor_without_inverse(self):
+        """Tests the class_edge_constructor method without inverse relations."""
 
         self.kg_subclass.reverse_relation_processor()
 
         # prepare input vars
         # graph
-        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        self.kg_subclass.graph = Graph()
         pre_length = len(self.kg_subclass.graph)
 
-        # edge information
-        edge_info = {'n1': 'subclass', 'n2': 'subclass', 'relation': 'RO_0003302',
-                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/'],
-                     'edges': ['2', '10']}
-
-        # check inverse relations
-        edge_list = self.kg_subclass.edge_dict['gene-gene']['edge_list']
-        inverse_relation = self.kg_subclass.checks_for_inverse_relations('RO_0003302', edge_list)
-
         # add edges
-        results = self.kg_subclass.adds_edge_relations(edge_info, inverse_relation)
+        results = self.kg_subclass.class_edge_constructor('https://www.ncbi.nlm.nih.gov/gene/2',
+                                                          'https://www.ncbi.nlm.nih.gov/gene/10',
+                                                          'RO_0003302', 'gene-gene')
 
         self.assertIsInstance(results, List)
-        self.assertEqual(len(results), 1)
+        self.assertEqual(len(results), 4)
         self.assertTrue(len(self.kg_subclass.graph) > pre_length)
 
         return None
@@ -586,7 +818,12 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.reverse_relation_processor()
 
         # make sure that kg is empty
-        self.kg_subclass.graph = Graph()
+        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
+        self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
+
+        # make sure to add node_metadata
+        self.kg_subclass.kg_metadata = 'no'
 
         # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
@@ -594,10 +831,11 @@ class TestKGBuilder(unittest.TestCase):
 
         # test method
         self.kg_subclass.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
+        print(len(self.kg_subclass.graph))
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 63)
+        self.assertEqual(len(self.kg_subclass.graph), 42314)
 
         # check that no UUID map was written out -- this is only for instance-based builds
         uuid_file = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_ClassInstanceMap.json'
@@ -616,10 +854,12 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.reverse_relation_processor()
 
         # make sure that kg is empty
-        self.kg_subclass.graph = Graph()
+        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
+        self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
         # make sure to add node_metadata
-        self.kg_subclass.adds_metadata_to_kg = 'yes'
+        self.kg_subclass.kg_metadata = 'yes'
 
         # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
@@ -631,7 +871,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 239)
+        self.assertEqual(len(self.kg_subclass.graph), 42464)
 
         # check that no UUID map was written out -- this is only for instance-based builds
         uuid_file = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_ClassInstanceMap.json'
@@ -663,11 +903,11 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance.graph) > 0)
-        self.assertEqual(len(self.kg_instance.graph), 34)
+        self.assertEqual(len(self.kg_instance.graph), 27)
 
         # check that UUID map was written out
         uuid_file = 'PheKnowLator_partial_NotClosed_OWLSemantics_ClassInstanceMap.json'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/construction_approach/instance/' + uuid_file))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/construction_approach/' + uuid_file))
 
         # check graph was saved
         kg_filename = 'PheKnowLator_partial_NotClosed_OWLSemantics_KG.owl'
@@ -695,11 +935,11 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance2.graph) > 0)
-        self.assertEqual(len(self.kg_instance2.graph), 42)
+        self.assertEqual(len(self.kg_instance2.graph), 36)
 
         # check that UUID map was written out
         uuid_file = 'PheKnowLator_partial_InverseRelations_NotClosed_OWLSemantics_ClassInstanceMap.json'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/construction_approach/instance/' + uuid_file))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/construction_approach/' + uuid_file))
 
         # check graph was saved
         kg_filename = 'PheKnowLator_partial_InverseRelations_NotClosed_OWLSemantics_KG.owl'
@@ -715,10 +955,12 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.reverse_relation_processor()
 
         # make sure that kg is empty
-        self.kg_subclass.graph = Graph()
+        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
+        self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
         # make sure to add node_metadata
-        self.kg_subclass.adds_metadata_to_kg = 'yes'
+        self.kg_subclass.kg_metadata = 'yes'
 
         # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
@@ -734,13 +976,12 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
 
         # check that log file was written out
-        log_file = '/construction_approach/subclass/subclass_map_missing_node_log.json'
+        log_file = '/construction_approach/subclass_map_missing_node_log.json'
         self.assertTrue(os.path.exists(self.dir_loc_resources + log_file))
 
         return None
 
     def tearDown(self):
-
         # remove resource directory
         shutil.rmtree(self.dir_loc_resources)
 
