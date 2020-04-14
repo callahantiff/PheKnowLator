@@ -141,10 +141,11 @@ class KGConstructionApproach(object):
                              (rel_only_class_uuid, OWL.someValuesFrom, node2),
                              (rel_only_class_uuid, OWL.onProperty, relation))
         if inverse_relation:
-            new_edge_inverse_rel = ((inv_rel_class_uuid, OWL.onProperty, inverse_relation),
+            new_edge_inverse_rel = ((inverse_relation, RDF.type, OWL.ObjectProperty),
                                     (node2, RDFS.subClassOf, inv_rel_class_uuid),
                                     (inv_rel_class_uuid, RDF.type, OWL.Restriction),
-                                    (inv_rel_class_uuid, OWL.someValuesFrom, node1))
+                                    (inv_rel_class_uuid, OWL.someValuesFrom, node1),
+                                    (inv_rel_class_uuid, OWL.onProperty, inverse_relation))
 
         return new_edge_rel_only + new_edge_inverse_rel
 
