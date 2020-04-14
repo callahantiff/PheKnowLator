@@ -360,26 +360,27 @@ class KGBuilder(object):
                 edge_info = {'n1': n1_type, 'n2': n2_type, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
                 if self.check_ontology_class_nodes(edge_info):  # verify edges - make sure ont class nodes are in KG
                     if self.construct_approach == 'subclass':
-                        results = edge_builder.subclass_constructor(self.graph, edge_info, edge_type)
-                        self.edge_dict, self.graph = results[0], results[1]
-                        edge_results += results[2]
+                        self.edge_dict, new_edges = edge_builder.subclass_constructor(edge_info, edge_type)
+                        self.graph = adds_edges_to_graph(self.graph, new_edges)  # add new edges to graph
+                        edge_results += new_edges  # update list of added edges
                     else:
-                        results = edge_builder.subclass_constructor(self.graph, edge_info, edge_type)
-                        self.edge_dict, self.graph = results[0], results[1]
-                        edge_results += results[2]
+                        self.edge_dict, new_edges = edge_builder.instance_constructor(edge_info, edge_type)
+                        self.graph = adds_edges_to_graph(self.graph, new_edges)  # add new edges to graph
+                        edge_results += new_edges  # update list of added edges
                 else:
                     self.edge_dict[edge_type]['edge_list'].pop(self.edge_dict[edge_type]['edge_list'].index(edge))
 
             n1, n2, edges = edge_type.split('-')[0], edge_type.split('-')[1], self.edge_dict[edge_type]['edge_list']
-            print('Unique Edges: {}'.format(len(edges) * 2 if invrel else len(edges)))
+            print('Total OWL Edges: {}'.format(len(set(edge_results))))
+            print('Unique Non-OWL Edges: {}'.format(len(edges) * 2 if invrel else len(edges)))
             print('Unique {}: {}'.format(n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']]))))
             print('Unique {}: {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
 
-        # len(kg.graph)  # 7944537
+        # print(len(kg.graph))  # 7944537
         # kg.graph.serialize(destination=kg.write_location + kg.full_kg, format='xml')
-        # ontology_file_formatter(kg.write_location, kg.full_kg, kg.owl_tools)
         # gets_ontology_statistics(kg.write_location + kg.full_kg, kg.owl_tools)
         #
+        # ontology_file_formatter(kg.write_location, kg.full_kg, kg.owl_tools)
         # graph1 = Graph()
         # graph1.parse(kg.write_location + kg.full_kg, format='xml')
         # gets_ontology_statistics(kg.merged_ont_kg, kg.owl_tools)
@@ -395,7 +396,7 @@ class KGBuilder(object):
         if self.kg_metadata == 'yes': node_metadata_func(self.graph, self.edge_dict)
         self.graph = ontology_annotator_func(self.full_kg.split('/')[-1], self.graph)
         self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
-        # ontology_file_formatter(self.write_location, self.full_kg, self.owl_tools)
+        ontology_file_formatter(self.write_location, self.full_kg, self.owl_tools)
 
         return None
 
@@ -635,6 +636,9 @@ class FullBuild(KGBuilder):
         if self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
             print('*** Loading Merged Ontologies ***')
             self.graph.parse(self.merged_ont_kg)
+            # kg.graph.parse(kg.merged_ont_kg)
+            # kg.ont_classes = gets_ontology_classes(kg.graph)
+            # kg.obj_properties = gets_object_properties(kg.graph)
             gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         else:
             if len(self.ontologies) == 0:
@@ -654,12 +658,12 @@ class FullBuild(KGBuilder):
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
 
-        import time
-        start = time.time()
-        self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
-        end = time.time()
-        print('Total time to run code: {} seconds'.format(end - start))
-        gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
+        # import time
+        # start = time.time()
+        # self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
+        # end = time.time()
+        # print('Total time to run code: {} seconds'.format(end - start))
+        # gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
 
         self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
