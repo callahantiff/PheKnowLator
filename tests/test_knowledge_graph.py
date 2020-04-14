@@ -576,7 +576,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance.graph) > 0)
-        self.assertEqual(len(self.kg_instance.graph), 65)
+        self.assertEqual(len(self.kg_instance.graph), 42)
 
         # check graph was saved
         kg_filename = 'PheKnowLator_partial_NotClosed_OWLSemantics_KG.owl'
@@ -604,7 +604,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance2.graph) > 0)
-        self.assertEqual(len(self.kg_instance2.graph), 97)
+        self.assertEqual(len(self.kg_instance2.graph), 50)
 
         # check graph was saved
         kg_filename = 'PheKnowLator_partial_InverseRelations_NotClosed_OWLSemantics_KG.owl'
