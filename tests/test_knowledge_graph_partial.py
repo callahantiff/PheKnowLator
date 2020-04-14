@@ -31,6 +31,10 @@ class TestPartialBuild(unittest.TestCase):
         os.mkdir(self.dir_loc_resources + '/construction_approach')
 
         # copy data
+        # subclass dict file
+        shutil.copyfile(self.dir_loc + '/subclass_construction_map_empty.pkl',
+                        self.dir_loc_resources + '/construction_approach/subclass_construction_map_empty.pkl')
+
         # node metadata
         shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt',
                         self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
@@ -82,8 +86,10 @@ class TestPartialBuild(unittest.TestCase):
 
         # create subclass mapping data
         subcls_map = {"2": ['SO_0001217'], "9": ['SO_0001217'], "10": ['SO_0001217'], "1080": ['SO_0001217'],
-                      "1962": ['SO_0001217'], "2729": ['SO_0001217'], "3075": ['SO_0001217'], "4267": ['SO_0001217'],
-                      "4800": ['SO_0001217'], "5096": ['SO_0001217'], "6774": ['SO_0001217'], "8754": ['SO_0001217'],
+                      "1962": ['SO_0001217'], "2729": ['SO_0001217'], "3075": ['SO_0001217'],
+                      "4267": ['SO_0001217'],
+                      "4800": ['SO_0001217'], "5096": ['SO_0001217'], "6774": ['SO_0001217'],
+                      "8754": ['SO_0001217'],
                       "8837": ['SO_0001217'], "10190": ['SO_0001217'], "80219": ['SO_0001217']}
 
         # save data
@@ -98,7 +104,7 @@ class TestPartialBuild(unittest.TestCase):
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
-        self.kg.owltools = os.path.abspath(dir_loc_owltools)
+        self.kg.owl_tools = os.path.abspath(dir_loc_owltools)
 
         return None
 
