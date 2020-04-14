@@ -98,7 +98,6 @@ class TestKGUtils(unittest.TestCase):
         edge_list = [(BNode('01a910b4-09fc-4d06-8951-3bc278eeaca9'),
                       URIRef('http://www.w3.org/2002/07/owl#onProperty'),
                       URIRef('http://purl.obolibrary.org/obo/RO_0002435'))]
-        new_edges = []
 
         # set-up graph
         graph = Graph()
@@ -106,14 +105,10 @@ class TestKGUtils(unittest.TestCase):
         initial_graph_len = len(graph)
 
         # test method
-        edges = adds_edges_to_graph(graph, edge_list, new_edges)
+        graph = adds_edges_to_graph(graph, edge_list)
 
         # make sure edges were added
-        self.assertTrue(initial_graph_len < len(edges[0]))
-
-        # make sure that
-        self.assertIsInstance(edges[1], List)
-        self.assertEqual(1, len(edges[1]))
+        self.assertTrue(initial_graph_len < len(graph))
 
         return None
 

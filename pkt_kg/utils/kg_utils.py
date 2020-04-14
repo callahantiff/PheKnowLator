@@ -237,25 +237,22 @@ def ontology_file_formatter(write_location: str, full_kg: str, owltools_location
     return None
 
 
-def adds_edges_to_graph(graph: Graph, edge_list: Tuple, new_edges: List) -> Tuple[Graph, List]:
+def adds_edges_to_graph(graph: Graph, edge_list: List) -> Graph:
     """Takes a tuple of tuples representing new triples and adds them to a knowledge graph. At the same time,
     a list, meant to track all new edges added to the knowledge graph is updated.
 
     Args:
         graph: An RDFLib Graph object.
-        edge_list: A tuple of tuples, where each tuple contains a triple.
-        new_edges: A list of new tuples added to the knowledge graph, where each tuple contains a triple.
+        edge_list: A list of tuples, where each tuple contains a triple.
 
     Returns:
         graph: An updated RDFLib graph.
-        new_edges: A list of new tuples added to the knowledge graph, where each tuple contains a triple.
     """
 
     for edge in set(edge_list):
         graph.add(edge)  # add edge to knowledge graph
-        new_edges += [edge]  # update edge list of newly added edges
 
-    return graph, new_edges
+    return graph
 
 
 def finds_node_type(edge_info: Dict) -> Dict:
