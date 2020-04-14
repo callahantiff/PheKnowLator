@@ -111,8 +111,8 @@ def gets_object_properties(graph: Graph) -> Set:
 
     # find all classes in graph
     kg_object_properties = graph.query(
-        """SELECT DISTINCT ?c
-             WHERE {?c rdf:type owl:ObjectProperty . }
+        """SELECT DISTINCT ?p
+             WHERE {?p rdf:type owl:ObjectProperty . }
         """, initNs={'rdf': RDF, 'owl': OWL}
     )
 
