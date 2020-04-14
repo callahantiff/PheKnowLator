@@ -1,14 +1,14 @@
 import glob
 import os
 import os.path
-from rdflib import Graph
 import unittest
 
 from typing import List, Set
+from rdflib import Graph, URIRef, BNode
 
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
-    maps_node_ids_to_integers, converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes,\
-    gets_object_properties
+    maps_node_ids_to_integers, adds_edges_to_graph, finds_node_type, converts_rdflib_to_networkx, \
+    gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties
 
 
 class TestKGUtils(unittest.TestCase):
@@ -88,6 +88,97 @@ class TestKGUtils(unittest.TestCase):
         self.assertTrue(ontology_file_formatter(write_location=self.dir_loc,
                                                 full_kg='/so_with_imports.owl',
                                                 owltools_location=owltools) is None)
+
+        return None
+
+    def test_adds_edges_to_graph(self):
+        """Tests the adds_edges_to_graph method"""
+
+        # set input variables
+        edge_list = [(BNode('01a910b4-09fc-4d06-8951-3bc278eeaca9'),
+                      URIRef('http://www.w3.org/2002/07/owl#onProperty'),
+                      URIRef('http://purl.obolibrary.org/obo/RO_0002435'))]
+        new_edges = []
+
+        # set-up graph
+        graph = Graph()
+        graph.parse(self.good_ontology_file_location)
+        initial_graph_len = len(graph)
+
+        # test method
+        edges = adds_edges_to_graph(graph, edge_list, new_edges)
+
+        # make sure edges were added
+        self.assertTrue(initial_graph_len < len(edges[0]))
+
+        # make sure that
+        self.assertIsInstance(edges[1], List)
+        self.assertEqual(1, len(edges[1]))
+
+        return None
+
+    def test_finds_node_type(self):
+        """Tests the finds_node_type method."""
+
+        # test condition for subclass-subclass
+        edge_info1 = {'n1': 'subclass', 'n2': 'subclass', 'edges': ['2', '3124'],
+                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/']}
+
+        map_vals1 = finds_node_type(edge_info1)
+
+        self.assertEqual({'cls1': None,
+                          'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
+                          'ent2': 'https://www.ncbi.nlm.nih.gov/gene/3124'},
+                         map_vals1)
+
+        # test condition for instance-instance
+        edge_info2 = {'n1': 'instance', 'n2': 'instance', 'edges': ['2', '3124'],
+                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/']}
+
+        map_vals2 = finds_node_type(edge_info2)
+
+        self.assertEqual({'cls1': None,
+                          'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
+                          'ent2': 'https://www.ncbi.nlm.nih.gov/gene/3124'},
+                         map_vals2)
+
+        # test condition for class-subclass
+        edge_info3 = {'n1': 'subclass', 'n2': 'class', 'edges': ['2', 'DOID_0110035'],
+                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/']}
+
+        map_vals3 = finds_node_type(edge_info3)
+
+        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_0110035',
+                          'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
+                          'ent2': None},
+                         map_vals3)
+
+        # test condition for subclass-class
+        edge_info4 = {'n1': 'class', 'n2': 'subclass', 'edges': ['DOID_0110035', '2'],
+                      'uri': ['http://purl.obolibrary.org/obo/', 'https://www.ncbi.nlm.nih.gov/gene/']}
+
+        map_vals4 = finds_node_type(edge_info4)
+
+        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_0110035',
+                          'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
+                          'ent2': None},
+                         map_vals4)
+
+        # test condition for class-class
+        edge_info5 = {'n1': 'class', 'n2': 'class', 'edges': ['DOID_162', 'DOID_0110035'],
+                      'uri': ['http://purl.obolibrary.org/obo/', 'http://purl.obolibrary.org/obo/']}
+
+        map_vals5 = finds_node_type(edge_info5)
+
+        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_162',
+                          'cls2': 'http://purl.obolibrary.org/obo/DOID_0110035',
+                          'ent1': None,
+                          'ent2': None},
+                         map_vals5)
 
         return None
 

@@ -11,6 +11,9 @@ Interacts with OWL Tools API
 * merges_ontologies
 * ontology_file_formatter
 
+Interacts with Knowledge Graphs
+* adds_edges_to_graph
+
 Writes Triple Lists
 * maps_node_ids_to_integers
 
@@ -29,7 +32,7 @@ from rdflib.namespace import RDF, OWL  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 
 def gets_ontology_classes(graph: Graph) -> Set:
@@ -234,6 +237,65 @@ def ontology_file_formatter(write_location: str, full_kg: str, owltools_location
     return None
 
 
+def adds_edges_to_graph(graph: Graph, edge_list: Tuple, new_edges: List) -> Tuple[Graph, List]:
+    """Takes a tuple of tuples representing new triples and adds them to a knowledge graph. At the same time,
+    a list, meant to track all new edges added to the knowledge graph is updated.
+
+    Args:
+        graph: An RDFLib Graph object.
+        edge_list: A tuple of tuples, where each tuple contains a triple.
+        new_edges: A list of new tuples added to the knowledge graph, where each tuple contains a triple.
+
+    Returns:
+        graph: An updated RDFLib graph.
+        new_edges: A list of new tuples added to the knowledge graph, where each tuple contains a triple.
+    """
+
+    for edge in set(edge_list):
+        graph.add(edge)  # add edge to knowledge graph
+        new_edges += [edge]  # update edge list of newly added edges
+
+    return graph, new_edges
+
+
+def finds_node_type(edge_info: Dict) -> Dict:
+    """Takes a dictionary of edge information and parses the data type for each node in the edge. The function
+    returns either None or a string containing a particular node from the edge.
+
+    Args:
+        edge_info: A dict of information needed to add edge to graph, for example:
+            {'n1': 'subclass', 'n2': 'class','relation': 'RO_0003302',
+            'url': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+            'edges': ['2', 'DOID_0110035']}
+
+    Returns:
+        A dictionary with 4 keys representing node type (i.e. "cls1", "cls2", "ent1", and "ent2") and values are
+        strings containing a concatenation of the uri and the node. An example of a class-class edge is shown below:
+            {'cls1': 'http://purl.obolibrary.org/obo/CHEBI_81395',
+            'cls2': 'http://purl.obolibrary.org/obo/DOID_12858',
+            'ent1': None,
+            'ent2': None}
+    """
+
+    # initialize node types node type (cls=ontology class, ent1/ent2=instance or subclass node)
+    nodes = {'cls1': None, 'cls2': None, 'ent1': None, 'ent2': None}
+
+    if edge_info['n1'] == 'class' and edge_info['n2'] == 'class':
+        nodes['cls1'] = edge_info['uri'][0] + edge_info['edges'][0]
+        nodes['cls2'] = edge_info['uri'][1] + edge_info['edges'][1]
+    elif edge_info['n1'] == 'class' and edge_info['n2'] != 'class':
+        nodes['cls1'] = edge_info['uri'][0] + edge_info['edges'][0]
+        nodes['ent1'] = edge_info['uri'][1] + edge_info['edges'][1]
+    elif edge_info['n1'] != 'class' and edge_info['n2'] == 'class':
+        nodes['ent1'] = edge_info['uri'][0] + edge_info['edges'][0]
+        nodes['cls1'] = edge_info['uri'][1] + edge_info['edges'][1]
+    else:
+        nodes['ent1'] = edge_info['uri'][0] + edge_info['edges'][0]
+        nodes['ent2'] = edge_info['uri'][1] + edge_info['edges'][1]
+
+    return nodes
+
+
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> None:
     """Loops over the knowledge graph in order to create three different types of files:
         - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
@@ -321,7 +383,7 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     print('\nConverting Knowledge Graph to MultiDiGraph')
 
     # read in knowledge graph if class graph attribute is not present
-    if not graph:
+    if not graph or len(graph) == 0:
         graph = Graph()
         graph.parse(write_location + full_kg)
 
