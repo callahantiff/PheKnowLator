@@ -9,7 +9,7 @@ import unittest
 
 from rdflib import Graph, URIRef, BNode
 from rdflib.namespace import OWL, RDF
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from pkt_kg.construction_approaches import KGConstructionApproach
 from pkt_kg.utils import adds_edges_to_graph
@@ -184,10 +184,6 @@ class TestKGConstructionApproach(unittest.TestCase):
         """Tests the class_edge_constructor method with inverse relations."""
 
         # prepare input vars
-        # graph
-        graph = Graph()
-        pre_length = len(graph)
-
         # nodes
         node1, node2 = URIRef('https://www.ncbi.nlm.nih.gov/gene/2'), URIRef('https://www.ncbi.nlm.nih.gov/gene/10')
 
@@ -196,12 +192,10 @@ class TestKGConstructionApproach(unittest.TestCase):
         inverse_relation = URIRef('http://purl.obolibrary.org/obo/RO_0002435')
 
         # add edges
-        graph, edges = self.kg_builder.edge_constructor(graph, node1, node2, relation, inverse_relation)
+        edges = self.kg_builder.edge_constructor(node1, node2, relation, inverse_relation)
 
-        self.assertIsInstance(graph, Graph)
-        self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 8)
-        self.assertTrue(len(graph) > pre_length)
+        self.assertIsInstance(edges, Tuple)
+        self.assertEqual(len(edges), 11)
 
         return None
 
@@ -210,9 +204,6 @@ class TestKGConstructionApproach(unittest.TestCase):
 
         # prepare input vars
         # graph
-        graph = Graph()
-        pre_length = len(graph)
-
         # nodes
         node1, node2 = URIRef('https://www.ncbi.nlm.nih.gov/gene/2'), URIRef('https://www.ncbi.nlm.nih.gov/gene/10')
 
@@ -221,12 +212,10 @@ class TestKGConstructionApproach(unittest.TestCase):
         inverse_relation = None
 
         # add edges
-        graph, edges = self.kg_builder.edge_constructor(graph, node1, node2, relation, inverse_relation)
+        edges = self.kg_builder.edge_constructor(node1, node2, relation, inverse_relation)
 
-        self.assertIsInstance(graph, Graph)
-        self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 4)
-        self.assertTrue(len(graph) > pre_length)
+        self.assertIsInstance(edges, Tuple)
+        self.assertEqual(len(edges), 7)
 
         return None
 
@@ -235,9 +224,6 @@ class TestKGConstructionApproach(unittest.TestCase):
         subclass_map_dict."""
 
         # prepare input vars
-        # graph
-        graph = Graph()
-        pre_length = len(graph)
         del self.kg_builder.subclass_dict['2']
 
         # edge_info
@@ -246,14 +232,12 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', 'HP_0000716']}
 
         # test method
-        dic, graph, edges = self.kg_builder.subclass_constructor(graph, edge_info, 'gene-phenotype')
+        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-phenotype')
 
         # check returned results
         self.assertIsInstance(dic, Dict)
-        self.assertIsInstance(graph, Graph)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 0)
-        self.assertTrue(len(graph) == pre_length)
 
         # check subclass error log
         self.assertIsInstance(self.kg_builder.subclass_error, Dict)
@@ -265,150 +249,198 @@ class TestKGConstructionApproach(unittest.TestCase):
     def test_subclass_constructor_class_subclass(self):
         """Tests the subclass_constructor method for edge with class-subclass data type."""
 
-        # prepare input vars
-        # graph
-        graph = Graph()
-        pre_length = len(graph)
-
+        # prepare input vars - NO INVERSE RELATIONS
         # edge information
         edge_info = {'n1': 'subclass', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': None,
                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
                      'edges': ['2', 'HP_0110035']}
 
         # test method
-        dic, graph, edges = self.kg_builder.subclass_constructor(graph, edge_info, 'gene-phenotype')
+        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-phenotype')
 
         # check returned results
         self.assertIsInstance(dic, Dict)
-        self.assertIsInstance(graph, Graph)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 6)
-        self.assertTrue(len(graph) > pre_length)
+        self.assertEqual(len(edges), 9)
+
+        # prepare input vars - WITH INVERSE RELATIONS
+        # edge information
+        edge_info = {'n1': 'subclass', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': 'RO_0003302',
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['2', 'HP_0110035']}
+
+        # test method
+        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-phenotype')
+
+        # check returned results
+        self.assertIsInstance(dic, Dict)
+        self.assertIsInstance(edges, List)
+        self.assertEqual(len(edges), 13)
 
         return None
 
     def test_subclass_constructor_class_class(self):
         """Tests the subclass_constructor method for edge with class-class data type."""
 
-        # prepare input vars
-        # graph
-        graph = Graph()
-        pre_length = len(graph)
-
+        # prepare input vars - NO INVERSE
         # edge information
         edge_info = {'n1': 'class', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': None,
                      'uri': ['http://purl.obolibrary.org/obo/', 'http://purl.obolibrary.org/obo/'],
                      'edges': ['DOID_3075', 'DOID_1080']}
 
         # test method
-        dic, graph, edges = self.kg_builder.subclass_constructor(graph, edge_info, 'disease-disease')
+        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'disease-disease')
 
         # check returned results
         self.assertIsInstance(dic, Dict)
-        self.assertIsInstance(graph, Graph)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 4)
-        self.assertTrue(len(graph) > pre_length)
+        self.assertEqual(len(edges), 7)
 
-        return None
-
-    def test_instance_constructor_class_class(self):
-        """Tests the instance_constructor method for edge with class-class data type."""
-
-        # prepare input vars
-        # graph
-        graph = Graph()
-        pre_length = len(graph)
-
+        # prepare input vars - WITH INVERSE
         # edge information
-        edge_info = {'n1': 'class', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': None,
+        edge_info = {'n1': 'class', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': 'RO_0003302',
                      'uri': ['http://purl.obolibrary.org/obo/', 'http://purl.obolibrary.org/obo/'],
                      'edges': ['DOID_3075', 'DOID_1080']}
 
         # test method
-        dic, graph, edges = self.kg_builder.instance_constructor(graph, edge_info, 'disease-disease')
+        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'disease-disease')
 
         # check returned results
         self.assertIsInstance(dic, Dict)
-        self.assertIsInstance(graph, Graph)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 4)
-        self.assertTrue(len(graph) > pre_length)
-
-        return None
-
-    def test_instance_constructor_instance_instance(self):
-        """Tests the instance_constructor method for edge with instance-instance data type."""
-
-        # prepare input vars
-        # graph
-        graph = Graph()
-        pre_length = len(graph)
-
-        # edge information
-        edge_info = {'n1': 'instance', 'n2': 'instance', 'rel': 'RO_0003302', 'inv_rel': None,
-                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/'],
-                     'edges': ['2', '10']}
-
-        # test method
-        dic, graph, edges = self.kg_builder.instance_constructor(graph, edge_info, 'gene-gene')
-
-        # check returned results
-        self.assertIsInstance(dic, Dict)
-        self.assertIsInstance(graph, Graph)
-        self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 5)
-        self.assertTrue(len(graph) > pre_length)
-
-        return None
-
-    def test_instance_constructor_instance_class(self):
-        """Tests the instance_constructor method for edge with instance-class data type."""
-
-        # prepare input vars
-        # graph
-        graph = Graph()
-        pre_length = len(graph)
-
-        # edge information
-        edge_info = {'n1': 'instance', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': None,
-                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
-                     'edges': ['2', 'HP_0110035']}
-
-        # test method
-        dic, graph, edges = self.kg_builder.instance_constructor(graph, edge_info, 'gene-phenotype')
-
-        # check returned results
-        self.assertIsInstance(dic, Dict)
-        self.assertIsInstance(graph, Graph)
-        self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 4)
-        self.assertTrue(len(graph) > pre_length)
+        self.assertEqual(len(edges), 11)
 
         return None
 
     def test_subclass_constructor_subclass_subclass(self):
         """Tests the subclass_constructor method for edge with subclass-subclass data type."""
 
-        # prepare input vars
-        # graph
-        graph = Graph()
-        pre_length = len(graph)
+        # prepare input vars - NO INVERSE RELATIONS
+        # edge information
+        edge_info = {'n1': 'subclass', 'n2': 'subclass', 'rel': 'RO_0003302', 'inv_rel': None,
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/'],
+                     'edges': ['2', '10']}
 
+        # test method
+        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-gene')
+
+        # check returned results
+        self.assertIsInstance(dic, Dict)
+        self.assertIsInstance(edges, List)
+        self.assertEqual(len(edges), 11)
+
+        # prepare input vars - WITH INVERSE RELATIONS
         # edge information
         edge_info = {'n1': 'subclass', 'n2': 'subclass', 'rel': 'RO_0003302', 'inv_rel': 'RO_0003302',
                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/'],
                      'edges': ['2', '10']}
 
         # test method
-        dic, graph, edges = self.kg_builder.subclass_constructor(graph, edge_info, 'gene-gene')
+        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-gene')
 
         # check returned results
         self.assertIsInstance(dic, Dict)
-        self.assertIsInstance(graph, Graph)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 12)
-        self.assertTrue(len(graph) > pre_length)
+        self.assertEqual(len(edges), 15)
+
+        return None
+
+    def test_instance_constructor_class_class(self):
+        """Tests the instance_constructor method for edge with class-class data type."""
+
+        # prepare input vars -- NO INVERSE RELATIONS
+        # edge information
+        edge_info = {'n1': 'class', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': None,
+                     'uri': ['http://purl.obolibrary.org/obo/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['DOID_3075', 'DOID_1080']}
+
+        # test method
+        dic, edges = self.kg_builder.instance_constructor(edge_info, 'disease-disease')
+
+        # check returned results
+        self.assertIsInstance(dic, Dict)
+        self.assertIsInstance(edges, List)
+        self.assertEqual(len(edges), 7)
+
+        # prepare input vars -- WITH INVERSE RELATIONS
+        # edge information
+        edge_info = {'n1': 'class', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': 'RO_0003302',
+                     'uri': ['http://purl.obolibrary.org/obo/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['DOID_3075', 'DOID_1080']}
+
+        # test method
+        dic, edges = self.kg_builder.instance_constructor(edge_info, 'disease-disease')
+
+        # check returned results
+        self.assertIsInstance(dic, Dict)
+        self.assertIsInstance(edges, List)
+        self.assertEqual(len(edges), 11)
+
+        return None
+
+    def test_instance_constructor_instance_instance(self):
+        """Tests the instance_constructor method for edge with instance-instance data type."""
+
+        # prepare input vars - NO INVERSE RELATIONS
+        # edge information
+        edge_info = {'n1': 'instance', 'n2': 'instance', 'rel': 'RO_0003302', 'inv_rel': None,
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/'],
+                     'edges': ['2', '10']}
+
+        # test method
+        dic, edges = self.kg_builder.instance_constructor(edge_info, 'gene-gene')
+
+        # check returned results
+        self.assertIsInstance(dic, Dict)
+        self.assertIsInstance(edges, List)
+        self.assertEqual(len(edges), 8)
+
+        # prepare input vars - WITH INVERSE RELATIONS
+        # edge information
+        edge_info = {'n1': 'instance', 'n2': 'instance', 'rel': 'RO_0003302', 'inv_rel': 'RO_0003302',
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'https://www.ncbi.nlm.nih.gov/gene/'],
+                     'edges': ['2', '10']}
+
+        # test method
+        dic, edges = self.kg_builder.instance_constructor(edge_info, 'gene-gene')
+
+        # check returned results
+        self.assertIsInstance(dic, Dict)
+        self.assertIsInstance(edges, List)
+        self.assertEqual(len(edges), 10)
+
+        return None
+
+    def test_instance_constructor_instance_class(self):
+        """Tests the instance_constructor method for edge with instance-class data type."""
+
+        # prepare input vars - NO INVERSE RELATIONS
+        # edge information
+        edge_info = {'n1': 'instance', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': None,
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['2', 'HP_0110035']}
+
+        # test method
+        dic, edges = self.kg_builder.instance_constructor(edge_info, 'gene-phenotype')
+
+        # check returned results
+        self.assertIsInstance(dic, Dict)
+        self.assertIsInstance(edges, List)
+        self.assertEqual(len(edges), 7)
+
+        # prepare input vars - WITH INVERSE RELATIONS
+        # edge information
+        edge_info = {'n1': 'instance', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': 'RO_0003302',
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['2', 'HP_0110035']}
+
+        # test method
+        dic, edges = self.kg_builder.instance_constructor(edge_info, 'gene-phenotype')
+
+        # check returned results
+        self.assertIsInstance(dic, Dict)
+        self.assertIsInstance(edges, List)
+        self.assertEqual(len(edges), 9)
 
         return None
 
