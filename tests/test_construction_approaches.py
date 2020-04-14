@@ -195,7 +195,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         edges = self.kg_builder.edge_constructor(node1, node2, relation, inverse_relation)
 
         self.assertIsInstance(edges, Tuple)
-        self.assertEqual(len(edges), 11)
+        self.assertEqual(len(edges), 12)
 
         return None
 
@@ -275,7 +275,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 13)
+        self.assertEqual(len(edges), 14)
 
         return None
 
@@ -308,7 +308,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 11)
+        self.assertEqual(len(edges), 12)
 
         return None
 
@@ -341,7 +341,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 15)
+        self.assertEqual(len(edges), 16)
 
         return None
 
@@ -374,7 +374,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 11)
+        self.assertEqual(len(edges), 12)
 
         return None
 
