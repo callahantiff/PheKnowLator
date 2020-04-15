@@ -21,6 +21,9 @@ from pkt_kg.utils import gets_ontology_statistics, data_downloader
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
+# TODO: (2) need to validate user input data to make sure that it matches the template that the program expects.
+
+
 class DataSource(object):
     """The class takes an input string that contains the file path/name of a text file listing different data sources.
     Each source is shown as a URL.

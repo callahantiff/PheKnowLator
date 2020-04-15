@@ -9,7 +9,7 @@ import os.path
 from typing import Dict, Tuple
 
 
-# TODO: Need to add checks to make sure that user input is correct + currently only works for ontology and class data
+# TODO: (1) Need to add checks to ensure that user input is correct + currently only works for ontology and class data
 
 class DocumentationMaker(object):
     """Has functionality to interact with a user and gather the information needed in order to prepare the input
