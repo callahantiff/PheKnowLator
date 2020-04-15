@@ -31,8 +31,8 @@ class CreatesEdgeList(object):
         source_info: A nested dictionary that contains information about each edge-type. Keys are the edge-type (e.g.
             'chemical-gene' and values are a dictionary with keys for all of the information provided in the
             resource_info.txt file, which is used to process and generate the data. Additionally, this information
-            also includes the type of edge (e.g. class, instance or subclass) and a nested edge list. For additional
-            information and an example, see the creates_knowledge_graph_edges() method.
+            also includes the type of edge (e.g. class or entity (non-ontology class data)) and a nested edge list. For
+            additional information and an example, see the creates_knowledge_graph_edges() method.
 
     """
 
@@ -371,7 +371,7 @@ class CreatesEdgeList(object):
         Returns:
             source_info: A dictionary that contains all of the master information for each edge type resource. For
                 example: {'chemical-complex': {'source_labels': ';;',
-                                               'data_type': 'class-subclass',
+                                               'data_type': 'class-entity',
                                                'edge_relation': 'RO_0002436',
                                                'uri': ['http://purl.obolibrary.org/obo/',
                                                        'https://reactome.org/content/detail/'],
