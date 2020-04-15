@@ -548,7 +548,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 42327)
+        self.assertEqual(len(self.kg_subclass.graph), 42477)
 
         # check graph was saved
         kg_filename = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_KG.owl'
