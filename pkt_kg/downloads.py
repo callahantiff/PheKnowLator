@@ -37,7 +37,7 @@ class DataSource(object):
         data_type: A string specifying the type of data source, which is derived from the data_path attribute (e.g.
             the data_path of 'resources/ontology_source_list.txt' would produce 'ontology_source_list'.
         resource_info: A list of pipe-delimited arguments for how each data source should be processed. For example:
-            ['chemical-complex|;;|class-instance|RO_0002436|n|t|0;1|None|None|None`]
+            ['chemical-complex|;;|class-entity|RO_0002436|n|t|0;1|None|None|None`]
         resource_dict: An edge data dictionary where the keys are the edge type and the values are a list containing
             mapping and filtering information (only used for "Edge Data"). For example:
             {node1-node2: node1 - './filepath/mapping_data.txt,

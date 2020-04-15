@@ -10,7 +10,6 @@ from typing import Dict, Tuple
 
 
 # TODO: Need to add checks to make sure that user input is correct + currently only works for ontology and class data
-#  (no instance data)
 
 class DocumentationMaker(object):
     """Has functionality to interact with a user and gather the information needed in order to prepare the input
@@ -79,8 +78,8 @@ class DocumentationMaker(object):
                     ont_data[ont_edge] = input('Provide an owl or obo URL for this ontology: ')
 
             print('\n')
-            data_type = input('Provide the data types for each node in the edge (e.g. "class", "subclass" or '
-                              '"instance" or each node in the edge separated by "-" --> "class-subclass"): ')
+            data_type = input('Provide the data types for each node in the edge (e.g. "class" or "entity" (for '
+                              'non-class data) each node in the edge separated by "-" --> "class-entity"): ')
             print('\n')
 
             delimiter = input('Provide the character used to split each row into columns (e.g. "t" or ","): ')
@@ -173,11 +172,11 @@ def main():
           'delimited edge label (node1-node2)\n\t(2) Source Labels: 3 ";"-delimited strings (e.g. ":;GO_;GO_)":\n\t\t'
           '-the character to split existing labels (e.g. ":" in GO:1283834)\n\t\t-a new label for the subject '
           'node\n\t\t-a new label for the object node. If the existing label is correct, use ";;";\n\t(3) Data '
-          'Type: A label of "class", "instance", or "subclass" provided for each node and separated by "-" (e.g. '
-          '"class-class");\n\t(4) Edge Relation: A Relation Ontology identifier to be used as an edge between the '
-          'nodes (e.g. "RO_0000056")\n\t(5) Subject URI: A Universal Resource Identifier that will be connected to '
-          'the subject node in the Edge Type (e.g. "http://purl.uniprot.org/geneid/");\n\t(6) Object URI: A Universal '
-          'Resource Identifier that will be connected to the object node in the Edge Type (e.g. '
+          'Type: A label of "class", "entity" ( fornon-ontology data) provided for each node and separated by "-" ('
+          'e.g. "class-class", "class-entity", "entity-class");\n\t(4) Edge Relation: A Relation Ontology identifier to'
+          'be used as an edge between the nodes (e.g. "RO_0000056")\n\t(5) Subject URI: A Universal Resource Identifier'
+          ' that will be connected to the subject node in the Edge Type (e.g. "http://purl.uniprot.org/geneid/");\n\t'
+          '(6) Object URI that will be connected to the object node in the Edge Type (e.g. '
           '"http://purl.obolibrary.org/obo/");\n\t(7) Delimiter: A character used to split input text rows into '
           'columns (e.g. "t" or ",");\n\t(8) Column Indices: two column indices separated by ";" (e.g. 0;4 for the '
           'first and third columns);\n\t(9) Identifier Maps: A string indicating the column index in the input data'
