@@ -19,13 +19,19 @@ from pkt_kg.utils import finds_node_type
 obo = Namespace('http://purl.obolibrary.org/obo/')
 
 
-class KGConstructionApproach(object):
-    """Class removes OWL semantics from an ontology or knowledge graph using the OWL-NETS method.
+# TODO: extend functionality to improve KR for:
+#  (1) instance-based builds that includes connections between 2 instance nodes
+#  (2) the ability to combine instance and subclass-based methods
 
-    OWL Semantics are nodes and edges in the graph that are needed in order to create a rich semantic representation
-    and to do things like run reasoners. Many of these nodes and edges are not clinically or biologically meaningful.
-    This class is designed to decode all owl-encoded classes and return a knowledge graph that is semantically rich and
-    clinically and biologically meaningful.
+
+class KGConstructionApproach(object):
+    """Class stores different methods that can be used to construct knowledge graph edges.
+
+    Two Construction Approaches:
+        (1) Instance-based: Adds edge data that is not from an ontology by connecting each non-ontology data node to
+            an instances of existing ontology class node;
+        (2) Subclass-based: Adds edge data that is not from an ontology by connecting each non-ontology data node to
+            an existing ontology class node.
 
     Attributes:
         edge_dict: A nested master edge list dict. The outer key is an edge-type (e.g.go-gene) and inner key is a dict
@@ -108,170 +114,6 @@ class KGConstructionApproach(object):
 
         return subclass_map
 
-    # @staticmethod
-    # def edge_constructor(node1: Union[BNode, URIRef], node2: Union[BNode, URIRef], relation: URIRef,
-    #                      inverse_relation: Optional[URIRef]) -> Tuple:
-    #     """Constructs a single edge between to ontology classes as well as verifies if the user wants an inverse edge
-    #     created and if so, then this edge is also added to the knowledge graph.
-    #
-    #     Note. We explicitly type each node as a owl:Class and each relation/inverse relation as a owl:ObjectProperty.
-    #     This may seem redundant, but it is needed in order to ensure consistency between the data after applying the
-    #     OWL API to reformat the data.
-    #
-    #     Args:
-    #         node1: A URIRef or BNode object containing a subject node.
-    #         node2: A URIRef or BNode object containing a object node.
-    #         relation: A URIRef object containing an owl:ObjectProperty.
-    #         inverse_relation: A string containing the identifier for an inverse relation (i.e. "RO_0002200") or None
-    #             (i.e. indicator of no inverse relation).
-    #
-    #     Returns:
-    #         A list of tuples representing new edges to add to the knowledge graph.
-    #     """
-    #
-    #     new_edge_inverse_rel: Tuple = tuple()
-    #     rel_only_class_uuid, inv_rel_class_uuid = BNode(), BNode()
-    #
-    #     # creates a restriction in order to connect two nodes using the input relation
-    #     new_edge_rel_only = ((node1, RDF.type, OWL.Class),
-    #                          (node2, RDF.type, OWL.Class),
-    #                          (relation, RDF.type, OWL.ObjectProperty),
-    #                          (node1, RDFS.subClassOf, rel_only_class_uuid),
-    #                          (rel_only_class_uuid, RDF.type, OWL.Restriction),
-    #                          (rel_only_class_uuid, OWL.someValuesFrom, node2),
-    #                          (rel_only_class_uuid, OWL.onProperty, relation))
-    #     if inverse_relation:
-    #         new_edge_inverse_rel = ((inverse_relation, RDF.type, OWL.ObjectProperty),
-    #                                 (node2, RDFS.subClassOf, inv_rel_class_uuid),
-    #                                 (inv_rel_class_uuid, RDF.type, OWL.Restriction),
-    #                                 (inv_rel_class_uuid, OWL.someValuesFrom, node1),
-    #                                 (inv_rel_class_uuid, OWL.onProperty, inverse_relation))
-    #
-    #     return new_edge_rel_only + new_edge_inverse_rel
-    #
-    # def subclass_constructor(self, edge_info: Dict, edge_type: str) -> Tuple[Dict, List]:
-    #     """Adds edges for the subclass construction approach.
-    #
-    #     Assumption: All ontology class nodes use the obo namespace.
-    #
-    #     Note. We explicitly type each node as a owl:Class and each relation/inverse relation as a owl:ObjectProperty.
-    #     This may seem redundant, but it is needed in order to ensure consistency between the data after applying the
-    #     OWL API to reformat the data.
-    #
-    #     Args:
-    #         edge_info: A dict of information needed to add edge to graph, for example:
-    #             {'n1': 'class', 'n2': 'class','rel': 'RO_0002606', 'inv_rel': 'RO_0002615',
-    #              'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
-    #              'edges': ['CHEBI_81395', 'DOID_12858']}
-    #         edge_type: A string containing the name of the edge_type (e.g. "gene-disease", "chemical-gene").
-    #
-    #     Returns:
-    #         edge_dict: A nested master edge list dict. The outer key is an edge-type (e.g.go-gene) and inner key is a
-    #             dict storing data from the resource_info.txt input document. See class doc note for more information.
-    #         edges: A list of new edges added to the knowledge graph.
-    #     """
-    #
-    #     res = finds_node_type(edge_info)
-    #     rel, irel = URIRef(obo + edge_info['rel']), URIRef(obo + edge_info['inv_rel']) if edge_info['inv_rel'] else None
-    #     uri1, uri2 = edge_info['uri']
-    #     edges: List = []
-    #
-    #     if res['cls1'] and res['cls2']:  # class-class edges
-    #         edges = list(self.edge_constructor(URIRef(res['cls1']), URIRef(res['cls2']), rel, irel))
-    #
-    #     elif res['cls1'] and res['ent1']:  # subclass-class/class-subclass edges
-    #         x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
-    #         mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
-    #
-    #         if mapped_node:
-    #             # get nonclass node mappings to ontology classes
-    #             edges = [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
-    #                                  ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
-    #             # add edge with relation/inverse relation (if it exists)
-    #             if edge_info['n1'] == 'class':  # determine node order
-    #                 edges += self.edge_constructor(URIRef(res['cls1']), URIRef(res['ent1']), rel, irel)
-    #             else:
-    #                 edges += self.edge_constructor(URIRef(res['ent1']), URIRef(res['cls1']), rel, irel)
-    #
-    #     else:  # subclass-subclass edges
-    #         mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''), edge_info['edges'])
-    #         mapped_node2 = self.maps_node_to_class(edge_type, res['ent2'].replace(uri2, ''), edge_info['edges'])
-    #
-    #         if mapped_node1 and mapped_node2:
-    #             # get nonclass node mappings to ontology classes
-    #             edges += [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
-    #                                   ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node1] for x in y]
-    #             edges += [x for y in [((URIRef(res['ent2']), RDFS.subClassOf, URIRef(obo + x)),) +
-    #                                   ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
-    #             # add edge with relation/inverse relation (if it exists)
-    #             edges += self.edge_constructor(URIRef(res['ent1']), URIRef(res['ent2']), rel, irel)
-    #
-    #     return self.edge_dict, edges
-    #
-    # def instance_constructor(self, edge_info: Dict, edge_type: str) -> Tuple[Dict, List]:
-    #     """Adds edges for the instance construction approach.
-    #
-    #     Assumption: All ontology class nodes use the obo namespace.
-    #
-    #     Args:
-    #         edge_info: A dict of information needed to add edge to graph, for example:
-    #             {'n1': 'class', 'n2': 'class','rel': 'RO_0002606', 'inv_rel': 'RO_0002615',
-    #              'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
-    #              'edges': ['CHEBI_81395', 'DOID_12858']}
-    #         edge_type: A string containing the name of the edge_type (e.g. "gene-disease", "chemical-gene").
-    #
-    #     Returns:
-    #         edge_dict: A nested master edge list dict. The outer key is an edge-type (e.g.go-gene) and inner key is a
-    #             dict storing data from the resource_info.txt input document. See class doc note for more information.
-    #         edges: A list of new edges added to the knowledge graph.
-    #     """
-    #
-    #     res = finds_node_type(edge_info)
-    #     rel, irel = URIRef(obo + edge_info['rel']), URIRef(obo + edge_info['inv_rel']) if edge_info['inv_rel'] else None
-    #     uri1, uri2 = edge_info['uri']
-    #     edges: List = []
-    #
-    #     if res['cls1'] and res['cls2']:  # class-class edges
-    #         edges = list(self.edge_constructor(URIRef(res['cls1']), URIRef(res['cls2']), rel, irel))
-    #
-    #     elif res['cls1'] and res['ent1']:  # class-instance/instance-class edges
-    #         sha_uid = BNode('N' + hashlib.md5(res['cls1'].encode()).hexdigest())  # meeting NCName requirements
-    #         x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
-    #         mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
-    #
-    #         # get nonclass node mappings to ontology classes
-    #         if mapped_node:
-    #             edges = [(sha_uid, RDF.type, URIRef(res['cls1'])), (URIRef(res['cls1']), RDF.type, OWL.Class),
-    #                      (URIRef(res['ent1']), RDF.type, OWL.NamedIndividual)]
-    #             edges += [x for y in [((URIRef(res['ent1']), RDF.type, URIRef(obo + x)),) +
-    #                                   ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
-    #             # add edge with relation/inverse relation (if it exists)
-    #             if edge_info['n1'] == 'class':  # determine order to pass nodes
-    #                 edges += [(sha_uid, rel, URIRef(res['ent1'])), (rel, RDF.type, OWL.ObjectProperty)]
-    #                 if irel: edges += [(URIRef(res['ent1']), irel, sha_uid), (irel, RDF.type, OWL.ObjectProperty)]
-    #             else:
-    #                 edges += [(URIRef(res['ent1']), rel, sha_uid), (rel, RDF.type, OWL.ObjectProperty)]
-    #                 if irel: edges += [(sha_uid, irel, URIRef(res['ent1'])), (irel, RDF.type, OWL.ObjectProperty)]
-    #
-    #     else:  # instance-instance edges
-    #         mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''), edge_info['edges'])
-    #         mapped_node2 = self.maps_node_to_class(edge_type, res['ent2'].replace(uri2, ''), edge_info['edges'])
-    #
-    #         if mapped_node1 and mapped_node2:
-    #             # type nonclass nodes
-    #             n1, n2 = res['ent1'], res['ent2']
-    #             edges = [(URIRef(x), RDF.type, OWL.NamedIndividual) for x in [n1, n2]]
-    #             # add edge with relation/inverse relation (if it exists)
-    #             edges += [(URIRef(n1), rel, URIRef(n2)),  (rel, RDF.type, OWL.ObjectProperty)]
-    #             if irel: edges += [(URIRef(n2), irel, URIRef(n1)), (irel, RDF.type, OWL.ObjectProperty)]
-    #             # get nonclass node mappings to ontology classes
-    #             edges += [x for y in [((URIRef(n1), RDF.type, URIRef(obo + x)),) +
-    #                                   ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node1] for x in y]
-    #             edges += [x for y in [((URIRef(n2), RDF.type, URIRef(obo + x)),) +
-    #                                   ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
-    #
-    #     return self.edge_dict, edges
-
     @staticmethod
     def edge_constructor(node1: Union[BNode, URIRef], node2: Union[BNode, URIRef], relation: URIRef,
                          inverse_relation: Optional[URIRef]) -> Tuple:
@@ -297,15 +139,23 @@ class KGConstructionApproach(object):
         rel_only_class_uuid, inv_rel_class_uuid = BNode(), BNode()
 
         # creates a restriction in order to connect two nodes using the input relation
-        new_edge_rel_only = ((node1, RDFS.subClassOf, rel_only_class_uuid),
+        new_edge_rel_only = (
+                             (node1, RDFS.subClassOf, rel_only_class_uuid),
                              (rel_only_class_uuid, RDF.type, OWL.Restriction),
                              (rel_only_class_uuid, OWL.someValuesFrom, node2),
-                             (rel_only_class_uuid, OWL.onProperty, relation))
+                             (rel_only_class_uuid, OWL.onProperty, relation),
+                             # (node1, RDF.type, OWL.Class),
+                             # (node2, RDF.type, OWL.Class),
+                             # (relation, RDF.type, OWL.ObjectProperty),
+                             )
         if inverse_relation:
-            new_edge_inverse_rel = ((node2, RDFS.subClassOf, inv_rel_class_uuid),
+            new_edge_inverse_rel = (
+                                    (node2, RDFS.subClassOf, inv_rel_class_uuid),
                                     (inv_rel_class_uuid, RDF.type, OWL.Restriction),
                                     (inv_rel_class_uuid, OWL.someValuesFrom, node1),
-                                    (inv_rel_class_uuid, OWL.onProperty, inverse_relation))
+                                    (inv_rel_class_uuid, OWL.onProperty, inverse_relation),
+                                    # (inverse_relation, RDF.type, OWL.ObjectProperty)
+                                    )
 
         return new_edge_rel_only + new_edge_inverse_rel
 
@@ -344,9 +194,12 @@ class KGConstructionApproach(object):
             mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
 
             if mapped_node:
-                # get nonclass node mappings to ontology classes
+                # get non-class node mappings to ontology classes
                 edges = [(URIRef(res['ent1']), RDF.type, OWL.Class)]
                 edges += [(URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)) for x in mapped_node]
+                # edges += [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
+                #                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
+
                 # add edge with relation/inverse relation (if it exists)
                 if edge_info['n1'] == 'class':  # determine node order
                     edges += self.edge_constructor(URIRef(res['cls1']), URIRef(res['ent1']), rel, irel)
@@ -360,10 +213,14 @@ class KGConstructionApproach(object):
             if mapped_node1 and mapped_node2:
                 # get nonclass node mappings to ontology classes
                 edges = [(URIRef(x), RDF.type, OWL.Class) for x in [res['ent1'], res['ent2']]]
-                edges += [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
-                                      ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node1] for x in y]
-                edges += [x for y in [((URIRef(res['ent2']), RDFS.subClassOf, URIRef(obo + x)),) +
-                                      ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
+                edges += [(URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)) for x in mapped_node1]
+                edges += [(URIRef(res['ent2']), RDFS.subClassOf, URIRef(obo + x)) for x in mapped_node2]
+
+                # edges += [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
+                #                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node1] for x in y]
+                # edges += [x for y in [((URIRef(res['ent2']), RDFS.subClassOf, URIRef(obo + x)),) +
+                #                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
+
                 # add edge with relation/inverse relation (if it exists)
                 edges += self.edge_constructor(URIRef(res['ent1']), URIRef(res['ent2']), rel, irel)
 
@@ -400,30 +257,51 @@ class KGConstructionApproach(object):
             x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
             mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
 
-            # get nonclass node mappings to ontology classes
+            # get non-class node mappings to ontology classes
             if mapped_node:
                 edges = [(sha_uid, RDF.type, URIRef(res['cls1'])), (URIRef(res['ent1']), RDF.type, OWL.NamedIndividual)]
                 edges += [(URIRef(res['ent1']), RDF.type, URIRef(obo + x)) for x in mapped_node]
+                # edges += [x for y in [((URIRef(res['ent1']), RDF.type, URIRef(obo + x)),) +
+                #                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
+
                 # add edge with relation/inverse relation (if it exists)
                 if edge_info['n1'] == 'class':  # determine order to pass nodes
                     edges += [(sha_uid, rel, URIRef(res['ent1']))]
                     if irel: edges += [(URIRef(res['ent1']), irel, sha_uid)]
+                    # edges += [(sha_uid, rel, URIRef(res['ent1'])), (rel, RDF.type, OWL.ObjectProperty)]
+                    # if irel: edges += [(URIRef(res['ent1']), irel, sha_uid), (irel, RDF.type, OWL.ObjectProperty)]
                 else:
                     edges += [(URIRef(res['ent1']), rel, sha_uid)]
                     if irel: edges += [(sha_uid, irel, URIRef(res['ent1']))]
+                    # edges += [(URIRef(res['ent1']), rel, sha_uid), (rel, RDF.type, OWL.ObjectProperty)]
+                    # if irel: edges += [(sha_uid, irel, URIRef(res['ent1'])), (irel, RDF.type, OWL.ObjectProperty)]
 
         else:  # instance-instance edges
             mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''), edge_info['edges'])
             mapped_node2 = self.maps_node_to_class(edge_type, res['ent2'].replace(uri2, ''), edge_info['edges'])
 
             if mapped_node1 and mapped_node2:
-                # type nonclass nodes
+                # type non-class nodes
                 edges = [(URIRef(x), RDF.type, OWL.NamedIndividual) for x in [res['ent1'], res['ent2']]]
+
                 # add edge with relation/inverse relation (if it exists)
                 edges += [(URIRef(res['ent1']), rel, URIRef(res['ent2']))]
                 if irel: edges += [(URIRef(res['ent2']), irel, URIRef(res['ent1']))]
-                # get nonclass node mappings to ontology classes
+
+                # get non-class node mappings to ontology classes
                 edges += [(URIRef(res['ent1']), RDF.type, URIRef(obo + x)) for x in mapped_node1]
                 edges += [(URIRef(res['ent2']), RDF.type, URIRef(obo + x)) for x in mapped_node2]
+
+                # # type non-class nodes
+                # n1, n2 = res['ent1'], res['ent2']
+                # edges = [(URIRef(x), RDF.type, OWL.NamedIndividual) for x in [n1, n2]]
+                # # add edge with relation/inverse relation (if it exists)
+                # edges += [(URIRef(n1), rel, URIRef(n2)), (rel, RDF.type, OWL.ObjectProperty)]
+                # if irel: edges += [(URIRef(n2), irel, URIRef(n1)), (irel, RDF.type, OWL.ObjectProperty)]
+                # # get non-class node mappings to ontology classes
+                # edges += [x for y in [((URIRef(n1), RDF.type, URIRef(obo + x)),) +
+                #                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node1] for x in y]
+                # edges += [x for y in [((URIRef(n2), RDF.type, URIRef(obo + x)),) +
+                #                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
 
         return self.edge_dict, edges
