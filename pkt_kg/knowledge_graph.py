@@ -383,8 +383,8 @@ class KGBuilder(object):
         # ontology_file_formatter(kg.write_location, kg.full_kg, kg.owl_tools)
         # graph1 = Graph()
         # graph1.parse(kg.write_location + kg.full_kg, format='xml')
-        # gets_ontology_statistics(kg.merged_ont_kg, kg.owl_tools)
         # len(graph1)  # 7944537
+        # gets_ontology_statistics(kg.write_location + kg.full_kg, kg.owl_tools)
 
         # output error logs
         if len(edge_builder.subclass_error.keys()) > 0:
@@ -460,7 +460,7 @@ class PartialBuild(KGBuilder):
         # STEP 4: MERGE ONTOLOGIES
         if self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
             print('*** Loading Merged Ontologies ***')
-            self.graph.parse(self.merged_ont_kg)
+            self.graph.parse(self.merged_ont_kg, format='xml')
             gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         else:
             if len(self.ontologies) == 0:
@@ -472,7 +472,7 @@ class PartialBuild(KGBuilder):
                                   self.write_location, '/' + self.merged_ont_kg.split('/')[-1],
                                   self.owl_tools)
                 # load the merged ontology
-                self.graph.parse(self.merged_ont_kg)
+                self.graph.parse(self.merged_ont_kg, format='xml')
                 gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
 
         self.ont_classes = gets_ontology_classes(self.graph)
@@ -551,7 +551,7 @@ class PostClosureBuild(KGBuilder):
         else:
             print('*** Loading Closed Knowledge Graph ***')
             self.graph = Graph()
-            self.graph.parse(closed_kg_location)
+            self.graph.parse(closed_kg_location, format='xml')
             gets_ontology_statistics(closed_kg_location, self.owl_tools)
 
         # STEP 5: ADD ANNOTATION ASSERTIONS
@@ -635,7 +635,7 @@ class FullBuild(KGBuilder):
         # STEP 4: MERGE ONTOLOGIES
         if self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
             print('*** Loading Merged Ontologies ***')
-            self.graph.parse(self.merged_ont_kg)
+            self.graph.parse(self.merged_ont_kg, format='xml')
             # kg.graph.parse(kg.merged_ont_kg)
             # kg.ont_classes = gets_ontology_classes(kg.graph)
             # kg.obj_properties = gets_object_properties(kg.graph)
@@ -649,7 +649,7 @@ class FullBuild(KGBuilder):
                                   self.write_location, '/' + self.merged_ont_kg.split('/')[-1],
                                   self.owl_tools)
                 # load the merged ontology
-                self.graph.parse(self.merged_ont_kg)
+                self.graph.parse(self.merged_ont_kg, format='xml')
                 gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
 
         self.ont_classes = gets_ontology_classes(self.graph)

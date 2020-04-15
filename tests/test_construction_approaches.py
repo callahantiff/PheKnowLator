@@ -195,7 +195,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         edges = self.kg_builder.edge_constructor(node1, node2, relation, inverse_relation)
 
         self.assertIsInstance(edges, Tuple)
-        self.assertEqual(len(edges), 12)
+        self.assertEqual(len(edges), 8)
 
         return None
 
@@ -215,7 +215,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         edges = self.kg_builder.edge_constructor(node1, node2, relation, inverse_relation)
 
         self.assertIsInstance(edges, Tuple)
-        self.assertEqual(len(edges), 7)
+        self.assertEqual(len(edges), 4)
 
         return None
 
@@ -261,7 +261,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 9)
+        self.assertEqual(len(edges), 6)
 
         # prepare input vars - WITH INVERSE RELATIONS
         # edge information
@@ -275,7 +275,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 14)
+        self.assertEqual(len(edges), 10)
 
         return None
 
@@ -294,7 +294,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 7)
+        self.assertEqual(len(edges), 4)
 
         # prepare input vars - WITH INVERSE
         # edge information
@@ -308,7 +308,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 12)
+        self.assertEqual(len(edges), 8)
 
         return None
 
@@ -327,7 +327,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 11)
+        self.assertEqual(len(edges), 10)
 
         # prepare input vars - WITH INVERSE RELATIONS
         # edge information
@@ -341,7 +341,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 16)
+        self.assertEqual(len(edges), 14)
 
         return None
 
@@ -360,7 +360,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 7)
+        self.assertEqual(len(edges), 4)
 
         # prepare input vars -- WITH INVERSE RELATIONS
         # edge information
@@ -374,7 +374,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 12)
+        self.assertEqual(len(edges), 8)
 
         return None
 
@@ -393,7 +393,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 8)
+        self.assertEqual(len(edges), 5)
 
         # prepare input vars - WITH INVERSE RELATIONS
         # edge information
@@ -407,7 +407,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 10)
+        self.assertEqual(len(edges), 6)
 
         return None
 
@@ -426,7 +426,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 7)
+        self.assertEqual(len(edges), 4)
 
         # prepare input vars - WITH INVERSE RELATIONS
         # edge information
@@ -440,7 +440,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 9)
+        self.assertEqual(len(edges), 5)
 
         return None
 
