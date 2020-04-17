@@ -29,6 +29,7 @@ class TestFullBuild(unittest.TestCase):
         os.mkdir(self.dir_loc_resources + '/node_data')
         os.mkdir(dir_loc_resources + '/ontologies')
         os.mkdir(self.dir_loc_resources + '/construction_approach')
+        os.mkdir(self.dir_loc_resources + '/owl_decoding')
 
         # copy data
         # subclass dict file
@@ -56,6 +57,10 @@ class TestFullBuild(unittest.TestCase):
         # inverse relations
         shutil.copyfile(self.dir_loc + '/INVERSE_RELATIONS.txt',
                         self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt')
+
+        # owl nets properties file
+        shutil.copyfile(self.dir_loc + '/OWL_NETS_Property_Types.txt',
+                        self.dir_loc_resources + '/owl_decoding/OWL_NETS_Property_Types.txt')
 
         # empty master edges
         shutil.copyfile(self.dir_loc + '/Master_Edge_List_Dict_empty.json',
@@ -150,9 +155,9 @@ class TestFullBuild(unittest.TestCase):
         int_map = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_Triples_Integer_Identifier_Map.json'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + int_map))
 
-        # # decoding owl classes
-        # owlnets = 'PheKnowLator_full_InverseRelations_NotClosed_OWLSemantics_ClassInstanceMap.json'
-        # self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + owlnets))
+        # check that owl-nets bi-product graph was written out
+        kg_owlnets = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_KG_OWLNets_BiProduct.nt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_owlnets))
 
         return None
 

@@ -27,11 +27,6 @@ from pkt_kg.utils import *
 obo = Namespace('http://purl.obolibrary.org/obo/')
 
 
-# TODO: extend functionality to improve KR for:
-#  (1) instance-based builds that includes connections between 2 instance nodes
-#  (2) the ability to combine instance and subclass-based methods
-
-
 class KGBuilder(object):
     """Class creates a semantic knowledge graph (KG). The class is designed to facilitate two KG construction
     approaches and three build types.
@@ -358,6 +353,7 @@ class KGBuilder(object):
 
             for edge in tqdm(edge_list):
                 edge_info = {'n1': n1_type, 'n2': n2_type, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
+
                 if self.check_ontology_class_nodes(edge_info):  # verify edges - make sure ont class nodes are in KG
                     if self.construct_approach == 'subclass':
                         self.edge_dict, new_edges = edge_builder.subclass_constructor(edge_info, edge_type)
@@ -375,16 +371,6 @@ class KGBuilder(object):
             print('Unique Non-OWL Edges: {}'.format(len(edges) * 2 if invrel else len(edges)))
             print('Unique {}: {}'.format(n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']]))))
             print('Unique {}: {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
-
-        # print(len(kg.graph))  # 7944537
-        # kg.graph.serialize(destination=kg.write_location + kg.full_kg, format='xml')
-        # gets_ontology_statistics(kg.write_location + kg.full_kg, kg.owl_tools)
-        #
-        # ontology_file_formatter(kg.write_location, kg.full_kg, kg.owl_tools)
-        # graph1 = Graph()
-        # graph1.parse(kg.write_location + kg.full_kg, format='xml')
-        # len(graph1)  # 7944537
-        # gets_ontology_statistics(kg.write_location + kg.full_kg, kg.owl_tools)
 
         # output error logs
         if len(edge_builder.subclass_error.keys()) > 0:
@@ -580,10 +566,10 @@ class PostClosureBuild(KGBuilder):
         del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
 
         # STEP 7: DECODE OWL SEMANTICS
-        # if self.decode_owl:
-        #     print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-        #    wl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach)
-        #     self.graph = owl_nets.run_owl_nets()
+        if self.decode_owl:
+            print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
+            owl_nets = OwlNets(self.graph, self.write_location, self.full_kg)
+            self.graph = owl_nets.run_owl_nets()
 
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('*** Writing Knowledge Graph Edge Lists ***')
@@ -674,10 +660,10 @@ class FullBuild(KGBuilder):
         del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
 
         # STEP 7: DECODE OWL SEMANTICS
-        # if self.decode_owl:
-        #     print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-        #     owl_nets = OwlNets(self.graph, self.write_location, self.full_kg)
-        #     self.graph = owl_nets.run_owl_nets()
+        if self.decode_owl:
+            print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
+            owl_nets = OwlNets(self.graph, self.write_location, self.full_kg)
+            self.graph = owl_nets.run_owl_nets()
 
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('\n*** Writing Knowledge Graph Edge Lists ***')
