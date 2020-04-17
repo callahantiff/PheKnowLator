@@ -48,3 +48,4 @@ http://purl.obolibrary.org/obo/so#recombined_to
 http://purl.obolibrary.org/obo/so#finished_by
 http://purl.obolibrary.org/obo/so#gained
 http://purl.obolibrary.org/obo/so#edited_from
+http://www.w3.org/2000/01/rdf-schema#subClassOf
