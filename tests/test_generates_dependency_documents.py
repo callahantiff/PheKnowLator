@@ -24,13 +24,29 @@ class TestDocumentationMaker(unittest.TestCase):
 
         return None
 
-    def test_class_initialization(self):
-        """Tests the initialization of the Documentation Maker class."""
+    def test_class_initialization_edge_count(self):
+        """Tests the initialization of the Documentation Maker class for the edge_count parameter."""
 
         # check that the integer parameter is handled properly
         self.assertRaises(ValueError, DocumentationMaker, "1", self.dir_loc)
         self.assertRaises(ValueError, DocumentationMaker, "one", self.dir_loc)
         self.assertEqual(1, self.edge_maker.edge_count)
+
+        return None
+
+    def test_class_initialization_write_location(self):
+        """Tests the initialization of the Documentation Maker class for the write_location parameter."""
+
+        # mock up a fake directory
+        current_directory = os.path.dirname(__file__)
+
+        # check that resource directory exists
+        DocumentationMaker(1, current_directory)
+        self.assertFalse(os.path.isdir(current_directory + '/resources'))
+
+        # re-initialize class and make sure resources is added
+        DocumentationMaker(1, self.dir_loc)
+        self.assertTrue(os.path.isdir(self.dir_loc))
 
         return None
 
