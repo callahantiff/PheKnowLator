@@ -63,13 +63,14 @@ class OwlNets(object):
             self.nx_mdg.add_edge(s, o, **{'key': p})
 
         # set a list of owl:Property types to keep when filtering triples from knowledge graph
-        if '.txt' not in glob.glob(self.res_dir + '/owl_decoding/*Property*')[0]:
+        file_name = self.res_dir + '/owl_decoding/*Property*'
+        if '.txt' not in glob.glob(file_name)[0]:
             raise TypeError('The owl properties file is not type .txt')
-        elif os.stat(glob.glob(self.res_dir + '/owl_decoding/*Property*.txt')[0]).st_size == 0:
-            file_path = glob.glob(self.res_dir + '/owl_decoding/*Property*.txt')[0]
+        elif os.stat(glob.glob(file_name)[0]).st_size == 0:
+            file_path = glob.glob(file_name)[0]
             raise TypeError('The input file: {} is empty'.format(file_path))
         else:
-            with open(glob.glob(self.res_dir + '/owl_decoding/*Property*.txt')[0], 'r') as filepath:  # type: IO[Any]
+            with open(glob.glob(file_name)[0], 'r') as filepath:  # type: IO[Any]
                 self.keep_properties = [x.strip('\n') for x in filepath.readlines() if x]
 
         # get all classes in knowledge graph

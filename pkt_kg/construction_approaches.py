@@ -75,13 +75,14 @@ class KGConstructionApproach(object):
             self.write_location = write_location
 
         # LOADING SUBCLASS DICTIONARY
-        if len(glob.glob(self.write_location + '/construction_*/*.pkl')) == 0:
+        file_name = self.write_location + '/construction_*/*.pkl'
+        if len(glob.glob(file_name)) == 0:
             raise OSError('The {} file does not exist!'.format('subclass_construction_map.pkl'))
-        elif os.stat(glob.glob(self.write_location + '/construction_*/*.pkl')[0]).st_size == 0:
+        elif os.stat(glob.glob(file_name)[0]).st_size == 0:
             raise TypeError(
-                'The input file: {} is empty'.format(glob.glob(self.write_location + '/construction_*/*.pkl')[0]))
+                'The input file: {} is empty'.format(glob.glob(file_name)[0]))
         else:
-            with open(glob.glob(self.write_location + '/construction_*/*.pkl')[0], 'rb') as filepath:  # type: IO[Any]
+            with open(glob.glob(file_name)[0], 'rb') as filepath:  # type: IO[Any]
                 self.subclass_dict = pickle.load(filepath, encoding='bytes')
 
     def maps_node_to_class(self, edge_type: str, entity: str, edge: List) -> Optional[List]:
