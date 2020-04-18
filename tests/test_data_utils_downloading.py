@@ -109,12 +109,23 @@ class TestDataUtilsDownloading(unittest.TestCase):
         # filename
         filename = self.ftp_url.split('/')[-1]
 
-        # test mocked download
-        with closing(urlopen(self.ftp_url)) as r:
-            with open(self.write_location + '{filename}'.format(filename=filename), 'wb') as f:
-                shutil.copyfileobj(r, f)
-        r.close()
+        # fake file connection
+        #     responses.add(
+        #         responses.GET,
+        #         self.ftp_url,
+        #         body='test',
+        #         status=200,
+        #         content_type='text/plain',
+        #         headers={'Content-Length': '1200'}
+        #         )
+        #
+        #     # test mocked download
+        #     with closing(urlopen(self.ftp_url)) as r:
+        #         with open(self.write_location + '{filename}'.format(filename=filename), 'wb') as f:
+        #             shutil.copyfileobj(r, f)
+        #     r.close()
 
+        # test mocked download
         self.assertTrue(os.path.exists(self.write_location + filename))
 
         return None
@@ -124,16 +135,8 @@ class TestDataUtilsDownloading(unittest.TestCase):
         """Tests gzipped_ftp_url_download method."""
 
         # get ftp server info
-        # server = self.gzipped_ftp_url.replace('ftp://', '').split('/')[0]
-        # directory = '/'.join(self.gzipped_ftp_url.replace('ftp://', '').split('/')[1:-1])
         file = self.gzipped_ftp_url.replace('ftp://', '').split('/')[-1]
         write_loc = self.write_location + '{filename}'.format(filename=file)
-
-        # # download ftp gzipped file
-        # with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
-        #     ftp.login()
-        #     ftp.cwd(directory)
-        #     ftp.retrbinary('RETR {}'.format(file), fid.write)
 
         # read in gzipped file,uncompress, and write to directory
         with gzip.open(write_loc, 'rb') as fid_in:
