@@ -1,8 +1,7 @@
 pkt_kg
 =========================================================================================
 
-|travis| |sonar_quality| |sonar_maintainability| |codacy|
-|code_climate_maintainability| 
+|travis| |sonar_quality| |sonar_maintainability| |codacy|  |coveralls| |sonar_coverage|
 
 .. |pip| |downloads|
 
@@ -21,13 +20,6 @@ This repository contains more than just code, it provides a detailed and transpa
 
 |ABRA| 
     
-|
-
-Tests Coverage
-----------------------------------------------
-
-|coveralls| |sonar_coverage|
-
 |
 
 Releases
