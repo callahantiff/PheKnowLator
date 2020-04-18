@@ -7,7 +7,9 @@ pkt_kg
 .. |pip| |downloads|
 
 
-PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information regarding this project can be found on the associated `Wiki`_. 
+PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 library explicitly designed for optimized
+construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information
+regarding this project can be found on the project `Wiki`_.
 
 |DOI|
 
@@ -23,9 +25,8 @@ This repository contains more than just code, it provides a detailed and transpa
 
 Tests Coverage
 ----------------------------------------------
-Since some software handling coverages sometime get slightly different results, here's three of them:
 
-|coveralls| |sonar_coverage| |code_climate_coverage|
+|coveralls| |sonar_coverage|
 
 |
 
@@ -56,9 +57,7 @@ This program requires Python version 3.6. To install it, run the following:
 * **Mapping, Filtering, and Labeling Data:** Run the `data_preparation.ipynb`_ notebook to build mapping, filtering, and labeling datasets.
 
 
-* **Important.** This code depends on four documents in order to run successfully. See *STEP 1: Prepare Input Documents* below for more details.
-
-  * `OWLTools`_ library. Please download it to ``resources/lib/`` prior to running ``main.py``.
+* **Important.** This code depends on several documents in order to run successfully. See *STEP 1: Prepare Input Documents* below for more details.
 
 
 * **Data Sources:** This knowledge graph is built entirely on publicly available linked open data and `Open Biomedical Ontologies`_.  🙏 🙇‍♀ Please see the `Data Source`_ Wiki page for information.
@@ -78,14 +77,15 @@ This program requires Python version 3.6. To install it, run the following:
      optional arguments:
        -h,      --help        show this help message and exit
        -g ONTS, --onts ONTS  name/path to text file containing ontologies
-       -c CLS,  --cls CLS    name/path to text file containing class sources
-       -i INST, --inst INST  name/path to text file containing instance sources
+       -e EDG,  --edg EDG    name/path to text file containing edge sources
+       -a APP,  --APP APP     construction approach to use (i.e. instance or subclass)
        -t RES,  --res RES    name/path to text file containing resource_info
        -b KG,   --kg KG      the build, can be "partial", "full", or "post-closure"
        -o OUT,  --out OUT    name/path to directory where to write knowledge graph
        -n NDE,  --nde NDE    yes/no - adding node metadata to knowledge graph
        -r REL,  --rel REL    yes/no - adding inverse relations to knowledge graph
        -s OWL,  --owl OWL    yes/no - removing OWL Semantics from knowledge graph
+       -m KGM,  --kgm KGM    yes/no - adding node metadata to knowledge graph
   
 |
 |
@@ -96,76 +96,11 @@ Workflow
 The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process. A brief overview of this process is also provided provided below.
 
 
-STEP 0: Select the Build Type
+STEP 0: Select the Build and Construction Type
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The knowledge graph build algorithm has been designed to run from three different stages of development:
-``full``, ``partial``, and ``post-closure``. For details on each of these, please see the table below.
-
-+-----------------------------------+-----------------+-----------------+
-| Build Type                        | Description     | Use Cases       |
-+===================================+=================+=================+
-| ``full``                          | Runs all build  | You want to     |
-|                                   | steps in the    | build a         |
-|                                   | algorithm       | knowledge graph |
-|                                   |                 | and will not    |
-|                                   |                 | use a reasoner  |
-+-----------------------------------+-----------------+-----------------+
-| ``partial``                       | Runs all of the | You want to     |
-|                                   | build steps in  | build a         |
-|                                   | the algorithm   | knowledge graph |
-|                                   | through adding  | and plan to run |
-|                                   | the edges. If   | a reasoner over |
-|                                   | ``node_data``   | it You want to  |
-|                                   | is provided, it | build a         |
-|                                   | will not be     | knowledge       |
-|                                   | added to the    | graph, but do   |
-|                                   | knowledge       | not want to     |
-|                                   | graph, but      | include node    |
-|                                   | instead used to | metadata,       |
-|                                   | filter the      | filter OWL      |
-|                                   | edges such that | semantics, or   |
-|                                   | only those      | generate triple |
-|                                   | edges with      | lists           |
-|                                   | valid node      |                 |
-|                                   | metadata are    |                 |
-|                                   | added to the    |                 |
-|                                   | knowledge graph |                 |
-|                                   | Node metadata   |                 |
-|                                   | can always be   |                 |
-|                                   | added to a      |                 |
-|                                   | ``partial``     |                 |
-|                                   | built knowledge |                 |
-|                                   | graph by        |                 |
-|                                   | running the     |                 |
-|                                   | build as        |                 |
-|                                   | `               |                 |
-|                                   | `post-closure`` |                 |
-+-----------------------------------+-----------------+-----------------+
-| ``post-closure``                  | Assumes that a  | You have run    |
-|                                   | reasoner was    | the ``partial`` |
-|                                   | run over a      | build, ran a    |
-|                                   | knowledge graph | reasoner over   |
-|                                   | and that the    | it, and now     |
-|                                   | remaining build | want to         |
-|                                   | steps should be | complete the    |
-|                                   | applied to a    | algorithm You   |
-|                                   | closed          | want to use the |
-|                                   | knowledge       | algorithm to    |
-|                                   | graph. The      | process         |
-|                                   | remaining build | metadata and    |
-|                                   | steps include   | owl semantics   |
-|                                   | determining     | for an          |
-|                                   | whether OWL     | externally      |
-|                                   | semantics       | built knowledge |
-|                                   | should be       | graph           |
-|                                   | filtered and    |                 |
-|                                   | creating and    |                 |
-|                                   | writing triple  |                 |
-|                                   | lists           |                 |
-+-----------------------------------+-----------------+-----------------+
-
-|
+The knowledge graph build algorithm has been designed to run from three different stages of development (i.e. build types):
+``full``, ``partial``, and ``post-closure``. It can also be built using two different construction types: ``instance-based`` and ``subclass-based``. Please see the knowledge graph `README`_ for more information.  
 
 STEP 1: Prepare Input Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -194,7 +129,7 @@ STEP 2: Download and Preprocess Data
 STEP 3: Process Ontology Data and Build Edge Lists  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Process ontologies to verify they are error free, consistent, and normalized to integrate overlapping edge data sources.  
+* Process ontologies to verify they are error free, consistent, and normalized prior to constructing the knowledge graph (see the `Ontology README`_ for more information).
 
 * Create new edges between ontology classes and edge data sources.
 
@@ -203,12 +138,11 @@ STEP 4: Build Knowledge Graph
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Merge ontologies used as classes.
-2. Add class-instance and instance-instance edges to merged ontologies.
-3. Remove disjointness axioms.  
-4. Deductively close knowledge graph using `Elk reasoner`_  
-5. Remove edges that are not clinically meaningful.  
-6. Write edges (as triples) to local directory.  
-7. Convert original edges to integers and write to local directory (required input format for generating embeddings).
+2. Add new edges to merged ontologies.
+3. Deductively close knowledge graph using `Elk reasoner`_
+4. Remove edges that are not clinically meaningful (OWL-NETS).
+5. Write edges (as triples) to local directory.
+6. Convert original edges to integers and write to local directory (required input format for generating embeddings).
 
 --------------
 
@@ -274,6 +208,10 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 .. _main.py: https://github.com/callahantiff/pheknowlator/blob/master/main.py
 
 .. _`KG Construction`: https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction
+
+.. _`Ontology README`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/README.md
+
+.. _`README`: https://github.com/callahantiff/blob/PheKnowLator/master/resources/knowledge_graphs/README.md
 
 .. _`Document Dependencies`: https://github.com/callahantiff/PheKnowLator/wiki/Dependencies
 

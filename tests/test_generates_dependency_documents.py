@@ -24,12 +24,38 @@ class TestDocumentationMaker(unittest.TestCase):
 
         return None
 
+    def test_class_initialization_edge_count(self):
+        """Tests the initialization of the Documentation Maker class for the edge_count parameter."""
+
+        # check that the integer parameter is handled properly
+        self.assertRaises(ValueError, DocumentationMaker, "1", self.dir_loc)
+        self.assertRaises(ValueError, DocumentationMaker, "one", self.dir_loc)
+        self.assertEqual(1, self.edge_maker.edge_count)
+
+        return None
+
+    def test_class_initialization_write_location(self):
+        """Tests the initialization of the Documentation Maker class for the write_location parameter."""
+
+        # mock up a fake directory
+        current_directory = os.path.dirname(__file__)
+
+        # check that resource directory exists
+        DocumentationMaker(1, current_directory)
+        self.assertFalse(os.path.isdir(current_directory + '/resources'))
+
+        # re-initialize class and make sure resources is added
+        DocumentationMaker(1, self.dir_loc)
+        self.assertTrue(os.path.isdir(self.dir_loc))
+
+        return None
+
     @mock.patch('builtins.input', create=True)
     def test_information_getter(self, mocked_input):
         """Tests the information_getter method."""
 
         mocked_input.side_effect = ['go-gene', 'one', 'go', 'http://purl.obolibrary.org/obo/go.owl', 'class-class',
-                                    'n', 't', '0;1', 'None', 'None', 'None', 'RO_0000056',
+                                    't', '0;1', 'None', 'None', 'None', 'RO_0000056',
                                     'http://purl.obolibrary.org/obo/', 'http://purl.uniprot.org/geneid/', ':;GO_;',
                                     'http://geneontology.org/gene-associations/goa_human.gaf.gz']
 
@@ -37,7 +63,7 @@ class TestDocumentationMaker(unittest.TestCase):
 
         # create result dicts
         resource_info = {'go-gene': ':;GO_;|class-class|RO_0000056|http://purl.obolibrary.org/obo/|http://purl'
-                                    '.uniprot.org/geneid/|n|t|0;1|None|None|None'}
+                                    '.uniprot.org/geneid/|t|0;1|None|None|None'}
         ont_info = {'go': 'http://purl.obolibrary.org/obo/go.owl'}
         edge_info = {'go-gene': 'http://geneontology.org/gene-associations/goa_human.gaf.gz'}
 

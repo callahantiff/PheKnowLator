@@ -9,13 +9,14 @@
 ___
 
 ### Purpose
-The knowledge graph can be built with or without the inclusion of instance node metadata (i.e. labels, descriptions or definitions, and, synonyms). If you's like to create and use node metadata, please see the Jupyter Notebook referenced above and run the code chunks listed under the **Gather Node Metadata Data** section. These code chunks should only be run once the edge lists have been created, but before the knowledge graph is constructed.
+The knowledge graph is built without inclusion of instance node metadata (i.e. labels, descriptions or definitions, and, synonyms). If you'd like to create node metadata, please see the Jupyter Notebook referenced above and run the code chunks listed under the **Gather Node Metadata Data** section. These code chunks should only be run once the edge lists have been created, but before the knowledge graph is constructed.
 
 <br>
 
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
-- If metadata is provided, only those edges with nodes that have metadata will be created. All valid edges without metadata     will be discarded.
+- Metadata is used to create a `.txt` document that is output with the knowledge graph. Metadata is not added to the knowledge graph without running the steps described below.  
+- To add metadata to the knowledge graph, set the `add_meatadata_to_kg` flag to `yes` when running building the knowledge graph.  
 - All metadata data sets should be written to `./resources/node_data`.  
   - There will be one file per edge type and is labeled such that the edge type occurs at the beginning of the file
    (e.g. `chemical-gene_metadata.txt`).

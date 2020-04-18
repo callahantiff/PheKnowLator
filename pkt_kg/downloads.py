@@ -8,6 +8,7 @@ import glob
 import os.path
 import re
 import shutil
+import urllib3  # type: ignore
 
 from abc import ABCMeta, abstractmethod
 from owlready2 import subprocess  # type: ignore
@@ -15,6 +16,12 @@ from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, TextIO, Tuple
 
 from pkt_kg.utils import gets_ontology_statistics, data_downloader
+
+# disable warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+# TODO: (2) need to validate user input data to make sure that it matches the template that the program expects.
 
 
 class DataSource(object):
@@ -29,10 +36,11 @@ class DataSource(object):
 
     Attributes:
         data_path: A string file path/name to a text file storing URLs of different sources to download.
+        resource_data: A string pointing to a data file that contains the contents of resource_info.
         data_type: A string specifying the type of data source, which is derived from the data_path attribute (e.g.
             the data_path of 'resources/ontology_source_list.txt' would produce 'ontology_source_list'.
         resource_info: A list of pipe-delimited arguments for how each data source should be processed. For example:
-            ['chemical-complex|;;|class-instance|RO_0002436|n|t|0;1|None|None|None`]
+            ['chemical-complex|;;|class-entity|RO_0002436|n|t|0;1|None|None|None`]
         resource_dict: An edge data dictionary where the keys are the edge type and the values are a list containing
             mapping and filtering information (only used for "Edge Data"). For example:
             {node1-node2: node1 - './filepath/mapping_data.txt,
@@ -51,15 +59,15 @@ class DataSource(object):
 
     Raises:
         TypeError: If the file pointed to by data_path is not type str.
-        OSError: If the file pointed to by data_path does not exist.
-        ValueError: If the file pointed to by data_path is empty.
+        IOError: If the file pointed to by data_path does not exist.
+        TypeError: If the file pointed to by data_path is empty.
         OSError: If the file pointed to by resource_info does not exist.
-        ValueError: If the file pointed to by resource_info is empty.
+        TypeError: If the file pointed to by resource_info is empty.
     """
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, data_path: str) -> None:
+    def __init__(self, data_path: str, resource_data: Optional[str] = None) -> None:
 
         # read in data source file
         if not isinstance(data_path, str):
@@ -67,20 +75,23 @@ class DataSource(object):
         elif not os.path.exists(data_path):
             raise OSError('The {} file does not exist!'.format(data_path))
         elif os.stat(data_path).st_size == 0:
-            raise ValueError('Input file: {} is empty'.format(data_path))
+            raise TypeError('Input file: {} is empty'.format(data_path))
         else:
             self.data_path: str = data_path
             self.data_type: str = data_path.split('/')[-1].split('.')[0]
 
         # read in resource data
-        resource_data = glob.glob('**/*resource**info*.txt', recursive=True)
+        resource_data_search = glob.glob('**/*resource**info*.txt', recursive=True)[0]
+        self.resource_data: Optional[str] = resource_data_search if None else resource_data
 
-        if not os.path.exists(resource_data[0]):
-            raise IOError('The {} file does not exist!'.format(resource_data[0]))
-        elif os.stat(resource_data[0]).st_size == 0:
-            raise ValueError('Input file: {} is empty'.format(resource_data[0]))
+        if not isinstance(self.resource_data, str):
+            raise TypeError('resource_data must be type str.')
+        elif not os.path.exists(self.resource_data):
+            raise OSError('The {} file does not exist!'.format(self.resource_data))
+        elif os.stat(self.resource_data).st_size == 0:
+            raise TypeError('Input file: {} is empty'.format(self.resource_data))
         else:
-            resource_data_file: TextIO = open(resource_data[0])
+            resource_data_file: TextIO = open(self.resource_data)
             self.resource_info: List = resource_data_file.readlines()
             resource_data_file.close()
 
@@ -107,12 +118,8 @@ class DataSource(object):
 
         pass
 
-    def downloads_data_from_url(self, download_type: Optional[str] = None) -> None:
+    def downloads_data_from_url(self) -> None:
         """Downloads each data source from a list and writes the downloaded file to a directory.
-
-        Args:
-            download_type: A string that indicates whether or not the ontologies should be downloaded
-                with imported ontologies ('imports').
 
         Returns:
             data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
@@ -275,13 +282,13 @@ class OntData(DataSource):
                                 }
 
         Raises:
-            ValueError: If the file does not contain data.
+            TypeError: If the file does not contain data.
             ValueError: If there some of the input URLs were improperly formatted.
         """
 
         # CHECK - file has data
         if os.stat(self.data_path).st_size == 0:
-            raise ValueError('ERROR: input file: {} is empty'.format(self.data_path))
+            raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
             data_path_file = open(self.data_path)
             source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
@@ -298,7 +305,7 @@ class OntData(DataSource):
 
         return None
 
-    def downloads_data_from_url(self, download_type: Optional[str] = None) -> None:
+    def downloads_data_from_url(self, owltools_location: str = './pkt_kg/libs/owltools') -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes
         that each item in the input file list is an URL to an OWL/OBO ontology.
 
@@ -308,24 +315,20 @@ class OntData(DataSource):
         ontologies.
 
         Args:
-            download_type: A string that is used to indicate whether or not the ontologies should be downloaded
-                with imported ontologies ('imports').
+            owltools_location: A string pointing to the location of the owl tools library.
 
         Returns:
             data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
                 For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
                               'phenotype': 'resources/ontologies/hp_with_imports.owl'
                               }
-
-        Raises:
-           ValueError: If not all of the URLs returned valid data.
         """
 
         # check data before download
         self.parses_resource_file()
 
         # set location where to write data
-        file_loc = './' + '/'.join(self.data_path.split('/')[:-1]) + '/ontologies/'
+        file_loc = '/'.join(self.data_path.split('/')[:-1]) + '/ontologies/'
         print('\n ***Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
 
         # process data
@@ -337,12 +340,12 @@ class OntData(DataSource):
             print('\nDownloading: {}'.format(str(file_prefix)))
 
             # don't re-download ontologies
-            if any(x for x in os.listdir(write_loc.strip(file_prefix)) if re.sub('_with.*.owl', '', x) == file_prefix):
-                self.data_files[i] = glob.glob(write_loc.strip(file_prefix) + '*' + file_prefix + '*')[0]
+            if any(x for x in os.listdir(file_loc) if re.sub('_with.*.owl', '', x) == file_prefix):
+                self.data_files[i] = glob.glob(file_loc + '*' + file_prefix + '*')[0]
             else:
-                if download_type == 'imports' and 'purl' in source:
+                if 'purl' in source:
                     try:
-                        subprocess.check_call(['./pkt_kg/libs/owltools',
+                        subprocess.check_call([os.path.abspath(owltools_location),
                                                str(source),
                                                '--merge-import-closure',
                                                '-o',
@@ -351,28 +354,16 @@ class OntData(DataSource):
                         self.data_files[i] = str(write_loc) + '_with_imports.owl'
                     except subprocess.CalledProcessError as error:
                         print(error.output)
-                elif download_type != 'imports' and 'purl' in source:
-                    try:
-                        subprocess.check_call(['./pkt_kg/libs/owltools',
-                                               str(source),
-                                               '-o',
-                                               str(write_loc) + '_without_imports.owl'])
-
-                        self.data_files[i] = str(write_loc) + '_without_imports.owl'
-                    except subprocess.CalledProcessError as error:
-                        print(error.output)
                 else:
                     data_downloader(source, file_loc, str(file_prefix) + '_with_imports.owl')
                     self.data_files[i] = file_loc + str(file_prefix) + '_with_imports.owl'
 
             # print stats
-            gets_ontology_statistics(file_loc + str(file_prefix) + '_with_imports.owl')
+            gets_ontology_statistics(file_loc + str(file_prefix) + '_with_imports.owl',
+                                     os.path.abspath(owltools_location))
 
-        # CHECK - make sure all files were processed
-        if len(self.source_list) != len(self.data_files):
-            raise ValueError('ERROR: Not all URLs returned a data file')
-        else:
-            self.generates_source_metadata()
+        # generate metadata
+        self.generates_source_metadata()
 
         return None
 
@@ -394,64 +385,55 @@ class LinkedData(DataSource):
                                 }
 
         Raises:
-            ValueError: If the file does not contain data.
+            TypeError: If the file does not contain data.
         """
 
         if os.stat(self.data_path).st_size == 0:
-            raise ValueError('ERROR: input file: {} is empty'.format(self.data_path))
+            raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
-            self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
-                                for row in open(self.data_path).read().split('\n')}
+
+            with open(self.data_path) as file_name:
+                self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
+                                    for row in file_name.read().split('\n')}
 
         return None
 
-    def downloads_data_from_url(self, download_type: Optional[str] = None) -> None:
+    def downloads_data_from_url(self) -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes that
         each item in the input file list is a valid URL.
-
-        Args:
-            download_type: A string that is used to indicate whether or not the ontologies should be downloaded
-                with imported ontologies ('imports'). Within this subclass, this argument is currently ignored.
 
         Returns:
             data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
                 For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
                               'phenotype': 'resources/ontologies/hp_with_imports.owl'
                               }
-
-        Raises:
-            ValueError: If not all of the URLs returned valid data.
         """
 
-        if not download_type:
-            self.parses_resource_file()
+        self.parses_resource_file()
 
-            # set location where to write data
-            file_loc = './' + '/'.join(self.data_path.split('/')[:-1]) + '/edge_data/'
-            print('\n*** Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
+        # set location where to write data
+        file_loc = '/'.join(self.data_path.split('/')[:-1]) + '/edge_data/'
+        print('\n*** Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
 
-            for i in tqdm(self.source_list.keys()):
-                source = self.source_list[i]
-                file_name = re.sub('.gz|.zip|\\?.*', '', source.split('/')[-1])
-                write_path = file_loc
-                print('\nEdge: {edge}'.format(edge=i))
+        for i in tqdm(self.source_list.keys()):
+            source = self.source_list[i]
+            file_name = re.sub('.gz|.zip|\\?.*', '', source.split('/')[-1])
+            write_path = file_loc
+            print('\nEdge: {edge}'.format(edge=i))
 
-                # if file has already been downloaded, rename it
-                if any(x for x in os.listdir(write_path) if '_'.join(x.split('_')[1:]) == file_name):
-                    self.data_files[i] = write_path + i + '_' + file_name
+            # if file has already been downloaded, rename it
+            if any(x for x in os.listdir(write_path) if '_'.join(x.split('_')[1:]) == file_name):
+                self.data_files[i] = write_path + i + '_' + file_name
 
-                    try:
-                        shutil.copy(glob.glob(write_path + '*' + file_name)[0], write_path + i + '_' + file_name)
-                    except shutil.SameFileError:
-                        pass
-                else:
-                    self.data_files[i] = write_path + i + '_' + file_name
-                    data_downloader(source, write_path, i + '_' + file_name)
-
-            # CHECK
-            if len(self.source_list) != len(self.data_files):
-                raise ValueError('ERROR: Not all URLs returned a data file')
+                try:
+                    shutil.copy(glob.glob(write_path + '*' + file_name)[0], write_path + i + '_' + file_name)
+                except shutil.SameFileError:
+                    pass
             else:
-                self.generates_source_metadata()
+                self.data_files[i] = write_path + i + '_' + file_name
+                data_downloader(source, write_path, i + '_' + file_name)
 
-            return None
+        # generate metadata
+        self.generates_source_metadata()
+
+        return None

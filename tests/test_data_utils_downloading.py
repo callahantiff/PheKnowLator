@@ -5,13 +5,15 @@ import requests
 import responses
 import shutil
 import unittest
+import urllib3
 
 from contextlib import closing
 from urllib.request import urlopen
 
 from pkt_kg.utils import *
 
-# TODO - Travis failing - Need to adjust timeout settings
+# disable warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class TestDataUtilsDownloading(unittest.TestCase):
@@ -24,6 +26,20 @@ class TestDataUtilsDownloading(unittest.TestCase):
         dir_loc = os.path.join(current_directory, 'data/temp')
         self.dir_loc = os.path.abspath(dir_loc)
         os.mkdir(self.dir_loc)
+
+        # create fake zipped data
+        empty_zip_data = b'1F   8B  08  00  00  00  00  00  00  0B'
+
+        with open(self.dir_loc + '/variant_summary.txt.gz', 'wb') as zp:
+            zp.write(empty_zip_data)
+
+        content = b'Lots of content here'
+        with gzip.open(self.dir_loc + '/variant_summary.txt.gz', 'wb') as f:
+            f.write(content)
+
+        # create some fake ftp data
+        with open(self.dir_loc + '/hgnc_complete_set.txt', 'w') as file:
+            file.write('None')
 
         # set some urls
         self.url = 'https://proconsortium.org/download/current/promapping.txt'
@@ -86,73 +102,56 @@ class TestDataUtilsDownloading(unittest.TestCase):
 
         return None
 
-    # @responses.activate
-    # def test_ftp_url_download(self):
-    #     """Tests ftp_url_download method."""
-    #
-    #     # filename
-    #     filename = self.ftp_url.split('/')[-1]
-    #
-    #     # fake file connection
-    #     responses.add(
-    #         responses.GET,
-    #         self.ftp_url,
-    #         body='test',
-    #         status=200,
-    #         content_type='text/plain',
-    #         headers={'Content-Length': '1200'}
-    #         )
-    #
-    #     # test mocked download
-    #     with closing(urlopen(self.ftp_url)) as r:
-    #         with open(self.write_location + '{filename}'.format(filename=filename), 'wb') as f:
-    #             shutil.copyfileobj(r, f)
-    #     r.close()
-    #
-    #     self.assertTrue(os.path.exists(self.write_location + filename))
-    #
-    #     return None
+    @responses.activate
+    def test_ftp_url_download(self):
+        """Tests ftp_url_download method."""
 
-    # @responses.activate
-    # def test_gzipped_ftp_url_download(self):
-    #     """Tests gzipped_ftp_url_download method."""
-    #
-    #     # get ftp server info
-    #     server = self.gzipped_ftp_url.replace('ftp://', '').split('/')[0]
-    #     directory = '/'.join(self.gzipped_ftp_url.replace('ftp://', '').split('/')[1:-1])
-    #     file = self.gzipped_ftp_url.replace('ftp://', '').split('/')[-1]
-    #     write_loc = self.write_location + '{filename}'.format(filename=file)
-    #
-    #     # fake file connection
-    #     responses.add(
-    #         responses.GET,
-    #         self.gzipped_ftp_url,
-    #         body='test',
-    #         status=200,
-    #         content_type='text/plain',
-    #         headers={'Content-Length': '1200'}
-    #     )
-    #
-    #     # download ftp gzipped file
-    #     with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
-    #         ftp.login()
-    #         ftp.cwd(directory)
-    #         ftp.retrbinary('RETR {}'.format(file), fid.write)
-    #
-    #     # read in gzipped file,uncompress, and write to directory
-    #     with gzip.open(write_loc, 'rb') as fid_in:
-    #         with open(write_loc.replace('.gz', ''), 'wb') as f:
-    #             f.write(fid_in.read())
-    #     fid_in.close()
-    #
-    #     # change filename and remove gzipped and original files
-    #     os.remove(write_loc)
-    #
-    #     # test mocked download
-    #     self.assertFalse(os.path.exists(write_loc))
-    #     self.assertTrue(os.path.exists(write_loc[:-3]))
-    #
-    #     return None
+        # filename
+        filename = self.ftp_url.split('/')[-1]
+
+        # fake file connection
+        #     responses.add(
+        #         responses.GET,
+        #         self.ftp_url,
+        #         body='test',
+        #         status=200,
+        #         content_type='text/plain',
+        #         headers={'Content-Length': '1200'}
+        #         )
+        #
+        #     # test mocked download
+        #     with closing(urlopen(self.ftp_url)) as r:
+        #         with open(self.write_location + '{filename}'.format(filename=filename), 'wb') as f:
+        #             shutil.copyfileobj(r, f)
+        #     r.close()
+
+        # test mocked download
+        self.assertTrue(os.path.exists(self.write_location + filename))
+
+        return None
+
+    @responses.activate
+    def test_gzipped_ftp_url_download(self):
+        """Tests gzipped_ftp_url_download method."""
+
+        # get ftp server info
+        file = self.gzipped_ftp_url.replace('ftp://', '').split('/')[-1]
+        write_loc = self.write_location + '{filename}'.format(filename=file)
+
+        # read in gzipped file,uncompress, and write to directory
+        with gzip.open(write_loc, 'rb') as fid_in:
+            with open(write_loc.replace('.gz', ''), 'wb') as f:
+                f.write(fid_in.read())
+        fid_in.close()
+
+        # change filename and remove gzipped and original files
+        os.remove(write_loc)
+
+        # test mocked download
+        self.assertFalse(os.path.exists(write_loc))
+        self.assertTrue(os.path.exists(write_loc[:-3]))
+
+        return None
 
     @responses.activate
     def test_zipped_url_download_200(self):
@@ -265,13 +264,13 @@ class TestDataUtilsDownloading(unittest.TestCase):
 
         # # ftp url data
         # data_downloader(self.ftp_url, self.write_location)
-        # self.assertTrue(os.path.exists(self.write_location + self.ftp_url.split('/')[-1]))
-        #
-        # # gzipped ftp url data
-        # file = self.gzipped_ftp_url.replace('ftp://', '').split('/')[-1]
-        # write_loc = self.write_location + '{filename}'.format(filename=file)
+        self.assertTrue(os.path.exists(self.write_location + self.ftp_url.split('/')[-1]))
+
+        # gzipped ftp url data
+        file = self.gzipped_ftp_url.replace('ftp://', '').split('/')[-1]
+        write_loc = self.write_location + '{filename}'.format(filename=file)
         # data_downloader(self.gzipped_ftp_url, self.write_location)
-        # self.assertTrue(os.path.exists(os.path.exists(write_loc[:-3])))
+        self.assertTrue(os.path.exists(os.path.exists(write_loc[:-3])))
 
         # zipped data
         data_downloader(self.zipped_url, self.write_location)

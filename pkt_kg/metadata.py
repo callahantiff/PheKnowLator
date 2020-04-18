@@ -6,17 +6,15 @@ import datetime
 import glob
 import json
 import os
+import os.path
 import pandas  # type: ignore
 import re
 import subprocess
 
 from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
-from rdflib.namespace import RDF, RDFS  # type: ignore
+from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Union
-
-# TODO: mypy throws errors for optional[dict] usage, this is an existing bug in mypy
-# https://github.com/python/mypy/issues/4359
 
 
 class Metadata(object):
@@ -24,10 +22,9 @@ class Metadata(object):
 
     Attributes:
         kg_version: A string that contains the version of the knowledge graph build.
-        node_metadata_flag: A string indicating whether or not node metadata should be added to the knowledge graph.
         write_location: A filepath to the knowledge graph directory (e.g. './resources/knowledge_graphs).
         full_kg: The subdirectory and name of the knowledge graph (e.g.'/relations_only/KG.owl').
-        node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
+        node_data: A filepath to a directory called 'node_data' containing a file for each instance/subclass node.
         node_dict: A nested dictionary storing metadata for the nodes in the edge_dict. Where the outer key is a node
             identifier and each inner key is an identifier type keyed by the identifier type with the value being the
             corresponding metadata for that identifier type. For example:
@@ -39,11 +36,10 @@ class Metadata(object):
                 }
     """
 
-    def __init__(self, kg_version: str, flag: str, write_location: str, kg_location: str, node_data: Optional[List],
+    def __init__(self, kg_version: str, write_location: str, kg_location: str, node_data: Optional[List],
                  node_dict: Optional[Dict]) -> None:
 
         self.kg_version = kg_version
-        self.node_metadata_flag = flag
         self.write_location = write_location
         self.full_kg = kg_location
         self.node_data = node_data
@@ -74,6 +70,8 @@ class Metadata(object):
         """
 
         if self.node_data:
+            print('Loading and Processing Node Metadata')
+
             # create list where first item is edge type and the second item is the df
             dfs = [[re.sub('.*/', '', re.sub('((_[^/]*)_.*$)', '', x)),
                     pandas.read_csv(x, header=0, delimiter='\t')] for x in self.node_data]
@@ -86,13 +84,11 @@ class Metadata(object):
                 df_dict = df_processed.to_dict('index')
 
                 # add data frame to master node metadata dictionary
-                self.node_dict[dfs[i][0]] = df_dict
+                self.node_dict[dfs[i][0]] = df_dict  # type: ignore
 
     def creates_node_metadata(self, node: str, edge_type: str, url: str, graph: Graph) -> Graph:
         """Given a node in the knowledge graph, if the node has metadata information, new edges are created to add
         the metadata to the knowledge graph. Metadata that is added includes: labels, descriptions, and synonyms.
-
-        Note. Metadata edges will only be added to the knowledge graph if node_metadata_flag='yes'.
 
         Args:
             node: A node identifier (e.g. 'HP_0003269', 'rs765907815').
@@ -110,9 +106,9 @@ class Metadata(object):
         oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 
         # create metadata dictionary
-        metadata = self.node_dict[edge_type][node]
+        if self.node_dict:
+            metadata = self.node_dict[edge_type][node]
 
-        if self.node_metadata_flag == 'yes':
             if 'Label' in metadata.keys() and metadata['Label'] != 'None':
                 graph.add((URIRef(url + str(node)), RDFS.label, Literal(metadata['Label'])))
             if 'Description' in metadata.keys() and metadata['Description'] != 'None':
@@ -120,10 +116,10 @@ class Metadata(object):
             if 'Synonym' in metadata.keys() and metadata['Synonym'] != 'None':
                 for syn in metadata['Synonym'].split('|'):
                     graph.add((URIRef(url + str(node)), URIRef(oboinowl + 'hasExactSynonym'), Literal(syn)))
-        else:
-            pass
 
-        return graph
+            return graph
+        else:
+            return graph
 
     def adds_node_metadata(self, graph: Graph, edge_dict: Optional[Dict]) -> Graph:
         """Iterates over nodes in each edge in the edge_dict, by edge_type. If the node has metadata available in the
@@ -152,42 +148,49 @@ class Metadata(object):
             graph: An rdflib graph object that includes node metadata.
         """
 
-        for edge_type in edge_dict.keys():
-            if 'instance' not in edge_dict[edge_type]['data_type']:
-                pass
-            else:
-                node_idx = [x for x in range(2) if edge_dict[edge_type]['data_type'].split('-')[x] == 'instance']
+        if edge_dict:
+            for edge_type in edge_dict.keys():
+                edge_data_type = edge_dict[edge_type]['data_type']
+                if edge_data_type.split('-')[0] == 'class' and edge_data_type.split('-')[1] == 'class':
+                    pass
+                else:
+                    inst_sub_type = 'instance' if 'instance' in edge_data_type else 'subclass'
+                    node_idx = [x for x in range(2) if edge_data_type.split('-')[x] == inst_sub_type]
 
-                for edge in tqdm(edge_dict[edge_type]['edge_list']):
-                    if self.node_dict and edge_type in self.node_dict.keys():
-                        if len(node_idx) == 2:
-                            subj, obj = edge[0], edge[1]
+                    for edge in tqdm(edge_dict[edge_type]['edge_list']):
+                        if self.node_dict and edge_type in self.node_dict.keys():
+                            if len(node_idx) == 2:
+                                subj, obj = edge[0], edge[1]
 
-                            if subj in self.node_dict[edge_type].keys() and obj in self.node_dict[edge_type].keys():
-                                subj_uri = str(edge_dict[edge_type]['uri'][0])
-                                obj_uri = str(edge_dict[edge_type]['uri'][1])
-                                graph = self.creates_node_metadata(subj, edge_type, subj_uri, graph)
-                                graph = self.creates_node_metadata(obj, edge_type, obj_uri, graph)
-                        else:
-                            inst_node = edge[node_idx[0]]
+                                if subj in self.node_dict[edge_type].keys() and obj in self.node_dict[edge_type].keys():
+                                    subj_uri = str(edge_dict[edge_type]['uri'][0])
+                                    obj_uri = str(edge_dict[edge_type]['uri'][1])
+                                    graph = self.creates_node_metadata(subj, edge_type, subj_uri, graph)
+                                    graph = self.creates_node_metadata(obj, edge_type, obj_uri, graph)
+                            else:
+                                inst_node = edge[node_idx[0]]
 
-                            if inst_node in self.node_dict[edge_type].keys():
-                                node_uri = str(edge_dict[edge_type]['uri'][0])
-                                graph = self.creates_node_metadata(inst_node, edge_type, node_uri, graph)
+                                if inst_node in self.node_dict[edge_type].keys():
+                                    node_uri = str(edge_dict[edge_type]['uri'][0])
+                                    graph = self.creates_node_metadata(inst_node, edge_type, node_uri, graph)
 
-        # print kg statistics
-        edges = len(set(list(graph)))
-        nodes = len(set([str(node) for edge in list(graph) for node in edge[0::2]]))
-        print('\nThe KG with node metadata contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
+            # print kg statistics
+            edges = len(set(list(graph)))
+            nodes = len(set([str(node) for edge in list(graph) for node in edge[0::2]]))
 
-        return graph
+            print('\nKG with node metadata contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
-    def removes_annotation_assertions(self) -> None:
+            return graph
+
+    def removes_annotation_assertions(self, owltools_location: str = './pkt_kg/libs/owltools') -> None:
         """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
         removes annotation assertions to make a pure logic subset', which reduces the overall size of the knowledge
         graph, while still being compatible with a reasoner.
 
         Note. This method is usually only applied to partial builds.
+
+        Args:
+            owltools_location: A string pointing to the location of the owl tools library.
 
         Returns:
             None.
@@ -195,7 +198,7 @@ class Metadata(object):
 
         # remove annotation assertions
         try:
-            subprocess.check_call(['./pkt_kg/libs/owltools',
+            subprocess.check_call([os.path.abspath(owltools_location),
                                    self.write_location + self.full_kg,
                                    '--remove-annotation-assertions',
                                    '-o',
@@ -248,33 +251,32 @@ class Metadata(object):
         print('\nExtracting Class Metadata')
 
         # add new inner dictionary to store class metadata
-        self.node_dict['classes'] = {}
+        if self.node_dict:
+            self.node_dict['classes'] = {}
 
-        # query knowledge graph to obtain metadata
-        results = graph.query(
-            """SELECT DISTINCT ?class ?class_label ?class_definition ?class_syn
-                   WHERE {
-                      ?class rdf:type owl:Class .
-                      ?class rdfs:label ?class_label .
-                      ?class obo:IAO_0000115 ?class_definition .
-                      ?class oboinowl:hasExactSynonym ?class_syn .}
-                   """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                                'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
-                                'owl': 'http://www.w3.org/2002/07/owl#',
-                                'obo': 'http://purl.obolibrary.org/obo/',
-                                'oboinowl': 'http://www.geneontology.org/formats/oboInOwl#'})
+            # query knowledge graph to obtain metadata
+            results = graph.query(
+                """SELECT DISTINCT ?class ?class_label ?class_definition ?class_syn
+                       WHERE {
+                          ?class rdf:type owl:Class .
+                          ?class rdfs:label ?class_label .
+                          ?class obo:IAO_0000115 ?class_definition .
+                          ?class oboinowl:hasExactSynonym ?class_syn .}
+                       """, initNs={'rdf': RDF, 'rdfs': RDFS, 'owl': OWL,
+                                    'obo': 'http://purl.obolibrary.org/obo/',
+                                    'oboinowl': 'http://www.geneontology.org/formats/oboInOwl#'})
 
-        # convert results to dictionary
-        for result in tqdm(results):
-            node = str(result[0]).split('/')[-1]
+            # convert results to dictionary
+            for result in tqdm(results):
+                node = str(result[0]).split('/')[-1]
 
-            if node in self.node_dict['classes'].keys():
-                self.node_dict['classes'][node]['Synonym'].append(str(result[3]))
-            else:
-                self.node_dict['classes'][node] = {}
-                self.node_dict['classes'][node]['Label'] = str(result[1])
-                self.node_dict['classes'][node]['Description'] = str(result[2])
-                self.node_dict['classes'][node]['Synonym'] = [str(result[3])]
+                if node in self.node_dict['classes'].keys():
+                    self.node_dict['classes'][node]['Synonym'].append(str(result[3]))
+                else:
+                    self.node_dict['classes'][node] = {}
+                    self.node_dict['classes'][node]['Label'] = str(result[1])
+                    self.node_dict['classes'][node]['Description'] = str(result[2])
+                    self.node_dict['classes'][node]['Synonym'] = [str(result[3])]
 
         return None
 
@@ -293,28 +295,28 @@ class Metadata(object):
         # add metadata for nodes that are data type class to self.node_dict
         self.extracts_class_metadata(graph)
 
-        # create and write edge list data locally
-        print('\nWriting Class and Instance Metadata')
-        with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w') as outfile:
-            outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
+        if self.node_dict:
+            # create and write edge list data locally
+            print('\nWriting Class Metadata')
+            with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w') as outfile:
+                outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
 
-            for edge_type in tqdm(self.node_dict.keys()):
-                for node in self.node_dict[edge_type]:
-                    node_id = node
-                    label = self.node_dict[edge_type][node]['Label']
-                    desc = self.node_dict[edge_type][node]['Description']
-                    syn_list = self.node_dict[edge_type][node]['Synonym']
+                for edge_type in tqdm(self.node_dict.keys()):
+                    for node in self.node_dict[edge_type]:
+                        node_id = node
+                        label = self.node_dict[edge_type][node]['Label']
+                        desc = self.node_dict[edge_type][node]['Description']
+                        syn_list = self.node_dict[edge_type][node]['Synonym']
 
-                    if isinstance(syn_list, list) and len(syn_list) > 1:
-                        syn = '|'.join(syn_list)
-                    elif isinstance(syn_list, list) and len(syn_list) == 1:
-                        syn = syn_list[0]
-                    else:
-                        syn = syn_list
+                        if isinstance(syn_list, list) and len(syn_list) > 1:
+                            syn = '|'.join(syn_list)
+                        elif isinstance(syn_list, list) and len(syn_list) == 1:
+                            syn = syn_list[0]
+                        else:
+                            syn = syn_list
 
-                    outfile.write(node_id + '\t' + label + '\t' + desc + '\t' + syn + '\n')
-
-        outfile.close()
+                        outfile.write(node_id + '\t' + label + '\t' + desc + '\t' + syn + '\n')
+            outfile.close()
 
         return None
 
@@ -342,6 +344,7 @@ class Metadata(object):
         # convert filename to permanent url
         parsed_filename = '_'.join(filename.lower().split('/')[-1].split('_')[2:])
         url = 'https://pheknowlator.com/pheknowlator_' + parsed_filename
+        pkt_url = 'https://github.com/callahantiff/PheKnowLator'
 
         # query ontology to obtain existing ontology annotations
         results = graph.query(
@@ -349,8 +352,7 @@ class Metadata(object):
                 WHERE {
                     ?o rdf:type owl:Ontology .
                     ?o ?p ?s . }
-            """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                         'owl': 'http://www.w3.org/2002/07/owl#'})
+            """, initNs={'rdf': RDF, 'owl': OWL})
 
         # iterate over annotations and remove existing annotations
         for res in results:
@@ -359,10 +361,10 @@ class Metadata(object):
         # add new annotations
         graph.add((URIRef(url + '.owl'), RDF.type, URIRef(owl + 'Ontology')))
         graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
-        graph.add((URIRef(url + '.owl'), URIRef(owl + 'versionIRI'), URIRef(url + '/wiki/' + self.kg_version)))
+        graph.add((URIRef(url + '.owl'), URIRef(owl + 'versionIRI'), URIRef(pkt_url + '/wiki/' + self.kg_version)))
         graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
         graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date)))
         graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information please visit: ' + url)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information visit: ' + pkt_url)))
 
         return graph

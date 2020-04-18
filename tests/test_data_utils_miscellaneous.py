@@ -102,6 +102,15 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         return None
 
+    def test_outputs_dictionary_data(self):
+        """Tests the outputs_dictionary_data method."""
+
+        outputs_dictionary_data(self.genomic_id_dict, self.dir_loc + '/genomic_maps.json')
+
+        self.assertTrue(os.path.exists(self.dir_loc + '/genomic_maps.json'))
+
+        return None
+
     def tearDown(self):
 
         # remove temp directory

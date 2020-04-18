@@ -56,8 +56,8 @@ def main():
 
     # STEP 1: create master resource dictionary
     combined_edges = dict(edges.data_files, **ont.data_files)
-    # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
-    master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
+    master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
+    # master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     master_edges.creates_knowledge_graph_edges()
 
     #########################
@@ -65,6 +65,8 @@ def main():
     #########################
 
     print('\n' + '=' * 33 + '\nBUILDING KNOWLEDGE GRAPH\n' + '=' * 33 + '\n')
+
+
 
     if args.kg == 'partial':
         kg = PartialBuild(kg_version='v2.0.0',

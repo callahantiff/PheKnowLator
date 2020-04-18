@@ -1,24 +1,26 @@
 # Created by .ignore support plugin (hsz.mobi)
 
 # Distribution/packaging/Environments
-__pycache__
-__pycache__/
-**/__pycache__/*
+\.DS_Store
 .idea/
 .ipynb_checkpoints/*
 .mypy*
-\.DS_Store
+__pycache__
+__pycache__/
+**/__pycache__/*
 
 # data
-/resources/processed_data/
+/resources/*.json
+/resources/construction_approach/*
 /resources/edge_data/*
-/resources/node_data/*
-/resources/relations_data/*
+/resources/embeddings/*
 /resources/knowledge_graphs/
 /resources/kr_model/
+/resources/node_data/*
 /resources/ontologies/*
-/resources/*.json
-/resources/embeddings/*
+/resources/owl_decoding/*
+/resources/processed_data/
+/resources/relations_data/*
 
 # scripts
 pkt_kg/kg_embedding_visualizer.py
@@ -26,22 +28,27 @@ pkt_kg/knowledge_graph_embedder.py
 Untitled*
 
 # ignoring resource preparation files and metadata information
-!/resources/ontologies/ontology_source_metadata.txt
+!/resources/construction_approach/README.md
 !/resources/edge_data/edge_source_metadata.txt
-!/resources/node_data/README.md
-!/resources/relations_data/README.md
+!/resources/edge_data/README.md
 !/resources/embeddings/README.md
 !/resources/knowledge_graphs/OWL_NETS_Property_Types.txt
+!/resources/knowledge_graphs/README.md
+!/resources/ontologies/ontology_source_metadata.txt
+!/resources/ontologies/README.md
+!/resources/node_data/README.md
+!/resources/owl_decoding/README.md
+!/resources/relations_data/README.md
 
 # releases
 /releases/*
 
-# API keys/passwords
+# api keys/passwords
 /resources/bioportal_api_key.txt
 
 # external libraries
-pkt_kg/libs/walking-rdf-and-owl-master/*
 pkt_kg/libs/deepwalk_c_master/*
+pkt_kg/libs/walking-rdf-and-owl-master/*
 
 # testing files
 .single_run

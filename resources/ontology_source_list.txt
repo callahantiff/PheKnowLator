@@ -8,3 +8,4 @@ cell, http://purl.obolibrary.org/obo/clo.owl
 protein, https://www.dropbox.com/s/6ux85agl95ja3wx/human_pro_closed.owl?dl=1
 genomic, http://purl.obolibrary.org/obo/so.owl
 pathway, http://purl.obolibrary.org/obo/pw.owl
+relation, http://purl.obolibrary.org/obo/ro.owl

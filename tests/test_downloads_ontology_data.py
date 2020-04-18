@@ -18,7 +18,43 @@ class TestOntData(TestCase):
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
         self.dir_loc = os.path.abspath(dir_loc)
-        self.ontologies = OntData(self.dir_loc + '/ontology_source_list.txt')
+        self.ontologies = OntData(self.dir_loc + '/ontology_source_list.txt', self.dir_loc + '/resource_info.txt')
+
+        # pointer to owltools
+        dir_loc2 = os.path.join(current_directory, 'utils/owltools')
+        self.owltools_location = os.path.abspath(dir_loc2)
+
+        return None
+
+    def test_initialization_data_path(self):
+        """Test class initialization for data_path attribute."""
+
+        resource_data = self.dir_loc + '/resource_info.txt'
+
+        # test if file is type string
+        self.assertRaises(TypeError, OntData, list(self.dir_loc + '/ontology_source_list.txt'), resource_data)
+
+        # test if file exists
+        self.assertRaises(OSError, OntData, self.dir_loc + '/ontology_sources_lists.txt', resource_data)
+
+        # test if file is empty
+        self.assertRaises(TypeError, OntData, self.dir_loc + '/ontology_source_list_empty.txt', resource_data)
+
+        return None
+
+    def test_initialization_resource_data(self):
+        """Test class initialization for resource_info attribute."""
+
+        data_path = self.dir_loc + '/ontology_source_list.txt'
+
+        # test if file is type string
+        self.assertRaises(TypeError, OntData, data_path, list(self.dir_loc + '/resource_info.txt'))
+
+        # test if file exists
+        self.assertRaises(OSError, OntData, data_path, self.dir_loc + '/resource_infos.txt')
+
+        # test if file is empty
+        self.assertRaises(TypeError, OntData, data_path, self.dir_loc + '/resource_info_empty.txt')
 
         return None
 
@@ -41,7 +77,12 @@ class TestOntData(TestCase):
     def test_parses_resource_file(self):
         """Tests parses_resource_file method."""
 
-        # load data
+        # load data -- bad file
+        self.ontologies.data_path = self.dir_loc + '/ontology_source_list_empty.txt'
+        self.assertRaises(TypeError, self.ontologies.parses_resource_file)
+
+        # load data -- good file
+        self.ontologies.data_path = self.dir_loc + '/ontology_source_list.txt'
         self.ontologies.parses_resource_file()
 
         # make sure a dictionary is returned
@@ -56,25 +97,29 @@ class TestOntData(TestCase):
     def test_downloads_data_from_url(self):
         """Tests downloads_data_from_url method."""
 
+        self.ontologies.parses_resource_file()
+
         # check path to write ontology data correctly derived
         derived_path = '/'.join(self.ontologies.data_path.split('/')[:-1]) + '/ontologies/'
         self.assertEqual(self.dir_loc + '/ontologies/', derived_path)
 
         # checks that the file downloads
+        self.ontologies.downloads_data_from_url(self.owltools_location)
         self.assertTrue(os.path.exists(derived_path + 'hp_with_imports.owl'))
+
+        return None
 
     def test_generates_source_metadata(self):
         """Tests whether or not metadata is being generated."""
 
-        # set dict for downloaded data
-        self.ontologies.source_list = {'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
-        self.ontologies.data_files = {'phenotype': self.dir_loc + '/ontologies/hp_with_imports.owl'}
+        self.ontologies.parses_resource_file()
+        self.ontologies.downloads_data_from_url(self.owltools_location)
 
         # generate metadata for downloaded file
         self.ontologies.generates_source_metadata()
 
         # check that metadata was generated
-        self.assertTrue(len(self.ontologies.metadata) == 2)
+        self.assertTrue(len(self.ontologies.metadata) == 4)
 
         # check that the metadata content is correct
         self.assertEqual(8, len(self.ontologies.metadata[1]))
@@ -86,3 +131,12 @@ class TestOntData(TestCase):
         self.assertTrue('DOWNLOAD_DATE' in self.ontologies.metadata[1][5])
         self.assertTrue('FILE_SIZE_IN_BYTES' in self.ontologies.metadata[1][6])
         self.assertTrue('DOWNLOADED_FILE_LOCATION' in self.ontologies.metadata[1][7])
+
+        # check for metadata
+        self.assertTrue(os.path.exists(self.dir_loc + '/ontologies/ontology_source_metadata.txt'))
+
+        # clean up environment
+        os.remove(self.dir_loc + '/ontologies/hp_with_imports.owl')
+        os.remove(self.dir_loc + '/ontologies/ontology_source_metadata.txt')
+
+        return None

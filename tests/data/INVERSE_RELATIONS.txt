@@ -1,0 +1,2 @@
+Relation	Inverse_Relation
+RO_0004004	RO_0004014
