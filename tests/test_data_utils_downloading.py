@@ -97,16 +97,6 @@ class TestDataUtilsDownloading(unittest.TestCase):
         # filename
         filename = self.ftp_url.split('/')[-1]
 
-        # fake file connection
-        responses.add(
-            responses.GET,
-            self.ftp_url,
-            body='test',
-            status=200,
-            content_type='text/plain',
-            headers={'Content-Length': '1200'}
-            )
-
         # test mocked download
         with closing(urlopen(self.ftp_url)) as r:
             with open(self.write_location + '{filename}'.format(filename=filename), 'wb') as f:
@@ -126,16 +116,6 @@ class TestDataUtilsDownloading(unittest.TestCase):
         directory = '/'.join(self.gzipped_ftp_url.replace('ftp://', '').split('/')[1:-1])
         file = self.gzipped_ftp_url.replace('ftp://', '').split('/')[-1]
         write_loc = self.write_location + '{filename}'.format(filename=file)
-
-        # fake file connection
-        responses.add(
-            responses.GET,
-            self.gzipped_ftp_url,
-            body='test',
-            status=200,
-            content_type='text/plain',
-            headers={'Content-Length': '1200'}
-        )
 
         # download ftp gzipped file
         with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
