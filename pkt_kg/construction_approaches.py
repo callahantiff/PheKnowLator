@@ -17,6 +17,7 @@ from pkt_kg.utils import finds_node_type
 
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
+pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
 
 
 # TODO: extend functionality to improve KR for:
@@ -244,14 +245,17 @@ class KGConstructionApproach(object):
             edges = list(self.edge_constructor(URIRef(res['cls1']), URIRef(res['cls2']), rel, irel))
 
         elif res['cls1'] and res['ent1']:  # class-instance/instance-class edges
-            sha_uid = BNode('N' + hashlib.md5(res['cls1'].encode()).hexdigest())  # meeting NCName requirements
+            sha_uid = URIRef(pkt + 'N' + hashlib.md5(res['cls1'].encode()).hexdigest())
             x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
             mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
 
             # get non-class node mappings to ontology classes
             if mapped_node:
-                edges = [(sha_uid, RDF.type, URIRef(res['cls1'])), (URIRef(res['cls1']), RDF.type, OWL.Class),
+                edges = [(sha_uid, RDF.type, URIRef(res['cls1'])),
+                         (sha_uid, RDF.type, OWL.NamedIndividual),
+                         (URIRef(res['cls1']), RDF.type, OWL.Class),
                          (URIRef(res['ent1']), RDF.type, OWL.NamedIndividual)]
+
                 edges += [x for y in [((URIRef(res['ent1']), RDF.type, URIRef(obo + x)),) +
                                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
 
