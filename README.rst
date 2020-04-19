@@ -1,7 +1,7 @@
 pkt_kg
 =========================================================================================
 
-|travis| |sonar_quality| |sonar_maintainability| |codacy|  |coveralls| |sonar_coverage|
+|travis| |sonar_quality| |sonar_maintainability| |codacy|  |coveralls| |sonar_coverage| |code_climate_coverage|
 
 .. |pip| |downloads|
 
