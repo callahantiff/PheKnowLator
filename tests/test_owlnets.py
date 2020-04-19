@@ -77,6 +77,15 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
+    def test_initialization_state_construction_approach(self):
+        """Tests the class initialization state for construction approach type."""
+
+        self.assertIsInstance(self.owl_nets.kg_construct_approach, str)
+        self.assertTrue(self.owl_nets.kg_construct_approach == 'subclass')
+        self.assertFalse(self.owl_nets.kg_construct_approach == 'instance')
+
+        return None
+
     def test_initialization_state_object_properties(self):
         """Tests the class initialization state for object properties."""
 
