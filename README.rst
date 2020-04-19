@@ -12,8 +12,6 @@ regarding this project can be found on the project `Wiki`_.
 
 |DOI|
 
-|
-
 **This is a Reproducible Research Repository:** 
 
 This repository contains more than just code, it provides a detailed and transparent narrative of our research process. For detailed information on how we use GitHub as a reproducible research platform, click `here`_.
