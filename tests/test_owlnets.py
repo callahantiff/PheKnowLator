@@ -112,8 +112,8 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_updates_class_instance_identifiers(self):
-        """Tests the updates_class_instance_identifiers method."""
+    def test_updates_class_instance_identifiers_instance(self):
+        """Tests the updates_class_instance_identifiers method  for a subclass construction approach."""
 
         # update graph
         edges = (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
@@ -150,6 +150,11 @@ class TestOwlNets(unittest.TestCase):
                        URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
                        URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),
                       self.owl_nets.graph)
+
+        return None
+
+    def test_updates_class_instance_identifiers_subclass(self):
+        """Tests the updates_class_instance_identifiers method for a subclass construction approach."""
 
         # make sure it does not run for subclass construction approach
         self.owl_nets.graph = Graph()
