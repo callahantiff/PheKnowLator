@@ -70,10 +70,10 @@ class TestOwlNets(unittest.TestCase):
         """Tests the class initialization state for graphs."""
 
         # verify input graph object - when wrong data type
-        self.assertRaises(TypeError, OwlNets, list(), self.write_location, self.kg_filename)
+        self.assertRaises(TypeError, OwlNets, 'subclass', list(), self.write_location, self.kg_filename)
 
         # verify input graph object - when graph file is empty
-        self.assertRaises(ValueError, OwlNets, Graph(), self.write_location, self.kg_filename)
+        self.assertRaises(ValueError, OwlNets, 'subclass', Graph(), self.write_location, self.kg_filename)
 
         return None
 
