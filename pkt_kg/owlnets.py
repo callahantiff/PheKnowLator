@@ -10,6 +10,7 @@ import pickle
 
 from collections import Counter
 from rdflib import Graph, BNode, Literal, URIRef   # type: ignore
+from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple
 
@@ -26,13 +27,13 @@ class OwlNets(object):
 
     Attributes:
         knowledge_graph: An RDFLib object.
-        uuid_map: A dictionary that stores the mapping between each class and its instance.
         write_location: A file path used for writing knowledge graph data.
         res_dir: A string pointing to the 'resources' directory.
         full_kg: A string containing the filename for the full knowledge graph.
         nx_mdg: A networkx graph object that contains the same edges as knowledge_graph.
         keep_properties: A list of owl:Property types to keep when filtering triples from knowledge graph.
         class_list: A list of owl classes from the input knowledge graph.
+        kg_construct_approach: A string containing the type of construction approach used to build the knowledge graph.
 
     Raises:
         TypeError: If graph is not an rdflib.graph object.
@@ -41,8 +42,9 @@ class OwlNets(object):
         TypeError: If the file containing owl object properties is empty.
     """
 
-    def __init__(self, graph: Graph, write_location: str, full_kg: str) -> None:
+    def __init__(self, kg_construct_approach: str, graph: Graph, write_location: str, full_kg: str) -> None:
 
+        self.kg_construct_approach = kg_construct_approach
         self.write_location = write_location
         self.res_dir = os.path.relpath('/'.join(self.write_location.split('/')[:-1]))
         self.full_kg = full_kg
@@ -75,6 +77,31 @@ class OwlNets(object):
 
         # get all classes in knowledge graph
         self.class_list: List = list(gets_ontology_classes(self.graph))
+
+    def updates_class_instance_identifiers(self) -> None:
+        """Iterates over all class instances in a knowledge graph that was constructed using the instance construction
+        approach and converts pkt_BNodes back to the original ontology class identifier. A new edge for each triple,
+        containing an instance of a class is updated with the original ontology identifier, is added to the graph.
+
+        Assumptions: (1) Assumes that all instance of a class identifier contain the pkt namespace and (2) all
+            relations used when adding new edges to the knowledge graph are part of the OBO namespace.
+
+        Returns:
+             None.
+        """
+
+        print('Re-mapping Instances of Classes to Class Identifiers')
+
+        # get all class individuals
+        pkts = [x[0] for x in list(self.graph.triples((None, RDF.type, OWL.NamedIndividual))) if 'pkt' in str(x[0])]
+
+        for axiom in pkts:
+            cls = [x[2] for x in list(self.graph.triples((axiom, RDF.type, None))) if 'obo' in str(x[2])][0]
+            updated_edges = [(cls, x[1], x[2]) for x in list(self.graph.triples((axiom, None, None))) if
+                             'obo' in str(x[1])]
+            self.graph = adds_edges_to_graph(self.graph, updated_edges)
+
+        return None
 
     def removes_edges_with_owl_semantics(self) -> Tuple[Graph, Graph]:
         """Creates a filtered knowledge graph, such that all triples that contained entities needed to support owl
@@ -428,6 +455,9 @@ class OwlNets(object):
         """
 
         print('\nCreating OWL-NETS graph')
+
+        # check if instance build and if so, rollback identifiers
+        if self.kg_construct_approach == 'instance': self.updates_class_instance_identifiers()
 
         # filter out owl-encoded triples from original knowledge graph
         filtered_graph, owl_graph = self.removes_edges_with_owl_semantics()

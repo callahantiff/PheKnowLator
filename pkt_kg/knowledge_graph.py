@@ -568,7 +568,7 @@ class PostClosureBuild(KGBuilder):
         # STEP 7: DECODE OWL SEMANTICS
         if self.decode_owl:
             print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-            owl_nets = OwlNets(self.graph, self.write_location, self.full_kg)
+            owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
 
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
@@ -662,7 +662,7 @@ class FullBuild(KGBuilder):
         # STEP 7: DECODE OWL SEMANTICS
         if self.decode_owl:
             print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-            owl_nets = OwlNets(self.graph, self.write_location, self.full_kg)
+            owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
 
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS

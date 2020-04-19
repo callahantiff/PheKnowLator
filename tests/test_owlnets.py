@@ -8,6 +8,7 @@ from rdflib import Graph, BNode, Literal, URIRef
 from typing import Dict, List, Set, Tuple
 
 from pkt_kg.owlnets import OwlNets
+from pkt_kg.utils import adds_edges_to_graph
 
 
 class TestOwlNets(unittest.TestCase):
@@ -45,7 +46,10 @@ class TestOwlNets(unittest.TestCase):
         self.graph.parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
 
         # initialize class
-        self.owl_nets = OwlNets(graph=self.graph, write_location=self.write_location, full_kg=self.kg_filename)
+        self.owl_nets = OwlNets(kg_construct_approach='subclass',
+                                graph=self.graph,
+                                write_location=self.write_location,
+                                full_kg=self.kg_filename)
 
         return None
 
@@ -66,10 +70,19 @@ class TestOwlNets(unittest.TestCase):
         """Tests the class initialization state for graphs."""
 
         # verify input graph object - when wrong data type
-        self.assertRaises(TypeError, OwlNets, list(), self.write_location, self.kg_filename)
+        self.assertRaises(TypeError, OwlNets, 'subclass', list(), self.write_location, self.kg_filename)
 
         # verify input graph object - when graph file is empty
-        self.assertRaises(ValueError, OwlNets, Graph(), self.write_location, self.kg_filename)
+        self.assertRaises(ValueError, OwlNets, 'subclass', Graph(), self.write_location, self.kg_filename)
+
+        return None
+
+    def test_initialization_state_construction_approach(self):
+        """Tests the class initialization state for construction approach type."""
+
+        self.assertIsInstance(self.owl_nets.kg_construct_approach, str)
+        self.assertTrue(self.owl_nets.kg_construct_approach == 'subclass')
+        self.assertFalse(self.owl_nets.kg_construct_approach == 'instance')
 
         return None
 
@@ -105,6 +118,58 @@ class TestOwlNets(unittest.TestCase):
 
         # check the length of the object
         self.assertTrue(len(self.owl_nets.nx_mdg) == 20277)
+
+        return None
+
+    def test_updates_class_instance_identifiers_instance(self):
+        """Tests the updates_class_instance_identifiers method  for a subclass construction approach."""
+
+        # update graph
+        edges = (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://purl.obolibrary.org/obo/CHEBI_2504')), \
+                (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#NamedIndividual')), \
+                (URIRef('http://purl.obolibrary.org/obo/CHEBI_2504'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
+                (URIRef('https://www.ncbi.nlm.nih.gov/gene/55847'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#NamedIndividual')), \
+                (URIRef('https://www.ncbi.nlm.nih.gov/gene/55847'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://purl.obolibrary.org/obo/SO_0001217')), \
+                (URIRef('http://purl.obolibrary.org/obo/SO_0001217'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
+                (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
+                 URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
+                 URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')), \
+                (URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#ObjectProperty'))
+
+        self.owl_nets.graph = adds_edges_to_graph(Graph(), edges)
+
+        # run method to roll back to re-map instances of classes
+        self.owl_nets.updates_class_instance_identifiers()
+        self.assertEqual(len(self.owl_nets.graph), 9)
+        self.assertIn((URIRef('http://purl.obolibrary.org/obo/CHEBI_2504'),
+                       URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
+                       URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),
+                      self.owl_nets.graph)
+
+        return None
+
+    def test_updates_class_instance_identifiers_subclass(self):
+        """Tests the updates_class_instance_identifiers method for a subclass construction approach."""
+
+        # make sure it does not run for subclass construction approach
+        self.owl_nets.graph = Graph()
+        self.owl_nets.kg_construct_approach = 'subclass'
+        self.owl_nets.updates_class_instance_identifiers()
+        self.assertEqual(len(self.owl_nets.graph), 0)
 
         return None
 
