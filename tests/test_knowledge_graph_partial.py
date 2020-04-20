@@ -125,12 +125,7 @@ class TestPartialBuild(unittest.TestCase):
         self.kg.construct_knowledge_graph()
 
         # check for output files
-        # kg full - owl
-        kg_owl = 'partial_build/PheKnowLator_partial_InverseRelations_NotClosed_OWLSemantics_KG.owl'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_owl))
-
-        # kg no annotation assertions - owl
-        kg = 'partial_build/PheKnowLator_partial_InverseRelations_NotClosed_OWLSemantics_KG_NoAnnotationAssertions.owl'
+        kg = 'partial_build/PheKnowLator_partial_InverseRelations_NotClosed_OWLSemantics_KG.owl'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg))
 
         return None
