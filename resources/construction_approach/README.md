@@ -5,7 +5,7 @@
 
 **Wiki Page:** **[`KG-Construction`](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction)**  
 **Jupyter Notebook:** [`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)  
-**Required Input Document:** `construction_approach/subclass_construction_map.pkl`
+**Required Input:** `resources/construction_approach/subclass_construction_map.pkl`
 
 ____
 

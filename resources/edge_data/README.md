@@ -13,6 +13,27 @@ The first step in constructing a knowledge graph is to build edge lists. In the 
 
 <br>
 
+_OUTPUT:_ Running this step will output a `json` file to `resources/Master_Edge_List_Dict.json`. The structure of this file is shown below:
+
+```python
+master_edges = {'chemical-disease'  :
+                {'source_labels'    : ';MESH_;',
+                 'data_type'        : 'class-class',
+                 'edge_relation'    : 'RO_0002606',
+                 'uri'              : ('http://purl.obolibrary.org/obo/',
+                                       'http://purl.obolibrary.org/obo/'),
+                 'delimiter'        : '#',
+                 'column_idx'       : '1;4',
+                 'identifier_maps'  : '0:./MESH_CHEBI_MAP.txt;1:disease-dbxref-map',
+                 'evidence_criteria': "5;!=;' ",
+                 'filter_criteria'  : 'None',
+                 'edge_list'        : ["CHEBI_81395", "DOID_12858"],
+                                      ["CHEBI_81395", "DOID_0090103"], ...,
+                                      ["CHEBI_81395", "DOID_0090104"]}
+```
+
+<br>
+
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
 - All downloaded data sources are listed, with metadata, in the [`edge_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/edge_source_metadata.txt) document.  
