@@ -21,7 +21,7 @@ While most ontologies are released with none or minor errors, it is still good p
 - HOW: To do this, we reccommend opening the downloaded ontology file using an application like [Protége](https://protege.stanford.edu/) and running the ontology debugger. If you prefer to use Python, we recommend using the [`owlready2`](https://pypi.org/project/Owlready2/) library. 
 
 **Merge Ontologies**:  
-Often times there are errors that only exist in the presense or other ontologies. The most common error which occurs as a result of merging ontology files is punning. To merge a directory of ontologies, you can run the following:  
+Often times there are errors that only exist in the presence or other ontologies. The most common error which occurs as a result of merging ontology files is punning. To merge a directory of ontologies, you can run the following:  
 
   ```python   
   #import needed libraries
