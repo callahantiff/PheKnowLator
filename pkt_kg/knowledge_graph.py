@@ -86,9 +86,9 @@ class KGBuilder(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, kg_version: str, write_location: str, construction: str, edge_data: str,
+    def __init__(self, kg_version: str, write_location: str, construction: str, edge_data: str, kg_metadata_flag: str,
                  node_data: Optional[str] = None, inverse_relations: Optional[str] = None, decode_owl: Optional[str]
-                 = None, kg_metadata_flag: str = None) -> None:
+                 = None) -> None:
 
         self.build: str = self.gets_build_type().lower().split()[0]
         self.decode_owl: Optional[str] = None
@@ -98,7 +98,7 @@ class KGBuilder(object):
         self.inverse_relations_dict: Optional[Dict] = None
         self.node_data: Optional[List] = None
         self.node_dict: Optional[Dict] = None
-        self.kg_metadata: str = kg_metadata_flag.lower() if node_data else 'no'
+        self.kg_metadata: str = kg_metadata_flag.lower()
         self.ont_classes: Set = set()
         self.obj_properties: Set = set()
         self.owl_tools = './pkt_kg/libs/owltools'
