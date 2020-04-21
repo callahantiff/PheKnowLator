@@ -86,37 +86,37 @@ The `pkt_kg` library requires a specific project directory structure. If you pla
 
 Several input documents must be created before the `pkt_kg` library can be utilized. Each of the input documents are listed below by knowledge graph build step:  
 
-* *DOWNLOAD DATA*  
+*Download Data*  
 
-  This code depends on three documents (located inside the `resources` directory) in order to run successfully (for information on what’s included in these documents, see the `Document Dependencies`_ Wiki page):
+This code depends on three documents (located inside the `resources` directory) in order to run successfully (for information on what’s included in these documents, see the `Document Dependencies`_ Wiki page):
   
-  * `resources/resource_info.txt`_  
-  * `resources/ontology_source_list.txt`_  
-  * `resources/edge_source_list.txt`_
+* `resources/resource_info.txt`_  
+* `resources/ontology_source_list.txt`_  
+* `resources/edge_source_list.txt`_
 
-  For assistance in creating these documents, please run the following from the root directory:
+For assistance in creating these documents, please run the following from the root directory:
 
-  .. code:: bash
+.. code:: bash
+
+    python3 pkt/generates_dependency_documents.py
+
+Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created. Please see the `data_preparation.ipynb`_ Jupyter notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
   
-      python3 pkt/generates_dependency_documents.py
-
-  Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created. Please see the `data_preparation.ipynb`_ Jupyter notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
-  
-  *Note.* To ensure reproducibility, after downloading data, a metadata file is output for the ontologies (`ontology_source_metadata.txt`_) and edge data sources (`edge_source_metadata.txt`_). 
+*Note.* To ensure reproducibility, after downloading data, a metadata file is output for the ontologies (`ontology_source_metadata.txt`_) and edge data sources (`edge_source_metadata.txt`_). 
 
 |
 
-* *CONSTRUCT KNOWLEDGE GRAPH*  
+*Construct Knowledge Graph*  
 
-  The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process (please see the knowledge graph `README`_ for more information). Please make sure you have created the documents listed below prior to constructing a knowledge graph. Click on each document for additional information.
+The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process (please see the knowledge graph `README`_ for more information). Please make sure you have created the documents listed below prior to constructing a knowledge graph. Click on each document for additional information.
   
-  * `construction_approach/subclass_construction_map.pkl`_  
-  * `resources/Master_Edge_List_Dict.json`_ ➞ *automatically created after edge list construction*  
-  * `node_data/*.txt`_ ➞ *if adding metadata for new edges to the knowledge graph*.  
-  * `ontologies/PheKnowLator_MergedOntologies*.owl`_ ➞ *see `ontology README`_ for information*
-  * `owl_decoding/OWL_NETS_Property_Types.txt`_ 
-  * `relations_data/RELATIONS_LABELS.txt`_  
-  * `relations_data/INVERSE_RELATIONS.txt`_ ➞ *if including inverse relations*
+* `construction_approach/subclass_construction_map.pkl`_  
+* `resources/Master_Edge_List_Dict.json`_ ➞ *automatically created after edge list construction*  
+* `node_data/*.txt`_ ➞ *if adding metadata for new edges to the knowledge graph*.  
+* `ontologies/PheKnowLator_MergedOntologies*.owl`_ ➞ *see `ontology README`_ for information*
+* `owl_decoding/OWL_NETS_Property_Types.txt`_ 
+* `relations_data/RELATIONS_LABELS.txt`_  
+* `relations_data/INVERSE_RELATIONS.txt`_ ➞ *if including inverse relations*
 
 |
 |
