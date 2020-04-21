@@ -110,7 +110,7 @@ The `KG Construction`_ Wiki page provides a detailed description of the knowledg
   
 * `resources/construction_approach/subclass_construction_map.pkl`_  
 * `resources/Master_Edge_List_Dict.json`_ ➞ *automatically created after edge list construction*  
-* `resources/node_data/*.txt`_ ➞ *if adding metadata for new edges to the knowledge graph*.  
+* `resources/node_data/*.txt`_ ➞ *if adding metadata for new edges to the knowledge graph*   
 * `resources/knowledge_graphs/PheKnowLator_MergedOntologies*.owl`_ ➞ *see* `ontology README`_ *for information*
 * `resources/owl_decoding/OWL_NETS_Property_Types.txt`_ 
 * `resources/relations_data/RELATIONS_LABELS.txt`_  
