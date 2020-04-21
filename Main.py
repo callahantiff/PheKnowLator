@@ -66,8 +66,6 @@ def main():
 
     print('\n' + '=' * 33 + '\nBUILDING KNOWLEDGE GRAPH\n' + '=' * 33 + '\n')
 
-
-
     if args.kg == 'partial':
         kg = PartialBuild(kg_version='v2.0.0',
                           write_location=args.out,
