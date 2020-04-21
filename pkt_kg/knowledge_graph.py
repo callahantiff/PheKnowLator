@@ -88,7 +88,7 @@ class KGBuilder(object):
 
     def __init__(self, kg_version: str, write_location: str, construction: str, edge_data: str,
                  node_data: Optional[str] = None, inverse_relations: Optional[str] = None, decode_owl: Optional[str]
-                 = None, kg_metadata_flag: str = 'no') -> None:
+                 = None, kg_metadata_flag: str = None) -> None:
 
         self.build: str = self.gets_build_type().lower().split()[0]
         self.decode_owl: Optional[str] = None
@@ -615,13 +615,6 @@ class FullBuild(KGBuilder):
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
-
-        # import time
-        # start = time.time()
-        # self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
-        # end = time.time()
-        # print('Total time to run code: {} seconds'.format(end - start))
-        # gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
 
         self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
