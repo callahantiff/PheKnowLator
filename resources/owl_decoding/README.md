@@ -4,7 +4,7 @@
 ***
 
 **Wiki Page:** **[`OWL-NETS-2.0`](https://github.com/callahantiff/PheKnowLator/wiki/OWL-NETS-2.0)**  
-**Required Input Document:** `OWL_NETS_Property_Types.txt`
+**Required Input Document:** `resources/owl_decoding/OWL_NETS_Property_Types.txt`
 ____
 
 ### Purpose
