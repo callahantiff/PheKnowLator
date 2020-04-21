@@ -5,7 +5,7 @@
 
 **Wiki Page:** **[`Dependencies`](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies/#relations-data)**  
 **Jupyter Notebook:** **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)**  
-
+**Required Input Documents:** `RELATIONS_LABELS.txt`; `INVERSE_RELATIONS.txt`
 ___
 
 ### Purpose
