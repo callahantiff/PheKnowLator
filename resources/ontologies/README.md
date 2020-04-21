@@ -4,30 +4,30 @@
 ***
 
 **Wiki Page:** **[`Data Sources`](https://github.com/callahantiff/PheKnowLator/wiki/v2-Data-Sources#ontologies)**  
-**Jupyter Notebook:** **[`Ontology_Cleaning.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Ontology_Cleaning.ipynb)**  
+**Jupyter Notebook:** **[`Ontology_Cleaning.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Ontology_Cleaning.ipynb)**   
 
 ___
 
 ### Purpose
-We recommend that users take stes to verify the content in their ontologies prior to building the knowledge graph. PheKnowLator does not currently provide any support for verifying the data quality of ontology data. That being said, we do recommend that users verify the following in each of their ontology sources:  
+The merged ontology file can be manually created prior to or automatically during the build process. We recommend that users take steps to verify the content in their ontologies prior to building the knowledge graph. PheKnowLator does not currently provide any support for verifying the data quality of ontology data. That being said, we do recommend that users verify the following in each of their ontology sources:  
 
 **Cleaning Ontologies**  
 While most ontologies are released with none or minor errors, it is still good practice to verify that the ontology is error free.  
 - WHAT: Specific things you might look for include:  
   - Invalid typing for literals  
-  - Punning (i.e. illegal redeclarations of entity types)  
+  - Punning (i.e. illegal redeclaration of entity types)  
   - Errors or inconsistencies in ontology identifiers  
   - Remove obsolete ontology classes  
-- HOW: To do this, we reccommend opening the downloaded ontology file using an application like [Protége](https://protege.stanford.edu/) and running the ontology debugger. If you prefer to use Python, we recommend using the [`owlready2`](https://pypi.org/project/Owlready2/) library. 
+- HOW: To do this, we recommend opening the downloaded ontology file using an application like [Protége](https://protege.stanford.edu/) and running the ontology debugger. If you prefer to use Python, we recommend using the [`owlready2`](https://pypi.org/project/Owlready2/) library. 
 
 **Merge Ontologies**:  
-Often times there are errors that only exist in the presense or other ontologies. The most common error which occurs as a result of merging ontology files is punning. To merge a directory of ontologies, you can run the following:  
+Often times there are errors that only exist in the presence or other ontologies. The most common error which occurs as a result of merging ontology files is punning. To merge a directory of ontologies, you can run the following:  
 
   ```python   
   #import needed libraries
   from pkt_kg.utils import merges_ontologies
   
-  # set-up inpiut variables
+  # set-up input variables
   write_location = './resources/knowledge_graphs'
   merged_ontology_file = '/PheKnowLator_MergedOntologies.owl
   ontology_repository = glob.glob('*/ontologies/*.owl')
@@ -37,7 +37,7 @@ Often times there are errors that only exist in the presense or other ontologies
   ```
 
 **Normalize Classes**:  
-It is important to verify that there is consistency between the ontology classes once the ontology files have been merged together. We recommend veroifying two types of class-class consistency:  
+It is important to verify that there is consistency between the ontology classes once the ontology files have been merged together. We recommend verifying two types of class-class consistency:  
 - _Connectivity Between Existing Classes_: Make sure that all classes that represent the same entity are connected to each other.   
   - EXAMPLE: The [Sequence Ontology](http://www.sequenceontology.org/), [Chemical Entities of Biological Interest (ChEBI)](https://www.ebi.ac.uk/chebi), and [PRotein Ontology](https://proconsortium.org/) all include terms for protein, but none of these classes are connected to each other.  
 - _Consistency Between Ontology Classes and New Edge Data Nodes_: Make sure that any of the existing ontology classes can be aligned with any of the new data entities that you want to add to the knowledge graph.   
