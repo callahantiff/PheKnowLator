@@ -85,7 +85,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = None
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/6ux85agl95ja3wx/human_pro_closed.owl?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/khtyja0zw14rp32/human_pro_closed.owl?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 197759055
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/human_pro_closed_with_imports.owl
