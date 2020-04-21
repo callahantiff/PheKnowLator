@@ -4,8 +4,8 @@
 ***
 
 **Wiki Page:** **[`KG-Construction`](https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction)**  
-
 **Jupyter Notebook:** [`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)  
+**Required Input Document:** `construction_approach/subclass_construction_map.pkl`
 
 ____
 
@@ -54,7 +54,7 @@ _____
 
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
-- Make sure that you have created the non-ontology node data to ontology class mapping dictionary (described below) to the `./resources/construction_approach/` directory.    
+- Make sure that you have created the non-ontology node data to ontology class mapping dictionary (described below) to the `./resources/construction_approach/*.pkl` directory.    
 
 **Input Requirements for both Approaches:** A `pickled` dictionary where the keys are node identifiers (non-ontology node data) and the values are lists of ontology class identifiers to subclass has been added to the `./resources/construction_approach/` directory. An example of this dictionary is shown below:  
 
