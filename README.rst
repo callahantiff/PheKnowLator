@@ -108,13 +108,13 @@ Prior to running this step, make sure that all mapping and filtering data refere
 
 The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process (please see the knowledge graph `README`_ for more information). Please make sure you have created the documents listed below prior to constructing a knowledge graph. Click on each document for additional information.
   
-* `construction_approach/subclass_construction_map.pkl`_  
+* `resources/construction_approach/subclass_construction_map.pkl`_  
 * `resources/Master_Edge_List_Dict.json`_ ➞ *automatically created after edge list construction*  
-* `node_data/*.txt`_ ➞ *if adding metadata for new edges to the knowledge graph*.  
-* `ontologies/PheKnowLator_MergedOntologies*.owl`_ ➞ *see `ontology README`_ for information*
-* `owl_decoding/OWL_NETS_Property_Types.txt`_ 
-* `relations_data/RELATIONS_LABELS.txt`_  
-* `relations_data/INVERSE_RELATIONS.txt`_ ➞ *if including inverse relations*
+* `resources/node_data/*.txt`_ ➞ *if adding metadata for new edges to the knowledge graph*.  
+* `resources/knowledge_graphs/PheKnowLator_MergedOntologies*.owl`_ ➞ *see* `ontology README`_ *for information*
+* `resources/owl_decoding/OWL_NETS_Property_Types.txt`_ 
+* `resources/relations_data/RELATIONS_LABELS.txt`_  
+* `resources/relations_data/INVERSE_RELATIONS.txt`_ ➞ *if including inverse relations*
 
 |
 |
@@ -307,21 +307,21 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 
 .. _`README`: https://github.com/callahantiff/blob/PheKnowLator/master/resources/knowledge_graphs/README.md
 
-.. _`construction_approach/subclass_construction_map.pkl`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/construction_approach/README.md
+.. _`resources/construction_approach/subclass_construction_map.pkl`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/construction_approach/README.md
 
 .. _`resources/Master_Edge_List_Dict.json`: https://www.dropbox.com/s/w4l9yffnn4tyk2e/Master_Edge_List_Dict.json?dl=1
 
-.. _`node_data/*.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md
+.. _`resources/node_data/*.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md
 
-.. _`ontologies/PheKnowLator_MergedOntologies*.owl`: https://www.dropbox.com/s/75lkod7vzpgjdaq/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl?dl=1
+.. _`resources/knowledge_graphs/PheKnowLator_MergedOntologies*.owl`: https://www.dropbox.com/s/75lkod7vzpgjdaq/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl?dl=1
 
 .. _`ontology README`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/README.md
 
-.. _`owl_decoding/OWL_NETS_Property_Types.txt`: https://github.com/callahantiff/PheKnowLator/blob/documentation_updates/resources/owl_decoding/README.md
+.. _`resources/owl_decoding/OWL_NETS_Property_Types.txt`: https://github.com/callahantiff/PheKnowLator/blob/documentation_updates/resources/owl_decoding/README.md
 
-.. _`relations_data/RELATIONS_LABELS.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/relations_data/README.md
+.. _`resources/relations_data/RELATIONS_LABELS.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/relations_data/README.md
 
-.. _`relations_data/INVERSE_RELATIONS.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/relations_data/README.md
+.. _`resources/relations_data/INVERSE_RELATIONS.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/relations_data/README.md
 
 .. _`main.ipynb`: https://github.com/callahantiff/pheknowlator/blob/master/main.ipynb
 
