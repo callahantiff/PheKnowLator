@@ -1,0 +1,3 @@
+# ignore all folders and subsequent files in working directory
+**/*
+!Dockerfile
