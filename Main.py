@@ -39,8 +39,8 @@ def main():
 
     # STEP 3: PROCESS ONTOLOGIES
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
-    ont =  OntData(data_path=args.onts, resource_data=args.res)
-    # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='resources/resource_info.txt')
+    ont = OntData(data_path=args.onts, resource_data=args.res)
+    # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='./resources/resource_info.txt')
     ont.downloads_data_from_url()
 
     # STEP 4: PROCESS EDGE DATA
