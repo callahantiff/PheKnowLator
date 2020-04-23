@@ -145,10 +145,10 @@ class TestKGBuilder(unittest.TestCase):
         edges_inst = self.dir_loc_resources + '/Master_Edge_List_Dict_instance.json'
 
         # build 3 different knowledge graphs
-        self.kg_subclass = FullBuild('v2.0.0', write_loc, 'subclass', edges, 'yes', 'yes', 'yes')
-        self.kg_instance = PartialBuild('v2.0.0', write_loc, 'instance', edges_inst, 'yes', 'no', 'no')
-        self.kg_instance2 = PartialBuild('v2.0.0', write_loc, 'instance', edges_inst, 'yes', 'yes', 'no')
-        self.kg_closure = PostClosureBuild('v2.0.0', write_loc, 'instance', edges_inst, 'yes', 'no', 'no')
+        self.kg_subclass = FullBuild('v2.0.0', write_loc, 'subclass', edges, 'yes', 'yes', 'yes', 'yes')
+        self.kg_instance = PartialBuild('v2.0.0', write_loc, 'instance', edges_inst, 'yes', 'yes', 'no', 'no')
+        self.kg_instance2 = PartialBuild('v2.0.0', write_loc, 'instance', edges_inst, 'yes', 'yes', 'yes', 'no')
+        self.kg_closure = PostClosureBuild('v2.0.0', write_loc, 'instance', edges_inst, 'yes', 'yes', 'no', 'no')
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
@@ -163,14 +163,14 @@ class TestKGBuilder(unittest.TestCase):
 
         self.assertRaises(ValueError,
                           FullBuild, None, self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          None, 'yes', 'yes', 'yes')
+                          None, 'yes', 'yes', 'yes', 'yes')
 
         return None
 
     def test_class_initialization_parameters_write_location(self):
         """Tests the class initialization parameters for write location."""
 
-        self.assertRaises(ValueError, FullBuild, 'v2.0.0', None, 'subclass', None, 'yes', 'yes', 'yes')
+        self.assertRaises(ValueError, FullBuild, 'v2.0.0', None, 'subclass', None, 'yes', 'yes', 'yes', 'yes')
 
         return None
 
@@ -178,7 +178,7 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the class initialization parameters for ontologies."""
 
         self.kg_subclass.res_dir = 'data'
-        self.assertRaises(ValueError, FullBuild, 'v2.0.0', None, 'subclass', None, 'yes', 'yes', 'yes')
+        self.assertRaises(ValueError, FullBuild, 'v2.0.0', None, 'subclass', None, 'yes', 'yes', 'yes', 'yes')
         self.kg_subclass.res_dir = 'data/resources'
 
         return None
@@ -188,13 +188,13 @@ class TestKGBuilder(unittest.TestCase):
 
         self.assertRaises(TypeError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 1,
-                          None, 'yes', 'yes', 'yes')
+                          None, 'yes', 'yes', 'yes', 'yes')
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subcls',
-                          None, 'yes', 'yes', 'yes')
+                          None, 'yes', 'yes', 'yes', 'yes')
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'inst',
-                          None, 'yes', 'yes', 'yes')
+                          None, 'yes', 'yes', 'yes', 'yes')
 
         return None
 
@@ -203,15 +203,15 @@ class TestKGBuilder(unittest.TestCase):
 
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          None, 'yes', 'yes', 'yes')
+                          None, 'yes', 'yes', 'yes', 'yes')
 
         self.assertRaises(OSError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dicts.json', 'yes', 'yes', 'yes')
+                          self.dir_loc_resources + '/Master_Edge_List_Dicts.json', 'yes', 'yes', 'yes', 'yes')
 
         self.assertRaises(TypeError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json', 'yes', 'yes', 'yes')
+                          self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json', 'yes', 'yes', 'yes', 'yes')
 
         return None
 
@@ -219,18 +219,18 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the class initialization parameters for relations."""
 
         self.assertRaises(TypeError, FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 1, 'yes')
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 1, 'yes')
 
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'ye', 'yes')
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'ye', 'yes')
 
         # remove relations and inverse relations data
         os.remove(self.dir_loc_resources + '/relations_data/RELATIONS_LABELS.txt')
         os.remove(self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt')
         self.assertRaises(TypeError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'yes')
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'yes', 'yes')
 
         # add back deleted data
         shutil.copyfile(self.dir_loc + '/RELATIONS_LABELS.txt',
@@ -245,18 +245,18 @@ class TestKGBuilder(unittest.TestCase):
 
         self.assertRaises(TypeError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 1, 'yes', 'yes')
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 1, 'yes', 'yes')
 
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'ye', 'yes', 'yes')
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'ye', 'yes', 'yes')
 
         # remove node metadata
         os.remove(self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
         os.remove(self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt')
         self.assertRaises(TypeError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'yes')
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'yes', 'yes')
 
         # add back deleted data
         shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt',
@@ -274,7 +274,7 @@ class TestKGBuilder(unittest.TestCase):
         edges = self.dir_loc_resources + '/Master_Edge_List_Dict.json'
 
         # test kg_metadata flag when node_data is None
-        self.kg_subclass = FullBuild('v2.0.0', write_loc, 'subclass', edges, None, 'yes', 'yes', 'yes')
+        self.kg_subclass = FullBuild('v2.0.0', write_loc, 'subclass', edges, 'no', None, 'yes', 'yes')
         self.assertEqual('no', self.kg_subclass.kg_metadata)
 
         # test kg_metadata flag when node_data is None
@@ -288,11 +288,11 @@ class TestKGBuilder(unittest.TestCase):
 
         self.assertRaises(TypeError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 1)
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'yes', 1)
 
         self.assertRaises(ValueError,
                           FullBuild, 'v2.0.0', self.dir_loc_resources + '/knowledge_graphs', 'subclass',
-                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'ye')
+                          self.dir_loc_resources + '/Master_Edge_List_Dict.json', 'yes', 'yes', 'yes', 'ye')
 
         return None
 
@@ -576,7 +576,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance.graph) > 0)
-        self.assertEqual(len(self.kg_instance.graph), 42)
+        self.assertEqual(len(self.kg_instance.graph), 192)
 
         # check graph was saved
         kg_filename = 'PheKnowLator_partial_NotClosed_OWLSemantics_KG.owl'
@@ -604,7 +604,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance2.graph) > 0)
-        self.assertEqual(len(self.kg_instance2.graph), 50)
+        self.assertEqual(len(self.kg_instance2.graph), 200)
 
         # check graph was saved
         kg_filename = 'PheKnowLator_partial_InverseRelations_NotClosed_OWLSemantics_KG.owl'

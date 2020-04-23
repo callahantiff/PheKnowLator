@@ -106,7 +106,7 @@ class TestFullBuild(unittest.TestCase):
         edges = self.dir_loc_resources + '/Master_Edge_List_Dict.json'
 
         # build 3 different knowledge graphs
-        self.kg = FullBuild('v2.0.0', write_loc, 'subclass', edges, 'yes', 'yes', 'yes')
+        self.kg = FullBuild('v2.0.0', write_loc, 'subclass', edges, 'yes', 'yes', 'yes', 'yes')
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')

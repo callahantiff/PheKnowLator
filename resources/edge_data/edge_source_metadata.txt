@@ -162,7 +162,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[2]==protein-coding
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/ufbp5o6zgagriw7/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/3vh2v29vo4rkhre/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 4456749
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/gene-protein_ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
@@ -173,7 +173,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = None
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/yqnofd8h90luygu/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/elkapikuge1lwaz/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 16378762
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/gene-rna_ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt
@@ -217,7 +217,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[3]==Evidence at protein level | data[4]==anatomy
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/us3u516e4vhkuco/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 20467831
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/protein-anatomy_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
@@ -228,7 +228,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = None
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/pvopvs0iq8x3oq2/UNIPROT_PROTEIN_CATALYST.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/w4lh6k9wbo5qkw0/UNIPROT_PROTEIN_CATALYST.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 1092346
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/protein-catalyst_UNIPROT_PROTEIN_CATALYST.txt
@@ -239,7 +239,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[3]==Evidence at protein level | data[4]==cell line
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/us3u516e4vhkuco/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 20467831
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/protein-cell_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
@@ -250,7 +250,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = None
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/ij9t89botd8nmmj/UNIPROT_PROTEIN_COFACTOR.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/xjtljf21eqign73/UNIPROT_PROTEIN_COFACTOR.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 101341
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/protein-cofactor_UNIPROT_PROTEIN_COFACTOR.txt
@@ -316,7 +316,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[3]==Evidence at transcript level | data[4]==anatomy
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/us3u516e4vhkuco/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 20467831
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/rna-anatomy_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
@@ -327,7 +327,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[3]==Evidence at transcript level | data[4]==cell line
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/u7elnc056zxypc6/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/us3u516e4vhkuco/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 20467831
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/rna-cell_HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
@@ -338,7 +338,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[2]==protein-coding
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/ckrw11nfyu6a08c/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/earbb7hlyzow13y/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 38370727
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/rna-protein_ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt
@@ -349,7 +349,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[9]!=-1 | data[16]==GRCh38 | data[8-9]dedupdesc
   - EVIDENCE CRITERIA = data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"] | data[7]==1
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/px3dlywz0q6gb6d/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 1437554430
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/variant-disease_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
@@ -360,7 +360,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[9]!=-1 | data[16]==GRCh38 | data[8-9]dedupdesc
   - EVIDENCE CRITERIA = data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"]
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/px3dlywz0q6gb6d/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 1437554430
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/variant-gene_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
@@ -371,7 +371,7 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = data[9]!=-1 | data[16]==GRCh38 | data[8-9]dedupdesc
   - EVIDENCE CRITERIA = data[24] in ["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline", "criteria provided, single submitter"] | data[7]==1
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/1doj3lj46ufgdpd/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
+  - DOWNLOAD_URL = https://www.dropbox.com/s/px3dlywz0q6gb6d/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt?dl=1
   - DOWNLOAD_DATE = 04/07/2020
   - FILE_SIZE_IN_BYTES = 1437554430
   - DOWNLOADED_FILE_LOCATION = resources/edge_data/variant-phenotype_CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt

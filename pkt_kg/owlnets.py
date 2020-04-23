@@ -20,20 +20,23 @@ from pkt_kg.utils import adds_edges_to_graph, gets_ontology_classes
 class OwlNets(object):
     """Class removes OWL semantics from an ontology or knowledge graph using the OWL-NETS method.
 
-    OWL Semantics are nodes and edges in the graph that are needed in order to create a rich semantic representation
-    and to do things like run reasoners. Many of these nodes and edges are not clinically or biologically meaningful.
-    This class is designed to decode all owl-encoded classes and return a knowledge graph that is semantically rich and
-    clinically and biologically meaningful.
+    OWL-encoded or semantic edges are needed in a graph in order to enable a rich semantic representation. Many of the
+    nodes in semantic edges are not clinically or biologically meaningful. This class is designed to decode all
+    owl-encoded classes and return a knowledge graph that is semantically rich and clinically and biologically
+    meaningful.
+
+    Additional Information: https://github.com/callahantiff/PheKnowLator/wiki/OWL-NETS-2.0
 
     Attributes:
-        knowledge_graph: An RDFLib object.
+        kg_construct_approach: A string containing the type of construction approach used to build the knowledge graph.
         write_location: A file path used for writing knowledge graph data.
         res_dir: A string pointing to the 'resources' directory.
         full_kg: A string containing the filename for the full knowledge graph.
+        graph: An RDFLib object.
         nx_mdg: A networkx graph object that contains the same edges as knowledge_graph.
         keep_properties: A list of owl:Property types to keep when filtering triples from knowledge graph.
         class_list: A list of owl classes from the input knowledge graph.
-        kg_construct_approach: A string containing the type of construction approach used to build the knowledge graph.
+
 
     Raises:
         TypeError: If graph is not an rdflib.graph object.
@@ -57,7 +60,7 @@ class OwlNets(object):
         else:
             self.graph = graph
 
-        # convert RDF graph to multidigraph
+        # convert RDF graph to networkx MultiDiGraph
         print('\nConverting knowledge graph to MultiDiGraph. Note, this process can take up to 20 minutes.')
         self.nx_mdg: networkx.MultiDiGraph = networkx.MultiDiGraph()
 
@@ -83,8 +86,8 @@ class OwlNets(object):
         approach and converts pkt_BNodes back to the original ontology class identifier. A new edge for each triple,
         containing an instance of a class is updated with the original ontology identifier, is added to the graph.
 
-        Assumptions: (1) Assumes that all instance of a class identifier contain the pkt namespace and (2) all
-            relations used when adding new edges to the knowledge graph are part of the OBO namespace.
+        Assumptions: (1) all instances of a class identifier contain the pkt namespace
+                     (2) all relations used when adding new edges to a graph are part of the OBO namespace.
 
         Returns:
              None.
@@ -104,10 +107,10 @@ class OwlNets(object):
         return None
 
     def removes_edges_with_owl_semantics(self) -> Tuple[Graph, Graph]:
-        """Creates a filtered knowledge graph, such that all triples that contained entities needed to support owl
-        semantics have been removed. For example:
+        """Creates a filtered knowledge graph, such that all triples that contain an owl:ObjectProperty that is not
+        included in the keep_properties list are removed. For example:
 
-            REMOVE - edge needed to support owl semantics that are not biologically meaningful:
+            REMOVE - edges needed to support owl semantics (not biologically meaningful):
                 subject: http://purl.obolibrary.org/obo/CLO_0037294
                 predicate: owl:AnnotationProperty
                 object: rdf:about="http://purl.obolibrary.org/obo/CLO_0037294"
@@ -118,7 +121,7 @@ class OwlNets(object):
                 object: http://purl.obolibrary.org/obo/HP_0000832
 
         Returns:
-            filtered_graph: An RDFLib graph that contains triples without owl semantics.
+            filtered_graph: An RDFLib graph that only contains clinically and biologically meaningful triples.
             owl_graph: An RDFLib graph that contains edges with owl semantics.
         """
 
@@ -127,12 +130,9 @@ class OwlNets(object):
         filtered_graph = Graph()
 
         for predicate in tqdm(self.keep_properties):
-            # get list of triples that include the predicate
             triples_to_keep = list(self.graph.triples((None, URIRef(predicate), None)))
             new_edges = [x for x in triples_to_keep if isinstance(x[0], URIRef) and isinstance(x[2], URIRef)]
-
-            # add kept edges to filtered graph
-            filtered_graph = adds_edges_to_graph(filtered_graph, new_edges)
+            filtered_graph = adds_edges_to_graph(filtered_graph, new_edges)  # add kept edges to filtered graph
 
         # subset graph to include only triples that were removed
         owl_graph: Graph = self.graph - filtered_graph
@@ -140,9 +140,9 @@ class OwlNets(object):
         return filtered_graph, owl_graph
 
     def recurses_axioms(self, seen_nodes: List[BNode], axioms: List[Any]) -> List[BNode]:
-        """Function recursively searches a list of knowledge graph nodes and tracks the nodes it has visited. Once
-        it has visited all nodes in the input axioms list, a final unique list of relevant nodes is returned. This
-        list is assumed to include all necessary nodes needed to re-create an OWL:equivalentClass.
+        """Function recursively searches a list of graph nodes and tracks the nodes it has visited. Once all nodes in
+        the input axioms list have been visited, a final unique list of relevant nodes is returned. This list is
+        assumed to include all necessary BNodes needed to re-create an OWL:equivalentClass.
 
         Args:
             seen_nodes: A list which may or may not contain knowledge graph nodes.
@@ -151,7 +151,7 @@ class OwlNets(object):
                                             rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'))]
 
         Returns:
-            seen_nodes: A list of knowledge graph nodes.
+            seen_nodes: A list of knowledge graph BNodes.
         """
 
         search_axioms: List = []
@@ -170,16 +170,8 @@ class OwlNets(object):
             return seen_nodes
 
     def creates_edge_dictionary(self, node: URIRef) -> Tuple[Dict, Set]:
-        """Creates a nested edge dictionary from an input class node by obtaining all of the edges that come
-        out from the class and then recursively looping over each anonymous out edge node. The outer
-        dictionary keys are anonymous nodes and the inner keys are owl:ObjectProperty values from each out
-        edge triple that comes out of that anonymous node. For example:
-            {rdflib.term.BNode('N3243b60f69ba468687aa3cbe4e66991f'): {
-                someValuesFrom': rdflib.term.URIRef('http://purl.obolibrary.org/obo/PATO_0000587'),
-                type': rdflib.term.URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                onProperty': rdflib.term.URIRef('http://purl.obolibrary.org/obo/RO_0000086')
-                                                                      }
-            }
+        """Creates a nested edge dictionary from an input class node by obtaining all outgoing edges and recursively
+        looping over each anonymous out edge node.
 
         While creating the dictionary, if cardinality is used then a formatted string that contains the class node
         and the anonymous node naming the element that includes cardinality is constructed and added to a set.
@@ -189,8 +181,14 @@ class OwlNets(object):
 
         Returns:
             class_edge_dict: A nested dictionary. The outer dictionary keys are anonymous nodes and the inner keys
-                are owl:ObjectProperty values from each out edge triple that comes out of that anonymous node. An
-                example of the dictionaries contents are shown above.
+                are owl:ObjectProperty values from each out edge triple that comes out of that anonymous node. For
+                example:
+                    {rdflib.term.BNode('N3243b60f69ba468687aa3cbe4e66991f'): {
+                        someValuesFrom': rdflib.term.URIRef('http://purl.obolibrary.org/obo/PATO_0000587'),
+                        type': rdflib.term.URIRef('http://www.w3.org/2002/07/owl#Restriction'),
+                        onProperty': rdflib.term.URIRef('http://purl.obolibrary.org/obo/RO_0000086')
+                                                                              }
+                    }
             cardinality: A set of strings, where each string is formatted such that the substring that occurs before
                 the ':' is the class node and the substring after the ':' is the anonymous node naming the element where
                 cardinality was used.
@@ -226,8 +224,9 @@ class OwlNets(object):
 
     @staticmethod
     def returns_object_property(sub: URIRef, obj: URIRef, prop: URIRef = None) -> URIRef:
-        """Checks the subject and object node types in order to return the correct type of owl:ObjectProperty. The
-        following ObjectProperties are returned for each of the following subject-object types:
+        """Checks the subject and object node types in order to determine the correct type of owl:ObjectProperty.
+
+        The following ObjectProperties are returned for each of the following subject-object types:
             - sub + obj are not PATO terms + prop is None --> rdfs:subClassOf
             - sub + obj are PATO terms + prop is None --> rdfs:subClassOf
             - sub is not a PATO term, but obj is a PATO term --> owl:RO_000086
@@ -254,7 +253,7 @@ class OwlNets(object):
     @staticmethod
     def parses_anonymous_axioms(edges: Dict, class_dict: Dict) -> Dict:
         """Parses axiom dictionaries that only include anonymous axioms (i.e. 'first' and 'rest') and returns an
-        updated axiom dictionary that contains owl:Restrictions or an owl constructor (i.e. owl:unionOf or
+        updated axiom dictionary that contains an owl:Restriction or an owl constructor (i.e. owl:unionOf or
         owl:intersectionOf).
 
         Args:
@@ -264,7 +263,7 @@ class OwlNets(object):
                 are owl:ObjectProperty values from each out edge triple that comes out of that anonymous node.
 
         Returns:
-             updated_edges: A subset of dictionary where keys are owl:Objects (i.e. 'first', 'rest', 'onProperty',
+             updated_edges: A subset of dictionary where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty',
                 or 'someValuesFrom').
         """
 
@@ -281,13 +280,21 @@ class OwlNets(object):
             -> Tuple[Set, Optional[Dict]]:
         """Traverses a dictionary of rdflib objects used in the owl:unionOf or owl:intersectionOf constructors, from
         which the original set of edges used to the construct the class_node are edited, such that all owl-encoded
-        information is removed. Examples of the transformations performed for these constructor types are shown below:
-            - owl:unionOf: CL_0000995, turns into:
-                - CL_0000995, rdfs:subClassOf, CL_0001021
-                - CL_0000995, rdfs:subClassOf, CL_0001026
-            - owl:intersectionOf: PR_000050170, turns into:
-                - PR_000050170, rdfs:subClassOf, GO_0071738
-                - PR_000050170, RO_0002160, NCBITaxon_9606
+        information is removed. For example:
+            INPUT: <!-- http://purl.obolibrary.org/obo/CL_0000995 -->
+                        <owl:Class rdf:about="http://purl.obolibrary.org/obo/CL_0000995">
+                            <owl:equivalentClass>
+                                <owl:Class>
+                                    <owl:unionOf rdf:parseType="Collection">
+                                        <rdf:Description rdf:about="http://purl.obolibrary.org/obo/CL_0001021"/>
+                                        <rdf:Description rdf:about="http://purl.obolibrary.org/obo/CL_0001026"/>
+                                    </owl:unionOf>
+                                </owl:Class>
+                            </owl:equivalentClass>
+                            <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/CL_0001060"/>
+                        </owl:Class>
+            OUTPUT: [(CL_0000995, rdfs:subClassOf, CL_0001021), (CL_0000995, rdfs:subClassOf, CL_0001026)]
+
 
         Args:
             node: An rdflib term of type URIRef or BNode that references an OWL-encoded class.
@@ -299,10 +306,8 @@ class OwlNets(object):
                 owl:onProperty relation.
 
         Returns:
-            cleaned_classes: A list of tuples, where each tuple represents a class which has had the OWL semantics
-                removed.
-             edge_batch: A subset of dictionary where keys are owl:Objects (i.e. 'first', 'rest', 'onProperty',
-                or 'someValuesFrom').
+            cleaned_classes: A list of tuples, where each tuple represents a class that had OWL semantics removed.
+             edge_batch: A dictionary subset, where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty').
         """
 
         cleaned_classes: Set = set()
@@ -326,10 +331,19 @@ class OwlNets(object):
         return cleaned_classes, edge_batch
 
     def parses_restrictions(self, node: URIRef, edges: Dict, class_dict: Dict) -> Tuple[Set, Optional[Dict]]:
-        """Parses a subset of a dictionary containing rdflib objects participating in a constructor (i.e.
-        owl:intersectionOf or owl:unionOf) and reconstructs the class (referenced by node) in order to remove
-        owl-encoded information. An example is shown below:
-            - owl:restriction PR_000050170, turns into: (PR_000050170, RO_0002180, PR_000050183)
+        """Parses a subset of a dictionary containing rdflib objects participating in a restriction and reconstructs the
+        class (referenced by node) in order to remove owl-encoded information. An example is shown below:
+            INPUT:    <!-- http://purl.obolibrary.org/obo/GO_0000785 -->
+                        <owl:Class rdf:about="http://purl.obolibrary.org/obo/GO_0000785">
+                            <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/GO_0110165"/>
+                            <rdfs:subClassOf>
+                                <owl:Restriction>
+                                    <owl:onProperty rdf:resource="http://purl.obolibrary.org/obo/BFO_0000050"/>
+                                    <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/GO_0005694"/>
+                                </owl:Restriction>
+                            </rdfs:subClassOf>
+                        </owl:Class>
+            OUTPUT: [(GO_0000785, BFO_0000050, GO_0005694)]
 
         Args:
             node: An rdflib term of type URIRef or BNode that references an OWL-encoded class.
@@ -342,12 +356,14 @@ class OwlNets(object):
              cleaned_classes: A list of tuples, where each tuple represents a class which has had the OWL semantics
                 removed.
              edge_batch: A subset of dictionary where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty',
-                'onClass', or 'someValuesFrom').
+                'onClass', or 'someValuesFrom', 'allValuesFrom).
         """
 
-        cleaned_classes: Set = set()
+        prop_types = ['allValuesFrom', 'someValuesFrom', 'hasSelf', 'hasValue', 'onClass']
+        restriction_components = ['type', 'first', 'rest', 'onProperty']
+        object_type = [x for x in edges.keys() if x not in restriction_components and x in prop_types][0]
         edge_batch = edges
-        object_type = [x for x in edge_batch.keys() if x not in ['type', 'first', 'rest', 'onProperty']][0]
+        cleaned_classes: Set = set()
 
         if isinstance(edge_batch[object_type], URIRef) or isinstance(edge_batch[object_type], Literal):
             object_node = node if object_type == 'hasSelf' else edge_batch[object_type]
@@ -369,16 +385,13 @@ class OwlNets(object):
                 return cleaned_classes, axioms
 
     def cleans_owl_encoded_classes(self) -> Graph:
-        """Loops over a list of owl classes in a knowledge graph searching for edges that include owl:equivalentClass
+        """Loops over a all owl:Class objects in a graph searching for edges that include owl:equivalentClass
         nodes (i.e. to find classes assembled using owl constructors) and rdfs:subClassof nodes (i.e. to find
-        owl:restrictions). Once these edges are found, the method loops over the in and out edges of anonymous nodes
-        in the edges in order to eliminate the owl-encoded nodes.
+        owl:restrictions). Once these edges are found, the method loops over the in and out edges of all anonymous nodes
+        in the edges in order to decode the owl-encoded nodes.
 
         Returns:
-            # cleaned_class_dict: A dictionary where keys are owl-encoded nodes and values are a set of tuples, where
-            #     where each tuple represents a triple which has had the OWL semantics removed. This dictionary is also
-            #     saved locally.
-            decoded_graph: An RDFLib graph object that contains only cleaned decoded owl classes.
+             An rdflib.Graph object that has been updated to only include triples owl decoded triples.
         """
 
         print('\nDecoding OWL Constructors and Restrictions')
@@ -434,9 +447,7 @@ class OwlNets(object):
                 decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes))
 
         pbar.close()
-
-        # delete networkx graph object to free up memory
-        del self.nx_mdg
+        del self.nx_mdg  # delete networkx graph object to free up memory
 
         print('=' * 75)
         print('Decoded {} owl-encoded classes. Note the following:'.format(len(cleaned_nodes)))
@@ -448,7 +459,10 @@ class OwlNets(object):
         return decoded_graph
 
     def run_owl_nets(self) -> Graph:
-        """Adds triples from a dictionary containing a set of decoded triples to an rdflib.graph.
+        """Performs all steps of the OWL-NETS pipeline, including: (1) mapping all instances of class identifiers back
+        to original class identifiers; (2) filters a graph to remove all triples that include an owl:ObjectProperty
+        not included in the keep_properties list; and (3) decodes all owl-encoded classes of type intersection and
+        union constructor and all restrictions.
 
         Returns:
             An rdflib.Graph object that has been updated to only include triples owl decoded triples.

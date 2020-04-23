@@ -86,9 +86,9 @@ class KGBuilder(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, kg_version: str, write_location: str, construction: str, edge_data: str,
+    def __init__(self, kg_version: str, write_location: str, construction: str, edge_data: str, kg_metadata_flag: str,
                  node_data: Optional[str] = None, inverse_relations: Optional[str] = None, decode_owl: Optional[str]
-                 = None, kg_metadata_flag: str = 'no') -> None:
+                 = None) -> None:
 
         self.build: str = self.gets_build_type().lower().split()[0]
         self.decode_owl: Optional[str] = None
@@ -98,7 +98,7 @@ class KGBuilder(object):
         self.inverse_relations_dict: Optional[Dict] = None
         self.node_data: Optional[List] = None
         self.node_dict: Optional[Dict] = None
-        self.kg_metadata: str = kg_metadata_flag.lower() if node_data else 'no'
+        self.kg_metadata: str = kg_metadata_flag.lower()
         self.ont_classes: Set = set()
         self.obj_properties: Set = set()
         self.owl_tools = './pkt_kg/libs/owltools'
@@ -162,10 +162,11 @@ class KGBuilder(object):
                 else:
                     self.inverse_relations = glob.glob(self.res_dir + '/relations_data/*.txt')
                     self.inverse_relations_dict = dict()
-                    kg_rel = '/inverse_relations' + '/PheKnowLator_' + self.build + '_InverseRelations_'
+                    build = self.build.replace('-', '_')
+                    kg_rel = '/inverse_relations' + '/PheKnowLator_' + build + '_InverseRelations_'
             else:
                 self.inverse_relations, self.inverse_relations_dict = None, None
-                kg_rel = '/relations_only' + '/PheKnowLator_' + self.build + '_'
+                kg_rel = '/relations_only' + '/PheKnowLator_' + self.build.replace('-', '_') + '_'
 
         # NODE METADATA
         if node_data and not isinstance(node_data, str):
@@ -390,10 +391,8 @@ class KGBuilder(object):
         """Builds a knowledge graph. The knowledge graph build is completed differently depending on the build type
         that the user requested. The build types include: "full", "partial", or "post-closure". The knowledge graph
         is built through the following steps: (1) Set up environment; (2) Process relation/inverse relations; (3)
-        Process node metadata; (4) Merge ontologies; (5) Add master edge list to merged ontologies; (6) Remove
-        annotation assertions (if partial build); (7) Add annotation assertions (if post-closure build); (8)
-        Extract and write node metadata; (9) Decode OWL-encoded classes; and (10) Output knowledge graph files and
-        create edge lists.
+        Process node metadata; (4) Merge ontologies; (5) Add master edge list to merged ontologies; (6) Extract and
+        write node metadata; (7) Decode OWL-encoded classes; and (8) Output knowledge graph files and create edge lists.
 
         Returns:
             None.
@@ -419,7 +418,7 @@ class PartialBuild(KGBuilder):
         """Builds a partial knowledge graph. A partial knowledge graph build is recommended when one intends to build a
         knowledge graph and intends to run a reasoner over it. The partial build includes the following steps: (1)
         Set up environment; (2) Process relation/inverse relation data; (3) Process node metadata; (4) Merge
-        ontologies; (5) Add master edge list to merged ontologies; and (6) Remove annotation assertions.
+        ontologies; and (5) Add master edge list to merged ontologies.
 
         Returns:
             None.
@@ -457,12 +456,10 @@ class PartialBuild(KGBuilder):
                 merges_ontologies(self.ontologies,
                                   self.write_location, '/' + self.merged_ont_kg.split('/')[-1],
                                   self.owl_tools)
+
                 # load the merged ontology
                 self.graph.parse(self.merged_ont_kg, format='xml')
                 gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
-
-        self.ont_classes = gets_ontology_classes(self.graph)
-        self.obj_properties = gets_object_properties(self.graph)
 
         # STEP 5: ADD MASTER EDGE DATA TO KNOWLEDGE GRAPH
         # create temporary directory to store partial builds and update path to write data to
@@ -473,14 +470,11 @@ class PartialBuild(KGBuilder):
 
         # build knowledge graph
         print('*** Building Knowledge Graph Edges ***')
+        self.ont_classes = gets_ontology_classes(self.graph)
+        self.obj_properties = gets_object_properties(self.graph)
         self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
-        del self.graph, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
+        del self.graph, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict, metadata
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
-
-        # STEP 6: REMOVE ANNOTATION ASSERTIONS
-        print('*** Removing Annotation Assertions ***')
-        metadata.removes_annotation_assertions(self.owl_tools)
-        del metadata
 
         return None
 
@@ -498,17 +492,15 @@ class PostClosureBuild(KGBuilder):
         built knowledge graph and completes the build process.
 
         The post-closure build utilizes the following steps: (1) Set up environment; (2) Process relation and inverse
-        relation data; (3) Process node metadata; (4) Load closed knowledge graph and annotation assertions; (5) Add
-        annotation assertions; (6) Extract and write node metadata; (7) Decode OWL-encoded classes; and (8) Output
-        knowledge graph files and create edge lists.
+        relation data; (3) Process node metadata; (4) Load closed knowledge graph; (5) Extract and write node metadata;
+        (6) Decode OWL-encoded classes; and (7) Output knowledge graph files and create edge lists.
 
         Returns:
             None.
 
         Raises:
-            TypeError: If the knowledge graph and annotation assertion file types are not owl.
-            OSError: If the closed_kg_location and annotation_assertions files do not exist.
-            TypeError: If closed_kg_location and annotation_assertions files are empty.
+            OSError: If closed knowledge graph file does not exist.
+            TypeError: If the closed knowledge graph file is empty.
         """
 
         print('\n### Starting Knowledge Graph Build: post-closure ###')
@@ -526,52 +518,32 @@ class PostClosureBuild(KGBuilder):
         metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
         if self.node_data: metadata.node_metadata_processor()
 
-        closed_kg_location = input('Filepath to the closed knowledge graph: ')
+        # STEP 3: LOAD CLOSED KNOWLEDGE GRAPH
+        closed_kg_location = glob.glob(self.write_location + '/'.join(self.full_kg.split('/')[0:2]) + '/*.owl')
 
-        if '.owl' not in closed_kg_location:
-            raise TypeError('The provided file is not type .owl')
-        elif not os.path.exists(closed_kg_location):
-            raise OSError('The {} file does not exist!'.format(closed_kg_location))
-        elif os.stat(closed_kg_location).st_size == 0:
+        if len(closed_kg_location) == 0:
+            raise OSError('The closed KG file does not exist!')
+        elif os.stat(closed_kg_location[0]).st_size == 0:
             raise TypeError('input file: {} is empty'.format(closed_kg_location))
         else:
             print('*** Loading Closed Knowledge Graph ***')
+            os.rename(closed_kg_location[0], self.write_location + self.full_kg)  # rename closed kg file
             self.graph = Graph()
-            self.graph.parse(closed_kg_location, format='xml')
-            gets_ontology_statistics(closed_kg_location, self.owl_tools)
-
-        # STEP 5: ADD ANNOTATION ASSERTIONS
-        annotation_assertions = input('Filepath to the knowledge graph with annotation assertions: ')
-
-        if '.owl' not in annotation_assertions:
-            raise TypeError('The provided file is not type .owl')
-        elif not os.path.exists(annotation_assertions):
-            raise OSError('The {} file does not exist!'.format(annotation_assertions))
-        elif os.stat(annotation_assertions).st_size == 0:
-            raise TypeError('input file: {} is empty'.format(annotation_assertions))
-        else:
-            print('*** Loading Annotation Assertions Edge List ***')
-            self.graph = metadata.adds_annotation_assertions(self.graph, annotation_assertions)
-
-            # add ontology metadata and annotations, serialize graph, and apply OWL API formatting to output
-            if self.kg_metadata == 'yes': metadata.adds_node_metadata(self.graph, self.edge_dict)
-            self.graph = metadata.adds_ontology_annotations(self.full_kg.split('/')[-1], self.graph)
-            self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
-            ontology_file_formatter(self.write_location, self.full_kg, self.owl_tools)
+            self.graph.parse(self.write_location + self.full_kg, format='xml')
             gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
 
-        # STEP 6: EXTRACT AND WRITE NODE METADATA
+        # STEP 5: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
         if self.node_data is not None: metadata.output_knowledge_graph_metadata(self.graph)
         del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
 
-        # STEP 7: DECODE OWL SEMANTICS
+        # STEP 6: DECODE OWL SEMANTICS
         if self.decode_owl:
             print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
 
-        # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
+        # STEP 7: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('*** Writing Knowledge Graph Edge Lists ***')
         maps_node_ids_to_integers(self.graph, self.write_location,
                                   self.full_kg[:-6] + 'Triples_Integers.txt',
@@ -643,13 +615,6 @@ class FullBuild(KGBuilder):
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
-
-        # import time
-        # start = time.time()
-        # self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
-        # end = time.time()
-        # print('Total time to run code: {} seconds'.format(end - start))
-        # gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
 
         self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
