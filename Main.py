@@ -37,16 +37,16 @@ def main():
     # STEP 2: PREPROCESS DATA
     # see the 'Data_Preparation.ipynb' file for instructions
 
-    # STEP 3: PROCESS ONTOLOGIES (1183.154 seconds)
+    # STEP 3: PROCESS ONTOLOGIES
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
-    ont = OntData(data_path=args.onts)
-    # ont = OntData(data_path='resources/ontology_source_list.txt')
-    ont.downloads_data_from_url('imports')
+    ont =  OntData(data_path=args.onts, resource_data=args.res)
+    # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='resources/resource_info.txt')
+    ont.downloads_data_from_url()
 
-    # STEP 4: PROCESS EDGE DATA (4980.956 seconds)
+    # STEP 4: PROCESS EDGE DATA
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
-    edges = LinkedData(data_path=args.cls)
-    # edges = LinkedData(data_path='resources/edge_source_list.txt')
+    # edges = LinkedData(data_path=args.cls, resource_data=args.res)
+    edges = LinkedData(data_path='resources/edge_source_list.txt', resource_data='resources/resource_info.txt')
     edges.downloads_data_from_url()
 
     #####################
