@@ -24,7 +24,7 @@ All code and output for each release are free to download, see `Wiki <https://gi
 
 **Current Release:** ``v1.0.0``. Data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
 
-⚠️ **New Release in Progress:** ``v2.0.0`` in progress and will be released by the end of April 2020. The `PyPy` package will not be completely functional until this release is finalized.
+⚠️ **New Release in Progress:** ``v2.0.0`` in progress and will be released by the end of April 2020. The `PyPi` package will not be completely functional until this release is finalized.
 
 |
 
@@ -97,7 +97,7 @@ For assistance in creating these documents, please run the following from the ro
 
     python3 pkt/generates_dependency_documents.py
 
-Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created. Please see the `data_preparation.ipynb`_ Jupyter notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
+Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created. Please see the `Data_Preparation.ipynb`_ Jupyter notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
   
 *Note.* To ensure reproducibility, after downloading data, a metadata file is output for the ontologies (`ontology_source_metadata.txt`_) and edge data sources (`edge_source_metadata.txt`_). 
 
@@ -286,7 +286,7 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 
 .. _`Document Dependencies`: https://github.com/callahantiff/PheKnowLator/wiki/Dependencies
 
-.. _`data_preparation.ipynb`: https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb
+.. _`Data_Preparation.ipynb`: https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb
 
 .. _`resources/resource_info.txt`: https://github.com/callahantiff/PheKnowLator/wiki/Dependencies#master-resources
 
