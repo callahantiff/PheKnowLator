@@ -1,5 +1,5 @@
 ===================================
-#Wed Apr 15 15:06:57 UTC 2020 
+#Thu Apr 23 22:10:23 UTC 2020 
 ===================================
 
 EDGE: phenotype
@@ -9,7 +9,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/hp.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 82875595
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/hp_with_imports.owl
 
@@ -20,7 +20,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/go.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 164605418
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/go_with_imports.owl
 
@@ -31,7 +31,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/doid.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 24804889
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/doid_with_imports.owl
 
@@ -42,7 +42,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/vo.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 7695520
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/vo_with_imports.owl
 
@@ -53,7 +53,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 143646307
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/chebi_lite_with_imports.owl
 
@@ -64,7 +64,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/uberon/ext.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 76612443
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/ext_with_imports.owl
 
@@ -75,7 +75,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/clo.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 119258842
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/clo_with_imports.owl
 
@@ -85,8 +85,8 @@ DATA PROCESSING INFO
   - FILTERING CRITERIA = None
   - EVIDENCE CRITERIA = None
 DATA INFO
-  - DOWNLOAD_URL = https://www.dropbox.com/s/6ux85agl95ja3wx/human_pro_closed.owl?dl=1
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_URL = https://www.dropbox.com/s/khtyja0zw14rp32/human_pro_closed.owl?dl=1
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 197759055
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/human_pro_closed_with_imports.owl
 
@@ -97,7 +97,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/so.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 3834
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/ontology_source_metadata.txt
 
@@ -108,7 +108,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/pw.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 4965358
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/pw_with_imports.owl
 
@@ -119,7 +119,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/ro.owl
-  - DOWNLOAD_DATE = 04/07/2020
+  - DOWNLOAD_DATE = 04/23/2020
   - FILE_SIZE_IN_BYTES = 197759055
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/human_pro_closed_with_imports.owl
 
