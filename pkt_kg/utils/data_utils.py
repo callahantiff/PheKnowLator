@@ -495,7 +495,7 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
                 else:
                     continue
 
-                if res1 != 'None' and res2 != 'None':
+                if 'none' not in res1.lower() and 'none' not in res2.lower():
                     outfile.write(res1 + '\t' + res2 + '\t' + g_type + '\n')
 
     outfile.close()
