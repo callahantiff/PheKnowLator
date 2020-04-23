@@ -2,6 +2,7 @@ pkt_kg
 =========================================================================================
 
 |travis| |sonar_quality| |sonar_maintainability| |codacy|  |coveralls| |sonar_coverage|
+|ABRA| 
 
 .. |pip| |downloads|
 
@@ -10,11 +11,9 @@ PheKnowLator (Phenotype Knowledge Translator), a fully automated Python 3 librar
 construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Detailed information
 regarding this project can be found on the project `Wiki`_.
 
-|DOI|
-
 **This is a Reproducible Research Repository:** This repository contains more than just code, it provides a detailed and transparent narrative of our research process. For detailed information on how we use GitHub as a reproducible research platform, click `here`_.
 
-|ABRA| 
+
     
 |
 
@@ -236,10 +235,6 @@ Contact
 We’d love to hear from you! To get in touch with us, please `create an issue`_ or `send us an email`_ 💌
 
 
-
-.. |DOI| image:: https://zenodo.org/badge/DOI/10.5281/34014365.svg
-   :target: https://doi.org/10.5281/34014365
-   
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory   
 
