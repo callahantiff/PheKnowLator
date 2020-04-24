@@ -24,7 +24,7 @@ All code and output for each release are free to download, see `Wiki <https://gi
 
 **Current Release:** ``v1.0.0``. Data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
 
-⚠️ **New Release in Progress:** ``v2.0.0`` in progress and will be released by the end of April 2020. The `PyPi` package will not be completely functional until this release is finalized.
+⚠️ **New Release in Progress:** ``v2.0.0`` in progress and will be released by the end of April 2020. The `PyPI` package will not be completely functional until this release is finalized.
 
 |
 
@@ -35,7 +35,7 @@ Getting Started
 
 This program requires Python version 3.6.
 
-To install the library from PyPy, run:
+To install the library from PyPI, run:
 
 .. code:: shell
 
@@ -97,7 +97,7 @@ For assistance in creating these documents, please run the following from the ro
 
     python3 pkt/generates_dependency_documents.py
 
-Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created. Please see the `Data_Preparation.ipynb`_ Jupyter Notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
+Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created. Please see the `Data_Preparation.ipynb`_ Jupyter Notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
   
 *Note.* To ensure reproducibility, after downloading data, a metadata file is output for the ontologies (`ontology_source_metadata.txt`_) and edge data sources (`edge_source_metadata.txt`_). 
 
@@ -300,11 +300,11 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 
 .. _`KG Construction`: https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction
 
-.. _`README`: https://github.com/callahantiff/blob/PheKnowLator/master/resources/knowledge_graphs/README.md
+.. _`README`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/knowledge_graphs/README.md
 
 .. _`resources/construction_approach/subclass_construction_map.pkl`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/construction_approach/README.md
 
-.. _`resources/Master_Edge_List_Dict.json`: https://www.dropbox.com/s/w4l9yffnn4tyk2e/Master_Edge_List_Dict.json?dl=1
+.. _`resources/Master_Edge_List_Dict.json`: https://www.dropbox.com/s/t8sgzd847t1rof4/Master_Edge_List_Dict.json?dl=1
 
 .. _`resources/node_data/*.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md
 
@@ -312,7 +312,7 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 
 .. _`ontology README`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/README.md
 
-.. _`resources/owl_decoding/OWL_NETS_Property_Types.txt`: https://github.com/callahantiff/PheKnowLator/blob/documentation_updates/resources/owl_decoding/README.md
+.. _`resources/owl_decoding/OWL_NETS_Property_Types.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/owl_decoding/README.md
 
 .. _`resources/relations_data/RELATIONS_LABELS.txt`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/relations_data/README.md
 
@@ -320,7 +320,7 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 
 .. _`main.ipynb`: https://github.com/callahantiff/pheknowlator/blob/master/main.ipynb
 
-.. _`Main.py`: https://github.com/callahantiff/pheknowlator/blob/master/main.py
+.. _`Main.py`: https://github.com/callahantiff/pheknowlator/blob/master/Main.py
 
 .. _CONTRIBUTING.md: https://github.com/callahantiff/pheknowlator/blob/master/CONTRIBUTING.md
 
