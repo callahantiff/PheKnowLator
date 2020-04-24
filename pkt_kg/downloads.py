@@ -81,6 +81,7 @@ class DataSource(object):
             self.data_type: str = data_path.split('/')[-1].split('.')[0]
 
         # read in resource data
+        print(glob.glob('**/*resource**info*.txt', recursive=True))
         resource_data_search = glob.glob('**/*resource**info*.txt', recursive=True)[0]
         self.resource_data: Optional[str] = resource_data_search if None else resource_data
 
