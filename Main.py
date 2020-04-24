@@ -3,6 +3,7 @@
 
 # import needed libraries
 import argparse
+import time
 
 from pkt_kg.downloads import OntData, LinkedData
 from pkt_kg.edge_list import CreatesEdgeList
@@ -39,34 +40,42 @@ def main():
 
     # STEP 3: PROCESS ONTOLOGIES
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
+    start = time.time()
     ont = OntData(data_path=args.onts, resource_data=args.res)
     # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='./resources/resource_info.txt')
     ont.downloads_data_from_url()
+    end = time.time()
+    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {}'. format(end-start))
 
     # STEP 4: PROCESS EDGE DATA
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
+    start = time.time()
     ent = LinkedData(data_path=args.edg, resource_data=args.res)
     # ent = LinkedData(data_path='resources/edge_source_list.txt', resource_data='./resources/resource_info.txt')
     ent.downloads_data_from_url()
+    end = time.time()
+    print('\n TOTAL SECONDS TO DOWNLOAD EDGE SOURCES: {}'. format(end-start))
 
     #####################
     # CREATE EDGE LISTS #
     #####################
 
     print('\n' + '=' * 33 + '\nPROCESSING EDGE DATA\n' + '=' * 33 + '\n')
-
+    start = time.time()
     # STEP 1: create master resource dictionary
     combined_edges = dict(ent.data_files, **ont.data_files)
     # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
     master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     master_edges.creates_knowledge_graph_edges()
+    end = time.time()
+    print('\n TOTAL SECONDS TO BUILD MASTER EDGE LIST: {}'. format(end-start))
 
     #########################
     # BUILD KNOWLEDGE GRAPH #
     #########################
 
     print('\n' + '=' * 33 + '\nBUILDING KNOWLEDGE GRAPH\n' + '=' * 33 + '\n')
-
+    start = time.time()
     if args.kg == 'partial':
         kg = PartialBuild(kg_version='v2.0.0',
                           write_location=args.out,
@@ -96,6 +105,8 @@ def main():
                        kg_metadata_flag=args.kgm)
 
     kg.construct_knowledge_graph()
+    end = time.time()
+    print('\n TOTAL SECONDS TO BUILD KNOWLEDGE GRAPH: {}'.format(end - start))
 
 
 if __name__ == '__main__':
