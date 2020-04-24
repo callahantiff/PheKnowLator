@@ -29,7 +29,7 @@ Build Type | Description | Use Cases
 _____
 
 
-### Construction Method   
+### Construction Approach   
 New data can be added to the knowledge graph using 2 different construction approaches: (1) `instance-based` or (2) `subclass-based`. Please see this [`README.md`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/construction_approach/README.md) for more information.   
 
 <br> 
