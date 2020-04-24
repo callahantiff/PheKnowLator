@@ -35,6 +35,7 @@ COPY resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt /home/resources/proces
 
 # change permissions
 RUN chmod -R 755 /home/resources
-RUN chmod 777 /home/Main.py
+RUN chmod 755 /home/Main.py
 
-CMD ['./Main.py', '-flag']
+ENTRYPOINT ["python",  "./home/Main.py", "--onts", "/home/resources/ontology_source_list.txt", "--edg", "/home/resources/edge_source_list.txt", "--res", "/home/resources/resource_info.txt", "--out", "/home/resources/knowledge_graphs"]
+CMD ["-h"]
