@@ -51,7 +51,7 @@ ___
 
 <br>
 
-Not all relations have an inverse (e.g. interactions). Even though there might not be an inverse relations, we still want to ensure that all interactions relations are symmetrically represented in the graph. To aid in this process, we need to be able to quickly look-up an edge and determine if it is an interaction. To help make this process more efficient, the algorithm expects a list of all relations and their labels in as a `.txt` file.  
+Not all relations have an inverse (e.g. interactions). Even when an inverse relation is not present, we still want to ensure that all interactions relations are symmetrically represented in the graph. To aid in this process, we need to be able to quickly look-up an edge and determine if it is an interaction. To help make this process more efficient, the algorithm expects a list of all relations and their labels in a `.txt` file.  
  
 The data in this file should look like:     
 ```text
