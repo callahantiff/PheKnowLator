@@ -54,7 +54,7 @@ You can also clone the repository directly from GitHub by running:
 
 **Set-Up Environment**     
 
-The `pkt_kg` library requires a specific project directory structure. If you plan to run the code from a cloned version of this reository there are no additional steps needed. If you are planning to utilize the library without cloning the library, please make sure that your project directory includes the following sub-directories:  
+The `pkt_kg` library requires a specific project directory structure. If you plan to run the code from a cloned version of this repository, then no additional steps are needed. If you are planning to utilize the library without cloning the library, please make sure that your project directory includes the following sub-directories:  
 
 .. code:: shell
 
