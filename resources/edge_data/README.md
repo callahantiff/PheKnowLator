@@ -37,7 +37,7 @@ master_edges = {'chemical-disease'  :
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
 - All downloaded data sources are listed, with metadata, in the [`edge_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/edge_source_metadata.txt) document.  
-- Any data preprocessing, including the development of identifier mapping and evidence/filtering data, has been completed prior to building the edge lists. A Jupyter notebook containing examples of different preprocessing steps can be found [`here`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb).  
+- Any data preprocessing, including the development of identifier mapping and evidence/filtering data, has been completed prior to building the edge lists. A Jupyter Notebook containing examples of different preprocessing steps can be found [`here`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb).  
 
 <br>
 
