@@ -85,7 +85,7 @@ Several input documents must be created before the `pkt_kg` library can be utili
 
 *Download Data*  
 
-This code requires three documents within the `resources` directory to run successfully. For more information on these documents, see `Document Dependencies`_):
+This code requires three documents within the `resources` directory to run successfully. For more information on these documents, see `Document Dependencies`_:
   
 * `resources/resource_info.txt`_  
 * `resources/ontology_source_list.txt`_  
