@@ -17,7 +17,7 @@ To create estimates of molecular mechanisms, we derive node embeddings from the 
 <br>
 
 **[`DeepWalk algorithm-C`](https://github.com/xgfs/deepwalk-c):** an implementation of the original algorithm in C
- ++ (with some improvements to speed up initialize the hierarchical softmax tree that was developed by [Anton Tsitsulin](https://github.com/xgfs).  
+ ++, with some improvements to speed up initialize the hierarchical softmax tree that was developed by [Anton Tsitsulin](https://github.com/xgfs).  
 
 <br>
 
