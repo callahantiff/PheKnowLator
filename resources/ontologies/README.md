@@ -41,7 +41,7 @@ It is important to verify that there is consistency between the ontology classes
 - _Connectivity Between Existing Classes_: Make sure that all classes that represent the same entity are connected to each other.   
   - EXAMPLE: The [Sequence Ontology](http://www.sequenceontology.org/), [Chemical Entities of Biological Interest (ChEBI)](https://www.ebi.ac.uk/chebi), and [Protein Ontology](https://proconsortium.org/) all include terms for protein, but none of these classes are connected to each other.  
 - _Consistency Between Ontology Classes and New Edge Data Nodes_: Make sure that any of the existing ontology classes can be aligned with any of the new data entities that you want to add to the knowledge graph.   
-  - EXAMPLE: There are several gene classes in the [Human Phenotype Ontology](https://hpo.jax.org/) and [PRotein Ontology](https://proconsortium.org/) that use [HGNC](https://www.genenames.org/) identifiers. If you don't want to use HGNC identifiers, then all of these classes will have to be updated.  
+  - EXAMPLE: There are several gene classes in the [Human Phenotype Ontology](https://hpo.jax.org/) and [Protein Ontology](https://proconsortium.org/) that use [HGNC](https://www.genenames.org/) identifiers. If you don't want to use HGNC identifiers, then all of these classes will have to be updated.  
 
 <br>
 
