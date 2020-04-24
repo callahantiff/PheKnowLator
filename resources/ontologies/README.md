@@ -57,4 +57,4 @@ We recommending performing ontology preprocessing and cleaning steps after downl
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
 - All ontologies are listed in the [`ontology_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/ontologies/ontology_source_metadata.txt) document.   
-- Any data preprocessing or cleaning has been completed prior to building the knowledge graph. A Jupyter notebook containing examples of different preprocessing steps can be found [`here`](https://github.com/callahantiff/PheKnowLator/blob/master/Ontology_Cleaning.ipynb).  
+- Any data preprocessing or cleaning has been completed prior to building the knowledge graph. A Jupyter Notebook containing examples of different preprocessing steps can be found [`here`](https://github.com/callahantiff/PheKnowLator/blob/master/Ontology_Cleaning.ipynb).  
