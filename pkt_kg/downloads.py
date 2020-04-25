@@ -359,8 +359,7 @@ class OntData(DataSource):
                     self.data_files[i] = file_loc + str(file_prefix) + '_with_imports.owl'
 
             # print stats
-            gets_ontology_statistics(file_loc + str(file_prefix) + '_with_imports.owl',
-                                     os.path.abspath(owltools_location))
+            gets_ontology_statistics(file_loc + str(file_prefix) + '_with_imports.owl')
 
         # generate metadata
         self.generates_source_metadata()
