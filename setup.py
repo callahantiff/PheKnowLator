@@ -73,7 +73,6 @@ setup(
                       'networkx',
                       'nose',
                       'numpy==1.18.1',
-                      'Owlready2==0.14',
                       'pandas>=0.25.3',
                       'rdflib>=4.2.2',
                       'reactome2py>=0.0.8',

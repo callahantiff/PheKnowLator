@@ -8,10 +8,10 @@ import glob
 import os.path
 import re
 import shutil
+import subprocess
 import urllib3  # type: ignore
 
 from abc import ABCMeta, abstractmethod
-from owlready2 import subprocess  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, TextIO, Tuple
 
