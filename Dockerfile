@@ -1,41 +1,46 @@
-FROM python:3.6.2
+FROM alpine:3.7
 
-# install library from GitHub
-RUN pip install git+https://github.com/callahantiff/PheKnowLator.git@adding_docker
+## INSTALL JAVA -- base container
+RUN apk update \
+&& apk upgrade \
+&& apk add --no-cache bash \
+&& apk add --no-cache --virtual=build-dependencies unzip \
+&& apk add --no-cache curl \
+&& apk add --no-cache openjdk8-jre
 
-# create new project directory and add needed pkt_kg subdirectories
-RUN mkdir /home/PheKnowLator
-RUN mkdir /home/PheKnowLator/resources
-RUN mkdir /home/PheKnowLator/resources/construction_approach
-RUN mkdir /home/PheKnowLator/resources/edge_data
-RUN mkdir /home/PheKnowLator/resources/knowledge_graphs
-RUN mkdir /home/PheKnowLator/resources/owl_decoding
-RUN mkdir /home/PheKnowLator/resources/processed_data
+## INSTALL PYTHON -- copy docker
+COPY --from=python:3.6.2 / /
 
-# copy directories
-COPY resources/node_data /home/PheKnowLator/resources/node_data
-COPY resources/relations_data /home/PheKnowLator/resources/relations_data
+## DOWNLOAD PHEKNOWLATOR - clone library from GitHub
+RUN git clone https://github.com/callahantiff/PheKnowLator.git
 
-# copy filess
-COPY Main.py /home/PheKnowLator
-COPY resources/edge_source_list.txt /home/PheKnowLator/resources/edge_source_list.txt
-COPY resources/ontology_source_list.txt /home/PheKnowLator/resources/ontology_source_list.txt
-COPY resources/resource_info.txt /home/PheKnowLator/resources/resource_info.txt
-COPY resources/construction_approach/subclass_construction_map.pkl /home/PheKnowLator/resources/construction_approach/subclass_construction_map.pkl
-COPY resources/knowledge_graphs/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl /home/PheKnowLator/resources/knowledge_graphs/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl
-COPY resources/owl_decoding/OWL_NETS_Property_Types.txt /home/PheKnowLator/resources/owl_decoding/OWL_NETS_Property_Types.txt
-COPY resources/processed_data/MESH_CHEBI_MAP.txt /home/PheKnowLator/resources/processed_data/MESH_CHEBI_MAP.tx
-COPY resources/processed_data/DISEASE_DOID_MAP.txt /home/PheKnowLator/resources/processed_data/DISEASE_DOID_MAP.txt
-COPY resources/processed_data/PHENOTYPE_HPO_MAP.txt /home/PheKnowLator/resources/processed_data/PHENOTYPE_HPO_MAP.txt
-COPY resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt /home/PheKnowLator/resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
-COPY resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt /home/PheKnowLator/resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt
-COPY resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt /home/PheKnowLator/resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt
-COPY resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt /home/PheKnowLator/resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt
-COPY resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt /home/PheKnowLator/resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt
-COPY resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt /home/PheKnowLator/resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt
+# install needed python libraries
+RUN pip install --upgrade pip setuptools
+RUN pip install -r /PheKnowLator/requirements.txt
 
-# change permissions
-RUN chmod -R 755 /home/PheKnowLator
+## SET-UP LOCAL DIRECTORIES AND COPY NEEDED DATA
+COPY resources/construction_approach/subclass_construction_map.pkl /PheKnowLator/resources/construction_approach/subclass_construction_map.pkl
+COPY resources/knowledge_graphs/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl /PheKnowLator/resources/knowledge_graphs/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl
+COPY resources/owl_decoding/OWL_NETS_Property_Types.txt /PheKnowLator/resources/owl_decoding/OWL_NETS_Property_Types.txt
+COPY resources/processed_data/MESH_CHEBI_MAP.txt /PheKnowLator/resources/processed_data/MESH_CHEBI_MAP.txt
+COPY resources/processed_data/DISEASE_DOID_MAP.txt /PheKnowLator/resources/processed_data/DISEASE_DOID_MAP.txt
+COPY resources/processed_data/PHENOTYPE_HPO_MAP.txt /PheKnowLator/resources/processed_data/PHENOTYPE_HPO_MAP.txt
+COPY resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt /PheKnowLator/resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
+COPY resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt /PheKnowLator/resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt
+COPY resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt /PheKnowLator/resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt
+COPY resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt /PheKnowLator/resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt
+COPY resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt /PheKnowLator/resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt
+COPY resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt /PheKnowLator/resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt
 
-ENTRYPOINT ["python",  "./home/PheKnowLator/Main.py", "--onts", "/home/PheKnowLator/resources/ontology_source_list.txt", "--edg", "/home/PheKnowLator/resources/edge_source_list.txt", "--res", "/home/PheKnowLator/resources/resource_info.txt", "--out", "/home/PheKnowLator/resources/knowledge_graphs"]
+# HANDLE DEPENDENCIES
+RUN chmod -R 755 /PheKnowLator
+RUN chmod +x /PheKnowLator/pkt_kg/libs/owltools
+
+
+ENTRYPOINT ["python",  "/PheKnowLator/Main.py", \
+            "--onts", "/PheKnowLator/resources/ontology_source_list.txt", \
+            "--edg", "/PheKnowLator/resources/edge_source_list.txt", \
+            "--res", "/PheKnowLator/resources/resource_info.txt", \
+            "--out", "/PheKnowLator/resources/knowledge_graphs"]
+
 CMD ["-h"]
