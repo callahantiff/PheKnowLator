@@ -12,7 +12,6 @@ import subprocess
 import urllib3  # type: ignore
 
 from abc import ABCMeta, abstractmethod
-# from owlready2 import subprocess  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, TextIO, Tuple
 
@@ -93,7 +92,7 @@ class DataSource(object):
             raise TypeError('Input file: {} is empty'.format(self.resource_data))
         else:
             resource_data_file: TextIO = open(self.resource_data)
-            self.resource_info: List = resource_data_file.readlines()
+            self.resource_info: List = resource_data_file.read().splitlines()
             resource_data_file.close()
 
         self.resource_dict: Dict[str, List[str]] = {}
@@ -291,10 +290,10 @@ class OntData(DataSource):
         if os.stat(self.data_path).st_size == 0:
             raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
-            data_path_file = open(self.data_path)
-            source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
-                           for row in data_path_file.read().split('\n')}
-            data_path_file.close()
+            with open(self.data_path, 'r') as file_name:
+                source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
+                               for row in file_name.read().splitlines()}
+            file_name.close()
 
             # CHECK - verify formatting of urls
             valid_sources = [url for url in source_list.values() if 'purl.obolibrary.org/obo' in url or 'owl' in url]
@@ -385,16 +384,16 @@ class LinkedData(DataSource):
                                 'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'
                                 }
 
-        Raises:
-            TypeError: If the file does not contain data.
+        Raises: TypeError: If the file does not contain data.
         """
 
         if os.stat(self.data_path).st_size == 0:
             raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
             with open(self.data_path, 'r') as file_name:
-                for row in file_name.read().split('\n'):
-                    self.source_list[row.strip().split(',')[0]] = row.strip().split(',')[1].strip()
+                self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
+                                    for row in file_name.read().splitlines()}
+            file_name.close()
 
         return None
 
