@@ -44,8 +44,8 @@ class CreatesEdgeList(object):
         # convert edge data to a dictionary
         self.source_info: Dict[str, Dict[str, Any]] = dict()
 
-        with open(source_file) as source_file_data:
-            for row in source_file_data.read().split('\n'):
+        with open(source_file, 'r') as source_file_data:
+            for row in source_file_data.read().splitlines():
                 cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
                 key = cols[0].strip('"').strip("'")
                 self.source_info[key] = {}
@@ -116,11 +116,11 @@ class CreatesEdgeList(object):
         # temporarily read in the data
         try:
             with open(file_path, 'r') as input_data_r:  # type: IO[Any]
-                data = input_data_r.read().split('\n')
+                data = input_data_r.read().splitlines()
             input_data_r.close()
         except ValueError:
             with open(file_path, 'rb') as input_data_rb:  # type: IO[Any]
-                data = input_data_rb.read().split('\n')
+                data = input_data_rb.read().splitlines()
             input_data_rb.close()
 
         # clean up data to only keep valid rows (rows that are not empty space or metadata
