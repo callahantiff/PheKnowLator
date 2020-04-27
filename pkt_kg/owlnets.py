@@ -76,7 +76,7 @@ class OwlNets(object):
             raise TypeError('The input file: {} is empty'.format(file_path))
         else:
             with open(glob.glob(file_name)[0], 'r') as filepath:  # type: IO[Any]
-                self.keep_properties = [x.strip('\n') for x in filepath.readlines() if x]
+                self.keep_properties = [x.strip('\n') for x in filepath.read().splitlines() if x]
 
         # get all classes in knowledge graph
         self.class_list: List = list(gets_ontology_classes(self.graph))
