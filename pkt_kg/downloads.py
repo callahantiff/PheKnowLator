@@ -392,10 +392,9 @@ class LinkedData(DataSource):
         if os.stat(self.data_path).st_size == 0:
             raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
-
-            with open(self.data_path) as file_name:
-                self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
-                                    for row in file_name.read().split('\n')}
+            with open(self.data_path, 'r') as file_name:
+                for row in file_name.read().split('\n'):
+                    self.source_list[row.strip().split(',')[0]] = row.strip().split(',')[1].strip()
 
         return None
 
