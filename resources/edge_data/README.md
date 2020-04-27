@@ -43,6 +43,7 @@ master_edges = {'chemical-disease'  :
 
 ***
 
+<!--
 ### Updates
 
 **Issue:** CTD now has a CAPTCHA is place to prevent automatic downloading of data. This impacts the current build as there is no solution currently in place to work around this.
@@ -64,3 +65,4 @@ chemical-disease_CTD_chemicals_diseases.tsv
 chemical-gene_CTD_chem_gene_ixns.tsv
 chemical-phenotype_CTD_chemicals_diseases.tsv
 chemical-protein_CTD_chem_gene_ixns.tsv
+-->
