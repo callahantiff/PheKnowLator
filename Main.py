@@ -3,6 +3,7 @@
 
 # import needed libraries
 import argparse
+import datetime
 import time
 
 from pkt_kg.downloads import OntData, LinkedData
@@ -45,7 +46,8 @@ def main():
     # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='./resources/resource_info.txt')
     ont.downloads_data_from_url()
     end = time.time()
-    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {}'. format(end-start))
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'. format(end-start, timestamp))
 
     # STEP 4: PROCESS EDGE DATA
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
@@ -54,7 +56,8 @@ def main():
     # ent = LinkedData(data_path='resources/edge_source_list.txt', resource_data='./resources/resource_info.txt')
     ent.downloads_data_from_url()
     end = time.time()
-    print('\n TOTAL SECONDS TO DOWNLOAD EDGE SOURCES: {}'. format(end-start))
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
 
     #####################
     # CREATE EDGE LISTS #
@@ -68,7 +71,8 @@ def main():
     master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     master_edges.creates_knowledge_graph_edges()
     end = time.time()
-    print('\n TOTAL SECONDS TO BUILD MASTER EDGE LIST: {}'. format(end-start))
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
 
     #########################
     # BUILD KNOWLEDGE GRAPH #
@@ -106,7 +110,8 @@ def main():
 
     kg.construct_knowledge_graph()
     end = time.time()
-    print('\n TOTAL SECONDS TO BUILD KNOWLEDGE GRAPH: {}'.format(end - start))
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
 
 
 if __name__ == '__main__':
