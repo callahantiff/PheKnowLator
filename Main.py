@@ -8,7 +8,7 @@ import time
 
 from pkt_kg.downloads import OntData, LinkedData
 from pkt_kg.edge_list import CreatesEdgeList
-from pkt_kg.knowledge_graph import KGBuilder
+from pkt_kg.knowledge_graph import FullBuild, PartialBuild, PostClosureBuild
 
 
 def main():
