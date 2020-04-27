@@ -120,10 +120,10 @@ class CreatesEdgeList(object):
             input_data_r.close()
         except ValueError:
             with open(file_path, 'rb') as input_data_rb:  # type: IO[Any]
-                data = input_data_rb.read().splitlines()
+                data = input_data_rb.read().decode('utf-8').splitlines()  # decode bytes to strings
             input_data_rb.close()
 
-        # clean up data to only keep valid rows (rows that are not empty space or metadata
+        # clean up data to only keep valid rows (rows that are not empty space or metadata)
         splitter = '\t' if 't' in delimiter else r"\s+" if '' in delimiter else delimiter
         if delimiter == '' or delimiter == ' ':
             skip = [row for row in range(0, len(data)) if delimiter not in data[row]]
