@@ -154,8 +154,7 @@ class Metadata(object):
                 if edge_data_type.split('-')[0] == 'class' and edge_data_type.split('-')[1] == 'class':
                     pass
                 else:
-                    inst_sub_type = 'instance' if 'instance' in edge_data_type else 'subclass'
-                    node_idx = [x for x in range(2) if edge_data_type.split('-')[x] == inst_sub_type]
+                    node_idx = [x for x in range(2) if edge_data_type.split('-')[x] == 'entity']
 
                     for edge in tqdm(edge_dict[edge_type]['edge_list']):
                         if self.node_dict and edge_type in self.node_dict.keys():
