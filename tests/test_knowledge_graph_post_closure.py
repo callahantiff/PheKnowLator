@@ -75,7 +75,7 @@ class TestPostClosureBuild(unittest.TestCase):
                         self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json')
 
         # create edge list
-        edge_dict = {"gene-phenotype": {"data_type": "subclass-class",
+        edge_dict = {"gene-phenotype": {"data_type": "entity-class",
                                         "edge_relation": "RO_0003302",
                                         "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
                                                 "http://purl.obolibrary.org/obo/"],
@@ -84,7 +84,7 @@ class TestPostClosureBuild(unittest.TestCase):
                                                       ["9", "HP_0009725"], ["9", "HP_0100787"],
                                                       ["9", "HP_0012125"], ["10", "HP_0009725"],
                                                       ["10", "HP_0010301"], ["10", "HP_0045005"]]},
-                     "gene-gene": {"data_type": "subclass-subclass",
+                     "gene-gene": {"data_type": "entity-entity",
                                    "edge_relation": "RO_0002435",
                                    "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
                                            "https://www.ncbi.nlm.nih.gov/gene/"],
