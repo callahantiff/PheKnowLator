@@ -594,9 +594,6 @@ class FullBuild(KGBuilder):
         if self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
             print('*** Loading Merged Ontologies ***')
             self.graph.parse(self.merged_ont_kg, format='xml')
-            # kg.graph.parse(kg.merged_ont_kg)
-            # kg.ont_classes = gets_ontology_classes(kg.graph)
-            # kg.obj_properties = gets_object_properties(kg.graph)
             gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         else:
             if len(self.ontologies) == 0:
