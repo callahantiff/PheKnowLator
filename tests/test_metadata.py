@@ -87,7 +87,7 @@ class TestMetadata(unittest.TestCase):
         org_graph_len = len(graph)
 
         # set up edge_dictionary
-        edge_dict = {"gene-phenotype": {"data_type": "subclass-class",
+        edge_dict = {"gene-phenotype": {"data_type": "entity-class",
                                         "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
                                                 "http://purl.obolibrary.org/obo/"],
                                         "edge_list": [["2", "HP_0002511"],
