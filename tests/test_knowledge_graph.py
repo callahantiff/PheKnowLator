@@ -68,7 +68,7 @@ class TestKGBuilder(unittest.TestCase):
                         self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json')
 
         # create edge list
-        edge_dict = {"gene-phenotype": {"data_type": "subclass-class",
+        edge_dict = {"gene-phenotype": {"data_type": "entity-class",
                                         "edge_relation": "RO_0003302",
                                         "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
                                                 "http://purl.obolibrary.org/obo/"],
@@ -77,7 +77,7 @@ class TestKGBuilder(unittest.TestCase):
                                                       ["9", "HP_0009725"], ["9", "HP_0100787"],
                                                       ["9", "HP_0012125"], ["10", "HP_0009725"],
                                                       ["10", "HP_0010301"], ["10", "HP_0045005"]]},
-                     "gene-gene": {"data_type": "subclass-subclass",
+                     "gene-gene": {"data_type": "entity-entity",
                                    "edge_relation": "RO_0002435",
                                    "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
                                            "https://www.ncbi.nlm.nih.gov/gene/"],
@@ -94,7 +94,7 @@ class TestKGBuilder(unittest.TestCase):
                                                        ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]}
                      }
 
-        edge_dict_inst = {"gene-phenotype": {"data_type": "instance-class",
+        edge_dict_inst = {"gene-phenotype": {"data_type": "entity-class",
                                              "edge_relation": "RO_0003302",
                                              "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
                                                      "http://purl.obolibrary.org/obo/"],
@@ -103,7 +103,7 @@ class TestKGBuilder(unittest.TestCase):
                                                            ["9", "HP_0009725"], ["9", "HP_0100787"],
                                                            ["9", "HP_0012125"], ["10", "HP_0009725"],
                                                            ["10", "HP_0010301"], ["10", "HP_0045005"]]},
-                          "gene-gene": {"data_type": "instance-instance",
+                          "gene-gene": {"data_type": "entity-entity",
                                         "edge_relation": "RO_0002435",
                                         "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
                                                 "https://www.ncbi.nlm.nih.gov/gene/"],
@@ -310,7 +310,7 @@ class TestKGBuilder(unittest.TestCase):
         self.assertIsInstance(self.kg_subclass.edge_dict, Dict)
         self.assertIn('gene-phenotype', self.kg_subclass.edge_dict.keys())
         self.assertIn('data_type', self.kg_subclass.edge_dict['gene-phenotype'].keys())
-        self.assertTrue(self.kg_subclass.edge_dict['gene-phenotype']['data_type'] == 'subclass-class')
+        self.assertTrue(self.kg_subclass.edge_dict['gene-phenotype']['data_type'] == 'entity-class')
         self.assertIn('uri', self.kg_subclass.edge_dict['gene-phenotype'].keys())
         self.assertTrue(len(self.kg_subclass.edge_dict['gene-phenotype']['uri']) == 2)
         self.assertIn('edge_list', self.kg_subclass.edge_dict['gene-phenotype'].keys())
@@ -452,21 +452,21 @@ class TestKGBuilder(unittest.TestCase):
         # set-up inputs for subclass-subclass
         self.kg_subclass.ont_classes = {URIRef('http://purl.obolibrary.org/obo/DOID_12858')}
 
-        edge_info = {'n1': 'subclass', 'n2': 'subclass', 'rel': 'RO_0003302', 'inv_rel': None,
+        edge_info = {'n1': 'entity', 'n2': 'entity', 'rel': 'RO_0003302', 'inv_rel': None,
                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
                      'edges': ['14', '134056']}
 
         self.assertTrue(self.kg_subclass.check_ontology_class_nodes(edge_info))
 
         # set-up inputs for subclass-class
-        edge_info = {'n1': 'subclass', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': None,
+        edge_info = {'n1': 'entity', 'n2': 'class', 'rel': 'RO_0003302', 'inv_rel': None,
                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
                      'edges': ['14', 'DOID_12858']}
 
         self.assertTrue(self.kg_subclass.check_ontology_class_nodes(edge_info))
 
         # set-up inputs for class-subclass
-        edge_info = {'n1': 'class', 'n2': 'subclass', 'rel': 'RO_0003302', 'inv_rel': None,
+        edge_info = {'n1': 'class', 'n2': 'entity', 'rel': 'RO_0003302', 'inv_rel': None,
                      'uri': ['http://purl.obolibrary.org/obo/', 'https://www.ncbi.nlm.nih.gov/gene/'],
                      'edges': ['DOID_12858', '14']}
 
