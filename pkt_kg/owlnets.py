@@ -488,10 +488,7 @@ class OwlNets(object):
         file_name = self.write_location + '/' + self.full_kg[:-4] + '_OWLNets_BiProduct.nt'
         owl_nets_owl_graph.serialize(destination=file_name, format='nt')
 
-        # print kg statistics
-        edges = len(set(list(owl_nets_graph)))
-        nodes = len(set([str(node) for edge in list(owl_nets_graph) for node in edge[0::2]]))
-        print('Completed the Removal of OWL Semantics')
-        print('The Decoded Knowledge graph contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
+        # write out owl-nets graph
+        owl_nets_graph.serialize(destination=self.write_location + '/' + self.full_kg, format='xml')
 
         return owl_nets_graph
