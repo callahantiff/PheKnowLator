@@ -543,6 +543,10 @@ class PostClosureBuild(KGBuilder):
             owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
 
+            # reformat output and output stats
+            gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
+            ontology_file_formatter(self.write_location, self.full_kg, self.owl_tools)
+
         # STEP 7: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('*** Writing Knowledge Graph Edge Lists ***')
         maps_node_ids_to_integers(self.graph, self.write_location,
@@ -612,7 +616,6 @@ class FullBuild(KGBuilder):
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
-
         self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
 
@@ -626,6 +629,10 @@ class FullBuild(KGBuilder):
             print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
+
+            # reformat output and output stats
+            gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
+            ontology_file_formatter(self.write_location, self.full_kg, self.owl_tools)
 
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('\n*** Writing Knowledge Graph Edge Lists ***')
