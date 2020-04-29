@@ -4,6 +4,8 @@
 # import needed libraries
 import argparse
 import datetime
+import os
+import psutil
 import time
 
 from pkt_kg.downloads import OntData, LinkedData
@@ -39,6 +41,8 @@ def main():
     # STEP 2: PREPROCESS DATA
     # see the 'Data_Preparation.ipynb' file for instructions
 
+    print('The Process ID is: {}\n'.format(os.getpid()))
+
     # STEP 3: PROCESS ONTOLOGIES
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
     start = time.time()
@@ -48,6 +52,8 @@ def main():
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'. format(end-start, timestamp))
+    process = psutil.Process(os.getpid())
+    print(process.memory_info(), process.memory_percent())
 
     # STEP 4: PROCESS EDGE DATA
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
@@ -57,14 +63,16 @@ def main():
     ent.downloads_data_from_url()
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
+    print('\n TOTAL SECONDS TO DOWNLOAD NON-ONTOLOGY DATA: {} @ {}'.format(end - start, timestamp))
+    process = psutil.Process(os.getpid())
+    print(process.memory_info(), process.memory_percent())
 
     #####################
     # CREATE EDGE LISTS #
     #####################
 
     print('\n' + '=' * 33 + '\nPROCESSING EDGE DATA\n' + '=' * 33 + '\n')
-    start = time.time()
+    # start = time.time()
     # STEP 1: create master resource dictionary
     combined_edges = dict(ent.data_files, **ont.data_files)
     # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
@@ -72,14 +80,16 @@ def main():
     master_edges.creates_knowledge_graph_edges()
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
+    print('\n TOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
+    process = psutil.Process(os.getpid())
+    print(process.memory_info(), process.memory_percent())
 
     #########################
     # BUILD KNOWLEDGE GRAPH #
     #########################
 
     print('\n' + '=' * 33 + '\nBUILDING KNOWLEDGE GRAPH\n' + '=' * 33 + '\n')
-    start = time.time()
+    # start = time.time()
     if args.kg == 'partial':
         kg = PartialBuild(kg_version='v2.0.0',
                           write_location=args.out,
@@ -111,7 +121,9 @@ def main():
     kg.construct_knowledge_graph()
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
+    print('\n TOTAL SECONDS TO CONSTRUCT A KG: {} @ {}'.format(end - start, timestamp))
+    process = psutil.Process(os.getpid())
+    print(process.memory_info(), process.memory_percent())
 
 
 if __name__ == '__main__':
