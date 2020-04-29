@@ -1,3 +1,5 @@
+## TODO: Need to add code to make sure that OWLTOOLS MEMORY is high enough for build
+
 FROM alpine:3.7
 
 ## INSTALL JAVA -- base container
@@ -19,6 +21,11 @@ RUN pip install --upgrade pip setuptools
 RUN pip install -r /PheKnowLator/requirements.txt
 
 ## SET-UP LOCAL DIRECTORIES AND COPY NEEDED DATA
+# copy directories
+COPY resources/node_data /PheKnowLator/resources/node_data
+COPY resources/relations_data /PheKnowLator/resources/relations_data
+
+# copy local files
 COPY resources/construction_approach/subclass_construction_map.pkl /PheKnowLator/resources/construction_approach/subclass_construction_map.pkl
 COPY resources/knowledge_graphs/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl /PheKnowLator/resources/knowledge_graphs/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl
 COPY resources/owl_decoding/OWL_NETS_Property_Types.txt /PheKnowLator/resources/owl_decoding/OWL_NETS_Property_Types.txt
@@ -34,13 +41,16 @@ COPY resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt /PheKnowLator/resource
 
 # HANDLE DEPENDENCIES
 RUN chmod -R 755 /PheKnowLator
+RUN chmod +x /PheKnowLator/Main.py
 RUN chmod +x /PheKnowLator/pkt_kg/libs/owltools
 
 
-ENTRYPOINT ["python",  "/PheKnowLator/Main.py", \
-            "--onts", "/PheKnowLator/resources/ontology_source_list.txt", \
-            "--edg", "/PheKnowLator/resources/edge_source_list.txt", \
-            "--res", "/PheKnowLator/resources/resource_info.txt", \
-            "--out", "/PheKnowLator/resources/knowledge_graphs"]
+#ENTRYPOINT ["python",  "/PheKnowLator/Main.py", \
+#            "--onts", "/PheKnowLator/resources/ontology_source_list.txt", \
+#            "--edg", "/PheKnowLator/resources/edge_source_list.txt", \
+#            "--res", "/PheKnowLator/resources/resource_info.txt", \
+#            "--out", "/PheKnowLator/resources/knowledge_graphs"]
+#
+#CMD ["-h"]
 
-CMD ["-h"]
+CMD ["python",  "/PheKnowLator/Main.py"]
