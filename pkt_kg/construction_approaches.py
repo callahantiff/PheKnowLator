@@ -92,10 +92,16 @@ class KGConstructionApproach(object):
         mapped to that non-class entity. For example:
             {'R-HSA-5601843': {'PW_0000001'}, 'R-HSA-77584': {'PW_0000001', 'GO_0008334'}}
 
+        The motivation for verifying whether a non-ontology node identifier is not
+        in the subclass_map is to try and catch errors in the edge sources used to generate the edges. For example,
+        there were genes taken from CTD that were tagged in the downloaded data as being human, that were not
+        actually human and the way that we caught that error was by checking against the identifiers included in the
+        subclass_map dict.
+
         Args:
-            edge_type: A string containing the edge_type (e.g. "gene-disease").
-            entity: A string containing a node identifier (e.g. "DOID_162").
-            edge: An edge list containing two nodes (e.g. ["DOID_162", "GO_1234567"]).
+            edge_type: A string containing the edge_type (e.g. "gene-pathway").
+            entity: A string containing a node identifier (e.g. "R-HSA-5601843").
+            edge: An edge list containing two nodes (e.g. ["R-HSA-5601843", "GO_1234567"]).
 
         Returns:
             None if the non-class entity is not in the subclass_dict, otherwise a list of mappings between the
