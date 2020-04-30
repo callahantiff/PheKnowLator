@@ -105,7 +105,16 @@ class TestOwlNets(unittest.TestCase):
 
         # check length of file after a successful run
         self.assertIsInstance(self.owl_nets.keep_properties, List)
-        self.assertTrue(len(self.owl_nets.keep_properties) == 51)
+        self.assertTrue(len(self.owl_nets.keep_properties) == 52)
+
+        return None
+
+    def test_initialization_state_object_properties_keep_list(self):
+        """Tests the class initialization state for object properties, specifically checking that the list contains
+        the two properties needed to run OWL-NETS."""
+
+        self.assertIn('http://purl.obolibrary.org/obo/RO_0000086', self.owl_nets.keep_properties)
+        self.assertIn('http://www.w3.org/2000/01/rdf-schema#subClassOf', self.owl_nets.keep_properties)
 
         return None
 
