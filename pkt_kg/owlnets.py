@@ -307,7 +307,7 @@ class OwlNets(object):
 
         Returns:
             cleaned_classes: A list of tuples, where each tuple represents a class that had OWL semantics removed.
-             edge_batch: A dictionary subset, where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty').
+            edge_batch: A dictionary subset, where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty').
         """
 
         cleaned_classes: Set = set()
@@ -353,8 +353,7 @@ class OwlNets(object):
                 are owl:ObjectProperty values from each out edge triple that comes out of that anonymous node.
 
         Returns:
-             cleaned_classes: A list of tuples, where each tuple represents a class which has had the OWL semantics
-                removed.
+             cleaned_classes: A list of tuples, where each tuple represents a class with OWL semantics removed.
              edge_batch: A subset of dictionary where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty',
                 'onClass', or 'someValuesFrom', 'allValuesFrom).
         """
