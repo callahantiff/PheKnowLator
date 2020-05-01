@@ -1,5 +1,3 @@
-## TODO: Need to add code to make sure that OWLTOOLS MEMORY is high enough for build
-
 FROM alpine:3.7
 
 ## INSTALL JAVA -- base container
@@ -43,6 +41,10 @@ COPY resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt /PheKnowLator/resource
 RUN chmod -R 755 /PheKnowLator
 RUN chmod +x /PheKnowLator/Main.py
 RUN chmod +x /PheKnowLator/pkt_kg/libs/owltools
+
+# SET OWLTOOLS MEMORY (SET HIGH, USES WHATEVER IS AVAILABLE)
+RUN export OWLTOOLS_MEMORY=100g
+RUN $OWLTOOLS_MEMORY
 
 
 #ENTRYPOINT ["python",  "/PheKnowLator/Main.py", \
