@@ -22,9 +22,7 @@ Releases
 
 All code and output for each release are free to download, see `Wiki <https://github.com/callahantiff/PheKnowLator/wiki>`__ for full release archive.
 
-**Current Release:** ``v1.0.0``. Data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
-
-⚠️ **New Release in Progress:** ``v2.0.0`` in progress and will be released by the end of April 2020. The `PyPI` package will not be completely functional until this release is finalized.
+**Current Release:** ``v2.0.0``. Data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
 
 |
 
