@@ -78,6 +78,10 @@ class OwlNets(object):
             with open(glob.glob(file_name)[0], 'r') as filepath:  # type: IO[Any]
                 self.keep_properties = [x.strip('\n') for x in filepath.read().splitlines() if x]
 
+                # make sure that specific properties are included
+                self.keep_properties += [str(RDFS.subClassOf), 'http://purl.obolibrary.org/obo/RO_0000086']
+                self.keep_properties = list(set(self.keep_properties))
+
         # get all classes in knowledge graph
         self.class_list: List = list(gets_ontology_classes(self.graph))
 
@@ -98,7 +102,7 @@ class OwlNets(object):
         # get all class individuals
         pkts = [x[0] for x in list(self.graph.triples((None, RDF.type, OWL.NamedIndividual))) if 'pkt' in str(x[0])]
 
-        for axiom in pkts:
+        for axiom in tqdm(pkts):
             cls = [x[2] for x in list(self.graph.triples((axiom, RDF.type, None))) if 'obo' in str(x[2])][0]
             updated_edges = [(cls, x[1], x[2]) for x in list(self.graph.triples((axiom, None, None))) if
                              'obo' in str(x[1])]
@@ -122,7 +126,6 @@ class OwlNets(object):
 
         Returns:
             filtered_graph: An RDFLib graph that only contains clinically and biologically meaningful triples.
-            owl_graph: An RDFLib graph that contains edges with owl semantics.
         """
 
         print('\nFiltering Triples')
@@ -134,10 +137,7 @@ class OwlNets(object):
             new_edges = [x for x in triples_to_keep if isinstance(x[0], URIRef) and isinstance(x[2], URIRef)]
             filtered_graph = adds_edges_to_graph(filtered_graph, new_edges)  # add kept edges to filtered graph
 
-        # subset graph to include only triples that were removed
-        owl_graph: Graph = self.graph - filtered_graph
-
-        return filtered_graph, owl_graph
+        return filtered_graph
 
     def recurses_axioms(self, seen_nodes: List[BNode], axioms: List[Any]) -> List[BNode]:
         """Function recursively searches a list of graph nodes and tracks the nodes it has visited. Once all nodes in
@@ -242,9 +242,9 @@ class OwlNets(object):
         """
 
         if ('PATO' in sub and 'PATO' in obj) and not prop:
-            return URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf')
+            return RDFS.subClassOf
         elif ('PATO' not in sub and 'PATO' not in obj) and not prop:
-            return URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf')
+            return RDFS.subClassOf
         elif 'PATO' not in sub and 'PATO' in obj:
             return URIRef('http://purl.obolibrary.org/obo/RO_0000086')
         else:
@@ -472,22 +472,13 @@ class OwlNets(object):
         # check if instance build and if so, rollback identifiers
         if self.kg_construct_approach == 'instance': self.updates_class_instance_identifiers()
 
-        # filter out owl-encoded triples from original knowledge graph
-        filtered_graph, owl_graph = self.removes_edges_with_owl_semantics()
-
-        # clean constructors and restrictions
-        self.graph = self.cleans_owl_encoded_classes()
-        decoded_no_owl, decoded_owl = self.removes_edges_with_owl_semantics()  # filter out owl-encoded
-
-        # creating owl nets graphs
-        owl_nets_graph = filtered_graph + decoded_no_owl  # combine cleaned triples and decoded owl graphs
-        owl_nets_owl_graph = owl_graph + decoded_owl  # combine graphs owl-nets filtered information
-
-        # write out graph containing owl semantic edges
-        file_name = self.write_location + '/' + self.full_kg[:-4] + '_OWLNets_BiProduct.nt'
-        owl_nets_owl_graph.serialize(destination=file_name, format='nt')
+        # decode owl-encoded class and prune OWL triples
+        filtered_graph = self.removes_edges_with_owl_semantics()  # filter out owl-encoded triples from original KG
+        self.graph = self.cleans_owl_encoded_classes()  # decode owl constructors and restrictions
+        owl_nets = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded classes
 
         # write out owl-nets graph
-        owl_nets_graph.serialize(destination=self.write_location + '/' + self.full_kg, format='xml')
+        file_name = self.write_location + '/' + self.full_kg[:-21] + 'OWLNETS.owl'
+        owl_nets.serialize(destination=file_name, format='xml')
 
-        return owl_nets_graph
+        return owl_nets

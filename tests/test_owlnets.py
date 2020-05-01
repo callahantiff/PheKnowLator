@@ -186,16 +186,13 @@ class TestOwlNets(unittest.TestCase):
         """Tests the removes_edges_with_owl_semantics method."""
 
         # run method
-        filtered_graph, owl_graph = self.owl_nets.removes_edges_with_owl_semantics()
+        filtered_graph = self.owl_nets.removes_edges_with_owl_semantics()
 
         # check output type
         self.assertIsInstance(filtered_graph, Graph)
-        self.assertIsInstance(owl_graph, Graph)
 
         # check output length
         self.assertEqual(len(filtered_graph), 2328)
-        self.assertEqual(len(owl_graph), 39909)
-        self.assertEqual(len(self.owl_nets.graph), len(filtered_graph) + len(owl_graph))
 
         return None
 
@@ -471,10 +468,6 @@ class TestOwlNets(unittest.TestCase):
 
         self.assertIsInstance(owl_nets_graph, Graph)
         self.assertEqual(len(owl_nets_graph), 2940)
-
-        # check that owl-nets bi-product graph was written out
-        file_path = self.dir_loc_resources + '/knowledge_graphs/so_with_imports_OWLNets_BiProduct.nt'
-        self.assertTrue(os.path.exists(file_path))
 
         return None
 
