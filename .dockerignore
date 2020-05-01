@@ -1,0 +1,25 @@
+# ignore all folders and subsequent files in working directory
+**/*
+!Dockerfile
+
+# pkt package files
+!resources/node_data/*.txt
+!resources/relations_data/*.txt
+
+# scripts
+!Main.py
+!resources/edge_source_list.txt
+!resources/ontsology_source_list.txt
+!resources/resource_info.txt
+!resources/construction_approach/subclass_construction_map.pkl
+!resources/knowledge_graphs/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl
+!resources/owl_decoding/OWL_NETS_Property_Types.txt
+!resources/processed_data/DISEASE_DOID_MAP.txt
+!resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt
+!resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
+!resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt
+!resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt
+!resources/processed_data/MESH_CHEBI_MAP.txt
+!resources/processed_data/PHENOTYPE_HPO_MAP.txt
+!resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt
+!resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt

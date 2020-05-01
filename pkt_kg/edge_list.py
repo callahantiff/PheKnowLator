@@ -385,7 +385,7 @@ class CreatesEdgeList(object):
         """
 
         for edge_type in tqdm(self.source_info.keys()):
-            print('\n### Processing Edge: {}'.format(edge_type))
+            print('\n\n### Processing Edge: {}'.format(edge_type))
 
             # STEP 1: read in data
             print('*** Reading Edge Data ***')

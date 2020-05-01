@@ -155,10 +155,6 @@ class TestFullBuild(unittest.TestCase):
         int_map = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_Triples_Integer_Identifier_Map.json'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + int_map))
 
-        # check that owl-nets bi-product graph was written out
-        kg_owlnets = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_KG_OWLNets_BiProduct.nt'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_owlnets))
-
         return None
 
     def test_construct_knowledge_graph_with_no_ontologies(self):

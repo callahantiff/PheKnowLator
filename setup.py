@@ -63,6 +63,10 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     tests_require=test_deps,
 
+    entry_points={
+        'console_scripts': ['pkt = Main:main']
+    },
+
     # Add here the package dependencies
     install_requires=['argparse>=1.4.0',
                       'Cython==0.29.14',
