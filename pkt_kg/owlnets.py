@@ -110,7 +110,7 @@ class OwlNets(object):
 
         return None
 
-    def removes_edges_with_owl_semantics(self) -> Tuple[Graph, Graph]:
+    def removes_edges_with_owl_semantics(self) -> Graph:
         """Creates a filtered knowledge graph, such that all triples that contain an owl:ObjectProperty that is not
         included in the keep_properties list are removed. For example:
 
