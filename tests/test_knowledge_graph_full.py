@@ -131,8 +131,12 @@ class TestFullBuild(unittest.TestCase):
         self.kg.construct_knowledge_graph()
 
         # check for output files
+        # kg
+        kg = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_KG.owl'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg))
+
         # kg - owl
-        kg_owl = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_KG.owl'
+        kg_owl = 'PheKnowLator_full_InverseRelations_NotClosed_OWLNETS.owl'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_owl))
 
         # kg - nx.multiDiGraph

@@ -469,6 +469,9 @@ class TestOwlNets(unittest.TestCase):
         self.assertIsInstance(owl_nets_graph, Graph)
         self.assertEqual(len(owl_nets_graph), 2940)
 
+        # make sure file writes locally
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + 'OWLNETS.owl'))
+
         return None
 
     def tearDown(self):

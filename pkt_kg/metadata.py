@@ -148,15 +148,17 @@ class Metadata(object):
             graph: An rdflib graph object that includes node metadata.
         """
 
+        print('Adding Non-Ontology Data Metadata to Knowledge Graph')
+
         if edge_dict:
-            for edge_type in edge_dict.keys():
+            for edge_type in tqdm(edge_dict.keys()):
                 edge_data_type = edge_dict[edge_type]['data_type']
                 if edge_data_type.split('-')[0] == 'class' and edge_data_type.split('-')[1] == 'class':
                     pass
                 else:
                     node_idx = [x for x in range(2) if edge_data_type.split('-')[x] == 'entity']
 
-                    for edge in tqdm(edge_dict[edge_type]['edge_list']):
+                    for edge in edge_dict[edge_type]['edge_list']:
                         if self.node_dict and edge_type in self.node_dict.keys():
                             if len(node_idx) == 2:
                                 subj, obj = edge[0], edge[1]
@@ -172,12 +174,6 @@ class Metadata(object):
                                 if inst_node in self.node_dict[edge_type].keys():
                                     node_uri = str(edge_dict[edge_type]['uri'][0])
                                     graph = self.creates_node_metadata(inst_node, edge_type, node_uri, graph)
-
-            # print kg statistics
-            edges = len(set(list(graph)))
-            nodes = len(set([str(node) for edge in list(graph) for node in edge[0::2]]))
-
-            print('\nKG with node metadata contains: {node} nodes and {edge} edges\n'.format(node=nodes, edge=edges))
 
             return graph
 
