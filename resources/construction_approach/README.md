@@ -56,7 +56,7 @@ _____
 **The algorithm makes the following assumptions:**
 - Make sure that you have created the non-ontology node data to ontology class mapping dictionary (described below) to the `./resources/construction_approach/*.pkl` directory.    
 
-**Input Requirements for both Approaches:** A `pickled` dictionary where the keys are node identifiers (non-ontology node data) and the values are lists of ontology class identifiers to subclass has been added to the `./resources/construction_approach/` directory. An example of this dictionary is shown below:  
+**Input requirements for both approaches:** A `pickled` dictionary (keys contain node identifiers (non-ontology node data) and the values are lists of ontology class identifiers) added to the `./resources/construction_approach/` directory. An example of this dictionary is shown below:  
 
 ```python
 {

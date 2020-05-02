@@ -37,4 +37,32 @@ master_edges = {'chemical-disease'  :
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**
 - All downloaded data sources are listed, with metadata, in the [`edge_source_metadata.txt`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/edge_data/edge_source_metadata.txt) document.  
-- Any data preprocessing, including the development of identifier mapping and evidence/filtering data, has been completed prior to building the edge lists. A Jupyter notebook containing examples of different preprocessing steps can be found [`here`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb).  
+- Any data preprocessing, including the development of identifier mapping and evidence/filtering data, has been completed prior to building the edge lists. A Jupyter Notebook containing examples of different preprocessing steps can be found [`here`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb).  
+
+<br>
+
+***
+
+<!--
+### Updates
+
+**Issue:** CTD now has a CAPTCHA is place to prevent automatic downloading of data. This impacts the current build as there is no solution currently in place to work around this.
+
+**Temporary Workaround:** All CTD data sources need to be manually downloaded to the `resources/edge_data` repo prior to running the download step of the build. The downloaded file also needs to be unzipped and have the edge type label appended to the front of the file name (example below).
+
+<br>
+
+**File:** `edge_source_list.txt` 
+```bash
+chemical-disease, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
+chemical-gene, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
+chemical-phenotype, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
+chemical-protein, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
+```
+
+**Repository:** `resources/edge_data/` 
+chemical-disease_CTD_chemicals_diseases.tsv
+chemical-gene_CTD_chem_gene_ixns.tsv
+chemical-phenotype_CTD_chemicals_diseases.tsv
+chemical-protein_CTD_chem_gene_ixns.tsv
+-->
