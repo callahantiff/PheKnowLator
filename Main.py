@@ -5,7 +5,6 @@
 import argparse
 import datetime
 import os
-import psutil
 import time
 
 from pkt_kg.downloads import OntData, LinkedData
@@ -41,8 +40,6 @@ def main():
     # STEP 2: PREPROCESS DATA
     # see the 'Data_Preparation.ipynb' file for instructions
 
-    print('The Process ID is: {}\n'.format(os.getpid()))
-
     # STEP 3: PROCESS ONTOLOGIES
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
     start = time.time()
@@ -54,8 +51,6 @@ def main():
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'. format(end-start, timestamp))
-    process = psutil.Process(os.getpid())
-    print(process.memory_info(), process.memory_percent())
 
     # STEP 4: PROCESS EDGE DATA
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
@@ -68,8 +63,6 @@ def main():
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\n TOTAL SECONDS TO DOWNLOAD NON-ONTOLOGY DATA: {} @ {}'.format(end - start, timestamp))
-    process = psutil.Process(os.getpid())
-    print(process.memory_info(), process.memory_percent())
 
     #####################
     # CREATE EDGE LISTS #
@@ -87,8 +80,6 @@ def main():
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\n TOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
-    process = psutil.Process(os.getpid())
-    print(process.memory_info(), process.memory_percent())
 
     #########################
     # BUILD KNOWLEDGE GRAPH #
@@ -130,8 +121,6 @@ def main():
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\n TOTAL SECONDS TO CONSTRUCT A KG: {} @ {}'.format(end - start, timestamp))
-    process = psutil.Process(os.getpid())
-    print(process.memory_info(), process.memory_percent())
 
 
 if __name__ == '__main__':
