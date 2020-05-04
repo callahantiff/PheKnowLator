@@ -7,7 +7,6 @@
 !resources/relations_data/*.txt
 
 # scripts
-!entrypoint.sh
 !resources/edge_source_list.txt
 !resources/ontology_source_list.txt
 !resources/resource_info.txt
