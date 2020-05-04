@@ -7,9 +7,9 @@
 !resources/relations_data/*.txt
 
 # scripts
-!Main.py
+!entrypoint.sh
 !resources/edge_source_list.txt
-!resources/ontsology_source_list.txt
+!resources/ontology_source_list.txt
 !resources/resource_info.txt
 !resources/construction_approach/subclass_construction_map.pkl
 !resources/knowledge_graphs/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl
