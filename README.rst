@@ -159,7 +159,7 @@ There are several ways to run `pkt_kg`. An example workflow is provided below.
 
 This repo provides 3 different examples of ways that the `pkt_kg` can be run:  
 
-*Command Line* ➞ `Main.py`_
+*COMMAND LINE* ➞ `Main.py`_
 
 .. code:: bash
 
@@ -184,11 +184,48 @@ This repo provides 3 different examples of ways that the `pkt_kg` can be run:
 
 |
 
-*Jupyter Notebook* ➞ `main.ipynb`_
+*JUPYTER NOTEBOOK* ➞ `main.ipynb`_
 
-*Docker Instance*  
+*DOCKER*  
 
-Finally, `pkt_kg` can be run using a Docker instance.  <<ADD MORE INFO HERE>>.
+Finally, ``pkt_kg`` can be run using a Docker instance. In order to utilize the Dockerized version of the code, please make sure that you have downloaded the newest version of `Docker <https://docs.docker.com/get-docker/>`__. There are two ways to utilize Docker with this repository:  
+
+- Obtain the pre-built Docker container from `DockerHub <https://docs.docker.com/get-docker/>`__  
+- Build the Container  
+
+|
+
+*Build the Container*   
+
+To build the PheKnowLator Docker container:  
+
+- Download a stable release of this repository or clone this repository to get the most up-to-date version  
+- Unpack the repository downloaded (if necessary), then execute the following commands to build the container:
+
+.. code:: bash
+
+    cd /path/to/PheKnowLator (Note, this is the directory containing the Dockerfile file)
+    docker build -t pkt:[VERSION] .
+
+|
+
+*Run the Container*  
+
+The following code can be used to run PheKnowLator from outside of the container (after obtaining a prebuilt container or after building the container locally):  
+
+.. code:: bash
+
+    docker run --name pkt_example --rm -ti -v                 
+    /local/path/to/PheKnowLator/resources/knowledge_graphs/:/PheKnowLator/resources/knowledge_graphs/ pkt:2.0.0
+    --app subclass --kg full --nde yes --rel yes --owl no --kgm yes
+
+|
+
+*NOTES*:  
+
+- The example shown above builds a full version of the knowledge graph using the subclass construction approach with node metadata, inverse relations, and decoding of OWL classes. See the **Running the pkt Library** section for more information on the parameters that can be passed to PheKnowLator  
+- The Docker container cannot write to an encrypted filesystem, however, so please make sure ``/local/path/to/PheKnowLator/resources/knowledge_graphs`` references a directory that is not encrypted    
+
 
 
 --------------
