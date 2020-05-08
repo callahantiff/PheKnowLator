@@ -7,9 +7,7 @@ pkt_kg
 .. |pip| |downloads|
 
 
-PheKnowLator (Phenotype Knowledge Translator) is a fully automated Python 3 library explicitly designed for optimized
-construction of semantically-rich, large-scale, biomedical KGs from complex heterogeneous data. Detailed information
-regarding this project can be found on the project `Wiki`_.
+PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale, biomedical knowlede graphs from complex heterogeneous data. Detailed information regarding this project can be found on the project `Wiki`_.
 
 **This is a Reproducible Research Repository:** For detailed information on how we use GitHub as a reproducible research platform, click `here`_.
 
@@ -22,7 +20,13 @@ Releases
 
 All code and output for each release are free to download, see `Wiki <https://github.com/callahantiff/PheKnowLator/wiki>`__ for full release archive.
 
-**Current Release:** ``v2.0.0``. Data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
+**Current Release:**  
+
+- ``v2.0.0`` ➞ data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
+
+**Prior Releases:**  
+
+- - ``v1.0.0`` ➞ data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
 
 |
 
@@ -31,9 +35,7 @@ Getting Started
 
 **Install Library**   
 
-This program requires Python version 3.6.
-
-To install the library from PyPI, run:
+This program requires Python version 3.6. To install the library from PyPI, run:
 
 .. code:: shell
 
@@ -52,11 +54,14 @@ You can also clone the repository directly from GitHub by running:
 
 **Set-Up Environment**     
 
-The `pkt_kg` library requires a specific project directory structure. If you plan to run the code from a cloned version of this repository, then no additional steps are needed. If you are planning to utilize the library without cloning the library, please make sure that your project directory includes the following sub-directories:  
+The ``pkt_kg`` library requires a specific project directory structure.  
+
+- If you plan to run the code from a cloned version of this repository, then no additional steps are needed.  
+- If you are planning to utilize the library without cloning the library, please make sure that your project directory includes the following sub-directories:  
 
 .. code:: shell
 
-    project_directory/  
+    PheKnowLator/  
         |
         |---- resources/
         |         |
@@ -79,11 +84,11 @@ The `pkt_kg` library requires a specific project directory structure. If you pla
 
 **Create Input Dependencies**   
 
-Several input documents must be created before the `pkt_kg` library can be utilized. Each of the input documents are listed below by knowledge graph build step:  
+Several input documents must be created before the ``pkt_kg`` library can be utilized. Each of the input documents are listed below by knowledge graph build step:  
 
-*Download Data*  
+*DOWNLOAD DATA*  
 
-This code requires three documents within the `resources` directory to run successfully. For more information on these documents, see `Document Dependencies`_:
+This code requires three documents within the ``resources`` directory to run successfully. For more information on these documents, see `Document Dependencies`_:
   
 * `resources/resource_info.txt`_  
 * `resources/ontology_source_list.txt`_  
@@ -101,7 +106,7 @@ Prior to running this step, make sure that all mapping and filtering data refere
 
 |
 
-*Construct Knowledge Graph*  
+*CONSTRUCT KNOWLEDGE GRAPH*  
 
 The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process (please see the knowledge graph `README`_ for more information). Please make sure you have created the documents listed below prior to constructing a knowledge graph. Click on each document for additional information.
   
@@ -118,7 +123,7 @@ The `KG Construction`_ Wiki page provides a detailed description of the knowledg
       
 **Running the pkt Library**
 
-There are several ways to run `pkt_kg`. An example workflow is provided below.
+There are several ways to run ``pkt_kg``. An example workflow is provided below.
 
 .. code:: python
 
@@ -156,8 +161,9 @@ There are several ways to run `pkt_kg`. An example workflow is provided below.
  kg.construct_knowledge_graph()  
 
 |
+|
 
-This repo provides 3 different examples of ways that the `pkt_kg` can be run:  
+This repo provides 3 different of ways to run ``pkt_kg``:  
 
 *COMMAND LINE* ➞ `Main.py`_
 
@@ -183,12 +189,18 @@ This repo provides 3 different examples of ways that the `pkt_kg` can be run:
     -m KGM,  --kgm KGM    yes/no - adding node metadata to knowledge graph      
 
 |
+|
 
 *JUPYTER NOTEBOOK* ➞ `main.ipynb`_
 
+|
+|
+
 *DOCKER*  
 
-Finally, ``pkt_kg`` can be run using a Docker instance. In order to utilize the Dockerized version of the code, please make sure that you have downloaded the newest version of `Docker <https://docs.docker.com/get-docker/>`__. There are two ways to utilize Docker with this repository:  
+``pkt_kg`` can be run using a Docker instance. In order to utilize the Dockerized version of the code, please make sure that you have downloaded the newest version of `Docker <https://docs.docker.com/get-docker/>`__.
+
+There are two ways to utilize Docker with this repository:  
 
 - Obtain the pre-built Docker container from `DockerHub <https://docs.docker.com/get-docker/>`__  
 - Build the Container  
@@ -197,7 +209,7 @@ Finally, ``pkt_kg`` can be run using a Docker instance. In order to utilize the 
 
 *Build the Container*   
 
-To build the PheKnowLator Docker container:  
+To build the ``pkt_kg`` Docker container:  
 
 - Download a stable release of this repository or clone this repository to get the most up-to-date version  
 - Unpack the repository downloaded (if necessary), then execute the following commands to build the container:
@@ -207,25 +219,26 @@ To build the PheKnowLator Docker container:
     cd /path/to/PheKnowLator (Note, this is the directory containing the Dockerfile file)
     docker build -t pkt:[VERSION] .
 
+*NOTES:* When building a container using new data sources, the only files that you should have to update are the ``pkt_kg`` input dependency documents (i.e. ``PheKnowLator/resources/resource_info.txt``, ``PheKnowLator/resources/edge_source_list.txt``, and ``PheKnowLator/resources/ontology_source_list.txt``) and the ``PheKnowLatpr/.dockerignore`` (i.e. updating the sources listed under the ``## DATA NEEDED TO BUILD KNOWLEDGE GRAPH ##`` comment, to make sure they match the file paths for all datasets used to map indeitifers listed in the ``PheKnowLator/resources/resource_info.txt`` document).
+
 |
 
 *Run the Container*  
 
-The following code can be used to run PheKnowLator from outside of the container (after obtaining a prebuilt container or after building the container locally):  
+The following code can be used to run ``pkt_kg`` from outside of the container (after obtaining a prebuilt container or after building the container locally):  
 
 .. code:: bash
 
     docker run --name pkt_example --rm -ti -v                 
-    /local/path/to/PheKnowLator/resources/knowledge_graphs/:/PheKnowLator/resources/knowledge_graphs/ pkt:2.0.0
+    /local/path/to/PheKnowLator/resources/knowledge_graphs/:/PheKnowLator/resources/knowledge_graphs/ pkt:[VERSION]
     --app subclass --kg full --nde yes --rel yes --owl no --kgm yes
 
 |
 
 *NOTES*:  
 
-- The example shown above builds a full version of the knowledge graph using the subclass construction approach with node metadata, inverse relations, and decoding of OWL classes. See the **Running the pkt Library** section for more information on the parameters that can be passed to PheKnowLator  
+- The example shown above builds a full version of the knowledge graph using the subclass construction approach with node metadata, inverse relations, and decoding of OWL classes. See the **Running the pkt Library** section for more information on the parameters that can be passed to ``pkt_kg``  
 - The Docker container cannot write to an encrypted filesystem, however, so please make sure ``/local/path/to/PheKnowLator/resources/knowledge_graphs`` references a directory that is not encrypted    
-
 
 
 --------------
