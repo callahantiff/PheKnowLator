@@ -1,17 +1,20 @@
 #!/usr/local/bin/docker
 # -*- version: 19.03.8, build afacb8b -*-
 
+
 # ignore all folders and subsequent files in working directory
 **/*
 
 
+##########################################
 ## DOCKER CONTAINER FILES ##
 !Dockerfile
 !entrypoint.sh
 
 
-## PKT PACKAGE FILES ##
-# pkt package files
+##########################################
+## PHEKNOWLATOR (PKT_KG) PACKAGE FILES ##
+# pkt_KG package files
 !pkt_kg/libs/owltools
 !pkt_kg/libs/*.py
 !pkt_kg/utils/*
@@ -25,14 +28,15 @@
 !resources/resource_info.txt
 
 # dependencies - directories and files
-!resources/node_data/*.txt
-!resources/relations_data/*.txt
 !resources/construction_approach/subclass_construction_map.pkl
-!resources/knowledge_graphs/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl
-!resources/owl_decoding/OWL_NETS_Property_Types.txt
+!resources/knowledge_graphs/*.owl
+!resources/node_data/*.txt
+!resources/owl_decoding/*.txt
+!resources/relations_data/*.txt
 
 
-## KNOWLEDGE GRAPH EDGE LIST DATA ##
+##########################################
+## DATA NEEDED TO BUILD KNOWLEDGE GRAPH ##
 # external data sets used for identifier mapping (these data are referenced in resources/resource_info.txt)
 !resources/processed_data/DISEASE_DOID_MAP.txt
 !resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt
