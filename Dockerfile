@@ -23,8 +23,9 @@ COPY --from=python:3.6.2 / /
 # create needed project directories
 RUN mkdir /PheKnowLator
 RUN mkdir /PheKnowLator/resources
-RUN mkdir /PheKnowLator/resources/ontologies
 RUN mkdir /PheKnowLator/resources/edge_data
+RUN mkdir /PheKnowLator/resources/knowledge_graphs
+RUN mkdir /PheKnowLator/resources/ontologies
 
 # copy pkt_kg scripts
 COPY pkt_kg /PheKnowLator/pkt_kg
