@@ -238,7 +238,26 @@ The following code can be used to run ``pkt_kg`` from outside of the container (
 *NOTES*:  
 
 - The example shown above builds a full version of the knowledge graph using the subclass construction approach with node metadata, inverse relations, and decoding of OWL classes. See the **Running the pkt Library** section for more information on the parameters that can be passed to ``pkt_kg``  
-- The Docker container cannot write to an encrypted filesystem, however, so please make sure ``/local/path/to/PheKnowLator/resources/knowledge_graphs`` references a directory that is not encrypted    
+- The Docker container cannot write to an encrypted filesystem, however, so please make sure ``/local/path/to/PheKnowLator/resources/knowledge_graphs`` references a directory that is not encrypted   
+
+|
+
+**Finding Data Inside Docker Container**  
+
+In order to enable persistent data, a volume is mounted within the ``Dockerfile``. By default, Docker names volumes using a hash. In order to find the correctly mounted volume, you can run the following:  
+
+*Command 1:* Obtains the volume hash:
+
+.. code:: bash
+
+    docker inspect --format='{{json .Mounts}}' [DOCKER CONTAINER NAME] | python -m json.tool   
+    
+
+*Command 2:* View data written to the volume:
+ 
+.. code:: bash
+
+    docker inspect --format='{{json .Mounts}}' [DOCKER CONTAINER NAME] | python -m json.tool  
 
 
 --------------
