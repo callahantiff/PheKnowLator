@@ -229,9 +229,7 @@ The following code can be used to run ``pkt_kg`` from outside of the container (
 
 .. code:: bash
 
-    docker run --name pkt_example --rm -ti -v                 
-    /local/path/to/PheKnowLator/resources/knowledge_graphs/:/PheKnowLator/resources/knowledge_graphs/ pkt:[VERSION]
-    --app subclass --kg full --nde yes --rel yes --owl no --kgm yes
+    docker run --name [DOCKER CONTAINER NAME] -ti -v pkt:[VERSION] --app subclass --kg full --nde yes --rel yes --owl no --kgm yes
 
 |
 
@@ -257,7 +255,7 @@ In order to enable persistent data, a volume is mounted within the ``Dockerfile`
  
 .. code:: bash
 
-    docker inspect --format='{{json .Mounts}}' [DOCKER CONTAINER NAME] | python -m json.tool  
+    sudo ls /var/lib/docker/volumes/[VOLUME HASH]/_data  
 
 
 --------------
