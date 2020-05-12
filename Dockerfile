@@ -51,6 +51,9 @@ RUN chmod -R 755 /PheKnowLator
 ENV OWLTOOLS_MEMORY=500g
 RUN echo $OWLTOOLS_MEMORY
 
+# create a volume to enable persistent data
+VOLUME ["/PheKnowLator/resources"]
+
 
 ############################################
 ## CONTAINER ACCESS ##
