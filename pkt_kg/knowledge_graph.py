@@ -449,7 +449,6 @@ class PartialBuild(KGBuilder):
         if self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
             print('*** Loading Merged Ontologies ***')
             self.graph.parse(self.merged_ont_kg, format='xml')
-            gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         else:
             if len(self.ontologies) == 0:
                 raise TypeError('ERROR: the ontologies directory: {} is empty'.format(
@@ -462,9 +461,9 @@ class PartialBuild(KGBuilder):
 
                 # load the merged ontology
                 self.graph.parse(self.merged_ont_kg, format='xml')
-                gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
 
-        # print triple count
+        # print statistics
+        gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         print('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 5: ADD MASTER EDGE DATA TO KNOWLEDGE GRAPH
@@ -480,7 +479,7 @@ class PartialBuild(KGBuilder):
         self.obj_properties = gets_object_properties(self.graph)
         self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
 
-        # get stats
+        # print statistics
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
         print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
@@ -612,7 +611,6 @@ class FullBuild(KGBuilder):
         if self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
             print('*** Loading Merged Ontologies ***')
             self.graph.parse(self.merged_ont_kg, format='xml')
-            gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         else:
             if len(self.ontologies) == 0:
                 raise TypeError('The ontologies directory is empty')
@@ -623,9 +621,9 @@ class FullBuild(KGBuilder):
                                   self.owl_tools)
                 # load the merged ontology
                 self.graph.parse(self.merged_ont_kg, format='xml')
-                gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
 
-        # print triple count
+        # print statistics
+        gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         print('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         self.ont_classes = gets_ontology_classes(self.graph)
