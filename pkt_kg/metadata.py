@@ -14,7 +14,7 @@ import subprocess
 from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Set, Union
 
 
 class Metadata(object):
@@ -85,6 +85,8 @@ class Metadata(object):
 
                 # add data frame to master node metadata dictionary
                 self.node_dict[dfs[i][0]] = df_dict  # type: ignore
+
+        return None
 
     def creates_node_metadata(self, node: str, edge_type: str, url: str, graph: Graph) -> Graph:
         """Given a node in the knowledge graph, if the node has metadata information, new edges are created to add
@@ -291,27 +293,36 @@ class Metadata(object):
         # add metadata for nodes that are data type class to self.node_dict
         self.extracts_class_metadata(graph)
 
+        # creat set to ensure nodes are not written out multiple times
+        node_tracker: Set = set()
+
         if self.node_dict:
             # create and write edge list data locally
             print('\nWriting Class Metadata')
+
             with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w') as outfile:
                 outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
 
                 for edge_type in tqdm(self.node_dict.keys()):
                     for node in self.node_dict[edge_type]:
-                        node_id = node
-                        label = self.node_dict[edge_type][node]['Label']
-                        desc = self.node_dict[edge_type][node]['Description']
-                        syn_list = self.node_dict[edge_type][node]['Synonym']
+                        if node not in node_tracker:
+                            node_tracker |= {node}  # increment node tracker
 
-                        if isinstance(syn_list, list) and len(syn_list) > 1:
-                            syn = '|'.join(syn_list)
-                        elif isinstance(syn_list, list) and len(syn_list) == 1:
-                            syn = syn_list[0]
-                        else:
-                            syn = syn_list
+                            label = self.node_dict[edge_type][node]['Label']
+                            desc = self.node_dict[edge_type][node]['Description']
+                            syn_list = self.node_dict[edge_type][node]['Synonym']
 
-                        outfile.write(node_id + '\t' + label + '\t' + desc + '\t' + syn + '\n')
+                            if isinstance(syn_list, list) and len(syn_list) > 1:
+                                syn = '|'.join(syn_list)
+                            elif isinstance(syn_list, list) and len(syn_list) == 1:
+                                syn = syn_list[0]
+                            else:
+                                syn = syn_list
+
+                            outfile.write(node + '\t' +
+                                          label.encode('utf-8').decode('utf-8', 'ignore') + '\t' +
+                                          desc.encode('utf-8').decode('utf-8', 'ignore') + '\t' +
+                                          syn.encode('utf-8').decode('utf-8', 'ignore') + '\n')
             outfile.close()
 
         return None
