@@ -156,6 +156,7 @@ class Metadata(object):
                 if edge_data_type.split('-')[0] == 'class' and edge_data_type.split('-')[1] == 'class':
                     pass
                 else:
+                    print('Processing ontology terms of {} edge type'.format(edge_data_type))
                     node_idx = [x for x in range(2) if edge_data_type.split('-')[x] == 'entity']
 
                     for edge in tqdm(edge_dict[edge_type]['edge_list']):
