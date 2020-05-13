@@ -379,7 +379,7 @@ class KGBuilder(object):
         # output error logs
         if len(edge_builder.subclass_error.keys()) > 0:
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_missing_node_log.json'
-            print('\nSome edge lists nodes were missing from subclass_dict, see log: {}\n'.format(log_file))
+            print('\nSome edge lists nodes were missing from subclass_dict, see log: {}'.format(log_file))
             outputs_dictionary_data(edge_builder.subclass_error, log_file)
 
         # add ontology metadata and annotations, serialize graph, and apply OWL API formatting to output
