@@ -225,11 +225,11 @@ To build the ``pkt_kg`` Docker container:
 
 *Run the Container*  
 
-The following code can be used to run ``pkt_kg`` from outside of the container (after obtaining a prebuilt container or after building the container locally):  
+The following code can be used to run ``pkt_kg`` from outside of the container (after obtaining a prebuilt container or after building the container locally). In:  
 
 .. code:: bash
 
-    docker run --name [DOCKER CONTAINER NAME] -ti -v pkt:[VERSION] --app subclass --kg full --nde yes --rel yes --owl no --kgm yes
+    docker run --name [DOCKER CONTAINER NAME] -it pkt:[VERSION] --app subclass --kg full --nde yes --rel yes --owl no --kgm yes
 
 |
 
