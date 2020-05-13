@@ -269,11 +269,13 @@ class Metadata(object):
                 node = str(result[0]).split('/')[-1]
 
                 if node in self.node_dict['classes'].keys():
+                    self.node_dict['classes'][node]['Label'].append(str(result[1]))
+                    self.node_dict['classes'][node]['Description'].append(str(result[2]))
                     self.node_dict['classes'][node]['Synonym'].append(str(result[3]))
                 else:
                     self.node_dict['classes'][node] = {}
-                    self.node_dict['classes'][node]['Label'] = str(result[1])
-                    self.node_dict['classes'][node]['Description'] = str(result[2])
+                    self.node_dict['classes'][node]['Label'] = [str(result[1])]
+                    self.node_dict['classes'][node]['Description'] = [str(result[2])]
                     self.node_dict['classes'][node]['Synonym'] = [str(result[3])]
 
         return None
@@ -297,7 +299,6 @@ class Metadata(object):
         node_tracker: Set = set()
 
         if self.node_dict:
-            # create and write edge list data locally
             print('\nWriting Class Metadata')
 
             with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w') as outfile:
@@ -308,16 +309,23 @@ class Metadata(object):
                         if node not in node_tracker:
                             node_tracker |= {node}  # increment node tracker
 
-                            label = self.node_dict[edge_type][node]['Label']
-                            desc = self.node_dict[edge_type][node]['Description']
-                            syn_list = self.node_dict[edge_type][node]['Synonym']
+                            # labels
+                            label_list = self.node_dict[edge_type][node]['Label']
+                            if isinstance(label_list, list) and len(label_list) > 1: label = '|'.join(set(label_list))
+                            elif isinstance(label_list, list) and len(label_list) == 1: label = label_list[0]
+                            else: label = label_list
 
-                            if isinstance(syn_list, list) and len(syn_list) > 1:
-                                syn = '|'.join(syn_list)
-                            elif isinstance(syn_list, list) and len(syn_list) == 1:
-                                syn = syn_list[0]
-                            else:
-                                syn = syn_list
+                            # descriptions
+                            desc_list = self.node_dict[edge_type][node]['Description']
+                            if isinstance(desc_list, list) and len(desc_list) > 1: desc = '|'.join(set(desc_list))
+                            elif isinstance(desc_list, list) and len(desc_list) == 1: desc = desc_list[0]
+                            else: desc = desc_list
+
+                            # synonyms
+                            syn_list = self.node_dict[edge_type][node]['Synonym']
+                            if isinstance(syn_list, list) and len(syn_list) > 1: syn = '|'.join(set(syn_list))
+                            elif isinstance(syn_list, list) and len(syn_list) == 1: syn = syn_list[0]
+                            else: syn = syn_list
 
                             outfile.write(node + '\t' +
                                           label.encode('utf-8').decode('utf-8', 'ignore') + '\t' +
