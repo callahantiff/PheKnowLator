@@ -637,7 +637,7 @@ class FullBuild(KGBuilder):
 
         # STEP 6: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
-        if self.node_data is not None: metadata.output_knowledge_graph_metadata(self.graph)
+        if self.node_data is not None or self.kg_metadata == 'yes': metadata.output_knowledge_graph_metadata(self.graph)
 
         # clean up environment
         del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
