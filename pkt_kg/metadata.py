@@ -294,14 +294,11 @@ class Metadata(object):
 
         # add metadata for nodes that are data type class to self.node_dict
         self.extracts_class_metadata(graph)
-
-        # creat set to ensure nodes are not written out multiple times
-        node_tracker: Set = set()
+        node_tracker: Set = set()  # creat set to ensure nodes are not written out multiple times
 
         if self.node_dict:
             print('\nWriting Class Metadata')
-
-            with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w') as outfile:
+            with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w', encoding='utf-8') as outfile:
                 outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
 
                 for edge_type in tqdm(self.node_dict.keys()):
@@ -314,23 +311,24 @@ class Metadata(object):
                             if isinstance(label_list, list) and len(label_list) > 1: label = '|'.join(set(label_list))
                             elif isinstance(label_list, list) and len(label_list) == 1: label = label_list[0]
                             else: label = label_list
-
                             # descriptions
                             desc_list = self.node_dict[edge_type][node]['Description']
                             if isinstance(desc_list, list) and len(desc_list) > 1: desc = '|'.join(set(desc_list))
                             elif isinstance(desc_list, list) and len(desc_list) == 1: desc = desc_list[0]
                             else: desc = desc_list
-
                             # synonyms
                             syn_list = self.node_dict[edge_type][node]['Synonym']
                             if isinstance(syn_list, list) and len(syn_list) > 1: syn = '|'.join(set(syn_list))
                             elif isinstance(syn_list, list) and len(syn_list) == 1: syn = syn_list[0]
                             else: syn = syn_list
 
-                            outfile.write(node + '\t' +
-                                          label.encode('utf-8').decode('utf-8', 'ignore') + '\t' +
-                                          desc.encode('utf-8').decode('utf-8', 'ignore') + '\t' +
-                                          syn.encode('utf-8').decode('utf-8', 'ignore') + '\n')
+                            try:
+                                outfile.write(node + '\t' + label + '\t' + desc + '\t' + syn + '\n')
+                            except UnicodeEncodeError:
+                                outfile.write(node + '\t' +
+                                              label.encode('utf-8').decode() + '\t' +
+                                              desc.encode('utf-8').decode() + '\t' +
+                                              syn.encode('utf-8').decode() + '\n')
             outfile.close()
 
         return None
