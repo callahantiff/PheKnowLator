@@ -52,6 +52,9 @@ RUN chmod -R 755 /PheKnowLator
 ENV OWLTOOLS_MEMORY=500g
 RUN echo $OWLTOOLS_MEMORY
 
+# set python envrionment encoding
+RUN export PYTHONIOENCODING=utf-8
+
 # create a volume to enable persistent data
 VOLUME ["/PheKnowLator/resources"]
 
