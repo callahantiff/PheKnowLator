@@ -477,18 +477,22 @@ class OwlNets(object):
         # decode owl-encoded class and prune OWL triples
         filtered_graph = self.removes_edges_with_owl_semantics()  # filter out owl-encoded triples from original KG
         self.graph = self.cleans_owl_encoded_classes()  # decode owl constructors and restrictions
-        owl_nets = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded classes
+        owl_nets_graph = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded
 
         # write out owl-nets graph
         print('\nSerializing OWL-NETS Graph')
         file_name = '/'.join(self.full_kg.split('/')[:-1]) + '/PheKnowLator_OWLNETS.nt'
-        owl_nets.serialize(destination=self.write_location + file_name, format='nt')
+        owl_nets_graph.serialize(destination=self.write_location + file_name, format='nt')
 
-        # reformat output and output statistics
+        # get output statistics
+        unique_nodes = set([x for y in [node[0::2] for node in list(owl_nets_graph)] for x in y])
+        unique_relations = set([node[1] for node in list(owl_nets_graph)])
         gets_ontology_statistics(self.write_location + file_name, self.owl_tools)
-        print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(owl_nets)))
+        print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(owl_nets_graph)))
+        print('The OWL-Decoded Knowledge Graph Contains: {} Unique Nodes'.format(len(unique_nodes)))
+        print('The OWL-Decoded Knowledge Graph Contains: {} Unique Relations'.format(len(unique_relations)))
 
         # convert graph to networkx multidigraph
-        converts_rdflib_to_networkx(self.write_location, file_name, owl_nets)
+        converts_rdflib_to_networkx(self.write_location, file_name, owl_nets_graph)
 
-        return owl_nets
+        return owl_nets_graph
