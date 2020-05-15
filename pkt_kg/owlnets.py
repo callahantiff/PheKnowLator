@@ -14,7 +14,7 @@ from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple
 
-from pkt_kg.utils import adds_edges_to_graph, gets_ontology_classes, gets_ontology_statistics, ontology_file_formatter
+from pkt_kg.utils import *
 
 
 class OwlNets(object):
@@ -487,6 +487,9 @@ class OwlNets(object):
         # reformat output and output statistics
         gets_ontology_statistics(file_name, self.owl_tools)
         ontology_file_formatter(self.write_location, self.full_kg[:-21] + 'OWLNETS.owl', self.owl_tools)
-        print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(self.owl_tools)))
+        print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(owl_nets)))
+
+        # convert graph to networkx multidigraph
+        converts_rdflib_to_networkx(self.write_location, self.full_kg[:-21] + 'OWLNETS.owl', owl_nets)
 
         return owl_nets
