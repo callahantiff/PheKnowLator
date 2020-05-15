@@ -551,7 +551,7 @@ class PostClosureBuild(KGBuilder):
         # STEP 6: DECODE OWL SEMANTICS
         if self.decode_owl:
             print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-            owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
+            owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg, self.owl_tools)
             self.graph = owl_nets.run_owl_nets()
         else:
             converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
@@ -636,7 +636,7 @@ class FullBuild(KGBuilder):
         # STEP 7: DECODE OWL SEMANTICS
         if self.decode_owl:
             print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-            owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
+            owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg, self.owl_tools)
             self.graph = owl_nets.run_owl_nets()
         else:
             converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)

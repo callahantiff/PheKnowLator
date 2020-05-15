@@ -159,11 +159,11 @@ class TestPostClosureBuild(unittest.TestCase):
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg))
 
         # kg - owl
-        kg_owl = 'PheKnowLator_post_closure_InverseRelations_Closed_OWLNETS.owl'
+        kg_owl = 'PheKnowLator_OWLNETS.nt'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_owl))
 
         # kg - nx.multiDiGraph
-        kg_mdg = 'PheKnowLator_post_closure_InverseRelations_Closed_NoOWLSemantics_KG_Networkx_MultiDiGraph.gpickle'
+        kg_mdg = 'PheKnowLator_OWLNETS_Networkx_MultiDiGraph.gpickle'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_mdg))
 
         # node metadata
