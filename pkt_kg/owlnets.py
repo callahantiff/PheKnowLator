@@ -444,7 +444,6 @@ class OwlNets(object):
                             edges = None
 
                 # add kept edges to filtered graph
-                print('\nAdding ')
                 decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes))
 
         pbar.close()
@@ -480,16 +479,15 @@ class OwlNets(object):
         owl_nets = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded classes
 
         # write out owl-nets graph
-        print('\nSerializing Knowledge Graph')
-        file_name = self.write_location + '/' + self.full_kg[:-21] + 'OWLNETS.owl'
-        owl_nets.serialize(destination=file_name, format='xml')
+        print('\nSerializing OWL-NETS Graph')
+        file_name = '/'.join(self.full_kg.split('/')[:-1]) + '/PheKnowLator_OWLNETS.nt'
+        owl_nets.serialize(destination=self.write_location + file_name, format='nt')
 
         # reformat output and output statistics
-        gets_ontology_statistics(file_name, self.owl_tools)
-        ontology_file_formatter(self.write_location, self.full_kg[:-21] + 'OWLNETS.owl', self.owl_tools)
+        gets_ontology_statistics(self.write_location + file_name, self.owl_tools)
         print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(owl_nets)))
 
         # convert graph to networkx multidigraph
-        converts_rdflib_to_networkx(self.write_location, self.full_kg[:-21] + 'OWLNETS.owl', owl_nets)
+        converts_rdflib_to_networkx(self.write_location, file_name, owl_nets)
 
         return owl_nets
