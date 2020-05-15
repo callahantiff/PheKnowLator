@@ -46,9 +46,10 @@ class OwlNets(object):
         TypeError: If the file containing owl object properties is empty.
     """
 
-    def __init__(self, kg_construct_approach: str, graph: Graph, write_location: str, full_kg: str) -> None:
+    def __init__(self, kg_construct_approach: str, graph: Graph, write_location: str, full_kg: str,
+                 owl_tools: str = './pkt_kg/libs/owltools') -> None:
 
-        self.owl_tools = './pkt_kg/libs/owltools'
+        self.owl_tools = owl_tools
         self.kg_construct_approach = kg_construct_approach
         self.write_location = write_location
         self.res_dir = os.path.relpath('/'.join(self.write_location.split('/')[:-1]))
@@ -484,7 +485,7 @@ class OwlNets(object):
         owl_nets.serialize(destination=self.write_location + file_name, format='nt')
 
         # reformat output and output statistics
-        gets_ontology_statistics(self.write_location + file_name, self.owl_tools)
+        # gets_ontology_statistics(self.write_location + file_name, self.owl_tools)
         print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(owl_nets)))
 
         # convert graph to networkx multidigraph
