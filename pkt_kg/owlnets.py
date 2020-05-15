@@ -14,7 +14,7 @@ from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple
 
-from pkt_kg.utils import adds_edges_to_graph, gets_ontology_classes
+from pkt_kg.utils import adds_edges_to_graph, gets_ontology_classes, gets_ontology_statistics, ontology_file_formatter
 
 
 class OwlNets(object):
@@ -28,6 +28,7 @@ class OwlNets(object):
     Additional Information: https://github.com/callahantiff/PheKnowLator/wiki/OWL-NETS-2.0
 
     Attributes:
+        owl_tools: A string pointing to the location of the owl tools library.
         kg_construct_approach: A string containing the type of construction approach used to build the knowledge graph.
         write_location: A file path used for writing knowledge graph data.
         res_dir: A string pointing to the 'resources' directory.
@@ -47,6 +48,7 @@ class OwlNets(object):
 
     def __init__(self, kg_construct_approach: str, graph: Graph, write_location: str, full_kg: str) -> None:
 
+        self.owl_tools = './pkt_kg/libs/owltools'
         self.kg_construct_approach = kg_construct_approach
         self.write_location = write_location
         self.res_dir = os.path.relpath('/'.join(self.write_location.split('/')[:-1]))
@@ -77,7 +79,6 @@ class OwlNets(object):
         else:
             with open(glob.glob(file_name)[0], 'r') as filepath:  # type: IO[Any]
                 self.keep_properties = [x.strip('\n') for x in filepath.read().splitlines() if x]
-
                 # make sure that specific properties are included
                 self.keep_properties += [str(RDFS.subClassOf), 'http://purl.obolibrary.org/obo/RO_0000086']
                 self.keep_properties = list(set(self.keep_properties))
@@ -443,6 +444,7 @@ class OwlNets(object):
                             edges = None
 
                 # add kept edges to filtered graph
+                print('\nAdding ')
                 decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes))
 
         pbar.close()
@@ -478,7 +480,13 @@ class OwlNets(object):
         owl_nets = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded classes
 
         # write out owl-nets graph
+        print('\nSerializing Knowledge Graph')
         file_name = self.write_location + '/' + self.full_kg[:-21] + 'OWLNETS.owl'
         owl_nets.serialize(destination=file_name, format='xml')
+
+        # reformat output and output statistics
+        gets_ontology_statistics(file_name, self.owl_tools)
+        ontology_file_formatter(self.write_location, self.full_kg[:-21] + 'OWLNETS.owl', self.owl_tools)
+        print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(self.owl_tools)))
 
         return owl_nets
