@@ -98,7 +98,7 @@ class KGBuilder(object):
         self.inverse_relations_dict: Optional[Dict] = None
         self.node_data: Optional[List] = None
         self.node_dict: Optional[Dict] = None
-        self.kg_metadata: str = kg_metadata_flag.lower()
+        self.kg_metadata: str = 'no' if node_data == 'no' else kg_metadata_flag.lower()
         self.ont_classes: Set = set()
         self.obj_properties: Set = set()
         self.owl_tools = './pkt_kg/libs/owltools'
@@ -545,7 +545,7 @@ class PostClosureBuild(KGBuilder):
 
         # STEP 5: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
-        if self.node_data is not None: metadata.output_knowledge_graph_metadata(self.graph)
+        if self.node_data: metadata.output_knowledge_graph_metadata(self.graph)
         del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict  # clean env
 
         # STEP 6: DECODE OWL SEMANTICS
@@ -630,7 +630,7 @@ class FullBuild(KGBuilder):
 
         # STEP 6: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
-        if self.node_data is not None or self.kg_metadata == 'yes': metadata.output_knowledge_graph_metadata(self.graph)
+        if self.node_data or self.kg_metadata == 'yes': metadata.output_knowledge_graph_metadata(self.graph)
         del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict  # clean env
 
         # STEP 7: DECODE OWL SEMANTICS
