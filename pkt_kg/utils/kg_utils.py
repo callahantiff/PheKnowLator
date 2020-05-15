@@ -380,9 +380,10 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     print('\nConverting Knowledge Graph to MultiDiGraph')
 
     # read in knowledge graph if class graph attribute is not present
-    if not graph or len(graph) == 0:
+    if not isinstance(graph, Graph):
         graph = Graph()
-        graph.parse(write_location + full_kg, format=full_kg.split('.')[-1])
+        file_type = 'xml' if full_kg.split('.')[-1] == 'owl' else full_kg.split('.')[-1]
+        graph.parse(write_location + full_kg, format=file_type)
 
     # convert graph to networkx object
     nx_mdg = networkx.MultiDiGraph()
@@ -392,7 +393,7 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
 
     # pickle networkx graph
     print('\nPickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
-    networkx.write_gpickle(nx_mdg, write_location + full_kg[:-4] + '_Networkx_MultiDiGraph.gpickle')
+    networkx.write_gpickle(nx_mdg, write_location + full_kg.split('.')[0] + '_Networkx_MultiDiGraph.gpickle')
 
     # clean up environment
     del nx_mdg
