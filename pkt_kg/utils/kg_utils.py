@@ -396,6 +396,6 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     networkx.write_gpickle(nx_mdg, write_location + full_kg[:-4] + '_Networkx_MultiDiGraph.gpickle')
 
     # clean up environment
-    del graph, nx_mdg
+    del nx_mdg
 
     return None
