@@ -485,7 +485,7 @@ class OwlNets(object):
         owl_nets.serialize(destination=self.write_location + file_name, format='nt')
 
         # reformat output and output statistics
-        # gets_ontology_statistics(self.write_location + file_name, self.owl_tools)
+        gets_ontology_statistics(self.write_location + file_name, self.owl_tools)
         print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(owl_nets)))
 
         # convert graph to networkx multidigraph
