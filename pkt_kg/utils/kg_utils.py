@@ -382,13 +382,12 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     # read in knowledge graph if class graph attribute is not present
     if not graph or len(graph) == 0:
         graph = Graph()
-        graph.parse(write_location + full_kg)
+        graph.parse(write_location + full_kg, format=full_kg.split('.')[-1])
 
     # convert graph to networkx object
     nx_mdg = networkx.MultiDiGraph()
 
     for s, p, o in tqdm(graph):
-        graph.remove((s, p, o))
         nx_mdg.add_edge(s, o, **{'key': p})
 
     # pickle networkx graph
