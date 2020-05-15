@@ -546,20 +546,13 @@ class PostClosureBuild(KGBuilder):
         # STEP 5: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
         if self.node_data is not None: metadata.output_knowledge_graph_metadata(self.graph)
-
-        # clean up environment
-        del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
+        del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict  # clean env
 
         # STEP 6: DECODE OWL SEMANTICS
         if self.decode_owl:
             print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
-
-            # reformat output and output statistics
-            gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
-            ontology_file_formatter(self.write_location, self.full_kg, self.owl_tools)
-            print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 7: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('*** Writing Knowledge Graph Edge Lists ***')
@@ -627,11 +620,10 @@ class FullBuild(KGBuilder):
         gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         print('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
-        self.ont_classes = gets_ontology_classes(self.graph)
-        self.obj_properties = gets_object_properties(self.graph)
-
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
+        self.ont_classes = gets_ontology_classes(self.graph)
+        self.obj_properties = gets_object_properties(self.graph)
         self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
         print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
@@ -639,20 +631,13 @@ class FullBuild(KGBuilder):
         # STEP 6: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
         if self.node_data is not None or self.kg_metadata == 'yes': metadata.output_knowledge_graph_metadata(self.graph)
-
-        # clean up environment
-        del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict
+        del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict  # clean env
 
         # STEP 7: DECODE OWL SEMANTICS
         if self.decode_owl:
             print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
-
-            # reformat output and output statistics
-            gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
-            ontology_file_formatter(self.write_location, self.full_kg, self.owl_tools)
-            print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('\n*** Writing Knowledge Graph Edge Lists ***')
