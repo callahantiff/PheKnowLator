@@ -385,6 +385,7 @@ class KGBuilder(object):
         # add ontology metadata and annotations, serialize graph, and apply OWL API formatting to output
         if self.kg_metadata == 'yes': node_metadata_func(self.graph, self.edge_dict)
         self.graph = ontology_annotator_func(self.full_kg.split('/')[-1], self.graph)
+        print('\nSerializing Knowledge Graph')
         self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
         ontology_file_formatter(self.write_location, self.full_kg, self.owl_tools)
 
