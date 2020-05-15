@@ -51,6 +51,10 @@ class TestOwlNets(unittest.TestCase):
                                 write_location=self.write_location,
                                 full_kg=self.kg_filename)
 
+        # update class attributes
+        dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
+        self.owl_nets.owl_tools = os.path.abspath(dir_loc_owltools)
+
         return None
 
     def test_initialization_state(self):
@@ -469,8 +473,10 @@ class TestOwlNets(unittest.TestCase):
         self.assertIsInstance(owl_nets_graph, Graph)
         self.assertEqual(len(owl_nets_graph), 2940)
 
-        # make sure file writes locally
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + 'OWLNETS.owl'))
+        # make sure files are written locally
+        nx_mdg_file = 'PheKnowLator_OWLNETS_Networkx_MultiDiGraph.gpickle'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_OWLNETS.nt'))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
 
         return None
 
