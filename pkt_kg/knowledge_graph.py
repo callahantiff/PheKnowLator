@@ -553,14 +553,14 @@ class PostClosureBuild(KGBuilder):
             print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
+        else:
+            converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
 
         # STEP 7: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('*** Writing Knowledge Graph Edge Lists ***')
         maps_node_ids_to_integers(self.graph, self.write_location,
                                   self.full_kg[:-6] + 'Triples_Integers.txt',
                                   self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
-
-        if not self.decode_owl: converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
 
         return None
 
@@ -638,13 +638,13 @@ class FullBuild(KGBuilder):
             print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg)
             self.graph = owl_nets.run_owl_nets()
+        else:
+            converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
 
         # STEP 8: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('\n*** Writing Knowledge Graph Edge Lists ***')
         maps_node_ids_to_integers(self.graph, self.write_location,
                                   self.full_kg[:-6] + 'Triples_Integers.txt',
                                   self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
-
-        if not self.decode_owl: converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
 
         return None
