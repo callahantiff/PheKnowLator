@@ -560,7 +560,7 @@ class PostClosureBuild(KGBuilder):
                                   self.full_kg[:-6] + 'Triples_Integers.txt',
                                   self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
 
-        converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
+        if not self.decode_owl: converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
 
         return None
 
@@ -645,6 +645,6 @@ class FullBuild(KGBuilder):
                                   self.full_kg[:-6] + 'Triples_Integers.txt',
                                   self.full_kg[:-6] + 'Triples_Integer_Identifier_Map.json')
 
-        converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
+        if not self.decode_owl: converts_rdflib_to_networkx(self.write_location, self.full_kg, self.graph)
 
         return None
