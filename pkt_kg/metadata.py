@@ -285,6 +285,11 @@ class Metadata(object):
         a tab-delimited '.txt' file with four columns: (1) node identifier; (2) node label; (3) node description or
         definition; and (4) node synonym.
 
+        NOTE. Not every node in the knowledge class will have metadata. There are some non-ontology nodes that are
+        added (e.g. Ensembl transcript identifiers) that at the time of adding did not include labels, synonyms,
+        or definitions. While these nodes have valid metadata through their original provider, this data may not have
+        been available for download and thus would not have been added to the node_dict.
+
         Args:
             graph: A rdflib graph object.
 
