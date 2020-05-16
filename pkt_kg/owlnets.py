@@ -471,17 +471,16 @@ class OwlNets(object):
 
         print('\nCreating OWL-NETS graph')
 
-        # check if instance build and if so, rollback identifiers
         if self.kg_construct_approach == 'instance': self.updates_class_instance_identifiers()
-
-        # decode owl-encoded class and prune OWL triples
         filtered_graph = self.removes_edges_with_owl_semantics()  # filter out owl-encoded triples from original KG
         self.graph = self.cleans_owl_encoded_classes()  # decode owl constructors and restrictions
-        owl_nets = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded
+        owl_nets_graph = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded
 
-        # make only final sweep over graph and remove any triples with a sub/obj containing an owl class object
+        # make final sweep over graph and remove any triples with a sub/obj containing an owl class object
         print('\nVerifying OWL-NETS Nodes')
-        owl_nets_graph = [x for x in tqdm(owl_nets) if not any(y for y in x[0::2] if 'owl#' in str(y))]
+        for x in tqdm(owl_nets_graph):
+            if 'owl#' in str(x[0]) or 'owl#' in str(x[2]):
+                owl_nets_graph.remove(x)
 
         # write out owl-nets graph
         print('\nSerializing OWL-NETS Graph')
