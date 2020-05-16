@@ -450,7 +450,7 @@ class OwlNets(object):
         pbar.close()
         del self.nx_mdg  # delete networkx graph object to free up memory
 
-        print('=' * 75)
+        print('\n=' * 75)
         print('Decoded {} owl-encoded classes. Note the following:'.format(len(cleaned_nodes)))
         print('{} owl class elements containing cardinality were ignored'.format(len(cardinality)))
         print('ignored {} misc classes of the following type(s): {}'.format(len(misc), ', '.join(list(Counter(misc)))))
@@ -464,6 +464,11 @@ class OwlNets(object):
         to original class identifiers; (2) filters a graph to remove all triples that include an owl:ObjectProperty
         not included in the keep_properties list; and (3) decodes all owl-encoded classes of type intersection and
         union constructor and all restrictions.
+
+        NOTE. It is important to check the number of unique nodes and relations in OWL-NETS and to compare the counts
+        with and without the URIs (i.e. http://purl.obolibrary.org/obo/HP_0000000 vs HP_0000000). Doing this provides a
+        nice sanity check and can help identify duplicate nodes (i.e. nodes with the same identifier, but different
+        URIs -- where the URIs should be the same).
 
         Returns:
             An rdflib.Graph object that has been updated to only include triples owl decoded triples.
