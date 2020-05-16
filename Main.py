@@ -50,7 +50,7 @@ def main():
 
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\n TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'. format(end-start, timestamp))
+    print('\nTOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'. format(end-start, timestamp))
 
     # STEP 4: PROCESS EDGE DATA
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
@@ -62,7 +62,7 @@ def main():
 
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\n TOTAL SECONDS TO DOWNLOAD NON-ONTOLOGY DATA: {} @ {}'.format(end - start, timestamp))
+    print('\nTOTAL SECONDS TO DOWNLOAD NON-ONTOLOGY DATA: {} @ {}'.format(end - start, timestamp))
 
     #####################
     # CREATE EDGE LISTS #
@@ -79,7 +79,7 @@ def main():
 
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\n TOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
+    print('\nTOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
 
     #########################
     # BUILD KNOWLEDGE GRAPH #
@@ -120,7 +120,7 @@ def main():
 
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\n TOTAL SECONDS TO CONSTRUCT A KG: {} @ {}'.format(end - start, timestamp))
+    print('\nTOTAL SECONDS TO CONSTRUCT A KG: {} @ {}'.format(end - start, timestamp))
 
 
 if __name__ == '__main__':
