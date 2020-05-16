@@ -3,13 +3,13 @@
 
 # import needed libraries
 import glob
-import networkx   # type: ignore
+import networkx  # type: ignore
 import os
 import os.path
 import pickle
 
 from collections import Counter
-from rdflib import Graph, BNode, Literal, URIRef   # type: ignore
+from rdflib import Graph, BNode, Literal, URIRef  # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple
@@ -278,7 +278,7 @@ class OwlNets(object):
         else:
             return {**class_dict[edges['first']], **class_dict[edges['rest']]}
 
-    def parses_constructors(self, node: URIRef, edges: Dict, class_dict: Dict, relation: URIRef = None)\
+    def parses_constructors(self, node: URIRef, edges: Dict, class_dict: Dict, relation: URIRef = None) \
             -> Tuple[Set, Optional[Dict]]:
         """Traverses a dictionary of rdflib objects used in the owl:unionOf or owl:intersectionOf constructors, from
         which the original set of edges used to the construct the class_node are edited, such that all owl-encoded
@@ -477,7 +477,11 @@ class OwlNets(object):
         # decode owl-encoded class and prune OWL triples
         filtered_graph = self.removes_edges_with_owl_semantics()  # filter out owl-encoded triples from original KG
         self.graph = self.cleans_owl_encoded_classes()  # decode owl constructors and restrictions
-        owl_nets_graph = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded
+        owl_nets = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded
+
+        # make only final sweep over graph and remove any triples with a sub/obj containing an owl class object
+        print('\nVerifying OWL-NETS Nodes')
+        owl_nets_graph = [x for x in tqdm(owl_nets) if not any(y for y in x[0::2] if 'owl#' in str(y))]
 
         # write out owl-nets graph
         print('\nSerializing OWL-NETS Graph')
@@ -485,14 +489,14 @@ class OwlNets(object):
         owl_nets_graph.serialize(destination=self.write_location + file_name, format='nt')
 
         # get output statistics
-        unique_nodes = set([x for y in [node[0::2] for node in list(owl_nets_graph)] for x in y])
-        unique_relations = set([node[1] for node in list(owl_nets_graph)])
+        unique_nodes = set([str(x) for y in [node[0::2] for node in list(owl_nets_graph)] for x in y])
+        unique_relations = set([str(rel[1]) for rel in list(owl_nets_graph)])
         gets_ontology_statistics(self.write_location + file_name, self.owl_tools)
         print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(owl_nets_graph)))
         print('The OWL-Decoded Knowledge Graph Contains: {} Unique Nodes'.format(len(unique_nodes)))
         print('The OWL-Decoded Knowledge Graph Contains: {} Unique Relations'.format(len(unique_relations)))
 
-        # convert graph to networkx multidigraph
+        # convert graph to NetworkX MultiDigraph
         converts_rdflib_to_networkx(self.write_location, file_name, owl_nets_graph)
 
         return owl_nets_graph
