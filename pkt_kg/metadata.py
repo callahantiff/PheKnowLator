@@ -257,9 +257,9 @@ class Metadata(object):
                 """SELECT DISTINCT ?class ?class_label ?class_definition ?class_syn
                        WHERE {
                           ?class rdf:type owl:Class .
-                          ?class rdfs:label ?class_label .
-                          ?class obo:IAO_0000115 ?class_definition .
-                          ?class oboinowl:hasExactSynonym ?class_syn .}
+                          optional{?class rdfs:label ?class_label .}
+                          optional{?class obo:IAO_0000115 ?class_definition .}
+                          optional{?class oboinowl:hasExactSynonym ?class_syn .}}
                        """, initNs={'rdf': RDF, 'rdfs': RDFS, 'owl': OWL,
                                     'obo': 'http://purl.obolibrary.org/obo/',
                                     'oboinowl': 'http://www.geneontology.org/formats/oboInOwl#'})
@@ -269,14 +269,14 @@ class Metadata(object):
                 node = str(result[0]).split('/')[-1]
 
                 if node in self.node_dict['classes'].keys():
-                    self.node_dict['classes'][node]['Label'].append(str(result[1]))
-                    self.node_dict['classes'][node]['Description'].append(str(result[2]))
-                    self.node_dict['classes'][node]['Synonym'].append(str(result[3]))
+                    self.node_dict['classes'][node]['Label'].append(str(result[1]) if result[1] else 'None')
+                    self.node_dict['classes'][node]['Description'].append(str(result[2]) if result[2] else 'None')
+                    self.node_dict['classes'][node]['Synonym'].append(str(result[3]) if result[3] else 'None')
                 else:
                     self.node_dict['classes'][node] = {}
-                    self.node_dict['classes'][node]['Label'] = [str(result[1])]
-                    self.node_dict['classes'][node]['Description'] = [str(result[2])]
-                    self.node_dict['classes'][node]['Synonym'] = [str(result[3])]
+                    self.node_dict['classes'][node]['Label'] = [str(result[1]) if result[1] else 'None']
+                    self.node_dict['classes'][node]['Description'] = [str(result[2]) if result[2] else 'None']
+                    self.node_dict['classes'][node]['Synonym'] = [str(result[3]) if result[3] else 'None']
 
         return None
 
