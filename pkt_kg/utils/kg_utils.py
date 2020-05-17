@@ -320,8 +320,8 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     graph_len = len(graph)
 
     # build graph from input file and set counter
-    out_ints = open(write_location + output_ints, 'w')
-    out_ids = open(write_location + '_'.join(output_ints.split('_')[:-1]) + '_Identifiers.txt', 'w')
+    out_ints = open(write_location + output_ints, 'w', encoding='utf-8')
+    out_ids = open(write_location + '_'.join(output_ints.split('_')[:-1]) + '_Identifiers.txt', 'w', encoding='utf-8')
 
     # write file headers
     out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
@@ -341,7 +341,13 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         # convert edge labels to ints
         subj, pred, obj = str(edge[0]), str(edge[1]), str(edge[2])
         out_ints.write('%d' % node_map[subj] + '\t' + '%d' % node_map[pred] + '\t' + '%d' % node_map[obj] + '\n')
-        out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
+
+        try:
+            out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
+        except UnicodeEncodeError:
+            out_ids.write(edge[0].encode('utf-8').decode() + '\t' +
+                          edge[1].encode('utf-8').decode() + '\t' +
+                          edge[2].encode('utf-8').decode() + '\n')
 
         # update counter and delete edge
         output_triples += 1
@@ -356,8 +362,7 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         with open(write_location + '/' + output_ints_map, 'w') as file_name:
             json.dump(node_map, file_name)
 
-    # clean up environment
-    del graph
+    del graph  # clean up environment
 
     return None
 
