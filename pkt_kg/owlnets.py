@@ -64,7 +64,7 @@ class OwlNets(object):
             self.graph = graph
 
         # convert RDF graph to networkx MultiDiGraph
-        print('\nConverting knowledge graph to MultiDiGraph. Note, this process can take up to 20 minutes.')
+        print('\nConverting knowledge graph to MultiDiGraph. Note, this process can take up to 60 minutes.')
         self.nx_mdg: networkx.MultiDiGraph = networkx.MultiDiGraph()
 
         for s, p, o in tqdm(self.graph):
@@ -450,7 +450,7 @@ class OwlNets(object):
         pbar.close()
         del self.nx_mdg  # delete networkx graph object to free up memory
 
-        print('\n=' * 75)
+        print('=' * 75)
         print('Decoded {} owl-encoded classes. Note the following:'.format(len(cleaned_nodes)))
         print('{} owl class elements containing cardinality were ignored'.format(len(cardinality)))
         print('ignored {} misc classes of the following type(s): {}'.format(len(misc), ', '.join(list(Counter(misc)))))
