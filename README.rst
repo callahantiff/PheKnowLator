@@ -47,7 +47,7 @@ You can also clone the repository directly from GitHub by running:
 
 .. code:: shell
 
-  git clone https://github.com/owlcollab/owltools.git
+  git clone https://github.com/callahantiff/PheKnowLator.git
 
 |
 |
