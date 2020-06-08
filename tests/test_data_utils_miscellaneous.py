@@ -35,7 +35,7 @@ class TestDataUtilsMisc(unittest.TestCase):
         # read in small random sample (10% of original size)
         self.disease_data = pandas.read_csv(self.dir_loc + '/disease_mappings.tsv',
                                             header=0,
-                                            delimiter='|',
+                                            delimiter='\t',
                                             skiprows=lambda i: i > 0 and random.random() > 0.10)
 
         # read in genomic data
