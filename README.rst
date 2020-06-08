@@ -26,7 +26,7 @@ All code and output for each release are free to download, see `Wiki <https://gi
 
 **Prior Releases:**  
 
-- - ``v1.0.0`` ➞ data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
+- ``v1.0.0`` ➞ data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
 
 |
 
