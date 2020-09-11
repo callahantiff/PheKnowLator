@@ -7,7 +7,7 @@ pkt_kg
 .. |pip| |downloads|
 
 
-PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale, biomedical knowlede graphs from complex heterogeneous data. Detailed information regarding this project can be found on the project `Wiki`_.
+PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale, biomedical knowledge graphs from complex heterogeneous data. Detailed information regarding this project can be found on the project `Wiki`_.
 
 **This is a Reproducible Research Repository:** For detailed information on how we use GitHub as a reproducible research platform, click `here`_.
 
