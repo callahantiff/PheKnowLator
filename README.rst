@@ -11,6 +11,11 @@ PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is a fully automated
 
 **This is a Reproducible Research Repository:** For detailed information on how we use GitHub as a reproducible research platform, click `here`_.
 
+|
+
+**Prelimary Results presented at the 2020 annual International Conference on Intelligent Systems for Molecular Biology (ISMB) are available:**
+
+Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. A Framework for Automated Construction of Heterogeneous Large-Scale Biomedical Knowledge Graphs. 2020; BioRxiv `DOI: https://doi.org/10.1101/2020.04.30.071407 <https://doi.org/10.1101/2020.04.30.071407>`__
 
     
 |
