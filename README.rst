@@ -35,6 +35,13 @@ All code and output for each release are free to download, see `Wiki <https://gi
 
 |
 
+Important Updates and Notifications  
+----------------------------------------------
+
+- *09/30/2020:*  ``OWL-NETS`` code when applied to instance-based knowledge graph builds has a small bug described in `Issue #57 <https://github.com/callahantiff/PheKnowLator/issues/57>`__. Please hold off on using OWL-NETS with any instance builds while this error is fixed. Thank you `@MSBradshaw <https://github.com/MSBradshaw>`__ for pointing this out!
+
+|
+
 Getting Started
 ----------------------------------------------
 
