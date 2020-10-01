@@ -163,7 +163,7 @@ class TestOwlNets(unittest.TestCase):
 
         # run method to roll back to re-map instances of classes
         self.owl_nets.updates_class_instance_identifiers()
-        self.assertEqual(len(self.owl_nets.graph), 9)
+        self.assertEqual(len(self.owl_nets.graph), 6)
         self.assertIn((URIRef('http://purl.obolibrary.org/obo/CHEBI_2504'),
                        URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
                        URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),

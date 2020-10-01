@@ -7,8 +7,8 @@ from typing import List, Set
 from rdflib import Graph, URIRef, BNode
 
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
-    maps_node_ids_to_integers, adds_edges_to_graph, finds_node_type, converts_rdflib_to_networkx, \
-    gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties
+    maps_node_ids_to_integers, adds_edges_to_graph, remove_edges_from_graph, finds_node_type, \
+    converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties
 
 
 class TestKGUtils(unittest.TestCase):
@@ -108,7 +108,26 @@ class TestKGUtils(unittest.TestCase):
         graph = adds_edges_to_graph(graph, edge_list)
 
         # make sure edges were added
-        self.assertTrue(initial_graph_len < len(graph))
+        self.assertTrue(initial_graph_len <= len(graph))
+
+        return None
+
+    def test_remove_edges_from_graph(self):
+        """Tests the removes_edges_from_graph method"""
+
+        # set-up graph
+        graph = Graph()
+        graph.parse(self.good_ontology_file_location)
+        initial_graph_len = len(graph)
+
+        # get edges to remove
+        remove_edges = list(graph)[0:5]
+
+        # test method
+        remove_edges_from_graph(graph, remove_edges)
+
+        # make sure edges were removed
+        self.assertTrue(initial_graph_len >= len(graph))
 
         return None
 
