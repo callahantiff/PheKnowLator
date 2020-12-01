@@ -38,8 +38,7 @@ All code and output for each release are free to download, see `Wiki <https://gi
 Important Updates and Notifications  
 ----------------------------------------------
 
-- *10/01/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!  
-- *11/16/2020:* Have been alerted about minor issues with ``Data_Preparation.ipynb`` and ``Ontology_Cleaning.ipynb`` notebooks. We will be re-working some of the content in these notebooks to depend less on the source data providers. Look for new versions with the ``v2.0.0`` release content. Thanks for your patience!
+- *12/01/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!  
 
 |
 
@@ -63,6 +62,13 @@ You can also clone the repository directly from GitHub by running:
   git clone https://github.com/callahantiff/PheKnowLator.git
 
 |
+
+**Note.** Sometimes ``OWLTools``, which comes with the cloned/forked repository (``./pkt_kg/libs/owltools``) loses "executable" permission. To avoid any potential issues, I recommend running the following in the terminal from the PheKnowLator directory: 
+
+.. code:: shell
+    
+    chmod +x pkt_kg/libs/owltools
+
 |
 
 **Set-Up Environment**     
