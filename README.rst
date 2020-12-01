@@ -25,6 +25,7 @@ Important Updates and Notifications
 
 - *12/01/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!  
 
+|
 
 Releases
 ----------------------------------------------
