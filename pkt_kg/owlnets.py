@@ -14,7 +14,7 @@ from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple
 
-from pkt_kg.utils import adds_edges_to_graph, gets_ontology_classes, gets_ontology_statistics, remove_edges_from_graph
+from pkt_kg.utils import *
 
 
 class OwlNets(object):
