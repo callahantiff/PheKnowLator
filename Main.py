@@ -37,16 +37,6 @@ def main():
     # NOTE: please https://github.com/callahantiff/PheKnowLator/wiki/Dependencies page for details on how to prepare
     # input data files
 
-    import networkx as nx
-
-    # subclass - relations - owl
-    graph = "releases/v2.0.0/Manuscript_12May2020/Subclass_RelationsOnly_OWL/PheKnowLator_Subclass_RelationsOnly_NotClosed_OWL_KG_Networkx_MultiDiGraph.gpickle"
-    G = nx.read_gpickle(graph)
-    G.number_of_nodes()
-
-
-
-
     # STEP 2: PREPROCESS DATA
     # see the 'Data_Preparation.ipynb' file for instructions
 
