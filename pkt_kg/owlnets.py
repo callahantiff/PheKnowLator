@@ -14,7 +14,7 @@ from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple
 
-from pkt_kg.utils import *
+from pkt_kg.utils import adds_edges_to_graph, gets_ontology_classes, remove_edges_from_graph
 
 
 class OwlNets(object):
@@ -101,14 +101,26 @@ class OwlNets(object):
 
         print('Re-mapping Instances of Classes to Class Identifiers')
 
-        # get all class individuals
+        # get all class individuals in pheknowlator namespace
         pkts = [x[0] for x in list(self.graph.triples((None, RDF.type, OWL.NamedIndividual))) if 'pkt' in str(x[0])]
+        remove_edges: Set = set()
 
-        for axiom in tqdm(pkts):
-            cls = [x[2] for x in list(self.graph.triples((axiom, RDF.type, None))) if 'obo' in str(x[2])][0]
-            updated_edges = [(cls, x[1], x[2]) for x in list(self.graph.triples((axiom, None, None))) if
-                             'obo' in str(x[1])]
-            self.graph = adds_edges_to_graph(self.graph, updated_edges)
+        for node in tqdm(pkts):
+            # get the node represented by the instance BNode
+            cls = [x[2] for x in list(self.graph.triples((node, RDF.type, None))) if 'obo' in str(x[2])][0]
+
+            # get triples where the bnode is the subject and object
+            inst_triples = list(self.graph.triples((node, None, None))) + list(self.graph.triples((None, None, node)))
+
+            for edge in inst_triples:
+                if 'obo' in str(edge[1]):
+                    if edge[0] == node: self.graph.add((cls, edge[1], edge[2]))
+                    if edge[2] == node: self.graph.add((edge[0], edge[1], cls))
+
+            # add edges to removal set
+            remove_edges |= set(inst_triples)
+
+        self.graph = remove_edges_from_graph(self.graph, list(remove_edges))
 
         return None
 

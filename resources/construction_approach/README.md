@@ -50,7 +50,8 @@ Would require adding:
 Where TGFB1 is an PR ontology term and Influenza Virus Induced Apoptosis is a non-ontology data node. In this example, Influenza A pathway is an existing ontology class.  
 
 <br>
-_____
+
+***
 
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
 **The algorithm makes the following assumptions:**

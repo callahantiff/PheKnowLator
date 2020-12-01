@@ -11,4 +11,4 @@ __all__ = ['url_download', 'ftp_url_download', 'gzipped_ftp_url_download', 'zipp
            'metadata_api_mapper', 'mesh_finder', 'genomic_id_mapper', 'outputs_dictionary_data',
            'gets_ontology_statistics', 'gets_ontology_classes', 'gets_deprecated_ontology_classes',
            'gets_object_properties', 'merges_ontologies', 'ontology_file_formatter', 'adds_edges_to_graph',
-           'finds_node_type', 'maps_node_ids_to_integers', 'converts_rdflib_to_networkx']
+           'remove_edges_from_graph', 'finds_node_type', 'maps_node_ids_to_integers', 'converts_rdflib_to_networkx']
