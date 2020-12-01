@@ -14,7 +14,7 @@ from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple
 
-from pkt_kg.utils import adds_edges_to_graph, gets_ontology_classes, remove_edges_from_graph
+from pkt_kg.utils import adds_edges_to_graph, gets_ontology_classes, gets_ontology_statistics, remove_edges_from_graph
 
 
 class OwlNets(object):
@@ -37,7 +37,6 @@ class OwlNets(object):
         nx_mdg: A networkx graph object that contains the same edges as knowledge_graph.
         keep_properties: A list of owl:Property types to keep when filtering triples from knowledge graph.
         class_list: A list of owl classes from the input knowledge graph.
-
 
     Raises:
         TypeError: If graph is not an rdflib.graph object.

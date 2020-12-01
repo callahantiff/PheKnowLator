@@ -13,6 +13,7 @@ Interacts with OWL Tools API
 
 Interacts with Knowledge Graphs
 * adds_edges_to_graph
+* remove_edges_from_graph
 
 Writes Triple Lists
 * maps_node_ids_to_integers
