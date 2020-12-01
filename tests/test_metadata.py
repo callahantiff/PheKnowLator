@@ -181,7 +181,7 @@ class TestMetadata(unittest.TestCase):
 
         # check that it worked
         self.assertIn('classes', self.metadata.node_dict.keys())
-        self.assertTrue(len(self.metadata.node_dict['classes']) == 1897)
+        self.assertTrue(len(self.metadata.node_dict['classes']) == 2793)
         self.assertIn('Label', self.metadata.node_dict['classes']['SO_0000373'].keys())
         self.assertIn('Synonym', self.metadata.node_dict['classes']['SO_0000373'].keys())
         self.assertIn('Description', self.metadata.node_dict['classes']['SO_0000373'].keys())

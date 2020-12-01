@@ -179,7 +179,6 @@ class TestKGBuilder(unittest.TestCase):
 
         self.kg_subclass.res_dir = 'data'
         self.assertRaises(ValueError, FullBuild, 'v2.0.0', None, 'subclass', None, 'yes', 'yes', 'yes', 'yes')
-        self.kg_subclass.res_dir = 'data/resources'
 
         return None
 
@@ -296,6 +295,24 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
+    def test_class_initialization_ontology_data(self):
+        """Tests the class initialization for when no merged ontology file is created."""
+
+        # remove merged ontology file
+        os.remove(self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
+
+        # initialize kg
+        write_loc = self.dir_loc_resources + '/knowledge_graphs'
+        edges = self.dir_loc_resources + '/Master_Edge_List_Dict.json'
+
+        self.kg_subclass = FullBuild('v2.0.0', write_loc, 'subclass', edges, 'yes', 'yes', 'yes', 'yes')
+
+        # check that there is 1 ontology file
+        self.assertIsInstance(self.kg_subclass.ontologies, List)
+        self.assertTrue(len(self.kg_subclass.ontologies) == 1)
+
+        return None
+
     def test_class_initialization(self):
         """Tests the class initialization."""
 
@@ -330,7 +347,8 @@ class TestKGBuilder(unittest.TestCase):
 
         # ontologies
         self.assertIsInstance(self.kg_subclass.ontologies, List)
-        self.assertTrue(len(self.kg_subclass.ontologies) == 1)
+        self.assertTrue(len(self.kg_subclass.ontologies) == 0)
+        self.assertTrue(os.path.exists(self.kg_subclass.merged_ont_kg))
 
         # owl semantics
         self.assertIsInstance(self.kg_subclass.decode_owl, str)

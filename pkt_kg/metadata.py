@@ -14,7 +14,7 @@ import subprocess
 from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Set, Union
 
 
 class Metadata(object):
@@ -86,6 +86,8 @@ class Metadata(object):
                 # add data frame to master node metadata dictionary
                 self.node_dict[dfs[i][0]] = df_dict  # type: ignore
 
+        return None
+
     def creates_node_metadata(self, node: str, edge_type: str, url: str, graph: Graph) -> Graph:
         """Given a node in the knowledge graph, if the node has metadata information, new edges are created to add
         the metadata to the knowledge graph. Metadata that is added includes: labels, descriptions, and synonyms.
@@ -148,7 +150,7 @@ class Metadata(object):
             graph: An rdflib graph object that includes node metadata.
         """
 
-        print('Adding Non-Ontology Data Metadata to Knowledge Graph')
+        print('\nAdding Non-Ontology Data Metadata to Knowledge Graph')
 
         if edge_dict:
             for edge_type in tqdm(edge_dict.keys()):
@@ -156,9 +158,10 @@ class Metadata(object):
                 if edge_data_type.split('-')[0] == 'class' and edge_data_type.split('-')[1] == 'class':
                     pass
                 else:
+                    print('Processing ontology terms of {} edge type'.format(edge_data_type))
                     node_idx = [x for x in range(2) if edge_data_type.split('-')[x] == 'entity']
 
-                    for edge in edge_dict[edge_type]['edge_list']:
+                    for edge in tqdm(edge_dict[edge_type]['edge_list']):
                         if self.node_dict and edge_type in self.node_dict.keys():
                             if len(node_idx) == 2:
                                 subj, obj = edge[0], edge[1]
@@ -254,9 +257,9 @@ class Metadata(object):
                 """SELECT DISTINCT ?class ?class_label ?class_definition ?class_syn
                        WHERE {
                           ?class rdf:type owl:Class .
-                          ?class rdfs:label ?class_label .
-                          ?class obo:IAO_0000115 ?class_definition .
-                          ?class oboinowl:hasExactSynonym ?class_syn .}
+                          optional{?class rdfs:label ?class_label .}
+                          optional{?class obo:IAO_0000115 ?class_definition .}
+                          optional{?class oboinowl:hasExactSynonym ?class_syn .}}
                        """, initNs={'rdf': RDF, 'rdfs': RDFS, 'owl': OWL,
                                     'obo': 'http://purl.obolibrary.org/obo/',
                                     'oboinowl': 'http://www.geneontology.org/formats/oboInOwl#'})
@@ -266,12 +269,14 @@ class Metadata(object):
                 node = str(result[0]).split('/')[-1]
 
                 if node in self.node_dict['classes'].keys():
-                    self.node_dict['classes'][node]['Synonym'].append(str(result[3]))
+                    self.node_dict['classes'][node]['Label'].append(str(result[1]) if result[1] else 'None')
+                    self.node_dict['classes'][node]['Description'].append(str(result[2]) if result[2] else 'None')
+                    self.node_dict['classes'][node]['Synonym'].append(str(result[3]) if result[3] else 'None')
                 else:
                     self.node_dict['classes'][node] = {}
-                    self.node_dict['classes'][node]['Label'] = str(result[1])
-                    self.node_dict['classes'][node]['Description'] = str(result[2])
-                    self.node_dict['classes'][node]['Synonym'] = [str(result[3])]
+                    self.node_dict['classes'][node]['Label'] = [str(result[1]) if result[1] else 'None']
+                    self.node_dict['classes'][node]['Description'] = [str(result[2]) if result[2] else 'None']
+                    self.node_dict['classes'][node]['Synonym'] = [str(result[3]) if result[3] else 'None']
 
         return None
 
@@ -279,6 +284,11 @@ class Metadata(object):
         """Loops over the self.node_dict dictionary and writes out the data to a file locally. The data is stored as
         a tab-delimited '.txt' file with four columns: (1) node identifier; (2) node label; (3) node description or
         definition; and (4) node synonym.
+
+        NOTE. Not every node in the knowledge class will have metadata. There are some non-ontology nodes that are
+        added (e.g. Ensembl transcript identifiers) that at the time of adding did not include labels, synonyms,
+        or definitions. While these nodes have valid metadata through their original provider, this data may not have
+        been available for download and thus would not have been added to the node_dict.
 
         Args:
             graph: A rdflib graph object.
@@ -289,28 +299,41 @@ class Metadata(object):
 
         # add metadata for nodes that are data type class to self.node_dict
         self.extracts_class_metadata(graph)
+        node_tracker: Set = set()  # creat set to ensure nodes are not written out multiple times
 
         if self.node_dict:
-            # create and write edge list data locally
             print('\nWriting Class Metadata')
-            with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w') as outfile:
+            with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w', encoding='utf-8') as outfile:
                 outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
 
                 for edge_type in tqdm(self.node_dict.keys()):
                     for node in self.node_dict[edge_type]:
-                        node_id = node
-                        label = self.node_dict[edge_type][node]['Label']
-                        desc = self.node_dict[edge_type][node]['Description']
-                        syn_list = self.node_dict[edge_type][node]['Synonym']
+                        if node not in node_tracker:
+                            node_tracker |= {node}  # increment node tracker
 
-                        if isinstance(syn_list, list) and len(syn_list) > 1:
-                            syn = '|'.join(syn_list)
-                        elif isinstance(syn_list, list) and len(syn_list) == 1:
-                            syn = syn_list[0]
-                        else:
-                            syn = syn_list
+                            # labels
+                            label_list = self.node_dict[edge_type][node]['Label']
+                            if isinstance(label_list, list) and len(label_list) > 1: label = '|'.join(set(label_list))
+                            elif isinstance(label_list, list) and len(label_list) == 1: label = label_list[0]
+                            else: label = label_list
+                            # descriptions
+                            desc_list = self.node_dict[edge_type][node]['Description']
+                            if isinstance(desc_list, list) and len(desc_list) > 1: desc = '|'.join(set(desc_list))
+                            elif isinstance(desc_list, list) and len(desc_list) == 1: desc = desc_list[0]
+                            else: desc = desc_list
+                            # synonyms
+                            syn_list = self.node_dict[edge_type][node]['Synonym']
+                            if isinstance(syn_list, list) and len(syn_list) > 1: syn = '|'.join(set(syn_list))
+                            elif isinstance(syn_list, list) and len(syn_list) == 1: syn = syn_list[0]
+                            else: syn = syn_list
 
-                        outfile.write(node_id + '\t' + label + '\t' + desc + '\t' + syn + '\n')
+                            try:
+                                outfile.write(node + '\t' + label + '\t' + desc + '\t' + syn + '\n')
+                            except UnicodeEncodeError:
+                                outfile.write(node + '\t' +
+                                              label.encode('utf-8').decode() + '\t' +
+                                              desc.encode('utf-8').decode() + '\t' +
+                                              syn.encode('utf-8').decode() + '\n')
             outfile.close()
 
         return None

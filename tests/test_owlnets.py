@@ -51,6 +51,10 @@ class TestOwlNets(unittest.TestCase):
                                 write_location=self.write_location,
                                 full_kg=self.kg_filename)
 
+        # update class attributes
+        dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
+        self.owl_nets.owl_tools = os.path.abspath(dir_loc_owltools)
+
         return None
 
     def test_initialization_state(self):
@@ -63,6 +67,31 @@ class TestOwlNets(unittest.TestCase):
         # write_location
         self.assertIsInstance(self.write_location, str)
         self.assertEqual(self.dir_loc_resources + '/knowledge_graphs', self.write_location)
+
+        return None
+
+    def test_initialization_owltools_default(self):
+        """Tests the class initialization state for the owl_tools parameter when no default argument is passed."""
+
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.graph,
+                           write_location=self.write_location,
+                           full_kg=self.kg_filename)
+
+        self.assertEqual(owl_nets.owl_tools, './pkt_kg/libs/owltools')
+
+        return None
+
+    def test_initialization_owltools(self):
+        """Tests the class initialization state for the owl_tools parameter when an argument is passed."""
+
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.graph,
+                           write_location=self.write_location,
+                           full_kg=self.kg_filename,
+                           owl_tools='test_location')
+
+        self.assertEqual(owl_nets.owl_tools, 'test_location')
 
         return None
 
@@ -469,8 +498,10 @@ class TestOwlNets(unittest.TestCase):
         self.assertIsInstance(owl_nets_graph, Graph)
         self.assertEqual(len(owl_nets_graph), 2940)
 
-        # make sure file writes locally
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + 'OWLNETS.owl'))
+        # make sure files are written locally
+        nx_mdg_file = 'PheKnowLator_OWLNETS_Networkx_MultiDiGraph.gpickle'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_OWLNETS.nt'))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
 
         return None
 

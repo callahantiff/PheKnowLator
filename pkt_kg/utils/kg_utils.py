@@ -13,6 +13,7 @@ Interacts with OWL Tools API
 
 Interacts with Knowledge Graphs
 * adds_edges_to_graph
+* remove_edges_from_graph
 
 Writes Triple Lists
 * maps_node_ids_to_integers
@@ -336,8 +337,8 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     graph_len = len(graph)
 
     # build graph from input file and set counter
-    out_ints = open(write_location + output_ints, 'w')
-    out_ids = open(write_location + '_'.join(output_ints.split('_')[:-1]) + '_Identifiers.txt', 'w')
+    out_ints = open(write_location + output_ints, 'w', encoding='utf-8')
+    out_ids = open(write_location + '_'.join(output_ints.split('_')[:-1]) + '_Identifiers.txt', 'w', encoding='utf-8')
 
     # write file headers
     out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
@@ -357,7 +358,13 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         # convert edge labels to ints
         subj, pred, obj = str(edge[0]), str(edge[1]), str(edge[2])
         out_ints.write('%d' % node_map[subj] + '\t' + '%d' % node_map[pred] + '\t' + '%d' % node_map[obj] + '\n')
-        out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
+
+        try:
+            out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
+        except UnicodeEncodeError:
+            out_ids.write(edge[0].encode('utf-8').decode() + '\t' +
+                          edge[1].encode('utf-8').decode() + '\t' +
+                          edge[2].encode('utf-8').decode() + '\n')
 
         # update counter and delete edge
         output_triples += 1
@@ -372,8 +379,7 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         with open(write_location + '/' + output_ints_map, 'w') as file_name:
             json.dump(node_map, file_name)
 
-    # clean up environment
-    del graph
+    del graph  # clean up environment
 
     return None
 
@@ -396,22 +402,22 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     print('\nConverting Knowledge Graph to MultiDiGraph')
 
     # read in knowledge graph if class graph attribute is not present
-    if not graph or len(graph) == 0:
+    if not isinstance(graph, Graph):
         graph = Graph()
-        graph.parse(write_location + full_kg)
+        file_type = 'xml' if full_kg.split('.')[-1] == 'owl' else full_kg.split('.')[-1]
+        graph.parse(write_location + full_kg, format=file_type)
 
     # convert graph to networkx object
     nx_mdg = networkx.MultiDiGraph()
 
     for s, p, o in tqdm(graph):
-        graph.remove((s, p, o))
         nx_mdg.add_edge(s, o, **{'key': p})
 
     # pickle networkx graph
     print('\nPickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
-    networkx.write_gpickle(nx_mdg, write_location + full_kg[:-4] + '_Networkx_MultiDiGraph.gpickle')
+    networkx.write_gpickle(nx_mdg, write_location + full_kg.split('.')[0] + '_Networkx_MultiDiGraph.gpickle')
 
     # clean up environment
-    del graph, nx_mdg
+    del nx_mdg
 
     return None

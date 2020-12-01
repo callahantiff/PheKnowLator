@@ -3,18 +3,18 @@
 
 # import needed libraries
 import glob
-import networkx   # type: ignore
+import networkx  # type: ignore
 import os
 import os.path
 import pickle
 
 from collections import Counter
-from rdflib import Graph, BNode, Literal, URIRef   # type: ignore
+from rdflib import Graph, BNode, Literal, URIRef  # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple
 
-from pkt_kg.utils import adds_edges_to_graph, gets_ontology_classes, remove_edges_from_graph
+from pkt_kg.utils import *
 
 
 class OwlNets(object):
@@ -28,6 +28,7 @@ class OwlNets(object):
     Additional Information: https://github.com/callahantiff/PheKnowLator/wiki/OWL-NETS-2.0
 
     Attributes:
+        owl_tools: A string pointing to the location of the owl tools library.
         kg_construct_approach: A string containing the type of construction approach used to build the knowledge graph.
         write_location: A file path used for writing knowledge graph data.
         res_dir: A string pointing to the 'resources' directory.
@@ -37,7 +38,6 @@ class OwlNets(object):
         keep_properties: A list of owl:Property types to keep when filtering triples from knowledge graph.
         class_list: A list of owl classes from the input knowledge graph.
 
-
     Raises:
         TypeError: If graph is not an rdflib.graph object.
         ValueError: If graph is an empty rdflib.graph object.
@@ -45,8 +45,10 @@ class OwlNets(object):
         TypeError: If the file containing owl object properties is empty.
     """
 
-    def __init__(self, kg_construct_approach: str, graph: Graph, write_location: str, full_kg: str) -> None:
+    def __init__(self, kg_construct_approach: str, graph: Graph, write_location: str, full_kg: str,
+                 owl_tools: str = './pkt_kg/libs/owltools') -> None:
 
+        self.owl_tools = owl_tools
         self.kg_construct_approach = kg_construct_approach
         self.write_location = write_location
         self.res_dir = os.path.relpath('/'.join(self.write_location.split('/')[:-1]))
@@ -61,14 +63,14 @@ class OwlNets(object):
             self.graph = graph
 
         # convert RDF graph to networkx MultiDiGraph
-        print('\nConverting knowledge graph to MultiDiGraph. Note, this process can take up to 20 minutes.')
+        print('\nConverting knowledge graph to MultiDiGraph. Note, this process can take up to 60 minutes.')
         self.nx_mdg: networkx.MultiDiGraph = networkx.MultiDiGraph()
 
         for s, p, o in tqdm(self.graph):
             self.nx_mdg.add_edge(s, o, **{'key': p})
 
         # set a list of owl:Property types to keep when filtering triples from knowledge graph
-        file_name = self.res_dir + '/owl_decoding/*Property*'
+        file_name = self.res_dir + '/owl_decoding/*.txt'
         if '.txt' not in glob.glob(file_name)[0]:
             raise TypeError('The owl properties file is not type .txt')
         elif os.stat(glob.glob(file_name)[0]).st_size == 0:
@@ -77,7 +79,6 @@ class OwlNets(object):
         else:
             with open(glob.glob(file_name)[0], 'r') as filepath:  # type: IO[Any]
                 self.keep_properties = [x.strip('\n') for x in filepath.read().splitlines() if x]
-
                 # make sure that specific properties are included
                 self.keep_properties += [str(RDFS.subClassOf), 'http://purl.obolibrary.org/obo/RO_0000086']
                 self.keep_properties = list(set(self.keep_properties))
@@ -288,7 +289,7 @@ class OwlNets(object):
         else:
             return {**class_dict[edges['first']], **class_dict[edges['rest']]}
 
-    def parses_constructors(self, node: URIRef, edges: Dict, class_dict: Dict, relation: URIRef = None)\
+    def parses_constructors(self, node: URIRef, edges: Dict, class_dict: Dict, relation: URIRef = None) \
             -> Tuple[Set, Optional[Dict]]:
         """Traverses a dictionary of rdflib objects used in the owl:unionOf or owl:intersectionOf constructors, from
         which the original set of edges used to the construct the class_node are edited, such that all owl-encoded
@@ -475,22 +476,42 @@ class OwlNets(object):
         not included in the keep_properties list; and (3) decodes all owl-encoded classes of type intersection and
         union constructor and all restrictions.
 
+        NOTE. It is important to check the number of unique nodes and relations in OWL-NETS and to compare the counts
+        with and without the URIs (i.e. http://purl.obolibrary.org/obo/HP_0000000 vs HP_0000000). Doing this provides a
+        nice sanity check and can help identify duplicate nodes (i.e. nodes with the same identifier, but different
+        URIs -- where the URIs should be the same).
+
         Returns:
             An rdflib.Graph object that has been updated to only include triples owl decoded triples.
         """
 
         print('\nCreating OWL-NETS graph')
 
-        # check if instance build and if so, rollback identifiers
         if self.kg_construct_approach == 'instance': self.updates_class_instance_identifiers()
-
-        # decode owl-encoded class and prune OWL triples
         filtered_graph = self.removes_edges_with_owl_semantics()  # filter out owl-encoded triples from original KG
         self.graph = self.cleans_owl_encoded_classes()  # decode owl constructors and restrictions
-        owl_nets = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded classes
+        owl_nets_graph = filtered_graph + self.removes_edges_with_owl_semantics()  # prune bad triples from decoded
+
+        # make final sweep over graph and remove any triples with a sub/obj containing an owl class object
+        print('\nVerifying OWL-NETS Nodes')
+        for x in tqdm(owl_nets_graph):
+            if 'owl#' in str(x[0]) or 'owl#' in str(x[2]):
+                owl_nets_graph.remove(x)
 
         # write out owl-nets graph
-        file_name = self.write_location + '/' + self.full_kg[:-21] + 'OWLNETS.owl'
-        owl_nets.serialize(destination=file_name, format='xml')
+        print('\nSerializing OWL-NETS Graph')
+        file_name = '/'.join(self.full_kg.split('/')[:-1]) + '/PheKnowLator_OWLNETS.nt'
+        owl_nets_graph.serialize(destination=self.write_location + file_name, format='nt')
 
-        return owl_nets
+        # get output statistics
+        unique_nodes = set([str(x) for y in [node[0::2] for node in list(owl_nets_graph)] for x in y])
+        unique_relations = set([str(rel[1]) for rel in list(owl_nets_graph)])
+        gets_ontology_statistics(self.write_location + file_name, self.owl_tools)
+        print('The OWL-Decoded Knowledge Graph Contains: {} Triples'.format(len(owl_nets_graph)))
+        print('The OWL-Decoded Knowledge Graph Contains: {} Unique Nodes'.format(len(unique_nodes)))
+        print('The OWL-Decoded Knowledge Graph Contains: {} Unique Relations'.format(len(unique_relations)))
+
+        # convert graph to NetworkX MultiDigraph
+        converts_rdflib_to_networkx(self.write_location, file_name, owl_nets_graph)
+
+        return owl_nets_graph
