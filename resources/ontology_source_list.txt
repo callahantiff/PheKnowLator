@@ -1,11 +1,11 @@
 phenotype, http://purl.obolibrary.org/obo/hp.owl
 go, http://purl.obolibrary.org/obo/go.owl
-disease, http://purl.obolibrary.org/obo/doid.owl
+disease, http://purl.obolibrary.org/obo/mondo.owl
 vaccine, http://purl.obolibrary.org/obo/vo.owl
 chemical, ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
 anatomy, http://purl.obolibrary.org/obo/uberon/ext.owl
 cell, http://purl.obolibrary.org/obo/clo.owl
-protein, https://www.dropbox.com/s/khtyja0zw14rp32/human_pro_closed.owl?dl=1
+protein, https://www.dropbox.com/s/f23zxrmorwe0x7l/human_pro_closed.owl?dl=1
 genomic, http://purl.obolibrary.org/obo/so.owl
 pathway, http://purl.obolibrary.org/obo/pw.owl
 relation, http://purl.obolibrary.org/obo/ro.owl

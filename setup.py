@@ -29,12 +29,17 @@ def find_version(*file_paths):
 __version__ = find_version('pkt_kg', '__version__.py')
 
 test_deps = [
-    'codacy-coverage',
-    'coveralls',
-    'nose',
-    'nose-cov',
-    'validate_version_code',
-    'pylint'
+    # 'codacy-coverage',
+    # 'coveralls',
+    # 'nose',
+    # 'nose-cov',
+    # 'validate_version_code',
+    # 'pylint'
+    "pytest",
+    "pytest-cov",
+    "coveralls",
+    "validate_version_code",
+    "codacy-coverage"
 ]
 
 extras = {

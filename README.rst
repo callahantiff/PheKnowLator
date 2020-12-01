@@ -236,8 +236,8 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory   
 
-.. |travis| image:: https://travis-ci.org/callahantiff/PheKnowLator.png
-   :target: https://travis-ci.org/callahantiff/PheKnowLator
+.. |travis| image:: https://travis-ci.com/callahantiff/PheKnowLator.png
+   :target: https://travis-ci.com/callahantiff/PheKnowLator
    :alt: Travis CI build
 
 .. |sonar_quality| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=alert_status
