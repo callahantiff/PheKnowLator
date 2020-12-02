@@ -19,7 +19,7 @@ __pycache__/
 /resources/node_data/*
 /resources/ontologies/*
 /resources/owl_decoding/*
-/resources/processed_data/
+/resources/processed_data/*
 /resources/relations_data/*
 
 # scripts
