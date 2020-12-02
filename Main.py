@@ -125,3 +125,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+gets_ontology_statistics(processed_data_location + 'human_pro_closed.owl')
