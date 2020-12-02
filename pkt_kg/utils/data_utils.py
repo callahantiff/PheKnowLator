@@ -408,44 +408,6 @@ def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: s
         return explodes_data(res, lst_cols, splitter)
 
 
-def mesh_finder(data: pd.DataFrame, xid: str, id_typ: str, id_dic: Dict[str, List[str]]) -> None:
-    """Function takes a Pandas DataFrame, a dictionary, and an id and updates the dictionary by searching additional
-    identifiers linked to the id.
-
-    Args:
-        data: A Pandas DataFrame containing columns of identifiers.
-        xid: A string containing a MeSH or OMIM identifier.
-        id_typ: A string containing the types of the identifier.
-        id_dic: A dictionary where the keys are CUI and MeSH identifiers and the values are lists of DO and HPO
-            identifiers.
-
-    Returns:
-        None
-    """
-
-    for x in list(data.loc[data['code'] == xid]['diseaseId']):
-        for idx, row in data.loc[data['diseaseId'] == x].iterrows():
-
-            if id_typ + xid in id_dic.keys():
-                if row['vocabulary'] == 'HPO' and row['code'].replace('HP:', 'HP_') not in id_dic[id_typ + xid]:
-                    id_dic[id_typ + xid].append(row['code'].replace('HP:', 'HP_'))
-
-                if row['vocabulary'] == 'DO' and 'DOID_' + row['code'] not in id_dic[id_typ + xid]:
-                    id_dic[id_typ + xid].append('DOID_' + row['code'])
-
-            else:
-                if row['vocabulary'] == 'HPO' or row['vocabulary'] == 'DO':
-                    id_dic[id_typ + xid] = []
-
-                    if row['vocabulary'] == 'HPO' and row['code'].replace('HP:', 'HP_') not in id_dic[id_typ + xid]:
-                        id_dic[id_typ + xid].append(row['code'].replace('HP:', 'HP_'))
-
-                    if row['vocabulary'] == 'DO' and 'DOID_' + row['code'] not in id_dic[id_typ + xid]:
-                        id_dic[id_typ + xid].append('DOID_' + row['code'])
-
-    return None
-
-
 def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, genomic2: str,
                       genomic_type: str = None, save_prefix1: bool = False, save_prefix2: bool = False) -> None:
     """Searches a dictionary of genomic identifier mappings and processes them, writing out
