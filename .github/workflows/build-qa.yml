@@ -61,7 +61,7 @@ jobs:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
           coverageLocations: ${{github.workspace}}/.coverage
-          coverageCommand: ./cc-test-reporter upload-coverage
+          coverageCommand: coverage xml
 
       - name: Coveralls
         run: coveralls
