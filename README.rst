@@ -5,7 +5,7 @@ pkt_kg
 
 |sonar_quality| |sonar_maintainability| |code_climate_maintainability| |codacy|  
 
-|coveralls| |sonar_coverage| |code_climate_coverage|
+|sonar_coverage| |code_climate_coverage| |coveralls| 
 
 |ABRA| 
 
