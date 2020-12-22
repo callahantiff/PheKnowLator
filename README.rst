@@ -1,7 +1,10 @@
 pkt_kg
 =========================================================================================
 
-|travis| |sonar_quality| |sonar_maintainability| |codacy|  |coveralls| |sonar_coverage|
+|github_action|
+
+|sonar_quality| |sonar_maintainability| |code_climate_maintainability| |codacy|  |coveralls| |sonar_coverage| |code_climate_coverage|
+
 |ABRA| 
 
 .. |pip| |downloads|
@@ -332,9 +335,9 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory   
 
-.. |travis| image:: https://travis-ci.com/callahantiff/PheKnowLator.png
-   :target: https://travis-ci.com/callahantiff/PheKnowLator
-   :alt: Travis CI build
+.. |github_action| image:: https://github.com/callahantiff/PheKnowLator/workflows/Rosey%20the%20Robot/badge.svg
+   :target: https://github.com/callahantiff/PheKnowLator/actions?query=workflow%3A%22Rosey+the+Robot%22
+   :alt: GitHub Action Rosey the Robot 
 
 .. |sonar_quality| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=alert_status
     :target: https://sonarcloud.io/dashboard/index/callahantiff_pkt_kg
@@ -360,8 +363,8 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
     :target: https://pepy.tech/badge/pkt_kg
     :alt: Pypi total project downloads
 
-.. |codacy| image:: https://api.codacy.com/project/badge/Grade/2cfa4ef5f9b6498da56afea0f5dadeed
-    :target: https://www.codacy.com/manual/callahantiff/PheKnowLator?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=callahantiff/PheKnowLator&amp;utm_campaign=Badge_Grade
+.. |codacy| image:: https://app.codacy.com/project/badge/Grade/2cfa4ef5f9b6498da56afea0f5dadeed
+    :target: https://www.codacy.com/gh/callahantiff/PheKnowLator/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=callahantiff/PheKnowLator&amp;utm_campaign=Badge_Grade
     :alt: Codacy Maintainability
 
 .. |code_climate_maintainability| image:: https://api.codeclimate.com/v1/badges/29b7199d02f90c80130d/maintainability
