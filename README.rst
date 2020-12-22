@@ -9,21 +9,36 @@ pkt_kg
 .. |pip| |downloads|
 
 
-PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is a fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale, biomedical knowledge graphs from complex heterogeneous data. Detailed information regarding this project can be found on the project `Wiki`_.
+What is PheKnowLator?
+########
 
-**This is a Reproducible Research Repository:** For detailed information on how we use GitHub as a reproducible research platform, click `here`_.
+PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is the first fully customizable KG construction framework enabling users to build complex knowledge graphs that are Semantic Web compliant and amenable to automatic OWL reasoning, conform to contemporary property graph standards, and are importable by today’s popular graph toolkits. PheKnowLator provides this functionality by offering multiple build types, can automatically include inverse edges, creates OWL-decoded KGs to support automated deductive reasoning, and outputs knowledge graphs in several formats. By providing flexibility in the way relations are modeled and facilitates the creation of property graphs, PheKnowLator enables the use of cutting edge graph-based learning and sophisticated network inference algorithms.
+
+What Does This Repository Provide?
+**********************
+
+Through this repository we provide the following:
+
+1. **A Knowledge Graph Sharing Hub:** This repository provides prebuilt knowledge graphs and associated metadata. Specifically, you can download each knowledge graph as a triple edge lists (``.nt``, ``.txt``), OWL API-formatted ``RDF/XML`` and NetworkX graph-pickled MultiDiGraphs. For each knowledge graph, we also make text files available that contain node and relation metadata. Finally, starting with build `V2.0.0 <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__, we make available different types of graph embeddings.
+
+
+2. **A Knowledge Graph Building Framework:** A fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. The PheKnowLator framework provides detailed Jupyter Notebooks and scripts which greatly simplify knowledge graph construction, assisting even non-technical users through all steps of the build process.
 
 |
+
+How do I Learn More?
+**********************
+
+Please see the Project `Wiki`_ for more details on available knowledge graphs, the knowledge graph construction process, algorithm, and information on the data sources used to build each knowledge graph.
 
 **Prelimary Results presented at the 2020 annual International Conference on Intelligent Systems for Molecular Biology (ISMB) are available:**
 
 Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. A Framework for Automated Construction of Heterogeneous Large-Scale Biomedical Knowledge Graphs. 2020; BioRxiv `DOI: https://doi.org/10.1101/2020.04.30.071407 <https://doi.org/10.1101/2020.04.30.071407>`__
-
     
 |
 
 Releases
-----------------------------------------------
+########
 
 All code and output for each release are free to download, see `Wiki <https://github.com/callahantiff/PheKnowLator/wiki>`__ for full release archive.
 
@@ -46,9 +61,12 @@ Important Updates and Notifications
 |
 
 Getting Started
-----------------------------------------------
+########
 
-**Install Library**   
+Install Library
+**********************
+
+*NOT YET AVAILABLE - COMING SOON!!*
 
 This program requires Python version 3.6. To install the library from PyPI, run:
 
@@ -67,7 +85,8 @@ You can also clone the repository directly from GitHub by running:
 |
 |
 
-**Set-Up Environment**     
+Set-Up Environment
+**********************
 
 The ``pkt_kg`` library requires a specific project directory structure.  
 
@@ -97,7 +116,8 @@ The ``pkt_kg`` library requires a specific project directory structure.
 |
 |
 
-**Create Input Dependencies**   
+Dependencies   
+^^^^^^^^^^^^
 
 Several input documents must be created before the ``pkt_kg`` library can be utilized. Each of the input documents are listed below by knowledge graph build step:  
 
@@ -136,7 +156,8 @@ The `KG Construction`_ Wiki page provides a detailed description of the knowledg
 |
 |
       
-**Running the pkt Library**
+Running the pkt Library
+**********************
 
 There are several ways to run ``pkt_kg``. An example workflow is provided below.
 
@@ -280,21 +301,21 @@ In order to enable persistent data, a volume is mounted within the ``Dockerfile`
 |
 
 Contributing
-------------
+########
 
 Please read `CONTRIBUTING.md`_ for details on our code of conduct, and the process for submitting pull requests to us.
 
 |
 
 License
---------------
+########
 
 This project is licensed under Apache License 2.0 - see the `LICENSE.md`_ file for details.
 
 |
 
 Citing this Work
---------------
+########
 
 ..
 
