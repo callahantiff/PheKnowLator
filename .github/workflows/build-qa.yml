@@ -21,7 +21,7 @@ jobs:
           pip install --upgrade pip
           pip install -e .[test]
           pip install -r requirements.txt
-          pip install -r dev-requirements.txt
+          pip install -r dev_requirements.txt
 
       - name: Prepare Environment
         run: |
