@@ -1,40 +1,36 @@
 pkt_kg
 =========================================================================================
 
-|github_action|
-
-|sonar_quality| |sonar_maintainability| |codacy|  |coveralls| |code_climate_coverage|
+|travis| |sonar_quality| |sonar_maintainability| |codacy|  |coveralls| |sonar_coverage|
 |ABRA| 
 
 .. |pip| |downloads|
 
 
 What is PheKnowLator?
-########
+######################
 
-PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is the first fully customizable KG construction framework enabling users to build complex knowledge graphs that are Semantic Web compliant and amenable to automatic OWL reasoning, conform to contemporary property graph standards, and are importable by today’s popular graph toolkits. PheKnowLator provides this functionality by offering multiple build types, can automatically include inverse edges, creates OWL-decoded KGs to support automated deductive reasoning, and outputs knowledge graphs in several formats. By providing flexibility in the way relations are modeled and facilitates the creation of property graphs, PheKnowLator enables the use of cutting edge graph-based learning and sophisticated network inference algorithms.
+PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is the first fully customizable KG construction framework enabling users to build complex knowledge graphs that are Semantic Web compliant and amenable to automatic Web Ontology Language (OWL) reasoning, conform to contemporary property graph standards, and are importable by today’s popular graph toolkits. PheKnowLator offers multiple build types, can automatically include inverse edges, provides OWL-decoded transformations to support automated deductive reasoning, and outputs knowledge graphs in several formats. By providing flexibility in the way knowledge graphs are modeled, PheKnowLator enables the use of cutting edge graph-based learning and sophisticated network inference algorithms.
 
 What Does This Repository Provide?
-**********************
+**********************************
 
 Through this repository we provide the following:
 
-1. **A Knowledge Graph Sharing Hub:** This repository provides prebuilt knowledge graphs and associated metadata. Specifically, you can download each knowledge graph as a triple edge lists (``.nt``, ``.txt``), OWL API-formatted ``RDF/XML`` and NetworkX graph-pickled MultiDiGraphs. For each knowledge graph, we also make text files available that contain node and relation metadata. Finally, starting with build `V2.0.0 <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__, we make available different types of graph embeddings.
+1. **A Knowledge Graph Sharing Hub:** Prebuilt knowledge graphs and associated metadata. Each knowledge graph is provided as triple edge lists (``.nt``, ``.txt``), OWL API-formatted ``RDF/XML`` and NetworkX graph-pickled MultiDiGraphs. We also make text files available that contain node and relation metadata. Finally, starting with build `V2.0.0 <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__, we make available different types of graph embeddings for each knowledge graph build.
 
 
-2. **A Knowledge Graph Building Framework:** A fully automated Python 3 library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. The PheKnowLator framework provides detailed Jupyter Notebooks and scripts which greatly simplify knowledge graph construction, assisting even non-technical users through all steps of the build process.
+2. **A Knowledge Graph Building Framework:** A fully automated ``Python 3`` library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. The PheKnowLator framework provides detailed Jupyter Notebooks and scripts which greatly simplify knowledge graph construction, assisting even non-technical users through all steps of the build process.
 
-|
 
 How do I Learn More?
 **********************
 
 Please see the Project `Wiki`_ for more details on available knowledge graphs, the knowledge graph construction process, algorithm, and information on the data sources used to build each knowledge graph.
 
-**Prelimary Results presented at the 2020 annual International Conference on Intelligent Systems for Molecular Biology (ISMB) are available:**
-
+**Prelimary Results are Available:**
 Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. A Framework for Automated Construction of Heterogeneous Large-Scale Biomedical Knowledge Graphs. 2020; BioRxiv `DOI: https://doi.org/10.1101/2020.04.30.071407 <https://doi.org/10.1101/2020.04.30.071407>`__
-    
+
 |
 
 Releases
@@ -52,21 +48,18 @@ All code and output for each release are free to download, see `Wiki <https://gi
 
 |
 
-Important Updates and Notifications  
-----------------------------------------------
+Important Updates and Notifications
+***********************************
 
-- *10/01/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!  
-- *11/16/2020:* Have been alerted about minor issues with ``Data_Preparation.ipynb`` and ``Ontology_Cleaning.ipynb`` notebooks. We will be re-working some of the content in these notebooks to depend less on the source data providers. Look for new versions with the ``v2.0.0`` release content. Thanks for your patience!
+- *12/21/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!  
 
 |
 
 Getting Started
-########
+###############
 
 Install Library
-**********************
-
-*NOT YET AVAILABLE - COMING SOON!!*
+****************
 
 This program requires Python version 3.6. To install the library from PyPI, run:
 
@@ -116,7 +109,7 @@ The ``pkt_kg`` library requires a specific project directory structure.
 |
 |
 
-Dependencies   
+Dependencies
 ^^^^^^^^^^^^
 
 Several input documents must be created before the ``pkt_kg`` library can be utilized. Each of the input documents are listed below by knowledge graph build step:  
@@ -331,7 +324,7 @@ Citing this Work
 |
 
 Contact
---------------
+########
 
 We’d love to hear from you! To get in touch with us, please `create an issue`_ or `send us an email`_ 💌
 
@@ -339,9 +332,9 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory   
 
-.. |github_action| image:: https://github.com/callahantiff/PheKnowLator/workflows/Rosey%20the%20Robot/badge.svg
-   :target: https://github.com/callahantiff/PheKnowLator/actions?query=workflow%3A%22Rosey+the+Robot%22
-   :alt: GitHub Action CI-Workflow
+.. |travis| image:: https://travis-ci.com/callahantiff/PheKnowLator.png
+   :target: https://travis-ci.com/callahantiff/PheKnowLator
+   :alt: Travis CI build
 
 .. |sonar_quality| image:: https://sonarcloud.io/api/project_badges/measure?project=callahantiff_pkt_kg&metric=alert_status
     :target: https://sonarcloud.io/dashboard/index/callahantiff_pkt_kg
@@ -367,16 +360,16 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
     :target: https://pepy.tech/badge/pkt_kg
     :alt: Pypi total project downloads
 
-.. |codacy| image:: https://app.codacy.com/project/badge/Grade/2cfa4ef5f9b6498da56afea0f5dadeed
+.. |codacy| image:: https://api.codacy.com/project/badge/Grade/2cfa4ef5f9b6498da56afea0f5dadeed
     :target: https://www.codacy.com/manual/callahantiff/PheKnowLator?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=callahantiff/PheKnowLator&amp;utm_campaign=Badge_Grade
     :alt: Codacy Maintainability
 
-.. |code_climate_maintainability| image:: https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability
+.. |code_climate_maintainability| image:: https://api.codeclimate.com/v1/badges/29b7199d02f90c80130d/maintainability
     :target: https://codeclimate.com/github/callahantiff/PheKnowLator/maintainability
     :alt: Maintainability
 
-.. |code_climate_coverage| image:: https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/test_coverage
-    :target: https://codeclimate.com/github/codeclimate/codeclimate/test_coverage
+.. |code_climate_coverage| image:: https://api.codeclimate.com/v1/badges/29b7199d02f90c80130d/test_coverage
+    :target: https://codeclimate.com/github/callahantiff/PheKnowLator/test_coverage
     :alt: Code Climate Coverage
     
 .. _Wiki: https://github.com/callahantiff/PheKnowLater/wiki
