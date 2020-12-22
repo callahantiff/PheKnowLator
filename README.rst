@@ -1,6 +1,10 @@
 pkt_kg
 =========================================================================================
 
+.. image:: https://api.codacy.com/project/badge/Grade/e06f0f13736e49c588244075122c8b94
+   :alt: Codacy Badge
+   :target: https://app.codacy.com/gh/callahantiff/PheKnowLator?utm_source=github.com&utm_medium=referral&utm_content=callahantiff/PheKnowLator&utm_campaign=Badge_Grade
+
 |travis| |sonar_quality| |sonar_maintainability| |codacy|  |coveralls| |sonar_coverage|
 |ABRA| 
 
