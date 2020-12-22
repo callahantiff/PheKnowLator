@@ -1,0 +1,64 @@
+# WorkFlow Do: install Python dependencies, run tests, linter, and return code coverage
+name: Rosey the Robot
+on: [push, pull_request]
+jobs:
+
+  build:
+    name: Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Install Requirements and Dependencies
+        run: |
+          pip install --upgrade pip setuptools
+          pip install -e .[test]
+
+      - name: Prepare Environment
+        run: |
+          rm -rf .coverage
+          coverage erase
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+
+      - name: Run Tests and Generate Coverage Results
+        run: |
+          pytest --cov=pkt_kg --cov-report xml:coverage.xml
+          coverage report
+          coverage xml
+          python-codacy-coverage -r coverage.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+
+      - name: Linting with Mypy
+        run: mypy --strict-optional pkt_kg
+
+      - name: Sonar Cloud Scanner
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Codacy
+        uses: codacy/codacy-coverage-reporter-action@master
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
+
+      - name: Code Climate
+        uses: paambaati/codeclimate-action@v2.7.5
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
+      - name: Coveralls
+        run: coveralls
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
