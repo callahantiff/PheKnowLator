@@ -78,6 +78,6 @@ setup(
                       'requests==2.22.0',
                       'responses==0.10.12',
                       'tqdm==4.47.0',
-                      'urllib3==1.26.2'],
+                      'urllib3<1.26'],
     extras_require=extras,
 )
