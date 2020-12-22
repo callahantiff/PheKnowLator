@@ -29,17 +29,12 @@ def find_version(*file_paths):
 __version__ = find_version('pkt_kg', '__version__.py')
 
 test_deps = [
-    # 'codacy-coverage',
-    # 'coveralls',
-    # 'nose',
-    # 'nose-cov',
-    # 'validate_version_code',
-    # 'pylint'
-    "pytest",
-    "pytest-cov",
-    "coveralls",
-    "validate_version_code",
-    "codacy-coverage"
+    'codacy-coverage',
+    'coveralls',
+    'mypy',
+    'pytest',
+    'pytest-cov',
+    'validate_version_code'
 ]
 
 extras = {
@@ -75,15 +70,14 @@ setup(
     # Add here the package dependencies
     install_requires=['argparse>=1.4.0',
                       'Cython==0.29.14',
-                      'networkx',
-                      'nose',
+                      'networkx==2.4',
                       'numpy==1.18.1',
-                      'pandas>=0.25.3',
-                      'rdflib>=4.2.2',
+                      'pandas==1.0.5',
+                      'rdflib==4.2.2',
                       'reactome2py>=0.0.8',
-                      'requests',
-                      'responses',
-                      'tqdm',
-                      'urllib3'],
+                      'requests==2.22.0',
+                      'responses==0.10.12',
+                      'tqdm==4.47.0',
+                      'urllib3==1.26.2'],
     extras_require=extras,
 )
