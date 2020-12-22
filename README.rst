@@ -346,16 +346,16 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
     :target: https://pepy.tech/badge/pkt_kg
     :alt: Pypi total project downloads
 
-.. |codacy| image:: https://api.codacy.com/project/badge/Grade/2cfa4ef5f9b6498da56afea0f5dadeed
+.. |codacy| image:: https://app.codacy.com/project/badge/Grade/2cfa4ef5f9b6498da56afea0f5dadeed
     :target: https://www.codacy.com/manual/callahantiff/PheKnowLator?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=callahantiff/PheKnowLator&amp;utm_campaign=Badge_Grade
     :alt: Codacy Maintainability
 
-.. |code_climate_maintainability| image:: https://api.codeclimate.com/v1/badges/29b7199d02f90c80130d/maintainability
+.. |code_climate_maintainability| image:: https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability
     :target: https://codeclimate.com/github/callahantiff/PheKnowLator/maintainability
     :alt: Maintainability
 
-.. |code_climate_coverage| image:: https://api.codeclimate.com/v1/badges/29b7199d02f90c80130d/test_coverage
-    :target: https://codeclimate.com/github/callahantiff/PheKnowLator/test_coverage
+.. |code_climate_coverage| image:: https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/test_coverage
+    :target: https://codeclimate.com/github/codeclimate/codeclimate/test_coverage
     :alt: Code Climate Coverage
     
 .. _Wiki: https://github.com/callahantiff/PheKnowLater/wiki
