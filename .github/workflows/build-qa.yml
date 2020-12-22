@@ -18,10 +18,8 @@ jobs:
 
       - name: Install Requirements and Dependencies
         run: |
-          pip install --upgrade pip
+          pip install --upgrade pip setuptools
           pip install -e .[test]
-          pip install -r requirements.txt
-          pip install -r dev_requirements.txt
 
       - name: Prepare Environment
         run: |
