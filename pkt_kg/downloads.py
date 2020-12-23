@@ -17,21 +17,19 @@ from typing import Dict, List, Optional, TextIO, Tuple
 
 from pkt_kg.utils import gets_ontology_statistics, data_downloader
 
-# disable warnings
+# HANDLE ENVIRONMENT WARNINGS
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# TODO: (2) need to validate user input data to make sure that it matches the template that the program expects.
+# TODO: need to validate user input data to make sure that it matches the template that the program expects.
 
 
 class DataSource(object):
     """The class takes an input string that contains the file path/name of a text file listing different data sources.
     Each source is shown as a URL.
-
-    The class initiates the downloading of different data sources and generates a metadata file that contains
-    important information on each of the files that is downloaded.
-
-    The class has two subclasses which inherit its methods. Each subclass contains an altered version of the primary
-    classes methods that are specialized for that specific data type.
+        - The class initiates the downloading of different data sources and generates a metadata file that contains
+          important information on each of the files that is downloaded.
+        - The class has two subclasses which inherit its methods. Each subclass contains an altered version of the
+           primary classes methods that are specialized for that specific data type.
 
     Attributes:
         data_path: A string file path/name to a text file storing URLs of different sources to download.
@@ -51,8 +49,8 @@ class DataSource(object):
 
         # DATA SOURCE FILE
         if not isinstance(data_path, str): raise TypeError('data_path must be type str.')
-        elif not os.path.exists(data_path): raise OSError('The {} file does not exist!'.format(data_path))
-        elif os.stat(data_path).st_size == 0: raise TypeError('Input file: {} is empty'.format(data_path))
+        elif not os.path.exists(data_path): raise OSError('{} does not exist!'.format(data_path))
+        elif os.stat(data_path).st_size == 0: raise TypeError('Input: {} is empty'.format(data_path))
         else:
             self.data_path: str = data_path
             self.data_type: str = data_path.split('/')[-1].split('.')[0]
@@ -60,12 +58,9 @@ class DataSource(object):
         # RESOURCE INFO FILE
         resource_data_search = glob.glob('**/*resource**info*.txt', recursive=True)[0]
         self.resource_data: Optional[str] = resource_data_search if None else resource_data
-        if not isinstance(self.resource_data, str):
-            raise TypeError('resource_data must be type str.')
-        elif not os.path.exists(self.resource_data):
-            raise OSError('The {} file does not exist!'.format(self.resource_data))
-        elif os.stat(self.resource_data).st_size == 0:
-            raise TypeError('Input file: {} is empty'.format(self.resource_data))
+        if not isinstance(self.resource_data, str): raise TypeError('resource_data must be type str.')
+        elif not os.path.exists(self.resource_data): raise OSError('{} does not exist!'.format(self.resource_data))
+        elif os.stat(self.resource_data).st_size == 0: raise TypeError('Input: {} is empty'.format(self.resource_data))
         else:
             resource_data_file: TextIO = open(self.resource_data)
             self.resource_info: List = resource_data_file.read().splitlines()
@@ -108,8 +103,8 @@ class DataSource(object):
 
     @staticmethod
     def extracts_edge_metadata(edge) -> Tuple[str, str, str]:
-        """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are
-        a list containing mapping and filtering information.
+        """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are a
+        list containing mapping and filtering information.
 
         Args:
             edge: A pipe-delimited string containing information about the edge. For example,
@@ -123,18 +118,15 @@ class DataSource(object):
                 (e.g. col_idx:2 - col_val=='reviewed', col_idx:4 - col_val in [9606, 1026]).
         """
 
-        # get identifier mapping information
         mapping = ['{} ({})'.format(edge.split('|')[0].split('-')[int(x.split(':')[0])], ''.join(x.split(':')[1]))
                    if x != 'None'
                    else 'None'
                    for x in edge.split('|')[-3].strip('\n').split(';')]
-        # get filtering information
         filtering = ['None' if x == 'None'
                      else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
                      if ('in' in x.split(';')[1] and x != 'None')
                      else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
                      for x in edge.split('|')[-1].strip('\n').split('::')]
-        # get evidence criteria
         evidence = ['None' if x == 'None'
                     else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
                     if ('in' in x.split(';')[1] and x != 'None')
@@ -150,23 +142,14 @@ class DataSource(object):
             None
         """
 
-        # open file to write to and specify output location
         write_loc_part1 = str('/'.join(list(self.data_files.values())[0].split('/')[:-1]) + '/')
         write_loc_part2 = str('_'.join(self.data_type.split('_')[:-1]))
         outfile = open(write_loc_part1 + write_loc_part2 + '_metadata.txt', 'w')
         outfile.write('=' * 35 + '\n{}'.format(self.metadata[0][0]) + '=' * 35 + '\n\n')
-
         for i in tqdm(range(1, len(self.data_files.keys()) + 1)):
-            outfile.write(str(self.metadata[i][0]) + '\n')
-            outfile.write(str(self.metadata[i][1]) + '\n')
-            outfile.write(str(self.metadata[i][2]) + '\n')
-            outfile.write(str(self.metadata[i][3]) + '\n')
-            outfile.write(str(self.metadata[i][4]) + '\n')
-            outfile.write(str(self.metadata[i][5]) + '\n')
-            outfile.write(str(self.metadata[i][6]) + '\n')
-            outfile.write(str(self.metadata[i][7]) + '\n')
+            for j in range(8):
+                outfile.write(str(self.metadata[i][j]) + '\n')
             outfile.write('\n')
-
         outfile.close()
 
         return None
@@ -203,12 +186,9 @@ class DataSource(object):
             source = self.data_files[i]
             if '-' in source:
                 resource_info = self.extracts_edge_metadata([x for x in self.resource_info if x.startswith(i)][0])
-                map_info = resource_info[0]
-                filter_info = resource_info[1]
-                evidence_info = resource_info[2]
+                map_info, filter_info, evidence_info = resource_info[0], resource_info[1], resource_info[2]
             else:
                 map_info, filter_info, evidence_info = 'None', 'None', 'None'
-            # add metadata for each source as nested list
             source_metadata = ['EDGE: {}'.format(i),
                                'DATA PROCESSING INFO\n  - IDENTIFIER MAPPING = {}'.format(map_info),
                                '  - FILTERING CRITERIA = {}'.format(filter_info),
@@ -218,7 +198,7 @@ class DataSource(object):
                                '  - FILE_SIZE_IN_BYTES = {}'.format(str(os.stat(self.data_files[i]).st_size)),
                                '  - DOWNLOADED_FILE_LOCATION = {}'.format(str(source))]
             self.metadata.append(source_metadata)
-        self._writes_source_metadata_locally()  # write metadata
+        self._writes_source_metadata_locally()
 
         return None
 

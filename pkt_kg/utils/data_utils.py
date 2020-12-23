@@ -46,11 +46,10 @@ from typing import Dict, Generator, List, Optional, Union
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-# ENVIRONMENT WARNINGS
+# HANDLE ENVIRONMENT WARNINGS
 # WARNING 1 - Pandas: disable chained assignment warning rationale:
 # https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
 pd.options.mode.chained_assignment = None
-
 # WARNING 2 - urllib3: disable insecure request warning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -72,9 +71,8 @@ def url_download(url: str, write_location: str, filename: str) -> None:
 
     print('Downloading Data from {}'.format(url))
     r = requests.get(url, allow_redirects=True, verify=False)
-
     if r.ok is False:
-        raise requests.HTTPError('{status}: Could not downloaded data from {url}'.format(status=r.status_code, url=url))
+        raise requests.HTTPError('{}: Data not downloaded from {}'.format(r.status_code, url))
     else:
         data = None
         if 'Content-Length' in r.headers:
@@ -82,10 +80,7 @@ def url_download(url: str, write_location: str, filename: str) -> None:
                 r = requests.get(url, allow_redirects=True, verify=False)
             data = r.content
         else:
-            if len(r.content) > 10:
-                data = r.content
-
-        # download and save data
+            if len(r.content) > 10: data = r.content
         if data:
             with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
                 outfile.write(data)
@@ -134,25 +129,18 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> No
     file = url.replace('ftp://', '').split('/')[-1]
     write_loc = write_location + '{filename}'.format(filename=file)
 
-    # download ftp gzipped file
     print('Downloading Gzipped data from FTP Server: {}'.format(url))
     with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
         ftp.login()
         ftp.cwd(directory)
         ftp.retrbinary('RETR {}'.format(file), fid.write)
-
-    # read in gzipped file,uncompress, and write to directory
     print('Decompressing and Writing Gzipped Data to File')
     with gzip.open(write_loc, 'rb') as fid_in:
         with open(write_loc.replace('.gz', ''), 'wb') as file_loc:
             file_loc.write(fid_in.read())
-
     # change filename and remove gzipped and original files
-    if filename != '':
-        os.rename(re.sub('.gz|.zip', '', write_loc), write_location + filename)
-
-    # remove compressed file
-    os.remove(write_loc)
+    if filename != '': os.rename(re.sub('.gz|.zip', '', write_loc), write_location + filename)
+    os.remove(write_loc)  # remove compressed file
 
     return None
 
@@ -174,16 +162,13 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
 
     print('Downloading Zipped Data from {}'.format(url))
     r = requests.get(url, allow_redirects=True)
-
     if r.ok is False:
-        raise requests.HTTPError('{status}: Could not downloaded data from {url}'.format(status=r.status_code, url=url))
+        raise requests.HTTPError('{}: Data not downloaded from {}'.format(r.status_code, url))
     else:
         with r as zip_data:
             with ZipFile(BytesIO(zip_data.content)) as zip_file:
                 zip_file.extractall(write_location[:-1])
         zip_data.close()
-
-        # change filename
         if filename != '':
             os.rename(write_location + re.sub('.gz|.zip', '', url.split('/')[-1]), write_location + filename)
 
@@ -207,9 +192,8 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
 
     print('Downloading Gzipped Data from {}'.format(url))
     r = requests.get(url, allow_redirects=True, verify=False)
-
     if r.ok is False:
-        raise requests.HTTPError('{status}: Could not downloaded data from {url}'.format(status=r.status_code, url=url))
+        raise requests.HTTPError('{}: Data not downloaded from {}'.format(r.status_code, url))
     else:
         with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
             outfile.write(gzip.decompress(r.content))
@@ -230,21 +214,14 @@ def data_downloader(url: str, write_location: str, filename: str = '') -> None:
         None.
     """
 
-    # get filename from url
     file = re.sub('.gz|.zip', '', filename) if filename != '' else re.sub('.gz|.zip', '', url.split('/')[-1])
-
-    if '.zip' in url:
-        zipped_url_download(url, write_location, file)
+    if '.zip' in url: zipped_url_download(url, write_location, file)
     elif '.gz' in url or '.gz' in filename:
-        if 'ftp' in url:
-            gzipped_ftp_url_download(url, write_location, file)
-        else:
-            gzipped_url_download(url, write_location, file)
+        if 'ftp' in url: gzipped_ftp_url_download(url, write_location, file)
+        else: gzipped_url_download(url, write_location, file)
     else:
-        if 'ftp' in url:
-            ftp_url_download(url, write_location, file)
-        else:
-            url_download(url, write_location, file)
+        if 'ftp' in url: ftp_url_download(url, write_location, file)
+        else: url_download(url, write_location, file)
 
     return None
 
@@ -278,26 +255,16 @@ def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str
         A pandas.DataFrame that contains the metadata results.
     """
 
-    # data to gather
     ids, labels, desc, synonyms = [], [], [], []
-
-    # map nodes
     for x in nodes:
         if x in metadata_dictionaries.keys():
             ids.append(str(x))
-
-            # get labels
-            if 'Label' in metadata_dictionaries[x].keys():
-                labels.append(metadata_dictionaries[x]['Label'])
-            else:
-                labels.append('None')
-
+            # get label information
+            if 'Label' in metadata_dictionaries[x].keys(): labels.append(metadata_dictionaries[x]['Label'])
+            else: labels.append('None')
             # get descriptions
-            if 'Description' in metadata_dictionaries[x].keys():
-                desc.append(metadata_dictionaries[x]['Description'])
-            else:
-                desc.append('None')
-
+            if 'Description' in metadata_dictionaries[x].keys(): desc.append(metadata_dictionaries[x]['Description'])
+            else: desc.append('None')
             # get synonyms
             if 'Synonym' in metadata_dictionaries[x].keys():
                 if metadata_dictionaries[x]['Synonym'].endswith('|'):
@@ -310,8 +277,6 @@ def metadata_dictionary_mapper(nodes: List[str], metadata_dictionaries: Dict[str
     # combine into new data frame
     node_metadata_final = pd.DataFrame(list(zip(ids, labels, desc, synonyms)),
                                        columns=['ID', 'Label', 'Description', 'Synonym'])
-
-    # make all variables string
     node_metadata_final = node_metadata_final.astype(str)
 
     return node_metadata_final
@@ -327,28 +292,19 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
         A pandas.DataFrame of metadata results.
     """
 
-    # data to gather
     ids, labels, desc, synonyms = [], [], [], []
-
-    # get data from reactome API
     for request_ids in list(chunks(nodes, 20)):
         results = content.query_ids(ids=','.join(request_ids))
-
         for row in results:
             ids.append(row['stId'])
             labels.append(row['displayName'])
             desc.append('None')
-
-            if row['displayName'] != row['name']:
-                synonyms.append('|'.join(row['name']))
-            else:
-                synonyms.append('None')
+            if row['displayName'] != row['name']: synonyms.append('|'.join(row['name']))
+            else: synonyms.append('None')
 
     # combine into new data frame
     node_metadata_final = pd.DataFrame(list(zip(ids, labels, desc, synonyms)),
                                        columns=['ID', 'Label', 'Description', 'Synonym'])
-
-    # make all variables string
     node_metadata_final = node_metadata_final.astype(str)
 
     return node_metadata_final
@@ -382,34 +338,20 @@ def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: s
         idx_cols = df.columns.difference(lst)  # all columns except `lst_cols`
         lens = df[lst[0]].str.len()  # calculate lengths of lists
         idx = np.repeat(df.index.values, lens)  # preserve original index values
-
-        # create "exploded" DF
-        res = (pd.DataFrame({
-            col: np.repeat(df[col].values, lens)
-            for col in idx_cols},
-            index=idx).assign(**{col: np.concatenate(df.loc[lens > 0, col].values)
-                                 for col in lst}))
-
+        # create 'exploded' df
+        res = (pd.DataFrame({col: np.repeat(df[col].values, lens) for col in idx_cols},
+                            index=idx).assign(**{col: np.concatenate(df.loc[lens > 0, col].values) for col in lst}))
         # append those rows that have empty lists
-        if (lens == 0).any():
-            # at least one list in cells is empty
-            res = (res.append(df.loc[lens == 0, idx_cols], sort=False).fillna(fill_value))
-
-        # revert the original index order
-        res = res.sort_index()
-
-        # reset index if requested
-        if not preserve_idx:
-            res = res.reset_index(drop=True)
-
-        # return columns in original order
-        res = res[list(df)]
+        if (lens == 0).any(): res = (res.append(df.loc[lens == 0, idx_cols], sort=False).fillna(fill_value))
+        res = res.sort_index()  # revert the original index order
+        if not preserve_idx: res = res.reset_index(drop=True)  # reset index if requested
+        res = res[list(df)]  # return columns in original order
 
         return explodes_data(res, lst_cols, splitter)
 
 
-def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, genomic2: str,
-                      genomic_type: str = None, save_prefix1: bool = False, save_prefix2: bool = False) -> None:
+def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, genomic2: str, genomic_type: str = None,
+                      prefix1: bool = False, prefix2: bool = False) -> None:
     """Searches a dictionary of genomic identifier mappings and processes them, writing out
 
     Args:
@@ -421,9 +363,9 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
         genomic2: A string indicating a genomic identifier type (i.e. transcript_stable_id, ensembl_gene_id,
             entrez_id, hgnc_id, symbol).
         genomic_type: A string indicating whether or not to save the gene or transcript type.
-        save_prefix1: A flag indicating whether or not genomic identifier 1's prefix should be saved or removed from the
+        prefix1: A flag indicating whether or not genomic identifier 1's prefix should be saved or removed from the
             dictionary string value.
-        save_prefix2: A flag indicating whether or not genomic identifier 2's prefix should be saved or removed from the
+        prefix2: A flag indicating whether or not genomic identifier 2's prefix should be saved or removed from the
             dictionary string value.
 
     Return:
@@ -434,32 +376,20 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
         for key in tqdm(id_dict.keys()):
             id_data = id_dict[key]
             g_type = [x.split('_')[-1] for x in id_data if x.startswith(genomic_type)][0] if genomic_type else 'None'
-
             for res in id_data:
                 if genomic1 in key and res.startswith(genomic2):
-                    if save_prefix1 and save_prefix2:
-                        res1, res2 = '_'.join(key.split('_')[-2:]), '_'.join(res.split('_')[-2:])
-                    elif not save_prefix1 and save_prefix2:
-                        res1, res2 = key.split('_')[-1], '_'.join(res.split('_')[-2:])
-                    elif save_prefix1 and not save_prefix2:
-                        res1, res2 = '_'.join(key.split('_')[-2:]), res.split('_')[-1]
-                    else:
-                        res1, res2 = key.split('_')[-1], res.split('_')[-1]
+                    if prefix1 and prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), '_'.join(res.split('_')[-2:])
+                    elif not prefix1 and prefix2: res1, res2 = key.split('_')[-1], '_'.join(res.split('_')[-2:])
+                    elif prefix1 and not prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), res.split('_')[-1]
+                    else: res1, res2 = key.split('_')[-1], res.split('_')[-1]
                 elif genomic2 in key and res.startswith(genomic1):
-                    if save_prefix1 and save_prefix2:
-                        res1, res2 = '_'.join(res.split('_')[-2:]), '_'.join(key.split('_')[-2:])
-                    elif not save_prefix1 and save_prefix2:
-                        res1, res2 = res.split('_')[-1], '_'.join(key.split('_')[-2:])
-                    elif save_prefix1 and not save_prefix2:
-                        res1, res2 = '_'.join(res.split('_')[-2:]), key.split('_')[-1]
-                    else:
-                        res1, res2 = res.split('_')[-1], key.split('_')[-1]
-                else:
-                    continue
-
+                    if prefix1 and prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), '_'.join(key.split('_')[-2:])
+                    elif not prefix1 and prefix2: res1, res2 = res.split('_')[-1], '_'.join(key.split('_')[-2:])
+                    elif prefix1 and not prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), key.split('_')[-1]
+                    else: res1, res2 = res.split('_')[-1], key.split('_')[-1]
+                else: continue
                 if 'none' not in res1.lower() and 'none' not in res2.lower():
                     outfile.write(res1 + '\t' + res2 + '\t' + g_type + '\n')
-
     outfile.close()
 
     return None
@@ -479,7 +409,6 @@ def outputs_dictionary_data(dict_object: Optional[Dict], filename: str) -> None:
     if dict_object:
         with open(filename, 'w') as file_name:
             json.dump(dict_object, file_name)
-
         file_name.close()
 
     return None

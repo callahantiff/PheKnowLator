@@ -18,9 +18,9 @@ def main():
                                                   'the following arguments:'))
     parser.add_argument('-g', '--onts', help='name/path to text file containing ontologies', required=True)
     parser.add_argument('-e', '--edg', help='name/path to text file containing edge sources', required=True)
-    parser.add_argument('-a', '--app', help='construction approach to use (i.e. instance or subclass', required=True)
+    parser.add_argument('-a', '--app', help='construction approach to use (i.e. instance or subclass)', required=True)
     parser.add_argument('-t', '--res', help='name/path to text file containing resource_info', required=True)
-    parser.add_argument('-b', '--kg', help='the build, can be "partial", "full", or "post-closure"', required=True)
+    parser.add_argument('-b', '--kg', help='build type: "partial", "full", or "post-closure"', required=True)
     parser.add_argument('-o', '--out', help='name/path to directory where to write knowledge graph', required=True)
     parser.add_argument('-n', '--nde', help='yes/no - adding node metadata to knowledge graph', required=True)
     parser.add_argument('-r', '--rel', help='yes/no - adding inverse relations to knowledge graph', required=True)
@@ -34,32 +34,27 @@ def main():
     ######################
 
     # STEP 1: CREATE INPUT DOCUMENTS
-    # NOTE: please https://github.com/callahantiff/PheKnowLator/wiki/Dependencies page for details on how to prepare
-    # input data files
+    # see https://github.com/callahantiff/PheKnowLator/wiki/Dependencies page for how to prepare input data files
 
-    # STEP 2: PREPROCESS DATA
-    # see the 'Data_Preparation.ipynb' file for instructions
+    # STEP 2: DOWNLOAD AND PREPROCESS DATA
+    # see the 'Data_Preparation.ipynb' and 'Ontology_Cleaning.ipynb' file for examples and guidelines
 
-    # STEP 3: PROCESS ONTOLOGIES
+    # STEP 3: DOWNLOAD ONTOLOGIES
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
     start = time.time()
-
     ont = OntData(data_path=args.onts, resource_data=args.res)
     # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='./resources/resource_info.txt')
     ont.downloads_data_from_url()
-
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nTOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end-start, timestamp))
 
-    # STEP 4: PROCESS EDGE DATA
+    # STEP 4: DOWNLOAD EDGE DATA SOURCES
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
     start = time.time()
-
     ent = LinkedData(data_path=args.edg, resource_data=args.res)
     # ent = LinkedData(data_path='resources/edge_source_list.txt', resource_data='./resources/resource_info.txt')
     ent.downloads_data_from_url()
-
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nTOTAL SECONDS TO DOWNLOAD NON-ONTOLOGY DATA: {} @ {}'.format(end - start, timestamp))
@@ -70,13 +65,10 @@ def main():
 
     print('\n' + '=' * 33 + '\nPROCESSING EDGE DATA\n' + '=' * 33 + '\n')
     start = time.time()
-
-    # STEP 1: create master resource dictionary
     combined_edges = dict(ent.data_files, **ont.data_files)
     # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
     master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     master_edges.creates_knowledge_graph_edges()
-
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nTOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
@@ -115,7 +107,6 @@ def main():
                        inverse_relations=args.rel,
                        decode_owl=args.owl,
                        kg_metadata_flag=args.kgm)
-
     kg.construct_knowledge_graph()
 
     end = time.time()
