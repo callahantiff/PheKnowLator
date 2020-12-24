@@ -54,6 +54,9 @@ pd.options.mode.chained_assignment = None
 # WARNING 2 - urllib3: disable insecure request warning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# set global vars
+zip_pat = '.gz|.zip'
+
 
 def url_download(url: str, write_location: str, filename: str) -> None:
     """Downloads a file from a URL.
@@ -131,7 +134,7 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> No
             file_loc.write(fid_in.read())
     # change filename and remove gzipped and original files
 
-    if filename != '': os.rename(re.sub('.gz|.zip', '', write_loc), write_location + filename)
+    if filename != '': os.rename(re.sub(zip_pat, '', write_loc), write_location + filename)
     os.remove(write_loc)  # remove compressed file
 
     return None
@@ -159,7 +162,7 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
             zip_file.extractall(write_location[:-1])
     zip_data.close()
 
-    if filename != '': os.rename(write_location + re.sub('.gz|.zip', '', url.split('/')[-1]), write_location + filename)
+    if filename != '': os.rename(write_location + re.sub(zip_pat, '', url.split('/')[-1]), write_location + filename)
 
     return None
 
@@ -200,7 +203,7 @@ def data_downloader(url: str, write_location: str, filename: str = '') -> None:
         None.
     """
 
-    file = re.sub('.gz|.zip', '', filename) if filename != '' else re.sub('.gz|.zip', '', url.split('/')[-1])
+    file = re.sub(zip_pat, '', filename) if filename != '' else re.sub(zip_pat, '', url.split('/')[-1])
     if '.zip' in url: zipped_url_download(url, write_location, file)
     elif '.gz' in url or '.gz' in filename:
         if 'ftp' in url: gzipped_ftp_url_download(url, write_location, file)
