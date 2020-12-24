@@ -233,13 +233,8 @@ class OntData(DataSource):
             raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
             with open(self.data_path, 'r') as file_name:
-                source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
-                               for row in file_name.read().splitlines()}
-            file_name.close()
-            # verify formatting of urls
-            valid_sources = [url for url in source_list.values() if 'purl.obolibrary.org/obo' in url or 'owl' in url]
-            if len(source_list) == len(valid_sources): self.source_list = source_list
-            else: raise ValueError('ERROR: Not all URLs were formatted properly')
+                self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
+                                    for row in file_name.read().splitlines()}
 
         return None
 
