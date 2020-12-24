@@ -17,45 +17,23 @@ from typing import Dict, List, Optional, TextIO, Tuple
 
 from pkt_kg.utils import gets_ontology_statistics, data_downloader
 
-# disable warnings
+# HANDLE ENVIRONMENT WARNINGS
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-
-# TODO: (2) need to validate user input data to make sure that it matches the template that the program expects.
+# TODO: need to validate user input data to make sure that it matches the template that the program expects.
 
 
 class DataSource(object):
     """The class takes an input string that contains the file path/name of a text file listing different data sources.
     Each source is shown as a URL.
-
-    The class initiates the downloading of different data sources and generates a metadata file that contains
-    important information on each of the files that is downloaded.
-
-    The class has two subclasses which inherit its methods. Each subclass contains an altered version of the primary
-    classes methods that are specialized for that specific data type.
+        - The class initiates the downloading of different data sources and generates a metadata file that contains
+          important information on each of the files that is downloaded.
+        - The class has two subclasses which inherit its methods. Each subclass contains an altered version of the
+           primary classes methods that are specialized for that specific data type.
 
     Attributes:
         data_path: A string file path/name to a text file storing URLs of different sources to download.
         resource_data: A string pointing to a data file that contains the contents of resource_info.
-        data_type: A string specifying the type of data source, which is derived from the data_path attribute (e.g.
-            the data_path of 'resources/ontology_source_list.txt' would produce 'ontology_source_list'.
-        resource_info: A list of pipe-delimited arguments for how each data source should be processed. For example:
-            ['chemical-complex|;;|class-entity|RO_0002436|n|t|0;1|None|None|None`]
-        resource_dict: An edge data dictionary where the keys are the edge type and the values are a list containing
-            mapping and filtering information (only used for "Edge Data"). For example:
-            {node1-node2: node1 - './filepath/mapping_data.txt,
-                          col_idx:8 - col_val<2.0 | col_idx:24 - col_val.startswith('REACT'),
-                          col_idx:2 - col_val=='reviewed', col_idx:4 - col_val in [9606, 1026]
-            }
-        source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
-            example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
-                            'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'
-                            }
-        data_files: A dictionary mapping each source identifier to the local location where it was downloaded. For
-            example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
-                      'phenotype': 'resources/ontologies/hp_with_imports.owl'
-                      }
-        metadata: A list that stores metadata information for each downloaded data source.
 
     Raises:
         TypeError: If the file pointed to by data_path is not type str.
@@ -69,27 +47,20 @@ class DataSource(object):
 
     def __init__(self, data_path: str, resource_data: Optional[str] = None) -> None:
 
-        # read in data source file
-        if not isinstance(data_path, str):
-            raise TypeError('data_path must be type str.')
-        elif not os.path.exists(data_path):
-            raise OSError('The {} file does not exist!'.format(data_path))
-        elif os.stat(data_path).st_size == 0:
-            raise TypeError('Input file: {} is empty'.format(data_path))
+        # DATA SOURCE FILE
+        if not isinstance(data_path, str): raise TypeError('data_path must be type str.')
+        elif not os.path.exists(data_path): raise OSError('{} does not exist!'.format(data_path))
+        elif os.stat(data_path).st_size == 0: raise TypeError('Input: {} is empty'.format(data_path))
         else:
             self.data_path: str = data_path
             self.data_type: str = data_path.split('/')[-1].split('.')[0]
 
-        # read in resource data
+        # RESOURCE INFO FILE
         resource_data_search = glob.glob('**/*resource**info*.txt', recursive=True)[0]
         self.resource_data: Optional[str] = resource_data_search if None else resource_data
-
-        if not isinstance(self.resource_data, str):
-            raise TypeError('resource_data must be type str.')
-        elif not os.path.exists(self.resource_data):
-            raise OSError('The {} file does not exist!'.format(self.resource_data))
-        elif os.stat(self.resource_data).st_size == 0:
-            raise TypeError('Input file: {} is empty'.format(self.resource_data))
+        if not isinstance(self.resource_data, str): raise TypeError('resource_data must be type str.')
+        elif not os.path.exists(self.resource_data): raise OSError('{} does not exist!'.format(self.resource_data))
+        elif os.stat(self.resource_data).st_size == 0: raise TypeError('Input: {} is empty'.format(self.resource_data))
         else:
             resource_data_file: TextIO = open(self.resource_data)
             self.resource_info: List = resource_data_file.read().splitlines()
@@ -105,11 +76,9 @@ class DataSource(object):
         input file.
 
         Returns:
-            source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
-                example below:
-                {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
-                 'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'
-                 }
+            source_list: A dictionary, where the key is the type of data and the value is the file path or url. For
+                example: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
+                          'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
 
         Raises:
             ValueError: If the file does not contain data.
@@ -124,8 +93,7 @@ class DataSource(object):
         Returns:
             data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
                 For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
-                              'phenotype': 'resources/ontologies/hp_with_imports.owl'
-                              }
+                              'phenotype': 'resources/ontologies/hp_with_imports.owl'}
 
         Raises:
             ValueError: If not all of the URLs returned valid data.
@@ -135,8 +103,8 @@ class DataSource(object):
 
     @staticmethod
     def extracts_edge_metadata(edge) -> Tuple[str, str, str]:
-        """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are
-        a list containing mapping and filtering information.
+        """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are a
+        list containing mapping and filtering information.
 
         Args:
             edge: A pipe-delimited string containing information about the edge. For example,
@@ -150,20 +118,15 @@ class DataSource(object):
                 (e.g. col_idx:2 - col_val=='reviewed', col_idx:4 - col_val in [9606, 1026]).
         """
 
-        # get identifier mapping information
         mapping = ['{} ({})'.format(edge.split('|')[0].split('-')[int(x.split(':')[0])], ''.join(x.split(':')[1]))
                    if x != 'None'
                    else 'None'
                    for x in edge.split('|')[-3].strip('\n').split(';')]
-
-        # get filtering information
         filtering = ['None' if x == 'None'
                      else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
                      if ('in' in x.split(';')[1] and x != 'None')
                      else 'data[{}]{}'.format(x.split(';')[0], ''.join(x.split(';')[1:]))
                      for x in edge.split('|')[-1].strip('\n').split('::')]
-
-        # get evidence criteria
         evidence = ['None' if x == 'None'
                     else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
                     if ('in' in x.split(';')[1] and x != 'None')
@@ -179,24 +142,14 @@ class DataSource(object):
             None
         """
 
-        # open file to write to and specify output location
         write_loc_part1 = str('/'.join(list(self.data_files.values())[0].split('/')[:-1]) + '/')
         write_loc_part2 = str('_'.join(self.data_type.split('_')[:-1]))
-
         outfile = open(write_loc_part1 + write_loc_part2 + '_metadata.txt', 'w')
         outfile.write('=' * 35 + '\n{}'.format(self.metadata[0][0]) + '=' * 35 + '\n\n')
-
         for i in tqdm(range(1, len(self.data_files.keys()) + 1)):
-            outfile.write(str(self.metadata[i][0]) + '\n')
-            outfile.write(str(self.metadata[i][1]) + '\n')
-            outfile.write(str(self.metadata[i][2]) + '\n')
-            outfile.write(str(self.metadata[i][3]) + '\n')
-            outfile.write(str(self.metadata[i][4]) + '\n')
-            outfile.write(str(self.metadata[i][5]) + '\n')
-            outfile.write(str(self.metadata[i][6]) + '\n')
-            outfile.write(str(self.metadata[i][7]) + '\n')
+            for j in range(8):
+                outfile.write(str(self.metadata[i][j]) + '\n')
             outfile.write('\n')
-
         outfile.close()
 
         return None
@@ -231,17 +184,11 @@ class DataSource(object):
 
         for i in tqdm(self.data_files.keys()):
             source = self.data_files[i]
-
-            # get edge information
             if '-' in source:
                 resource_info = self.extracts_edge_metadata([x for x in self.resource_info if x.startswith(i)][0])
-                map_info = resource_info[0]
-                filter_info = resource_info[1]
-                evidence_info = resource_info[2]
+                map_info, filter_info, evidence_info = resource_info[0], resource_info[1], resource_info[2]
             else:
                 map_info, filter_info, evidence_info = 'None', 'None', 'None'
-
-            # add metadata for each source as nested list
             source_metadata = ['EDGE: {}'.format(i),
                                'DATA PROCESSING INFO\n  - IDENTIFIER MAPPING = {}'.format(map_info),
                                '  - FILTERING CRITERIA = {}'.format(filter_info),
@@ -250,10 +197,7 @@ class DataSource(object):
                                '  - DOWNLOAD_DATE = {}'.format(str(datetime.datetime.now().strftime('%m/%d/%Y'))),
                                '  - FILE_SIZE_IN_BYTES = {}'.format(str(os.stat(self.data_files[i]).st_size)),
                                '  - DOWNLOADED_FILE_LOCATION = {}'.format(str(source))]
-
             self.metadata.append(source_metadata)
-
-        # write metadata
         self._writes_source_metadata_locally()
 
         return None
@@ -278,34 +222,23 @@ class OntData(DataSource):
         Returns:
             source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
                 example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
-                                'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'
-                                }
+                                'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
 
         Raises:
             TypeError: If the file does not contain data.
             ValueError: If there some of the input URLs were improperly formatted.
         """
 
-        # CHECK - file has data
         if os.stat(self.data_path).st_size == 0:
             raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
             with open(self.data_path, 'r') as file_name:
-                source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
-                               for row in file_name.read().splitlines()}
-            file_name.close()
-
-            # CHECK - verify formatting of urls
-            valid_sources = [url for url in source_list.values() if 'purl.obolibrary.org/obo' in url or 'owl' in url]
-
-            if len(source_list) == len(valid_sources):
-                self.source_list = source_list
-            else:
-                raise ValueError('ERROR: Not all URLs were formatted properly')
+                self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
+                                    for row in file_name.read().splitlines()}
 
         return None
 
-    def downloads_data_from_url(self, owltools_location: str = './pkt_kg/libs/owltools') -> None:
+    def downloads_data_from_url(self, owltools_location: str = os.path.abspath('./pkt_kg/libs/owltools')) -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes
         that each item in the input file list is an URL to an OWL/OBO ontology.
 
@@ -320,49 +253,33 @@ class OntData(DataSource):
         Returns:
             data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
                 For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
-                              'phenotype': 'resources/ontologies/hp_with_imports.owl'
-                              }
+                              'phenotype': 'resources/ontologies/hp_with_imports.owl'}
         """
 
-        # check data before download
-        self.parses_resource_file()
-
-        # set location where to write data
+        self.parses_resource_file()  # check data before download
         file_loc = '/'.join(self.data_path.split('/')[:-1]) + '/ontologies/'
         print('\n ***Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
 
-        # process data
         for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]
             file_prefix = source.split('/')[-1].split('.')[0]
             write_loc = file_loc + file_prefix
-
             print('\nDownloading: {}'.format(str(file_prefix)))
-
             # don't re-download ontologies
             if any(x for x in os.listdir(file_loc) if re.sub('_with.*.owl', '', x) == file_prefix):
                 self.data_files[i] = glob.glob(file_loc + '*' + file_prefix + '*')[0]
             else:
                 if 'purl' in source:
                     try:
-                        subprocess.check_call([os.path.abspath(owltools_location),
-                                               str(source),
-                                               '--merge-import-closure',
-                                               '-o',
-                                               str(write_loc) + '_with_imports.owl'])
-
+                        subprocess.check_call([owltools_location, str(source), '--merge-import-closure',
+                                               '-o', str(write_loc) + '_with_imports.owl'])
                         self.data_files[i] = str(write_loc) + '_with_imports.owl'
                     except subprocess.CalledProcessError as error:
                         print(error.output)
                 else:
                     data_downloader(source, file_loc, str(file_prefix) + '_with_imports.owl')
                     self.data_files[i] = file_loc + str(file_prefix) + '_with_imports.owl'
-
-            # print stats
-            gets_ontology_statistics(file_loc + str(file_prefix) + '_with_imports.owl',
-                                     os.path.abspath(owltools_location))
-
-        # generate metadata
+            gets_ontology_statistics(file_loc + str(file_prefix) + '_with_imports.owl', owltools_location)
         self.generates_source_metadata()
 
         return None
@@ -381,10 +298,10 @@ class LinkedData(DataSource):
         Returns:
             source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
                 example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
-                                'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'
-                                }
+                                'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
 
-        Raises: TypeError: If the file does not contain data.
+        Raises:
+            TypeError: If the file does not contain data.
         """
 
         if os.stat(self.data_path).st_size == 0:
@@ -404,13 +321,10 @@ class LinkedData(DataSource):
         Returns:
             data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
                 For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
-                              'phenotype': 'resources/ontologies/hp_with_imports.owl'
-                              }
+                              'phenotype': 'resources/ontologies/hp_with_imports.owl'}
         """
 
-        self.parses_resource_file()
-
-        # set location where to write data
+        self.parses_resource_file()  # check data before download
         file_loc = '/'.join(self.data_path.split('/')[:-1]) + '/edge_data/'
         print('\n*** Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
 
@@ -419,11 +333,9 @@ class LinkedData(DataSource):
             file_name = re.sub('.gz|.zip|\\?.*', '', source.split('/')[-1])
             write_path = file_loc
             print('\nEdge: {edge}'.format(edge=i))
-
             # if file has already been downloaded, rename it
             if any(x for x in os.listdir(write_path) if '_'.join(x.split('_')[1:]) == file_name):
                 self.data_files[i] = write_path + i + '_' + file_name
-
                 try:
                     shutil.copy(glob.glob(write_path + '*' + file_name)[0], write_path + i + '_' + file_name)
                 except shutil.SameFileError:
@@ -431,8 +343,6 @@ class LinkedData(DataSource):
             else:
                 self.data_files[i] = write_path + i + '_' + file_name
                 data_downloader(source, write_path, i + '_' + file_name)
-
-        # generate metadata
         self.generates_source_metadata()
 
         return None

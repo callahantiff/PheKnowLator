@@ -36,11 +36,7 @@ class TestKGBuilder(unittest.TestCase):
         os.mkdir(dir_loc_resources + '/ontologies')
         os.mkdir(self.dir_loc_resources + '/construction_approach')
 
-        # copy data
-        # subclass dict file
-        shutil.copyfile(self.dir_loc + '/subclass_construction_map_empty.pkl',
-                        self.dir_loc_resources + '/construction_approach/subclass_construction_map_empty.pkl')
-
+        # copy needed data data
         # node metadata
         shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt',
                         self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')

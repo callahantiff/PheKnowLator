@@ -46,10 +46,13 @@ from typing import Dict, Generator, List, Optional, Union
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-# ENVIRONMENT WARNINGS
+# HANDLE ENVIRONMENT WARNINGS
 # WARNING 1 - Pandas: disable chained assignment warning rationale:
 # https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
 pd.options.mode.chained_assignment = None
+
+# WARNING 2 - urllib3: disable insecure request warning
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def url_download(url: str, write_location: str, filename: str) -> None:
@@ -117,23 +120,19 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> No
     file = url.replace('ftp://', '').split('/')[-1]
     write_loc = write_location + '{filename}'.format(filename=file)
 
-    # download ftp gzipped file
     print('Downloading Gzipped data from FTP Server: {}'.format(url))
     with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
         ftp.login()
         ftp.cwd(directory)
         ftp.retrbinary('RETR {}'.format(file), fid.write)
-
-    # read in gzipped file,uncompress, and write to directory
     print('Decompressing and Writing Gzipped Data to File')
     with gzip.open(write_loc, 'rb') as fid_in:
         with open(write_loc.replace('.gz', ''), 'wb') as file_loc:
             file_loc.write(fid_in.read())
-
     # change filename and remove gzipped and original files
-    if filename != '':
-        os.rename(re.sub('.gz|.zip', '', write_loc), write_location + filename)
-    os.remove(write_loc)
+
+    if filename != '': os.rename(re.sub('.gz|.zip', '', write_loc), write_location + filename)
+    os.remove(write_loc)  # remove compressed file
 
     return None
 
@@ -202,9 +201,7 @@ def data_downloader(url: str, write_location: str, filename: str = '') -> None:
     """
 
     file = re.sub('.gz|.zip', '', filename) if filename != '' else re.sub('.gz|.zip', '', url.split('/')[-1])
-
-    if '.zip' in url:
-        zipped_url_download(url, write_location, file)
+    if '.zip' in url: zipped_url_download(url, write_location, file)
     elif '.gz' in url or '.gz' in filename:
         if 'ftp' in url: gzipped_ftp_url_download(url, write_location, file)
         else: gzipped_url_download(url, write_location, file)
@@ -329,18 +326,14 @@ def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: s
         idx_cols = df.columns.difference(lst)  # all columns except `lst_cols`
         lens = df[lst[0]].str.len()  # calculate lengths of lists
         idx = np.repeat(df.index.values, lens)  # preserve original index values
-        # create "exploded" DF
-        res = (pd.DataFrame({
-            col: np.repeat(df[col].values, lens) for col in idx_cols},
-            index=idx).assign(**{col: np.concatenate(df.loc[lens > 0, col].values) for col in lst}))
+        # create 'exploded' df
+        res = (pd.DataFrame({col: np.repeat(df[col].values, lens) for col in idx_cols},
+                            index=idx).assign(**{col: np.concatenate(df.loc[lens > 0, col].values) for col in lst}))
         # append those rows that have empty lists
         if (lens == 0).any(): res = (res.append(df.loc[lens == 0, idx_cols], sort=False).fillna(fill_value))
-        # revert the original index order
-        res = res.sort_index()
-        # reset index if requested
-        if not preserve_idx: res = res.reset_index(drop=True)
-        # return columns in original order
-        res = res[list(df)]
+        res = res.sort_index()  # revert the original index order
+        if not preserve_idx: res = res.reset_index(drop=True)  # reset index if requested
+        res = res[list(df)]  # return columns in original order
 
         return explodes_data(res, lst_cols, splitter)
 
@@ -378,8 +371,8 @@ def mesh_finder(data: pd.DataFrame, xid: str, id_typ: str, id_dic: Dict[str, Lis
     return None
 
 
-def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, genomic2: str,
-                      genomic_type: str = None, prefix1: bool = False, prefix2: bool = False) -> None:
+def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, genomic2: str, genomic_type: str = None,
+                      prefix1: bool = False, prefix2: bool = False) -> None:
     """Searches a dictionary of genomic identifier mappings and processes them, writing out
 
     Args:
@@ -415,8 +408,7 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
                     elif not prefix1 and prefix2: res1, res2 = res.split('_')[-1], '_'.join(key.split('_')[-2:])
                     elif prefix1 and not prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), key.split('_')[-1]
                     else: res1, res2 = res.split('_')[-1], key.split('_')[-1]
-                else:
-                    continue
+                else: continue
                 if 'none' not in res1.lower() and 'none' not in res2.lower():
                     outfile.write(res1 + '\t' + res2 + '\t' + g_type + '\n')
     outfile.close()
@@ -438,7 +430,6 @@ def outputs_dictionary_data(dict_object: Optional[Dict], filename: str) -> None:
     if dict_object:
         with open(filename, 'w') as file_name:
             json.dump(dict_object, file_name)
-
         file_name.close()
 
     return None

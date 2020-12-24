@@ -29,49 +29,23 @@ obo = Namespace('http://purl.obolibrary.org/obo/')
 
 class KGBuilder(object):
     """Class creates a semantic knowledge graph (KG). The class is designed to facilitate two KG construction
-    approaches and three build types.
-
-        Two Construction Approaches: (1) Instance-based: Adds edge data that is not from an ontology by connecting
+    approaches and three build types. The class handles two types of construction approaches and three types of builds:
+      - Two Construction Approaches: (1) Instance-based: Adds edge data that is not from an ontology by connecting
         each non-ontology data node to an instances of existing ontology class; and (2) Subclass-based: Adds edge data
         that is not from an ontology by connecting each non-ontology data node to an existing ontology class.
-
-        Three Build Types: (1) Full: Runs all build steps in the algorithm; (2) Partial: Runs all of the build steps
+      - Three Build Types: (1) Full: Runs all build steps in the algorithm; (2) Partial: Runs all of the build steps
         through adding new edges. Designed for running a reasoner; and (3) Post-Closure: Runs the remaining build steps
         over a closed knowledge graph.
 
     Attributes:
-        build: A string that indicates what kind of build (i.e. partial, post-closure, or full).
-        decode_owl: A string indicating whether edges containing owl semantics should be removed.
-        edge_data: A path to a file that references a dictionary of edge list tuples used to build the knowledge graph.
-        edge_dict: A nested master edge list dict. The outer key is an edge-type (e.g.go-gene) and inner key is a dict
-            storing data from the resource_info.txt input document. For example:
-            {'chemical-complex': {'source_labels': ';;', 'data_type': 'class-instance', 'edge_relation': 'RO_0002436',
-             'uri': ['http://purl.obolibrary.org/obo/', 'https://reactome.org/content/detail/'], 'delimiter': 't',
-             'column_idx': '0;1', 'identifier_maps': 'None', 'evidence_criteria': 'None', 'filter_criteria': 'None',
-             'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...] }, }
-        graph: An rdflib graph object which stores the knowledge graph.
-        inverse_relations: A filepath to a directory called 'relations_data' containing the relations data.
-        inverse_relations_dict: A dict storing relations ids and their inverse relation ids. For example:
-            {'RO_0000056': 'RO_0000057', 'RO_0000079': 'RO_0000085'}
-        node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
-        node_dict: A nested node metadata dict. The outer key is a node id and each inner key is a node type with the
-            inner-key value being the corresponding metadata for that node type. For example:
-                {'6469': {'Label': 'SHH', 'Description': 'Sonic Hedgehog Signaling Molecule is a protein-coding gene
-                 located on chromosome 7 (map_location: 7q36.3).', 'Synonym': 'HHG1|HLP3|HPE3|ShhNC|TPT'}}
-        kg_metadata: A flag that indicates whether or not to add metadata to the knowledge graph.
-        ont_classes: A list of all ontology classes in a graph.
-        owl_tools: A string pointing to the location of the owl tools library.
-        relations_dict: A dict storing the relation identifiers and labels. For example,
-            {'RO_0002616': 'related via evidence or inference to', 'RO_0002442': 'mutualistically interacts with}
         kg_version: A string that contains the version of the knowledge graph build.
         write_location: A file path used for writing knowledge graph data.
-        res_dir: A string pointing to the 'resources' directory.
-        merged_ont_kg: A string containing the filename of the knowledge graph that only contains the merged ontologies.
-        ontologies: A list of file paths to an .owl file containing ontology data.
         construction: A string that indicates what type of construction approach to use (i.e. instance or subclass).
+        edge_data: A path to a file that references a dictionary of edge list tuples used to build the knowledge graph.
+        kg_metadata_flag: A flag that indicates whether or not to add metadata to the knowledge graph.
+        node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
+        inverse_relations: A filepath to a directory called 'relations_data' containing the relations data.
         decode_owl: A string indicating whether edges containing owl semantics should be removed.
-        full_kg: A string containing the filename for the full knowledge graph.
-        nx_mdg: A networkx MultiDiGraph object which is only created if the user requests owl semantics be removed.
 
     Raises:
         ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
@@ -105,10 +79,8 @@ class KGBuilder(object):
         self.relations_dict: Dict = dict()
 
         # BUILD TYPE
-        if kg_version is None:
-            raise ValueError('kg_version must contain a valid version e.g. v.2.0.0, not None')
-        else:
-            self.kg_version = kg_version
+        if kg_version is None: raise ValueError('kg_version must contain a valid version e.g. v.2.0.0, not None')
+        else: self.kg_version = kg_version
 
         # WRITE LOCATION
         if write_location is None:
@@ -231,16 +203,12 @@ class KGBuilder(object):
 
         if self.inverse_relations:
             print('Loading and Processing Relation Data')
-
             for data in self.inverse_relations:
                 df = pandas.read_csv(data, header=0, delimiter='\t')
                 df.drop_duplicates(keep='first', inplace=True)
                 df.set_index(list(df)[0], inplace=True)
-
-                if 'inverse' in data.lower():
-                    self.inverse_relations_dict = df.to_dict('index')
-                else:
-                    self.relations_dict = df.to_dict('index')
+                if 'inverse' in data.lower(): self.inverse_relations_dict = df.to_dict('index')
+                else: self.relations_dict = df.to_dict('index')
 
         return None
 
@@ -347,17 +315,14 @@ class KGBuilder(object):
             uri = self.edge_dict[edge_type]['uri']
             edge_list = copy.deepcopy(self.edge_dict[edge_type]['edge_list'])
             edge_results: List = []
-
             # identify relations
             rel = self.edge_dict[edge_type]['edge_relation']
             self.verifies_object_property(URIRef(obo + rel))  # verify object property in knowledge graph
             invrel = self.checks_for_inverse_relations(rel, edge_list) if self.inverse_relations else None
 
             print('\nCreating {} ({}-{}) Edges ***'.format(edge_type.upper(), n1_type, n2_type))
-
             for edge in tqdm(edge_list):
                 edge_info = {'n1': n1_type, 'n2': n2_type, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
-
                 if self.check_ontology_class_nodes(edge_info):  # verify edges - make sure ont class nodes are in KG
                     if self.construct_approach == 'subclass':
                         self.edge_dict, new_edges = edge_builder.subclass_constructor(edge_info, edge_type)
@@ -369,7 +334,6 @@ class KGBuilder(object):
                         edge_results += new_edges  # update list of added edges
                 else:
                     self.edge_dict[edge_type]['edge_list'].pop(self.edge_dict[edge_type]['edge_list'].index(edge))
-
             n1, n2, edges = edge_type.split('-')[0], edge_type.split('-')[1], self.edge_dict[edge_type]['edge_list']
             print('Total OWL Edges: {}'.format(len(set(edge_results))))
             print('Unique Non-OWL Edges: {}'.format(len(edges) * 2 if invrel else len(edges)))
@@ -381,7 +345,6 @@ class KGBuilder(object):
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_missing_node_log.json'
             print('\nSome edge lists nodes were missing from subclass_dict, see log: {}'.format(log_file))
             outputs_dictionary_data(edge_builder.subclass_error, log_file)
-
         # add ontology metadata and annotations, serialize graph, and apply OWL API formatting to output
         if self.kg_metadata == 'yes': node_metadata_func(self.graph, self.edge_dict)
         self.graph = ontology_annotator_func(self.full_kg.split('/')[-1], self.graph)
@@ -456,10 +419,8 @@ class PartialBuild(KGBuilder):
                     self.write_location + '/' + glob.glob('*/ontologies')[0]))
             else:
                 print('*** Merging Ontology Data ***')
-                merges_ontologies(self.ontologies,
-                                  self.write_location, '/' + self.merged_ont_kg.split('/')[-1],
+                merges_ontologies(self.ontologies, self.write_location, '/' + self.merged_ont_kg.split('/')[-1],
                                   self.owl_tools)
-
                 # load the merged ontology
                 self.graph.parse(self.merged_ont_kg, format='xml')
 
@@ -473,13 +434,11 @@ class PartialBuild(KGBuilder):
         if temp_dir not in glob.glob(self.write_location + '/**/**'): os.mkdir(temp_dir)
         self.full_kg = '/'.join(self.full_kg.split('/')[:2] + ['partial_build'] + self.full_kg.split('/')[2:])
         metadata.full_kg = self.full_kg
-
         # build knowledge graph
         print('*** Building Knowledge Graph Edges ***')
         self.ont_classes = gets_ontology_classes(self.graph)
         self.obj_properties = gets_object_properties(self.graph)
         self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
-
         # print statistics
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
         print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
@@ -526,9 +485,8 @@ class PostClosureBuild(KGBuilder):
         metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
         if self.node_data: metadata.node_metadata_processor()
 
-        # STEP 3: LOAD CLOSED KNOWLEDGE GRAPH
+        # STEP 4: LOAD CLOSED KNOWLEDGE GRAPH
         closed_kg_location = glob.glob(self.write_location + '/'.join(self.full_kg.split('/')[0:2]) + '/*.owl')
-
         if len(closed_kg_location) == 0:
             raise OSError('The closed KG file does not exist!')
         elif os.stat(closed_kg_location[0]).st_size == 0:
@@ -538,7 +496,6 @@ class PostClosureBuild(KGBuilder):
             os.rename(closed_kg_location[0], self.write_location + self.full_kg)  # rename closed kg file
             self.graph = Graph()
             self.graph.parse(self.write_location + self.full_kg, format='xml')
-
             # print statistics
             gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
             print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
@@ -615,7 +572,6 @@ class FullBuild(KGBuilder):
                                   self.owl_tools)
                 # load the merged ontology
                 self.graph.parse(self.merged_ont_kg, format='xml')
-
         # print statistics
         gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         print('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))

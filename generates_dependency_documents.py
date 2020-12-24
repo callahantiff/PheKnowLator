@@ -32,10 +32,8 @@ class DocumentationMaker(object):
     def __init__(self, edge_count: int, write_location: str = './resources') -> None:
 
         # check edge count
-        if not isinstance(edge_count, int):
-            raise ValueError('edge_count must be an integer (i.e. "1" not "one").')
-        else:
-            self.edge_count = edge_count
+        if not isinstance(edge_count, int): raise ValueError('edge_count must be an integer (i.e. "1" not "one").')
+        else: self.edge_count = edge_count
 
         # make sure that the specified location to write data exists
         if os.path.exists(write_location):
@@ -73,7 +71,7 @@ class DocumentationMaker(object):
                 ont_edge = input('Enter node name for ontology (e.g. "go"): ')
                 ont_data[ont_edge] = input('Provide an owl or obo URL for this ontology: ')
             else:
-                for i in range(2):
+                for _ in range(2):
                     ont_edge = input('Enter node name for ontology (e.g. "go"): ')
                     ont_data[ont_edge] = input('Provide an owl or obo URL for this ontology: ')
 

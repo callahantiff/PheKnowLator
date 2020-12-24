@@ -60,37 +60,6 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         return None
 
-    def test_mesh_finder(self):
-        """Tests the mesh_finder method."""
-
-        # search for mappings to HP and DOID terms
-        disease_dict = {}
-
-        for idx, row in tqdm(self.disease_data.iterrows(), total=self.disease_data.shape[0]):
-            if row['vocabulary'] == 'MSH':
-                mesh_finder(self.disease_data, str(row['code']), 'MESH:', disease_dict)
-            elif row['vocabulary'] == 'OMIM':
-                mesh_finder(self.disease_data, str(row['code']), 'OMIM:', disease_dict)
-            elif row['vocabulary'] == 'ORDO':
-                mesh_finder(self.disease_data, str(row['code']), 'ORPHA:', disease_dict)
-            elif row['diseaseId'] in disease_dict.keys():
-                if row['vocabulary'] == 'DO':
-                    disease_dict[row['diseaseId']].append('DOID_' + str(row['code']))
-                if row['vocabulary'] == 'HPO':
-                    disease_dict[row['diseaseId']].append(str(row['code']).replace('HP:', 'HP_'))
-            else:
-                if row['vocabulary'] == 'DO':
-                    disease_dict[row['diseaseId']] = ['DOID_' + str(row['code'])]
-                if row['vocabulary'] == 'HPO':
-                    disease_dict[row['diseaseId']] = [str(row['code']).replace('HP:', 'HP_')]
-
-        self.assertFalse(len(disease_dict) == 0)
-        self.assertTrue(any(x for x in disease_dict.keys() if x.startswith('MESH')))
-        self.assertTrue(any(x for x in disease_dict.keys() if x.startswith('OMIM')))
-        self.assertTrue(any(x for x in disease_dict.keys() if x.startswith('ORPHA')))
-
-        return None
-
     def test_genomic_id_mapper(self):
         """Tests the genomic_id_mapper method."""
 
