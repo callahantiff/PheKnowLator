@@ -12,9 +12,6 @@ from urllib.request import urlopen
 
 from pkt_kg.utils import *
 
-# disable warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 
 class TestDataUtilsDownloading(unittest.TestCase):
     """Class to test the downloading methods from the data utility script."""

@@ -70,14 +70,14 @@ def url_download(url: str, write_location: str, filename: str) -> None:
     """
 
     print('Downloading Data from {}'.format(url))
-    r = requests.get(url, allow_redirects=True, verify=False)
+    r = requests.get(url, allow_redirects=True)
     if r.ok is False:
         raise requests.HTTPError('{}: Data not downloaded from {}'.format(r.status_code, url))
     else:
         data = None
         if 'Content-Length' in r.headers:
             while r.ok and int(r.headers['Content-Length']) < 1000:
-                r = requests.get(url, allow_redirects=True, verify=False)
+                r = requests.get(url, allow_redirects=True)
             data = r.content
         else:
             if len(r.content) > 10: data = r.content
@@ -191,7 +191,7 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
     """
 
     print('Downloading Gzipped Data from {}'.format(url))
-    r = requests.get(url, allow_redirects=True, verify=False)
+    r = requests.get(url, allow_redirects=True)
     if r.ok is False:
         raise requests.HTTPError('{}: Data not downloaded from {}'.format(r.status_code, url))
     else:
