@@ -19,7 +19,6 @@ Generates Metadata
 
 Miscellaneous data Processing Methods
 * explodes_data
-* mesh_finder
 * genomic_id_mapper
 
 Outputs data
@@ -46,20 +45,18 @@ from typing import Dict, Generator, List, Optional, Union
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-# HANDLE ENVIRONMENT WARNINGS
+# GLOBAL ENVIRONMENT VARIABLE
+zip_pat = '.gz|.zip'
+
 # WARNING 1 - Pandas: disable chained assignment warning rationale:
 # https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
 pd.options.mode.chained_assignment = None
-
 # WARNING 2 - urllib3: disable insecure request warning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# set global vars
-zip_pat = '.gz|.zip'
-
 
 def url_download(url: str, write_location: str, filename: str) -> None:
-    """Downloads a file from a URL.
+    """Downloads a file from a URL and saves it locally.
 
     Args:
         url: A string that points to the location of a temp mapping file that needs to be processed.
@@ -68,9 +65,6 @@ def url_download(url: str, write_location: str, filename: str) -> None:
 
     Returns:
         None.
-
-    Raises:
-        HTTPError: If the response returns a status code other than 200.
     """
 
     print('Downloading Data from {}'.format(url))
@@ -122,7 +116,6 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> No
     directory = '/'.join(url.replace('ftp://', '').split('/')[1:-1])
     file = url.replace('ftp://', '').split('/')[-1]
     write_loc = write_location + '{filename}'.format(filename=file)
-
     print('Downloading Gzipped data from FTP Server: {}'.format(url))
     with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
         ftp.login()
@@ -150,9 +143,6 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
 
     Returns:
         None.
-
-    Raises:
-        HTTPError: If the response returns a status code other than 200.
     """
 
     print('Downloading Zipped Data from {}'.format(url))
@@ -177,9 +167,6 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
 
     Returns:
         None.
-
-    Raises:
-        HTTPError: If the response returns a status code other than 200.
     """
 
     print('Downloading Gzipped Data from {}'.format(url))
