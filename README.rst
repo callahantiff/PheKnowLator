@@ -136,7 +136,7 @@ For assistance in creating these documents, please run the following from the ro
 
 .. code:: bash
 
-    python3 pkt/generates_dependency_documents.py
+    python3 generates_dependency_documents.py
 
 Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created. Please see the `Data_Preparation.ipynb`_ Jupyter Notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
 
