@@ -28,12 +28,6 @@ class CreatesEdgeList(object):
     Attributes:
         data_files: A list that contains the full file path and name of each downloaded data source.
         source_file: A string containing the filepath to resource information.
-        source_info: A nested dictionary that contains information about each edge-type. Keys are the edge-type (e.g.
-            'chemical-gene' and values are a dictionary with keys for all of the information provided in the
-            resource_info.txt file, which is used to process and generate the data. Additionally, this information
-            also includes the type of edge (e.g. class or entity (non-ontology class data)) and a nested edge list. For
-            additional information and an example, see the creates_knowledge_graph_edges() method.
-
     """
 
     def __init__(self, data_files: Dict[str, str], source_file: str) -> None:
@@ -88,13 +82,13 @@ class CreatesEdgeList(object):
         elif with_header_test >= without_header_test: return None
         else: return None
 
-    def data_reader(self, file_path: str, delim: str = 't') -> pd.DataFrame:
+    def data_reader(self, file_path: str, delimiter: str = 't') -> pd.DataFrame:
         """Takes a filepath pointing to data source and reads it into a Pandas DataFrame using information in the file
         and line splitter variables.
 
         Args:
             file_path: A Filepath to data.
-            delim: A Character used to split rows into columns.
+            delimiter: A Character used to split rows into columns.
 
         Return:
             A Pandas DataFrame containing the data from the data_filepath.
@@ -103,19 +97,24 @@ class CreatesEdgeList(object):
             Exception: If the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
         """
 
-        try:
-            with open(file_path, 'r') as input_data_r:  # type: IO[Any]
-                data = input_data_r.read().splitlines()
-            input_data_r.close()
-        except ValueError:
-            with open(file_path, 'rb') as input_data_rb:  # type: IO[Any]
-                data = input_data_rb.read().decode('utf-8').splitlines()  # decode bytes to strings
-            input_data_rb.close()
+        with open(file_path, 'r') as input_data_r:  # type: IO[Any]
+            data = input_data_r.read().splitlines()
+        input_data_r.close()
+        # try:
+        #     with open(file_path, 'r') as input_data_r:  # type: IO[Any]
+        #         data = input_data_r.read().splitlines()
+        #     input_data_r.close()
+        # except ValueError:
+        #     with open(file_path, 'rb') as input_data_rb:  # type: IO[Any]
+        #         data = input_data_rb.read().decode('utf-8').splitlines()  # decode bytes to strings
+        #     input_data_rb.close()
 
         # clean up data to only keep valid rows (rows that are not empty space or metadata)
-        splitter = '\t' if 't' in delim else r"\s+" if '' in delim else delim
-        if delim == '' or delim == ' ': skip = [row for row in range(0, len(data)) if delim not in data[row]]
-        else: skip = [row for row in range(0, len(data)) if splitter not in data[row]]
+        splitter = '\t' if 't' in delimiter else r"\s+" if '' in delimiter else delimiter
+        if delimiter == '' or delimiter == ' ':
+            skip = [row for row in range(0, len(data)) if delimiter not in data[row]]
+        else:
+            skip = [row for row in range(0, len(data)) if splitter not in data[row]]
         # determine if file contains a header
         header = self.identify_header(file_path, splitter, skip)
         edge_data = pd.read_csv(file_path, header=header, delimiter=splitter, low_memory=False, skiprows=skip)
