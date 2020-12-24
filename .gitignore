@@ -56,3 +56,4 @@ pkt_kg/libs/walking-rdf-and-owl-master/*
 coverage.xml
 .notipy.json
 \.vscode/
+/tests/archive/

@@ -71,7 +71,7 @@ class DocumentationMaker(object):
                 ont_edge = input('Enter node name for ontology (e.g. "go"): ')
                 ont_data[ont_edge] = input('Provide an owl or obo URL for this ontology: ')
             else:
-                for i in range(2):
+                for _ in range(2):
                     ont_edge = input('Enter node name for ontology (e.g. "go"): ')
                     ont_data[ont_edge] = input('Provide an owl or obo URL for this ontology: ')
 
