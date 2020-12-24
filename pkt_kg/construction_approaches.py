@@ -40,13 +40,7 @@ class KGConstructionApproach(object):
             {'chemical-complex': {'source_labels': ';;', 'data_type': 'class-instance', 'edge_relation': 'RO_0002436',
              'uri': ['http://purl.obolibrary.org/obo/', 'https://reactome.org/content/detail/'], 'delimiter': 't',
              'column_idx': '0;1', 'identifier_maps': 'None', 'evidence_criteria': 'None', 'filter_criteria': 'None',
-             'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...] }, }
-        subclass_dict: A node data ontology class dict. Used for the subclass construction approach. Keys are
-            non-ontology ids and values are lists of ontology classes mapped to each non-ontology id. For example,
-            {'R-HSA-168277' :['http://purl.obolibrary.org/obo/PW_0001054','http://purl.obolibrary.org/obo/GO_0046730']}
-        subclass_error: A dict that stores edge subclass nodes that were unable to be mapped to the
-            subclass_dict. Keys are edge_type and values are lists of identifiers. For example:
-                {'chemical-gene': [100490177, 34858593, 234]}
+             'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...] }}
         write_location: A string pointing to the 'resources' directory.
 
     Raises:
@@ -62,26 +56,20 @@ class KGConstructionApproach(object):
         self.subclass_error: Dict = dict()
 
         # EDGE_DICT
-        if not isinstance(edge_dict, Dict):
-            raise TypeError('edge_dict must be a dictionary.')
-        elif len(edge_dict) == 0:
-            raise TypeError('edge_dict is empty.')
-        else:
-            self.edge_dict = edge_dict
+        if not isinstance(edge_dict, Dict): raise TypeError('edge_dict must be a dictionary.')
+        elif len(edge_dict) == 0: raise TypeError('edge_dict is empty.')
+        else: self.edge_dict = edge_dict
 
         # WRITE LOCATION
-        if write_location is None:
-            raise ValueError('write_location must contain a valid filepath, not None')
-        else:
-            self.write_location = write_location
+        if write_location is None: raise ValueError('write_location must contain a valid filepath, not None')
+        else: self.write_location = write_location
 
         # LOADING SUBCLASS DICTIONARY
         file_name = self.write_location + '/construction_*/*.pkl'
         if len(glob.glob(file_name)) == 0:
-            raise OSError('The {} file does not exist!'.format('subclass_construction_map.pkl'))
+            raise OSError('{} does not exist!'.format('subclass_construction_map.pkl'))
         elif os.stat(glob.glob(file_name)[0]).st_size == 0:
-            raise TypeError(
-                'The input file: {} is empty'.format(glob.glob(file_name)[0]))
+            raise TypeError('The input file: {} is empty'.format(glob.glob(file_name)[0]))
         else:
             with open(glob.glob(file_name)[0], 'rb') as filepath:  # type: IO[Any]
                 self.subclass_dict = pickle.load(filepath, encoding='bytes')
@@ -113,7 +101,6 @@ class KGConstructionApproach(object):
                 self.subclass_error[edge_type] += [entity]
             else:
                 self.subclass_error[edge_type] = [entity]
-
             # remove the edge from the edge_dict
             self.edge_dict[edge_type]['edge_list'].pop(self.edge_dict[edge_type]['edge_list'].index(edge))
             subclass_map = None
@@ -192,33 +179,25 @@ class KGConstructionApproach(object):
 
         if res['cls1'] and res['cls2']:  # class-class edges
             edges = list(self.edge_constructor(URIRef(res['cls1']), URIRef(res['cls2']), rel, irel))
-
         elif res['cls1'] and res['ent1']:  # subclass-class/class-subclass edges
             x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
             mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
-
-            if mapped_node:
-                # get nonclass node mappings to ontology classes
+            if mapped_node:  # get nonclass node mappings to ontology classes
                 edges = [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
                                      ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
-
                 # add edge with relation/inverse relation (if it exists)
                 if edge_info['n1'] == 'class':  # determine node order
                     edges += self.edge_constructor(URIRef(res['cls1']), URIRef(res['ent1']), rel, irel)
                 else:
                     edges += self.edge_constructor(URIRef(res['ent1']), URIRef(res['cls1']), rel, irel)
-
         else:  # subclass-subclass edges
             mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''), edge_info['edges'])
             mapped_node2 = self.maps_node_to_class(edge_type, res['ent2'].replace(uri2, ''), edge_info['edges'])
-
-            if mapped_node1 and mapped_node2:
-                # get non-class node mappings to ontology classes
+            if mapped_node1 and mapped_node2:  # get non-class node mappings to ontology classes
                 edges += [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
                                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node1] for x in y]
                 edges += [x for y in [((URIRef(res['ent2']), RDFS.subClassOf, URIRef(obo + x)),) +
                                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
-
                 # add edge with relation/inverse relation (if it exists)
                 edges += self.edge_constructor(URIRef(res['ent1']), URIRef(res['ent2']), rel, irel)
 
@@ -249,22 +228,18 @@ class KGConstructionApproach(object):
 
         if res['cls1'] and res['cls2']:  # class-class edges
             edges = list(self.edge_constructor(URIRef(res['cls1']), URIRef(res['cls2']), rel, irel))
-
         elif res['cls1'] and res['ent1']:  # class-instance/instance-class edges
             sha_uid = URIRef(pkt + 'N' + hashlib.md5(res['cls1'].encode()).hexdigest())
             x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
             mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
-
             # get non-class node mappings to ontology classes
             if mapped_node:
                 edges = [(sha_uid, RDF.type, URIRef(res['cls1'])),
                          (sha_uid, RDF.type, OWL.NamedIndividual),
                          (URIRef(res['cls1']), RDF.type, OWL.Class),
                          (URIRef(res['ent1']), RDF.type, OWL.NamedIndividual)]
-
                 edges += [x for y in [((URIRef(res['ent1']), RDF.type, URIRef(obo + x)),) +
                                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
-
                 # add edge with relation/inverse relation (if it exists)
                 if edge_info['n1'] == 'class':  # determine order to pass nodes
                     edges += [(sha_uid, rel, URIRef(res['ent1'])), (rel, RDF.type, OWL.ObjectProperty)]
@@ -272,20 +247,16 @@ class KGConstructionApproach(object):
                 else:
                     edges += [(URIRef(res['ent1']), rel, sha_uid), (rel, RDF.type, OWL.ObjectProperty)]
                     if irel: edges += [(sha_uid, irel, URIRef(res['ent1'])), (irel, RDF.type, OWL.ObjectProperty)]
-
         else:  # instance-instance edges
             mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''), edge_info['edges'])
             mapped_node2 = self.maps_node_to_class(edge_type, res['ent2'].replace(uri2, ''), edge_info['edges'])
-
             if mapped_node1 and mapped_node2:
                 # type non-class nodes
                 n1, n2 = res['ent1'], res['ent2']
                 edges = [(URIRef(x), RDF.type, OWL.NamedIndividual) for x in [n1, n2]]
-
                 # add edge with relation/inverse relation (if it exists)
                 edges += [(URIRef(n1), rel, URIRef(n2)),  (rel, RDF.type, OWL.ObjectProperty)]
                 if irel: edges += [(URIRef(n2), irel, URIRef(n1)), (irel, RDF.type, OWL.ObjectProperty)]
-
                 # get non-class node mappings to ontology classes
                 edges += [x for y in [((URIRef(n1), RDF.type, URIRef(obo + x)),) +
                                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node1] for x in y]

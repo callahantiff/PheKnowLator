@@ -19,13 +19,13 @@ __pycache__/
 /resources/node_data/*
 /resources/ontologies/*
 /resources/owl_decoding/*
-/resources/processed_data/
+/resources/processed_data/*
 /resources/relations_data/*
 
-# scripts
+# scripts (in development or scratch)
 pkt_kg/kg_embedding_visualizer.py
 pkt_kg/knowledge_graph_embedder.py
-Untitled*
+scratch*.py
 
 # ignoring resource preparation files and metadata information
 !/resources/construction_approach/README.md
@@ -56,3 +56,4 @@ pkt_kg/libs/walking-rdf-and-owl-master/*
 coverage.xml
 .notipy.json
 \.vscode/
+/tests/archive/

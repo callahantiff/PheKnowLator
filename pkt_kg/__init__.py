@@ -20,8 +20,6 @@ There are two ways to run PheKnowLator:
 __all__ = [
     'KGConstructionApproach',
 
-    'DocumentationMaker',
-
     'OntData',
     'LinkedData',
 
@@ -36,7 +34,6 @@ __all__ = [
 ]
 
 from pkt_kg.construction_approaches import KGConstructionApproach
-from pkt_kg.generates_dependency_documents import DocumentationMaker
 from pkt_kg.downloads import LinkedData, OntData
 from pkt_kg.edge_list import CreatesEdgeList
 from pkt_kg.knowledge_graph import PartialBuild, PostClosureBuild, FullBuild

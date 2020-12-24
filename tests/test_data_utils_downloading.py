@@ -12,9 +12,6 @@ from urllib.request import urlopen
 
 from pkt_kg.utils import *
 
-# disable warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 
 class TestDataUtilsDownloading(unittest.TestCase):
     """Class to test the downloading methods from the data utility script."""
@@ -110,20 +107,20 @@ class TestDataUtilsDownloading(unittest.TestCase):
         filename = self.ftp_url.split('/')[-1]
 
         # fake file connection
-        #     responses.add(
-        #         responses.GET,
-        #         self.ftp_url,
-        #         body='test',
-        #         status=200,
-        #         content_type='text/plain',
-        #         headers={'Content-Length': '1200'}
-        #         )
-        #
-        #     # test mocked download
-        #     with closing(urlopen(self.ftp_url)) as r:
-        #         with open(self.write_location + '{filename}'.format(filename=filename), 'wb') as f:
-        #             shutil.copyfileobj(r, f)
-        #     r.close()
+        responses.add(
+            responses.GET,
+            self.ftp_url,
+            body='test',
+            status=200,
+            content_type='text/plain',
+            headers={'Content-Length': '1200'}
+            )
+
+        # test mocked download
+        with closing(urlopen(self.ftp_url)) as r:
+            with open(self.write_location + '{filename}'.format(filename=filename), 'wb') as f:
+                shutil.copyfileobj(r, f)
+        r.close()
 
         # test mocked download
         self.assertTrue(os.path.exists(self.write_location + filename))

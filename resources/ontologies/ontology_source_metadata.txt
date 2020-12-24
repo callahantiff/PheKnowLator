@@ -1,5 +1,5 @@
 ===================================
-#Tue Jun 09 18:42:25 UTC 2020 
+#Tue Dec 01 20:23:51 UTC 2020 
 ===================================
 
 EDGE: phenotype
@@ -9,8 +9,8 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/hp.owl
-  - DOWNLOAD_DATE = 06/09/2020
-  - FILE_SIZE_IN_BYTES = 84027972
+  - DOWNLOAD_DATE = 12/01/2020
+  - FILE_SIZE_IN_BYTES = 85709609
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/hp_with_imports.owl
 
 EDGE: go
@@ -20,8 +20,8 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/go.owl
-  - DOWNLOAD_DATE = 06/09/2020
-  - FILE_SIZE_IN_BYTES = 164174276
+  - DOWNLOAD_DATE = 12/01/2020
+  - FILE_SIZE_IN_BYTES = 163745431
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/go_with_imports.owl
 
 EDGE: disease
@@ -31,8 +31,8 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/mondo.owl
-  - DOWNLOAD_DATE = 06/09/2020
-  - FILE_SIZE_IN_BYTES = 253898245
+  - DOWNLOAD_DATE = 12/01/2020
+  - FILE_SIZE_IN_BYTES = 232288036
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/mondo_with_imports.owl
 
 EDGE: vaccine
@@ -42,8 +42,8 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/vo.owl
-  - DOWNLOAD_DATE = 06/09/2020
-  - FILE_SIZE_IN_BYTES = 7767003
+  - DOWNLOAD_DATE = 12/01/2020
+  - FILE_SIZE_IN_BYTES = 7849707
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/vo_with_imports.owl
 
 EDGE: chemical
@@ -53,8 +53,8 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
-  - DOWNLOAD_DATE = 06/09/2020
-  - FILE_SIZE_IN_BYTES = 149403941
+  - DOWNLOAD_DATE = 12/01/2020
+  - FILE_SIZE_IN_BYTES = 165237991
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/chebi_lite_with_imports.owl
 
 EDGE: anatomy
@@ -64,8 +64,8 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/uberon/ext.owl
-  - DOWNLOAD_DATE = 06/09/2020
-  - FILE_SIZE_IN_BYTES = 76612443
+  - DOWNLOAD_DATE = 12/01/2020
+  - FILE_SIZE_IN_BYTES = 77022653
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/ext_with_imports.owl
 
 EDGE: cell
@@ -75,7 +75,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/clo.owl
-  - DOWNLOAD_DATE = 06/09/2020
+  - DOWNLOAD_DATE = 12/01/2020
   - FILE_SIZE_IN_BYTES = 119273027
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/clo_with_imports.owl
 
@@ -86,7 +86,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = https://www.dropbox.com/s/f23zxrmorwe0x7l/human_pro_closed.owl?dl=1
-  - DOWNLOAD_DATE = 06/09/2020
+  - DOWNLOAD_DATE = 12/01/2020
   - FILE_SIZE_IN_BYTES = 192281150
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/human_pro_closed_with_imports.owl
 
@@ -97,8 +97,8 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/so.owl
-  - DOWNLOAD_DATE = 06/09/2020
-  - FILE_SIZE_IN_BYTES = 4983591
+  - DOWNLOAD_DATE = 12/01/2020
+  - FILE_SIZE_IN_BYTES = 5115649
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/so_with_imports.owl
 
 EDGE: pathway
@@ -108,7 +108,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/pw.owl
-  - DOWNLOAD_DATE = 06/09/2020
+  - DOWNLOAD_DATE = 12/01/2020
   - FILE_SIZE_IN_BYTES = 4965358
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/pw_with_imports.owl
 
@@ -119,7 +119,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/ro.owl
-  - DOWNLOAD_DATE = 06/09/2020
-  - FILE_SIZE_IN_BYTES = 828906
+  - DOWNLOAD_DATE = 12/01/2020
+  - FILE_SIZE_IN_BYTES = 839260
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/ro_with_imports.owl
 
