@@ -35,10 +35,6 @@ class TestKGConstructionApproach(unittest.TestCase):
         shutil.copyfile(self.dir_loc + '/Master_Edge_List_Dict_empty.json',
                         self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json')
 
-        # empty subclass dict file
-        shutil.copyfile(self.dir_loc + '/subclass_construction_map_empty.pkl',
-                        self.dir_loc_resources + '/construction_approach/subclass_construction_map_empty.pkl')
-
         # create edge list
         self.edge_dict = {"gene-phenotype": {"data_type": "subclass-class",
                                              "edge_relation": "RO_0003302",
@@ -133,8 +129,12 @@ class TestKGConstructionApproach(unittest.TestCase):
         # test when path does not exist
         self.assertRaises(OSError, KGConstructionApproach, self.edge_dict, self.dir_loc)
 
-        # test when the dict is empty
+        # move files around for test
         os.remove(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl')
+        shutil.copyfile(self.dir_loc + '/subclass_construction_map_empty.pkl',
+                        self.dir_loc_resources + '/construction_approach/subclass_construction_map_empty.pkl')
+
+        # run tests
         self.assertRaises(TypeError, KGConstructionApproach, self.edge_dict, self.dir_loc_resources)
 
         # clean up environment
@@ -445,6 +445,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         return None
 
     def tearDown(self):
+
         # remove resource directory
         shutil.rmtree(self.dir_loc_resources)
 

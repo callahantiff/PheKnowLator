@@ -31,11 +31,7 @@ class TestFullBuild(unittest.TestCase):
         os.mkdir(self.dir_loc_resources + '/construction_approach')
         os.mkdir(self.dir_loc_resources + '/owl_decoding')
 
-        # copy data
-        # subclass dict file
-        shutil.copyfile(self.dir_loc + '/subclass_construction_map_empty.pkl',
-                        self.dir_loc_resources + '/construction_approach/subclass_construction_map_empty.pkl')
-
+        # copy needed data
         # node metadata
         shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt',
                         self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')

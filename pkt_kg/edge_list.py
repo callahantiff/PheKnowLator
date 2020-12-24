@@ -4,7 +4,7 @@
 # import needed libraries
 import csv
 import json
-import pandas  # type: ignore
+import pandas as pd  # type: ignore
 import re
 
 from difflib import SequenceMatcher
@@ -40,8 +40,6 @@ class CreatesEdgeList(object):
 
         self.data_files = data_files
         self.source_file = source_file
-
-        # convert edge data to a dictionary
         self.source_info: Dict[str, Dict[str, Any]] = dict()
 
         with open(source_file, 'r') as source_file_data:
@@ -66,8 +64,7 @@ class CreatesEdgeList(object):
     def identify_header(file_path: str, delimiter: str, skip_rows: List[int]) -> Optional[int]:
         """Compares the similarity of the first line of a Pandas DataFrame to the column headers when read in with and
         without a header to determine whether or not the data frame should be built with a header or not. This
-        function was modified from a Stack Overflow post:
-        https://stackoverflow.com/questions/40193388/how-to-check-if-a-csv-has-a-header-using-python/40193509
+        function was modified from a Stack Overflow post: https://stackoverflow.com/a/40193509
 
         Args:
             file_path: A filepath to a data file.
@@ -75,36 +72,29 @@ class CreatesEdgeList(object):
             skip_rows: A list of indices to skip when reading in the data.
 
         Returns:
-            - 0, if the data should be read in with a header.
-            - None, if the data should be read in without a header.
+            - 0, if the data should be read in with a header else None.
         """
 
-        # read in data
-        df_with_header = pandas.read_csv(file_path, header='infer', nrows=1, delimiter=delimiter, skiprows=skip_rows)
-        df_without_header = pandas.read_csv(file_path, header=None, nrows=1, delimiter=delimiter, skiprows=skip_rows)
+        df_with_header = pd.read_csv(file_path, header='infer', nrows=1, delimiter=delimiter, skiprows=skip_rows)
+        df_without_header = pd.read_csv(file_path, header=None, nrows=1, delimiter=delimiter, skiprows=skip_rows)
 
         # calculate similarity between header and first row
         with_header_test = SequenceMatcher(None, '|'.join([str(x) for x in list(df_with_header.iloc[0])]),
                                            '|'.join([str(x) for x in list(df_with_header)])).ratio()
-
         without_header_test = SequenceMatcher(None, '|'.join([str(x) for x in list(df_without_header.iloc[0])]),
                                               '|'.join([str(x) for x in list(df_without_header)])).ratio()
-
         # determine if header should be used
-        if abs(with_header_test-without_header_test) < 0.5:
-            return 0
-        elif with_header_test >= without_header_test:
-            return None
-        else:
-            return None
+        if abs(with_header_test-without_header_test) < 0.5: return 0
+        elif with_header_test >= without_header_test: return None
+        else: return None
 
-    def data_reader(self, file_path: str, delimiter: str = 't') -> pandas.DataFrame:
-        """Takes a filepath pointing to data source and reads it into a Pandas DataFrame using information in the
-        file and line splitter variables.
+    def data_reader(self, file_path: str, delim: str = 't') -> pd.DataFrame:
+        """Takes a filepath pointing to data source and reads it into a Pandas DataFrame using information in the file
+        and line splitter variables.
 
         Args:
             file_path: A Filepath to data.
-            delimiter: A Character used to split rows into columns.
+            delim: A Character used to split rows into columns.
 
         Return:
             A Pandas DataFrame containing the data from the data_filepath.
@@ -113,7 +103,6 @@ class CreatesEdgeList(object):
             Exception: If the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
         """
 
-        # temporarily read in the data
         try:
             with open(file_path, 'r') as input_data_r:  # type: IO[Any]
                 data = input_data_r.read().splitlines()
@@ -124,21 +113,16 @@ class CreatesEdgeList(object):
             input_data_rb.close()
 
         # clean up data to only keep valid rows (rows that are not empty space or metadata)
-        splitter = '\t' if 't' in delimiter else r"\s+" if '' in delimiter else delimiter
-        if delimiter == '' or delimiter == ' ':
-            skip = [row for row in range(0, len(data)) if delimiter not in data[row]]
-        else:
-            skip = [row for row in range(0, len(data)) if splitter not in data[row]]
-
+        splitter = '\t' if 't' in delim else r"\s+" if '' in delim else delim
+        if delim == '' or delim == ' ': skip = [row for row in range(0, len(data)) if delim not in data[row]]
+        else: skip = [row for row in range(0, len(data)) if splitter not in data[row]]
         # determine if file contains a header
-        edge_data = pandas.read_csv(file_path, header=self.identify_header(file_path, splitter, skip),
-                                    delimiter=splitter, low_memory=False, skiprows=skip)
+        header = self.identify_header(file_path, splitter, skip)
+        edge_data = pd.read_csv(file_path, header=header, delimiter=splitter, low_memory=False, skiprows=skip)
+        # clean environment and return verified data
         del data, skip
-
-        if len(list(edge_data)) >= 2 and len(edge_data) > 10:
-            return edge_data.fillna('None', inplace=False)
-        else:
-            raise ValueError('ERROR: Data could not be properly read in')
+        if len(list(edge_data)) >= 2 and len(edge_data) > 10: return edge_data.fillna('None', inplace=False)
+        else: raise ValueError('ERROR: Data could not be properly read in')
 
     @staticmethod
     def filter_fixer(criteria):
@@ -160,8 +144,7 @@ class CreatesEdgeList(object):
 
             return fix_string
 
-    def filter_data(self, edge_data: pandas.DataFrame, filter_criteria: str, evidence_criteria: str) -> \
-            pandas.DataFrame:
+    def filter_data(self, edge_data: pd.DataFrame, filter_criteria: str, evidence_criteria: str) -> pd.DataFrame:
         """Applies a set of filtering and/or evidence criteria to specific columns in a Pandas DataFrame and returns a
         filtered data frame.
 
@@ -179,17 +162,13 @@ class CreatesEdgeList(object):
 
         if filter_criteria == 'None' and evidence_criteria == 'None':
             return edge_data
-        else:
-            # fix known errors when filtering empty cells
+        else:  # fix known errors when filtering empty cells
             map_filter_criteria = self.filter_fixer(filter_criteria) + '::' + self.filter_fixer(evidence_criteria)
-
             for crit in [x for x in map_filter_criteria.split('::') if x != 'None']:
                 # check if argument is to deduplicate data
                 if crit.split(';')[1] == 'dedup':
                     sort_col = list(edge_data)[int(crit.split(';')[0].split('-')[0])]
                     filter_col = list(edge_data)[int(crit.split(';')[0].split('-')[1])]
-
-                    # sort data
                     sort_dir = [True if crit.split(';')[-1].lower() == 'asc' else False][0]
                     edge_data.sort_values(sort_col, ascending=sort_dir, inplace=True)
                     edge_data.drop_duplicates(subset=filter_col, keep='first', inplace=True)
@@ -198,14 +177,9 @@ class CreatesEdgeList(object):
                     try:
                         if type(float(crit.split(';')[2])) is float or type(int(crit.split(';')[2])) is int:
                             edge_data[col] = edge_data[col].apply(lambda x: 0 if x == 'None' else x)
-
-                            if type(float(crit.split(';')[2])) is float:
-                                edge_data[col] = edge_data[col].astype(float)
-                            else:
-                                edge_data[col] = edge_data[col].astype(int)
-
+                            if type(float(crit.split(';')[2])) is float: edge_data[col] = edge_data[col].astype(float)
+                            else: edge_data[col] = edge_data[col].astype(int)
                             exp = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2])
-
                     except ValueError:
                         if crit.split(';')[2] == '' and '(' in crit.split(';')[1]:
                             exp = '{}{}'.format('x', crit.split(';')[1])
@@ -213,16 +187,13 @@ class CreatesEdgeList(object):
                             exp = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
                         else:
                             exp = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
-
                     edge_data = edge_data.loc[edge_data[col].apply(lambda x: eval(exp))]
-
-            if len(list(edge_data)) >= 2 and len(edge_data) >= 1:
-                return edge_data
-            else:
-                raise Exception('ERROR: Data could not be properly read in')
+            # verify and return data
+            if len(list(edge_data)) >= 2 and len(edge_data) >= 1: return edge_data
+            else: raise Exception('ERROR: Data could not be properly read in')
 
     @staticmethod
-    def data_reducer(cols: str, edge_data: pandas.DataFrame) -> pandas.DataFrame:
+    def data_reducer(cols: str, edge_data: pd.DataFrame) -> pd.DataFrame:
         """Reduces a Pandas DataFrame to the 2 columns specified by resource_info.txt. Prior to returning the data, the
         function checks the data type of each column in the reduced Pandas DataFrame to make sure that neither column is
         of type float.
@@ -232,21 +203,19 @@ class CreatesEdgeList(object):
             edge_data: A Pandas DataFrame.
 
         Returns:
-            A Pandas.DataFrame that consists of the two columns provided by the 'col' variable.
+            A Pandas DataFrame that consists of the two columns provided by the 'col' variable.
         """
 
         edge_data = edge_data[[list(edge_data)[int(cols.split(';')[0])], list(edge_data)[int(cols.split(';')[1])]]]
         edge_data = edge_data.drop_duplicates(subset=None, keep='first', inplace=False)
-
         # make sure neither column is float
         for x in list(edge_data):
-            if 'float' in str(edge_data[x].dtype):
-                edge_data[x] = edge_data[x].astype(int)
+            if 'float' in str(edge_data[x].dtype): edge_data[x] = edge_data[x].astype(int)
 
         return edge_data
 
     @staticmethod
-    def label_formatter(edge_data: pandas.DataFrame, label_criteria: str) -> pandas.DataFrame:
+    def label_formatter(edge_data: pd.DataFrame, label_criteria: str) -> pd.DataFrame:
         """Applies criteria to reformat edge data labels.
 
         Args:
@@ -257,14 +226,12 @@ class CreatesEdgeList(object):
                 3 - string to append to object node
 
         Returns:
-            edge_data: A Pandas.DataFrame with updated value labels.
+            edge_data: A Pandas DataFrame with updated value labels.
         """
 
         cut = label_criteria.split(';')[0]
-
         for col in range(0, len(label_criteria.split(';')[1:])):
             formatter, col_to_check = label_criteria.split(';')[col + 1], edge_data[list(edge_data)[col]].astype(str)
-
             if (cut == '' and formatter != '') or not any(i for i in list(col_to_check) if cut in i):
                 edge_data[list(edge_data)[col]] = edge_data[list(edge_data)[col]].apply(lambda x: formatter + str(x))
             elif cut != '' and formatter != '':
@@ -276,11 +243,9 @@ class CreatesEdgeList(object):
 
         return edge_data
 
-    def data_merger(self, node: int, mapping_data: str, edge_data: pandas.DataFrame) ->\
-            List[Union[str, pandas.DataFrame]]:
-        """Processes a string that contains instructions for mapping a column in the edge_data Pandas DataFrame.
-
-        This function assumes that the mapping data pointed to contains two columns: (1) identifier in edge_data to be
+    def data_merger(self, node: int, mapping_data: str, edge_data: pd.DataFrame) -> List[Union[str, pd.DataFrame]]:
+        """Processes a string that contains instructions for mapping a column in the edge_data Pandas DataFrame. This
+        function assumes that the mapping data pointed to contains two columns: (1) identifier in edge_data to be
         mapped and (2) the desired identifier to map to. If one of the columns does not need to be mapped to an
         identifier then the original node's column is used for the final merge.
 
@@ -300,24 +265,20 @@ class CreatesEdgeList(object):
         # check if node needs to be mapped to an outside data source
         if str(node) in re.sub('(?:(?!:)\\D)*', '', mapping_data).split(':'):  # MAPPING TO OUTSIDE DATA SOURCE
             node2map = list(edge_data)[node]
-
             try:
                 map_data = self.data_reader(mapping_data.split(';')[node].split(':')[1]).astype(str)
             except IndexError:
                 map_data = self.data_reader(mapping_data.split(';')[0].split(':')[1]).astype(str)
-
             # process mapping data
             map_col = list(map_data)[0]
             col_to_map = str(node2map) + '_' + str(map_col) + '_mapped'
             map_data.rename(columns={list(map_data)[1]: str(col_to_map)}, inplace=True)
-
             try:
-                merged_data = pandas.merge(edge_data, map_data, left_on=node2map, right_on=map_col, how='inner')
+                merged_data = pd.merge(edge_data, map_data, left_on=node2map, right_on=map_col, how='inner')
             except ValueError:
                 # update map_data merge col to match edge_data merge col type
                 edge_data[node2map], map_data[map_col] = edge_data[node2map].astype(str), map_data[map_col].astype(str)
-                merged_data = pandas.merge(edge_data, map_data, left_on=node2map, right_on=map_col, how='inner')
-
+                merged_data = pd.merge(edge_data, map_data, left_on=node2map, right_on=map_col, how='inner')
             # drop all columns but merge key and value columns
             merged_data = merged_data[[list(edge_data)[0], list(edge_data)[1], col_to_map]]
         else:   # NOT MAPPING TO OUTSIDE DATA SOURCE
@@ -327,7 +288,7 @@ class CreatesEdgeList(object):
 
         return [col_to_map, merged_data]
 
-    def process_mapping_data(self, mapping_data: str, edge_data: pandas.DataFrame) -> Tuple[Tuple[Any, Any], ...]:
+    def process_mapping_data(self, mapping_data: str, edge_data: pd.DataFrame) -> Tuple[Tuple[Any, Any], ...]:
         """Merges two mapped Pandas DataFrames into a single DataFrame. After merging the DataFrames, the function
         removes all columns except the the mapped columns and removes any duplicate rows.
 
@@ -339,8 +300,7 @@ class CreatesEdgeList(object):
 
         Returns:
             A tuple of tuples, where each tuple contains a mapped identifier from each node column in the edge_data
-            Pandas DataFrame. For example:
-                [['CHEBI_24505', 'R-HSA-1006173'], ['CHEBI_28879', 'R-HSA-1006173'], ['CHEBI_59888', 'R-HSA-1013011']]
+            Pandas DataFrame. For example: [['CHEBI_24505', 'R-HSA-1006173'], ['CHEBI_28879', 'R-HSA-1006173']]
         """
 
         if mapping_data == 'None':
@@ -349,15 +309,12 @@ class CreatesEdgeList(object):
         else:
             # merge edge data with referenced mapping data
             maps = [self.data_merger(node, mapping_data, edge_data) for node in range(2)]
-
             # merge mapping data merge result DataFrames
             merged_cols = list(set(maps[0][1]).intersection(set(maps[1][1])))
-            merged_data = pandas.merge(maps[0][1].astype(str),  # type: ignore
-                                       maps[1][1].astype(str),  # type: ignore
-                                       left_on=merged_cols, right_on=merged_cols, how='inner')
-
-            # remove unwanted columns
-            keep_cols = [x for x in merged_data.columns if 'mapped' in str(x)]
+            merged_data = pd.merge(maps[0][1].astype(str),  # type: ignore
+                                   maps[1][1].astype(str),  # type: ignore
+                                   left_on=merged_cols, right_on=merged_cols, how='inner')
+            keep_cols = [x for x in merged_data.columns if 'mapped' in str(x)]  # remove unwanted columns
             merged_data = merged_data[keep_cols].drop_duplicates(subset=None, keep='first', inplace=False)
 
             return tuple(zip(list(merged_data[maps[0][0]]), list(merged_data[maps[1][0]])))
@@ -370,18 +327,11 @@ class CreatesEdgeList(object):
 
         Returns:
             source_info: A dictionary that contains all of the master information for each edge type resource. For
-                example: {'chemical-complex': {'source_labels': ';;',
-                                               'data_type': 'class-entity',
-                                               'edge_relation': 'RO_0002436',
-                                               'uri': ['http://purl.obolibrary.org/obo/',
-                                                       'https://reactome.org/content/detail/'],
-                                               'delimiter': 't',
-                                               'column_idx': '0;1',
-                                               'identifier_maps': 'None',
-                                               'evidence_criteria': 'None',
-                                               'filter_criteria': 'None',
-                                               'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...]},
-                        }
+                example: {'chemical-complex': {'source_labels': ';;', 'data_type': 'class-entity',
+                                               'edge_relation': 'RO_0002436', 'uri': ['http://ex/', 'https://ex/'],
+                                               'delimiter': 't', 'column_idx': '0;1', 'identifier_maps': 'None',
+                                               'evidence_criteria': 'None', 'filter_criteria': 'None',
+                                               'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...]}}
         """
 
         for edge_type in tqdm(self.source_info.keys()):
