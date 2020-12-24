@@ -12,9 +12,6 @@ from urllib.request import urlopen
 
 from pkt_kg.utils import *
 
-# disable warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 
 class TestDataUtilsDownloading(unittest.TestCase):
     """Class to test the downloading methods from the data utility script."""
@@ -71,7 +68,7 @@ class TestDataUtilsDownloading(unittest.TestCase):
             )
 
         # test mocked download
-        r = requests.get(self.url, allow_redirects=True, verify=False)
+        r = requests.get(self.url, allow_redirects=True)
         self.assertTrue(r.ok)
 
         # test writing data
@@ -97,7 +94,7 @@ class TestDataUtilsDownloading(unittest.TestCase):
         )
 
         # test mocked download
-        r = requests.get(self.url, allow_redirects=True, verify=False)
+        r = requests.get(self.url, allow_redirects=True)
         self.assertFalse(r.ok)
 
         return None
@@ -222,7 +219,7 @@ class TestDataUtilsDownloading(unittest.TestCase):
         )
 
         # test mocked download
-        r = requests.get(self.gzipped_url, allow_redirects=True, verify=False)
+        r = requests.get(self.gzipped_url, allow_redirects=True)
         self.assertTrue(r.ok)
 
         # test writing data
@@ -250,7 +247,7 @@ class TestDataUtilsDownloading(unittest.TestCase):
         )
 
         # test mocked download
-        r = requests.get(self.gzipped_url, allow_redirects=True, verify=False)
+        r = requests.get(self.gzipped_url, allow_redirects=True)
         self.assertFalse(r.ok)
 
         return None
@@ -263,13 +260,13 @@ class TestDataUtilsDownloading(unittest.TestCase):
         self.assertTrue(os.path.exists(self.write_location + self.url.split('/')[-1]))
 
         # # ftp url data
-        # data_downloader(self.ftp_url, self.write_location)
+        data_downloader(self.ftp_url, self.write_location)
         self.assertTrue(os.path.exists(self.write_location + self.ftp_url.split('/')[-1]))
 
         # gzipped ftp url data
         file = self.gzipped_ftp_url.replace('ftp://', '').split('/')[-1]
         write_loc = self.write_location + '{filename}'.format(filename=file)
-        # data_downloader(self.gzipped_ftp_url, self.write_location)
+        data_downloader(self.gzipped_ftp_url, self.write_location)
         self.assertTrue(os.path.exists(os.path.exists(write_loc[:-3])))
 
         # zipped data
