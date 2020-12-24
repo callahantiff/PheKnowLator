@@ -48,9 +48,9 @@ class Metadata(object):
         self.node_dict = node_dict
 
     def node_metadata_processor(self) -> None:
-        """Processes a directory of node data sets by reading in each data set and then converting the read in data
-        into a dictionary, which is then added to the class attribute node_dict. This dictionary stores the "ID"
-        column of each data frame as the keys and all other columns as values. For example:
+        """Processes a directory of node data sets by reading in each data set a dictionary, which is then added to the
+        class attribute node_dict. This dictionary stores the "ID" column of each data frame as the keys and all other
+        columns as values. For example:
             {'variant-gene': {397508135: {'Label': 'NM_000492.3(CFTR):c.*80T>G',
                             'Description': 'This variant is a germline single nucleotide variant that results when a T
                                 allele is changed to G on chromosome 7 (NC_000007.14, start:117667188/stop:117667188
