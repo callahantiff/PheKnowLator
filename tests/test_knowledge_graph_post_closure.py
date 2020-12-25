@@ -40,31 +40,24 @@ class TestPostClosureBuild(unittest.TestCase):
                         self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
         shutil.copyfile(self.dir_loc + '/node_data/gene-gene_GENE_METADATA.txt',
                         self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt')
-
         # ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/empty_hp_with_imports.owl',
                         self.dir_loc_resources + '/ontologies/hp_with_imports.owl')
-
         # merged ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/so_with_imports.owl',
                         self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
-
         # closed kg file
         shutil.copyfile(self.dir_loc + '/ontologies/so_with_imports.owl',
                         self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_Closed_KG.owl')
-
         # relations data
         shutil.copyfile(self.dir_loc + '/RELATIONS_LABELS.txt',
                         self.dir_loc_resources + '/relations_data/RELATIONS_LABELS.txt')
-
         # inverse relations
         shutil.copyfile(self.dir_loc + '/INVERSE_RELATIONS.txt',
                         self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt')
-
         # owl nets properties file
         shutil.copyfile(self.dir_loc + '/OWL_NETS_Property_Types.txt',
                         self.dir_loc_resources + '/owl_decoding/OWL_NETS_Property_Types.txt')
-
         # empty master edges
         shutil.copyfile(self.dir_loc + '/Master_Edge_List_Dict_empty.json',
                         self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json')
@@ -104,8 +97,11 @@ class TestPostClosureBuild(unittest.TestCase):
         with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
             pickle.dump(subcls_map, f, protocol=4)
 
-        # build 3 different knowledge graphs
-        self.kg = PostClosureBuild('subclass', 'yes', 'yes', 'yes')
+        # set write location
+        self.write_location = self.dir_loc_resources + '/knowledge_graphs'
+
+        # build knowledge graph
+        self.kg = PostClosureBuild('subclass', 'yes', 'yes', 'yes', self.write_location)
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')

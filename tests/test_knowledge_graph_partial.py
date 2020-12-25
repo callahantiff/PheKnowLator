@@ -44,15 +44,12 @@ class TestPartialBuild(unittest.TestCase):
         # merged ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/so_with_imports.owl',
                         self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
-
         # relations data
         shutil.copyfile(self.dir_loc + '/RELATIONS_LABELS.txt',
                         self.dir_loc_resources + '/relations_data/RELATIONS_LABELS.txt')
-
         # inverse relations
         shutil.copyfile(self.dir_loc + '/INVERSE_RELATIONS.txt',
                         self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt')
-
         # empty master edges
         shutil.copyfile(self.dir_loc + '/Master_Edge_List_Dict_empty.json',
                         self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json')
@@ -92,7 +89,11 @@ class TestPartialBuild(unittest.TestCase):
         with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
             pickle.dump(subcls_map, f, protocol=4)
 
-        self.kg = PartialBuild('subclass', 'yes', 'yes', 'yes')
+        # set write location
+        self.write_location = self.dir_loc_resources + '/knowledge_graphs'
+
+        # instantiate class
+        self.kg = PartialBuild('subclass', 'yes', 'yes', 'yes', self.write_location)
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')

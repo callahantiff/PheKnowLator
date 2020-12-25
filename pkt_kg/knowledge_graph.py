@@ -80,7 +80,6 @@ class KGBuilder(object):
 
         # FINDING ONTOLOGIES DATA DIRECTORY
         ontologies = glob.glob(self.res_dir + '/ontologies/*.owl')
-        print('METHOD: {}'.format(self.res_dir))
         if not os.path.exists(self.res_dir + '/ontologies'): raise OSError("Can't find 'ontologies/' directory")
         elif len(ontologies) == 0: raise TypeError('The ontologies directory is empty')
         else: self.ontologies: List[str] = ontologies

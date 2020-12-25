@@ -45,7 +45,6 @@ class TestKGBuilder(unittest.TestCase):
         # ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/empty_hp_with_imports.owl',
                         self.dir_loc_resources + '/ontologies/hp_with_imports.owl')
-        print(self.dir_loc_resources)
         # merged ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/so_with_imports.owl',
                         self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
@@ -223,15 +222,6 @@ class TestKGBuilder(unittest.TestCase):
         # add back deleted data
         shutil.copyfile(self.dir_loc + '/RELATIONS_LABELS.txt', rel_loc)
         shutil.copyfile(self.dir_loc + '/INVERSE_RELATIONS.txt', invrel_loc)
-
-        return None
-
-    def test_class_initialization_parameter_relations_value(self):
-        """Tests the class initialization parameters for relations by verifying the returned value."""
-
-        self.assertIsInstance(self.kg_subclass.inverse_relations, List)
-        self.assertIn('INVERSE_RELATIONS.txt', self.kg_subclass.inverse_relations[0])
-        self.assertIn('RELATIONS_LABELS.txt', self.kg_subclass.inverse_relations[1])
 
         return None
 
