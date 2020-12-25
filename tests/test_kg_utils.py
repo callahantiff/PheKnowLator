@@ -224,15 +224,13 @@ class TestKGUtils(unittest.TestCase):
     def test_converts_rdflib_to_networkx(self):
         """Tests the converts_rdflib_to_networkx method."""
 
-        converts_rdflib_to_networkx(write_location=self.dir_loc,
-                                    full_kg='/so_with_imports.owl',
-                                    graph=None)
+        converts_rdflib_to_networkx(write_location=self.dir_loc, full_kg='/so_with_imports', graph=None)
 
         # check that files were created
-        self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_Networkx_MultiDiGraph.gpickle'))
+        self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle'))
 
         # clean up the environment
-        os.remove(self.dir_loc + '/so_with_imports_Networkx_MultiDiGraph.gpickle')
+        os.remove(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle')
 
         return None
 

@@ -305,7 +305,7 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     graph_len = len(graph)
     # build graph from input file and set counter
     out_ints = open(write_location + output_ints, 'w', encoding='utf-8')
-    out_ids = open(write_location + '_'.join(output_ints.split('_')[:-1]) + '_Identifiers.txt', 'w', encoding='utf-8')
+    out_ids = open(write_location + output_ints.replace('Integers', 'Identifiers'), 'w', encoding='utf-8')
     # write file headers
     out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
@@ -364,15 +364,16 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     # read in knowledge graph if class graph attribute is not present
     if not isinstance(graph, Graph):
         graph = Graph()
-        file_type = 'xml' if full_kg.split('.')[-1] == 'owl' else full_kg.split('.')[-1]
-        graph.parse(write_location + full_kg, format=file_type)
+        file_type = 'xml' if 'OWLNETS' not in full_kg else full_kg.split('.')[-1]
+        ext = '.owl' if file_type == 'xml' else '.nt'
+        graph.parse(write_location + full_kg + ext, format=file_type)
     # convert graph to networkx object
     nx_mdg = networkx.MultiDiGraph()
     for s, p, o in tqdm(graph):
         nx_mdg.add_edge(s, o, **{'key': p})
     # pickle networkx graph
     print('\nPickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
-    networkx.write_gpickle(nx_mdg, write_location + full_kg.split('.')[0] + '_Networkx_MultiDiGraph.gpickle')
+    networkx.write_gpickle(nx_mdg, write_location + full_kg + '_NetworkxMultiDiGraph.gpickle')
     del nx_mdg   # clean up environment
 
     return None
