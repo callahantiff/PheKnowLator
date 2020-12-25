@@ -27,7 +27,7 @@ class TestFullBuild(unittest.TestCase):
         os.mkdir(self.dir_loc_resources + '/knowledge_graphs')
         os.mkdir(self.dir_loc_resources + '/relations_data')
         os.mkdir(self.dir_loc_resources + '/node_data')
-        os.mkdir(dir_loc_resources + '/ontologies')
+        os.mkdir(self.dir_loc_resources + '/ontologies')
         os.mkdir(self.dir_loc_resources + '/construction_approach')
         os.mkdir(self.dir_loc_resources + '/owl_decoding')
 
