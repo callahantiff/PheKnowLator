@@ -46,6 +46,7 @@ class TestKGBuilder(unittest.TestCase):
         # ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/empty_hp_with_imports.owl',
                         self.dir_loc_resources + '/ontologies/hp_with_imports.owl')
+        print(self.dir_loc_resources)
 
         # merged ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/so_with_imports.owl',
@@ -156,24 +157,24 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    # def test_class_initialization_parameters_ontologies_missing(self):
-    #     """Tests the class initialization parameters for ontologies when the directory is missing."""
-    #
-    #     # run test when there is no ontologies directory
-    #     shutil.rmtree(self.dir_loc_resources + '/ontologies')
-    #     self.assertRaises(OSError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
-    #
-    #     return None
+    def test_class_initialization_parameters_ontologies_missing(self):
+        """Tests the class initialization parameters for ontologies when the directory is missing."""
 
-    # def test_class_initialization_parameters_ontologies_empty(self):
-    #     """Tests the class initialization parameters for ontologies when it's empty."""
-    #
-    #     # create empty ontologies directory
-    #     shutil.rmtree(self.dir_loc_resources + '/ontologies')
-    #     os.mkdir(self.dir_loc_resources + '/ontologies')
-    #     self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
-    #
-    #     return None
+        # run test when there is no ontologies directory
+        shutil.rmtree(self.dir_loc_resources + '/ontologies')
+        self.assertRaises(OSError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
+
+        return None
+
+    def test_class_initialization_parameters_ontologies_empty(self):
+        """Tests the class initialization parameters for ontologies when it's empty."""
+
+        # create empty ontologies directory
+        shutil.rmtree(self.dir_loc_resources + '/ontologies')
+        os.mkdir(self.dir_loc_resources + '/ontologies')
+        self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
+
+        return None
 
     def test_class_initialization_parameters_construction_approach(self):
         """Tests the class initialization parameters for construction_approach."""
