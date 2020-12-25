@@ -156,14 +156,14 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    def test_class_initialization_parameters_ontologies_missing(self):
-        """Tests the class initialization parameters for ontologies when the directory is missing."""
-
-        # run test when there is no ontologies directory
-        shutil.rmtree(self.dir_loc_resources + '/ontologies')
-        self.assertRaises(OSError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
-
-        return None
+    # def test_class_initialization_parameters_ontologies_missing(self):
+    #     """Tests the class initialization parameters for ontologies when the directory is missing."""
+    #
+    #     # run test when there is no ontologies directory
+    #     shutil.rmtree(self.dir_loc_resources + '/ontologies')
+    #     self.assertRaises(OSError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
+    #
+    #     return None
 
     def test_class_initialization_parameters_ontologies_empty(self):
         """Tests the class initialization parameters for ontologies when it's empty."""
