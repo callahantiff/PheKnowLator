@@ -205,11 +205,10 @@ class TestMetadata(unittest.TestCase):
         self.metadata.output_knowledge_graph_metadata(graph=graph)
 
         # make sure that node data wrote out
-        filename = self.metadata.full_kg[:-6] + 'NodeLabels.txt'
-        self.assertTrue(os.path.exists(filename))
+        self.assertTrue(os.path.exists(self.dir_loc + '/ontologies/so_with_imports_NodeLabels.txt'))
 
         # remove file
-        os.remove(self.dir_loc + '/ontologies/so_with_imporNodeLabels.txt')
+        os.remove(self.dir_loc + '/ontologies/so_with_imports_NodeLabels.txt')
 
         return None
 

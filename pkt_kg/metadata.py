@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 # import needed libraries
-import datetime
 import glob
 import json
 import os
@@ -11,6 +10,7 @@ import pandas  # type: ignore
 import re
 import subprocess
 
+from datetime import date, datetime
 from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
@@ -267,7 +267,8 @@ class Metadata(object):
 
         if self.node_dict:
             print('\nWriting Class Metadata')
-            with open(self.write_location + self.full_kg[:-6] + 'NodeLabels.txt', 'w', encoding='utf-8') as outfile:
+            filename = self.full_kg[:-4] + '_NodeLabels.txt'
+            with open(self.write_location + filename, 'w', encoding='utf-8') as outfile:
                 outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
                 for edge_type in tqdm(self.node_dict.keys()):
                     for node in self.node_dict[edge_type]:
@@ -314,7 +315,7 @@ class Metadata(object):
 
         # set annotation variables
         authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
-        date = datetime.datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+        date_full = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
         # convert filename to permanent url
         parsed_filename = '_'.join(filename.lower().split('/')[-1].split('_')[2:])
         url = 'https://pheknowlator.com/pheknowlator_' + parsed_filename
@@ -335,7 +336,7 @@ class Metadata(object):
         graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
         graph.add((URIRef(url + '.owl'), URIRef(OWL + 'versionIRI'), URIRef(pkt_url + '/wiki/' + self.kg_version)))
         graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
-        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date)))
+        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date_full)))
         graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
         graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information visit: ' + pkt_url)))
 
