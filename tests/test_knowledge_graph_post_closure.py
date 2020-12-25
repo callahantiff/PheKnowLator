@@ -23,7 +23,7 @@ class TestPostClosureBuild(unittest.TestCase):
         self.dir_loc = os.path.abspath(dir_loc)
 
         # set-up environment - make temp directory
-        dir_loc_resources = os.path.join(current_directory, 'data/resources')
+        dir_loc_resources = os.path.join(current_directory, 'resources')
         self.dir_loc_resources = os.path.abspath(dir_loc_resources)
         os.mkdir(self.dir_loc_resources)
         os.mkdir(self.dir_loc_resources + '/knowledge_graphs')
@@ -50,9 +50,8 @@ class TestPostClosureBuild(unittest.TestCase):
                         self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
 
         # closed kg file
-        closed_kg_file = '/knowledge_graphs/inverse_relations/PheKnowLator_Closed_KG.owl'
         shutil.copyfile(self.dir_loc + '/ontologies/so_with_imports.owl',
-                        self.dir_loc_resources + closed_kg_file)
+                        self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_Closed_KG.owl')
 
         # relations data
         shutil.copyfile(self.dir_loc + '/RELATIONS_LABELS.txt',
@@ -105,12 +104,8 @@ class TestPostClosureBuild(unittest.TestCase):
         with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
             pickle.dump(subcls_map, f, protocol=4)
 
-        # set-up input arguments
-        write_loc = self.dir_loc_resources + '/knowledge_graphs'
-        edges = self.dir_loc_resources + '/Master_Edge_List_Dict.json'
-
         # build 3 different knowledge graphs
-        self.kg = PostClosureBuild('v2.0.0', write_loc, 'subclass', edges, 'yes', 'yes', 'yes', 'yes')
+        self.kg = PostClosureBuild('subclass', 'yes', 'yes', 'yes')
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
@@ -128,21 +123,6 @@ class TestPostClosureBuild(unittest.TestCase):
 
         return None
 
-    def test_instance_owl_file(self):
-        """Tests importing instance construction approach."""
-
-        kg_file_loc = self.dir_loc_resources + '/knowledge_graphs/inverse_relations/PheKnowLator_Closed_KG.owl'
-
-        # test file does not exist
-        os.remove(kg_file_loc)
-        self.assertRaises(OSError, self.kg.construct_knowledge_graph)
-
-        # test file is empty
-        shutil.copyfile(self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json', kg_file_loc)
-        self.assertRaises(TypeError, self.kg.construct_knowledge_graph)
-
-        return None
-
     def test_construct_knowledge_graph(self):
         """Tests the construct_knowledge_graph method."""
 
@@ -151,32 +131,32 @@ class TestPostClosureBuild(unittest.TestCase):
 
         # check for output files
         # kg
-        kg = 'PheKnowLator_post_closure_InverseRelations_Closed_NoOWLSemantics_KG.owl'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg))
+        kg = 'PheKnowLator_v2.0.0_post-closure_subclass_inverseRelations_noOWL.owl'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + kg))
 
         # kg - owl
-        kg_owl = 'PheKnowLator_OWLNETS.nt'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_owl))
+        kg_owl = 'PheKnowLator_v2.0.0_post-closure_subclass_inverseRelations_noOWL_OWLNETS.nt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + kg_owl))
 
         # kg - nx.multiDiGraph
-        kg_mdg = 'PheKnowLator_OWLNETS_Networkx_MultiDiGraph.gpickle'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_mdg))
+        kg_mdg = 'PheKnowLator_v2.0.0_post-closure_subclass_inverseRelations_noOWL_OWLNETS_NetworkxMultiDiGraph.gpickle'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + kg_mdg))
 
         # node metadata
-        meta = 'PheKnowLator_post_closure_InverseRelations_Closed_NoOWLSemantics_NodeLabels.txt'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + meta))
+        meta = 'PheKnowLator_v2.0.0_post-closure_subclass_inverseRelations_noOWL_NodeLabels.txt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + meta))
 
         # edge list - identifiers
-        ids = 'PheKnowLator_post_closure_InverseRelations_Closed_NoOWLSemantics_Triples_Identifiers.txt'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + ids))
+        ids = 'PheKnowLator_v2.0.0_post-closure_subclass_inverseRelations_noOWL_Triples_Identifiers.txt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + ids))
 
         # edge list - integers
-        ints = 'PheKnowLator_post_closure_InverseRelations_Closed_NoOWLSemantics_Triples_Integers.txt'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + ints))
+        ints = 'PheKnowLator_v2.0.0_post-closure_subclass_inverseRelations_noOWL_Triples_Integers.txt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + ints))
 
         # edge list map
-        int_map = 'PheKnowLator_post_closure_InverseRelations_Closed_NoOWLSemantics_Triples_Integer_Identifier_Map.json'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + int_map))
+        int_map = 'PheKnowLator_v2.0.0_post-closure_subclass_inverseRelations_noOWL_Triples_Integer_Identifier_Map.json'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + int_map))
 
         return None
 

@@ -21,7 +21,7 @@ class TestPartialBuild(unittest.TestCase):
         self.dir_loc = os.path.abspath(dir_loc)
 
         # set-up environment - make temp directory
-        dir_loc_resources = os.path.join(current_directory, 'data/resources')
+        dir_loc_resources = os.path.join(current_directory, 'resources')
         self.dir_loc_resources = os.path.abspath(dir_loc_resources)
         os.mkdir(self.dir_loc_resources)
         os.mkdir(self.dir_loc_resources + '/knowledge_graphs')
@@ -92,11 +92,7 @@ class TestPartialBuild(unittest.TestCase):
         with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
             pickle.dump(subcls_map, f, protocol=4)
 
-        # set-up input arguments
-        write_loc = self.dir_loc_resources + '/knowledge_graphs'
-        edges = self.dir_loc_resources + '/Master_Edge_List_Dict.json'
-
-        self.kg = PartialBuild('v2.0.0', write_loc, 'subclass', edges, 'yes', 'yes', 'yes', 'yes')
+        self.kg = PartialBuild('subclass', 'yes', 'yes', 'yes')
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
@@ -121,21 +117,8 @@ class TestPartialBuild(unittest.TestCase):
         self.kg.construct_knowledge_graph()
 
         # check for output files
-        kg = 'partial_build/PheKnowLator_partial_InverseRelations_NotClosed_OWLSemantics_KG.owl'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg))
-
-        return None
-
-    def test_construct_knowledge_graph_with_no_ontologies(self):
-        """Test construct_knowledge_graph with empty ontologies directory."""
-
-        # remove merged file
-        os.remove(self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
-
-        # check with bad ontologies directory
-        self.kg.ontologies = []
-
-        self.assertRaises(TypeError, self.kg.construct_knowledge_graph)
+        kg = 'PheKnowLator_v2.0.0_partial_subclass_inverseRelations_noOWL.owl'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + kg))
 
         return None
 

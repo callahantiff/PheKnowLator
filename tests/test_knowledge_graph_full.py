@@ -21,7 +21,7 @@ class TestFullBuild(unittest.TestCase):
         self.dir_loc = os.path.abspath(dir_loc)
 
         # set-up environment - make temp directory
-        dir_loc_resources = os.path.join(current_directory, 'data/resources')
+        dir_loc_resources = os.path.join(current_directory, 'resources')
         self.dir_loc_resources = os.path.abspath(dir_loc_resources)
         os.mkdir(self.dir_loc_resources)
         os.mkdir(self.dir_loc_resources + '/knowledge_graphs')
@@ -97,12 +97,8 @@ class TestFullBuild(unittest.TestCase):
         with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
             pickle.dump(subcls_map, f, protocol=4)
 
-        # set-up input arguments
-        write_loc = self.dir_loc_resources + '/knowledge_graphs'
-        edges = self.dir_loc_resources + '/Master_Edge_List_Dict.json'
-
-        # build 3 different knowledge graphs
-        self.kg = FullBuild('v2.0.0', write_loc, 'subclass', edges, 'yes', 'yes', 'yes', 'yes')
+        # build knowledge graphs
+        self.kg = FullBuild('subclass', 'yes', 'yes', 'yes')
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
@@ -128,45 +124,32 @@ class TestFullBuild(unittest.TestCase):
 
         # check for output files
         # kg
-        kg = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_KG.owl'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg))
+        kg = self.kg.full_kg
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + kg))
 
         # kg - owl
-        kg_owl = 'PheKnowLator_OWLNETS.nt'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_owl))
+        kg_owl = 'PheKnowLator_v2.0.0_full_subclass_inverseRelations_noOWL_OWLNETS.nt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + kg_owl))
 
         # kg - nx.multiDiGraph
-        kg_mdg = 'PheKnowLator_OWLNETS_Networkx_MultiDiGraph.gpickle'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + kg_mdg))
+        kg_mdg = 'PheKnowLator_v2.0.0_full_subclass_inverseRelations_noOWL_OWLNETS_NetworkxMultiDiGraph.gpickle'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + kg_mdg))
 
         # node metadata
-        meta = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_NodeLabels.txt'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + meta))
+        meta = 'PheKnowLator_v2.0.0_full_subclass_inverseRelations_noOWL_NodeLabels.txt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + meta))
 
         # edge list - identifiers
-        ids = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_Triples_Identifiers.txt'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + ids))
+        ids = 'PheKnowLator_v2.0.0_full_subclass_inverseRelations_noOWL_Triples_Identifiers.txt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + ids))
 
         # edge list - integers
-        ints = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_Triples_Integers.txt'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + ints))
+        ints = 'PheKnowLator_v2.0.0_full_subclass_inverseRelations_noOWL_Triples_Integers.txt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + ints))
 
         # edge list map
-        int_map = 'PheKnowLator_full_InverseRelations_NotClosed_NoOWLSemantics_Triples_Integer_Identifier_Map.json'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/inverse_relations/' + int_map))
-
-        return None
-
-    def test_construct_knowledge_graph_with_no_ontologies(self):
-        """Test construct_knowledge_graph with empty ontologies directory."""
-
-        # remove merged file
-        os.remove(self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
-
-        # check with bad ontologies directory
-        self.kg.ontologies = []
-
-        self.assertRaises(TypeError, self.kg.construct_knowledge_graph)
+        int_map = 'PheKnowLator_v2.0.0_full_subclass_inverseRelations_noOWL_Triples_Integer_Identifier_Map.json'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + int_map))
 
         return None
 
