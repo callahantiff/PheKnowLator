@@ -22,7 +22,7 @@ def main():
     parser.add_argument('-t', '--res', help='name/path to text file containing resource_info', required=True)
     parser.add_argument('-b', '--kg', help='build type: "partial", "full", or "post-closure"', required=True)
     parser.add_argument('-o', '--out', help='name/path to directory where to write knowledge graph', required=True)
-    parser.add_argument('-n', '--nde', help='yes/no - adding node metadata to knowledge graph', required=True)
+    parser.add_argument('-n', '--nde', help='yes/no - providing metadata for non-ontology nodes', required=True)
     parser.add_argument('-r', '--rel', help='yes/no - adding inverse relations to knowledge graph', required=True)
     parser.add_argument('-s', '--owl', help='yes/no - removing OWL Semantics from knowledge graph', required=True)
     parser.add_argument('-m', '--kgm', help='yes/no - adding node metadata to knowledge graph', required=True)
