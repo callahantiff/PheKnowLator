@@ -42,24 +42,19 @@ class TestKGBuilder(unittest.TestCase):
                         self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
         shutil.copyfile(self.dir_loc + '/node_data/gene-gene_GENE_METADATA.txt',
                         self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt')
-
         # ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/empty_hp_with_imports.owl',
                         self.dir_loc_resources + '/ontologies/hp_with_imports.owl')
         print(self.dir_loc_resources)
-
         # merged ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/so_with_imports.owl',
                         self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
-
         # relations data
         shutil.copyfile(self.dir_loc + '/RELATIONS_LABELS.txt',
                         self.dir_loc_resources + '/relations_data/RELATIONS_LABELS.txt')
-
         # inverse relations
         shutil.copyfile(self.dir_loc + '/INVERSE_RELATIONS.txt',
                         self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt')
-
         # empty master edges
         shutil.copyfile(self.dir_loc + '/Master_Edge_List_Dict_empty.json',
                         self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json')
@@ -136,11 +131,14 @@ class TestKGBuilder(unittest.TestCase):
         with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
             pickle.dump(subcls_map, f, protocol=4)
 
+        # set write location
+        self.write_location = self.dir_loc_resources + '/knowledge_graphs'
+
         # build 3 different knowledge graphs
-        self.kg_subclass = FullBuild('subclass', 'yes', 'yes', 'yes')
-        self.kg_instance = PartialBuild('instance', 'yes', 'no', 'no')
-        self.kg_instance2 = PartialBuild('instance', 'yes', 'yes', 'yes')
-        self.kg_closure = PostClosureBuild('instance', 'yes', 'yes', 'no')
+        self.kg_subclass = FullBuild('subclass', 'yes', 'yes', 'yes', self.write_location)
+        self.kg_instance = PartialBuild('instance', 'yes', 'no', 'no', self.write_location)
+        self.kg_instance2 = PartialBuild('instance', 'yes', 'yes', 'yes', self.write_location)
+        self.kg_closure = PostClosureBuild('instance', 'yes', 'yes', 'no', self.write_location)
 
         # update class attributes for the location of owltools
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
@@ -162,7 +160,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # run test when there is no ontologies directory
         shutil.rmtree(self.dir_loc_resources + '/ontologies')
-        self.assertRaises(OSError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
+        self.assertRaises(OSError, FullBuild, 'subclass', 'yes', 'yes', 'yes', self.write_location)
 
         return None
 
@@ -172,16 +170,16 @@ class TestKGBuilder(unittest.TestCase):
         # create empty ontologies directory
         shutil.rmtree(self.dir_loc_resources + '/ontologies')
         os.mkdir(self.dir_loc_resources + '/ontologies')
-        self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
+        self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes', self.write_location)
 
         return None
 
     def test_class_initialization_parameters_construction_approach(self):
         """Tests the class initialization parameters for construction_approach."""
 
-        self.assertRaises(ValueError, FullBuild, 1, 'yes', 'yes', 'yes')
-        self.assertRaises(ValueError, FullBuild, 'subcls', 'yes', 'yes', 'yes')
-        self.assertRaises(ValueError, FullBuild, 'inst', 'yes', 'yes', 'yes')
+        self.assertRaises(ValueError, FullBuild, 1, 'yes', 'yes', 'yes', self.write_location)
+        self.assertRaises(ValueError, FullBuild, 'subcls', 'yes', 'yes', 'yes', self.write_location)
+        self.assertRaises(ValueError, FullBuild, 'inst', 'yes', 'yes', 'yes', self.write_location)
 
         return None
 
@@ -190,7 +188,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # remove file to trigger OSError
         os.remove(self.dir_loc_resources + '/Master_Edge_List_Dict.json')
-        self.assertRaises(OSError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
+        self.assertRaises(OSError, FullBuild, 'subclass', 'yes', 'yes', 'yes', self.write_location)
 
         return None
 
@@ -200,15 +198,15 @@ class TestKGBuilder(unittest.TestCase):
         # rename empty to be main file
         os.rename(self.dir_loc_resources + '/Master_Edge_List_Dict_empty.json',
                   self.dir_loc_resources + '/Master_Edge_List_Dict.json')
-        self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
+        self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes', self.write_location)
 
         return None
 
     def test_class_initialization_parameter_relations_format(self):
         """Tests the class initialization parameters for relations when the input parameter is formatted wrong."""
 
-        self.assertRaises(ValueError, FullBuild, 'subclass', 'yes', 1, 'yes')
-        self.assertRaises(ValueError, FullBuild, 'subclass', 'yes', 'ye', 'yes')
+        self.assertRaises(ValueError, FullBuild, 'subclass', 'yes', 1, 'yes', self.write_location)
+        self.assertRaises(ValueError, FullBuild, 'subclass', 'yes', 'ye', 'yes', self.write_location)
 
         return None
 
@@ -220,7 +218,7 @@ class TestKGBuilder(unittest.TestCase):
         invrel_loc = self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt'
         os.remove(rel_loc)
         os.remove(invrel_loc)
-        self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
+        self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes', self.write_location)
 
         # add back deleted data
         shutil.copyfile(self.dir_loc + '/RELATIONS_LABELS.txt', rel_loc)
@@ -240,8 +238,8 @@ class TestKGBuilder(unittest.TestCase):
     def test_class_initialization_parameters_node_metadata_format(self):
         """Tests the class initialization parameters for node_metadata with different formatting."""
 
-        self.assertRaises(ValueError, FullBuild, 'subclass', 1, 'yes', 'yes')
-        self.assertRaises(ValueError, FullBuild, 'subclass', 'ye', 'yes', 'yes')
+        self.assertRaises(ValueError, FullBuild, 'subclass', 1, 'yes', 'yes', self.write_location)
+        self.assertRaises(ValueError, FullBuild, 'subclass', 'ye', 'yes', 'yes', self.write_location)
 
         return None
 
@@ -255,7 +253,7 @@ class TestKGBuilder(unittest.TestCase):
         os.remove(gene_gene_data)
 
         # test method
-        self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes')
+        self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes', self.write_location)
 
         # add back deleted data
         shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt', gene_phen_data)
@@ -266,8 +264,8 @@ class TestKGBuilder(unittest.TestCase):
     def test_class_initialization_parameters_decoding_owl(self):
         """Tests the class initialization parameters for decoding owl."""
 
-        self.assertRaises(ValueError, FullBuild, 'subclass', 'yes', 'yes', 1)
-        self.assertRaises(ValueError, FullBuild, 'subclass', 'yes', 'yes', 'ye')
+        self.assertRaises(ValueError, FullBuild, 'subclass', 'yes', 'yes', 1, self.write_location)
+        self.assertRaises(ValueError, FullBuild, 'subclass', 'yes', 'yes', 'ye', self.write_location)
 
         return None
 
@@ -278,7 +276,7 @@ class TestKGBuilder(unittest.TestCase):
         os.remove(self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
 
         # run test
-        self.kg_subclass = FullBuild('subclass', 'yes', 'yes', 'yes')
+        self.kg_subclass = FullBuild('subclass', 'yes', 'yes', 'yes', self.write_location)
 
         # check that there is 1 ontology file
         self.assertIsInstance(self.kg_subclass.ontologies, List)

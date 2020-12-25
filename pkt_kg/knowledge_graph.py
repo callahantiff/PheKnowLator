@@ -43,6 +43,7 @@ class KGBuilder(object):
         node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
         inverse_relations: A filepath to a directory called 'relations_data' containing the relations data.
         decode_owl: A string indicating whether edges containing owl semantics should be removed.
+        write_location: An optional string passed to specify the primary directory to write to.
 
     Raises:
         ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
@@ -57,7 +58,8 @@ class KGBuilder(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, construction: str, node_data: str, inverse_relations: str, decode_owl: str) -> None:
+    def __init__(self, construction: str, node_data: str, inverse_relations: str, decode_owl: str,
+                 write_location: str = os.path.abspath('./resources/knowledge_graphs')) -> None:
 
         self.kg_version = 'v' + __version__
         self.build: str = self.gets_build_type().lower().split()[0]
@@ -72,7 +74,7 @@ class KGBuilder(object):
         self.obj_properties: Set = set()
         self.owl_tools = './pkt_kg/libs/owltools'
         self.relations_dict: Dict = dict()
-        self.write_location = os.path.abspath('./resources/knowledge_graphs')
+        self.write_location = write_location
         self.res_dir = os.path.abspath('/'.join(self.write_location.split('/')[:-1]))
         self.merged_ont_kg: str = self.write_location + '/PheKnowLator_MergedOntologies.owl'
 
