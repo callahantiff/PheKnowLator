@@ -310,7 +310,6 @@ class LinkedData(DataSource):
             with open(self.data_path, 'r') as file_name:
                 self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
                                     for row in file_name.read().splitlines()}
-            file_name.close()
 
         return None
 
