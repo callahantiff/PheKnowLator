@@ -38,7 +38,7 @@ class TestOwlNets(unittest.TestCase):
 
         # set-up input arguments
         self.write_location = self.dir_loc_resources + '/knowledge_graphs'
-        self.kg_filename = 'so_with_imports.owl'
+        self.kg_filename = '/so_with_imports.owl'
         self.object_properties = self.dir_loc_resources + '/owl_decoding/OWL_NETS_Property_Types.txt'
 
         # read in knowledge graph
@@ -494,13 +494,12 @@ class TestOwlNets(unittest.TestCase):
         """Tests the run_owl_nets method."""
 
         owl_nets_graph = self.owl_nets.run_owl_nets()
-
         self.assertIsInstance(owl_nets_graph, Graph)
         self.assertEqual(len(owl_nets_graph), 2940)
 
         # make sure files are written locally
-        nx_mdg_file = 'PheKnowLator_OWLNETS_Networkx_MultiDiGraph.gpickle'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_OWLNETS.nt'))
+        nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/so_with_imports_OWLNETS.nt'))
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
 
         return None

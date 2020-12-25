@@ -463,7 +463,7 @@ class OwlNets(object):
             if 'owl#' in str(x[0]) or 'owl#' in str(x[2]): owl_nets_graph.remove(x)
         # write out owl-nets graph
         print('\nSerializing OWL-NETS Graph')
-        file_name = '/'.join(self.full_kg.split('/')[:-1]) + '/PheKnowLator_OWLNETS.nt'
+        file_name = self.full_kg[:-4] + '_OWLNETS.nt'
         owl_nets_graph.serialize(destination=self.write_location + file_name, format='nt')
         # get output statistics
         unique_nodes = set([str(x) for y in [node[0::2] for node in list(owl_nets_graph)] for x in y])
@@ -473,6 +473,6 @@ class OwlNets(object):
         print('The OWL-Decoded Knowledge Graph Contains: {} Unique Nodes'.format(len(unique_nodes)))
         print('The OWL-Decoded Knowledge Graph Contains: {} Unique Relations'.format(len(unique_relations)))
         # convert graph to NetworkX MultiDigraph
-        converts_rdflib_to_networkx(self.write_location, file_name, owl_nets_graph)
+        converts_rdflib_to_networkx(self.write_location, file_name[:-3], owl_nets_graph)
 
         return owl_nets_graph
