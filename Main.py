@@ -21,11 +21,11 @@ def main():
     parser.add_argument('-a', '--app', help='construction approach to use (i.e. instance or subclass)', required=True)
     parser.add_argument('-t', '--res', help='name/path to text file containing resource_info', required=True)
     parser.add_argument('-b', '--kg', help='build type: "partial", "full", or "post-closure"', required=True)
-    parser.add_argument('-o', '--out', help='name/path to directory where to write knowledge graph', required=True)
-    parser.add_argument('-n', '--nde', help='yes/no - providing metadata for non-ontology nodes', required=True)
+    parser.add_argument('-n', '--nde', help='yes/no - non-ontology node metadata directory location', required=True)
     parser.add_argument('-r', '--rel', help='yes/no - adding inverse relations to knowledge graph', required=True)
     parser.add_argument('-s', '--owl', help='yes/no - removing OWL Semantics from knowledge graph', required=True)
     parser.add_argument('-m', '--kgm', help='yes/no - adding node metadata to knowledge graph', required=True)
+    parser.add_argument('-o', '--out', help='name/path to directory where to write knowledge graph', required=True)
 
     args = parser.parse_args()
 
@@ -43,17 +43,15 @@ def main():
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
     start = time.time()
     ont = OntData(data_path=args.onts, resource_data=args.res)
-    # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='./resources/resource_info.txt')
     ont.downloads_data_from_url()
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\nTOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end-start, timestamp))
+    print('\nTOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
 
     # STEP 4: DOWNLOAD EDGE DATA SOURCES
     print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
     start = time.time()
     ent = LinkedData(data_path=args.edg, resource_data=args.res)
-    # ent = LinkedData(data_path='resources/edge_source_list.txt', resource_data='./resources/resource_info.txt')
     ent.downloads_data_from_url()
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -66,7 +64,6 @@ def main():
     print('\n' + '=' * 33 + '\nPROCESSING EDGE DATA\n' + '=' * 33 + '\n')
     start = time.time()
     combined_edges = dict(ent.data_files, **ont.data_files)
-    # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
     master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     master_edges.creates_knowledge_graph_edges()
     end = time.time()
@@ -81,32 +78,23 @@ def main():
     start = time.time()
 
     if args.kg == 'partial':
-        kg = PartialBuild(kg_version='v2.0.0',
-                          write_location=args.out,
-                          construction=args.app,
-                          edge_data='./resources/Master_Edge_List_Dict.json',
+        kg = PartialBuild(construction=args.app,
                           node_data=args.nde,
                           inverse_relations=args.rel,
                           decode_owl=args.owl,
-                          kg_metadata_flag=args.kgm)
+                          write_location=args.out)
     elif args.kg == 'post-closure':
-        kg = PostClosureBuild(kg_version='v2.0.0',
-                              write_location=args.out,
-                              construction=args.app,
-                              edge_data='./resources/Master_Edge_List_Dict.json',
+        kg = PostClosureBuild(construction=args.app,
                               node_data=args.nde,
                               inverse_relations=args.rel,
                               decode_owl=args.owl,
-                              kg_metadata_flag=args.kgm)
+                              write_location=args.out)
     else:
-        kg = FullBuild(kg_version='v2.0.0',
-                       write_location=args.out,
-                       construction=args.app,
-                       edge_data='./resources/Master_Edge_List_Dict.json',
+        kg = FullBuild(construction=args.app,
                        node_data=args.nde,
                        inverse_relations=args.rel,
                        decode_owl=args.owl,
-                       kg_metadata_flag=args.kgm)
+                       write_location=args.out)
     kg.construct_knowledge_graph()
 
     end = time.time()
