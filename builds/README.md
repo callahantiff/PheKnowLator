@@ -38,7 +38,8 @@ This phase is triggered on the same date each month and consists of the followin
 <br>
 
 ### Phase 2: Preprocess Downloaded Build Data     
-**Script(s):** `build_phase_2.py`; `pkt_kg/data_preprocessing.py`; `pkt_kg/ontology_cleaning.py`  
+**Script(s):** `build_phase_2.py`; `pkt_kg/data_preprocessing.py`; `pkt_kg/ontology_cleaning.py`   
+**Data:** `genomic_typing_dict.pkl`
 
 This phase is triggered upon the successful completion of [Phase 1](#Phase-1:-Download-Build-Data) and consists of the following three steps:  
 1. **Preprocess Linked Open Data:** Runs the `pkt_kg/data_preprocessing.py` script, which preprocesses and prepares all Linked Open Data sources (i.e. non-ontology data) needed to the build the knowledge graphs. The cleaned data are output to the `data/processed_data` directory associated with the current build along with a metadata document providing provenance information on the preprocessed and cleaned documents.      
