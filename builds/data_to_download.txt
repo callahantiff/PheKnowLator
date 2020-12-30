@@ -34,6 +34,8 @@ http://compath.scai.fraunhofer.de/export_mappings
 https://raw.githubusercontent.com/ComPath/resources/master/mappings/kegg_reactome.csv
 # mapping genomic identifiers to the sequence ontology
 https://www.dropbox.com/s/g0blo27qc8ogvk2/genomic_sequence_ontology_mappings.xlsx?dl=1
+# protein ontology consortium sparql query results
+https://sparql.proconsortium.org/virtuoso/sparql?query=PREFIX+obo%3A+%3Chttp%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F%3E%0D%0A%0D%0ASELECT+%3FPRO_term%0D%0AFROM+%3Chttp%3A%2F%2Fpurl.obolibrary.org%2Fobo%2Fpr%3E%0D%0AWHERE+%7B%0D%0A+++++++%3FPRO_term+rdf%3Atype+owl%3AClass+.%0D%0A+++++++%3FPRO_term+rdfs%3AsubClassOf+%3Frestriction+.%0D%0A+++++++%3Frestriction+owl%3AonProperty+obo%3ARO_0002160+.%0D%0A+++++++%3Frestriction+owl%3AsomeValuesFrom+obo%3ANCBITaxon_9606+.%0D%0A%0D%0A+++++++%23+use+this+to+filter-out+things+like+hgnc+ids%0D%0A+++++++FILTER+%28regex%28%3FPRO_term%2C%22http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F*%22%29%29+.%0D%0A%7D&format=text%2Fhtml&debug=
 # clinvar variant-diseases and phenotypes
 ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz
 # uniprot protein-cofactor and protein-catalyst
