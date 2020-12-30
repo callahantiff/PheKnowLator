@@ -271,7 +271,7 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
 
     ids, labels, desc, synonyms = [], [], [], []
 
-    for request_ids in list(chunks(nodes, 20)):
+    for request_ids in tqdm(list(chunks(nodes, 20))):
         results = content.query_ids(ids=','.join(request_ids))
         for row in results:
             ids.append(row['stId'])
@@ -281,9 +281,8 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
             else: synonyms.append('None')
 
     # combine into new data frame
-    node_metadata_final = pd.DataFrame(list(zip(ids, labels, desc, synonyms)),
-                                       columns=['ID', 'Label', 'Description', 'Synonym'])
-    node_metadata_final = node_metadata_final.astype(str)
+    metadata = pd.DataFrame(list(zip(ids, labels, desc, synonyms)), columns=['ID', 'Label', 'Description', 'Synonym'])
+    node_metadata_final = metadata.astype(str)
 
     return node_metadata_final
 
