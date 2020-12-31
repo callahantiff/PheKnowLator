@@ -8,62 +8,51 @@ from google.cloud import storage
 
 from builds.data_preprocessing import DataPreprocessing
 from pkt_kg.__version__ import __version__
+from pkt_kg.utils import data_downloader
 
 # set environment variable -- this should be replaced with GitHub Secret for build
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
 
-def writes_data_to_gcs_bucket(filename: str) -> None:
-    """Takes a filename and a data object and writes the data in that object to the Google Cloud Storage bucket
-    specified in the filename.
+def updates_dependency_documents(bucket_url, file_url, bucket, gcs_loc, temp_directory) -> None:
+    """Takes a dependency file url and downloads the file it points to. That file is then iterated over and all urls
+    are updated to point their current Google Cloud Storage bucket. The updated file is saved locally and pushed to
+    the processed_data directory of the current build.
 
     Args:
-        filename: A string containing the name of file to write to a Google Cloud Storage bucket.
+        bucket_url: A string containing a URL to the current Google Cloud Storage bucket.
+        file_url: A string containing a URL to a build dependency document.
+        bucket: A storage Bucket object specifying a Google Cloud Storage bucket.
+        gcs_loc: A string specifying the location of the original_data directory for a specific build.
+        temp_directory: A local directory
 
     Returns:
         None.
     """
 
-    blob = self.bucket.blob(self.processed_data + filename)
-    blob.upload_from_filename(self.temp_dir + '/' + filename)
-    print('Uploaded {} to GCS bucket: {}'.format(filename, self.processed_data))
+    # set bucket information
+    bucket_path = '/'.join(bucket_url.split('/')[4:])
+    original_bucket = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=bucket_path + 'original_data')]
+    processed_bucket = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=bucket_path + 'processed_data/')]
+
+    # download dependency file and read in data
+    data_downloader(file_url, temporary_directory + '/')
+    filename = file_url.split('/')[-1]
+    data = open(temp_directory + '/' + filename).readlines()
+
+    # update file with current gcs bucket url
+    with open(temp_directory + '/' + filename, 'w') as out:
+        for row in data:
+            prefix, suffix = row.split(', ')
+            data_file = suffix.split('/')[-1].strip('?dl=1')
+            if data_file in original_bucket: out.write(prefix + ', ' + bucket_url + 'original_data/' + data_file)
+            if data_file in processed_bucket: out.write(prefix + ', ' + bucket_url + 'processed_data/' + data_file)
+
+    # push data to bucket
+    blob = bucket.blob(gcs_loc + filename)
+    blob.upload_from_filename(temp_directory + '/' + filename)
 
     return None
-
-
-def reads_gcs_bucket_data_to_df(self, file_loc: str, delm: str, skip: int = 0,
-                                header: Optional[int, List] = None) -> pd.DataFrame:
-    """Takes a Google Cloud Storage bucket and a filename and downloads to the data to a local temp directory.
-    Once downloaded, the file is read into a Pandas DataFrame.
-
-    Args:
-        file_loc: A string containing the name of file that exists in a Google Cloud Storage bucket.
-        delm: A string specifying a file delimiter.
-        skip: An integer specifying the number of rows to skip when reading in the data.
-        header: An integer specifying the header row, None for no header or a list of header names.
-
-    Returns:
-         data: A Pandas DataFrame object containing data read from a Google Cloud Storage bucket.
-    """
-
-    try:
-        _files = [_.name for _ in self.bucket.list_blobs(prefix=self.original_data_bucket)]
-        matched_file = fnmatch.filter(_files, '*/' + file_loc)[0]  # poor man's glob
-        self.bucket.blob(matched_file).download_to_filename(self.temp_dir + '/' + matched_file.split('/')[-1])
-        data_file = self.temp_dir + '/' + matched_file.split('/')[-1]
-    except IndexError:
-        raise ValueError('Cannot find {} in the GCS original_data directory of the current build'.format(file_loc))
-
-    if header is None or isinstance(header, int):
-        data = pd.read_csv(data_file, header=header, delimiter=delm, skiprows=skip, low_memory=False)
-    else:
-        data = pd.read_csv(data_file, header=None, names=header, delm=delimiter, skiprows=skip, low_memory=False)
-
-    return data
-
-def creates_genomic_identifier_data(lod_class):
-
-    return
 
 
 def main():
@@ -87,10 +76,22 @@ def main():
     ###############################################
     # STEP 2 - Preprocess Linked Open Data Sources
     lod_data = DataPreprocessing(bucket, gcs_original_data, gcs_processed_data, temp_dir)
+    lod_data.preprocess_build_data()
 
+    ###############################################
     # STEP 3 - Ontology Data Sources
 
+    ###############################################
     # STEP 4 - Update Required Input Build Resources
+    url = 'https://storage.googleapis.com/pheknowlator/{}/{}/data/'.format(release, build)
+
+    # edge source list
+    edge_src_list = ' https://raw.githubusercontent.com/callahantiff/PheKnowLator/master/resources/edge_source_list.txt'
+    updates_dependency_documents(url, edge_src_list, bucket, gcs_processed_data, temp_dir)
+
+    # ontology source list
+    ont_list = ' https://raw.githubusercontent.com/callahantiff/PheKnowLator/master/resources/ontology_source_list.txt'
+    updates_dependency_documents(url, ont_list, bucket, gcs_processed_data, temp_dir)
 
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)
