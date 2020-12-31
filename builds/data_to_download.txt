@@ -3,7 +3,7 @@ http://purl.obolibrary.org/obo/hp.owl
 http://purl.obolibrary.org/obo/go.owl
 http://purl.obolibrary.org/obo/mondo.owl
 http://purl.obolibrary.org/obo/vo.owl
-ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi_lite.owl
+http://purl.obolibrary.org/obo/chebi.owl
 http://purl.obolibrary.org/obo/uberon/ext.owl
 http://purl.obolibrary.org/obo/clo.owl
 http://purl.obolibrary.org/obo/pr.owl
@@ -20,6 +20,8 @@ ftp://ftp.ensembl.org/pub/release-102/tsv/homo_sapiens/Homo_sapiens.GRCh38.102.e
 https://www.uniprot.org/uniprot/?query=&fil=organism%3A%22Homo%20sapiens%20(Human)%20%5B9606%5D%22&columns=id%2Creviewed%2Cdatabase(GeneID)%2Cdatabase(Ensembl)%2Cdatabase(HGNC)%2Cgenes(ALTERNATIVE)%2Cgenes(PREFERRED)&format=tab
 ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz
 https://proconsortium.org/download/current/promapping.txt
+ftp://nlmpubs.nlm.nih.gov/online/mesh/rdf/2021/mesh2021.nt
+ftp://ftp.ebi.ac.uk/pub/databases/chebi/Flat_file_tab_delimited/names.tsv.gz
 # disease and phenotype identifiers
 https://www.disgenet.org/static/disgenet_ap1/files/downloads/disease_mappings.tsv.gz
 # human protein atlas/gtex tissue/cells - uberon + cell ontology + cell line ontology
