@@ -3,22 +3,15 @@
 
 # import needed libraries
 import fnmatch
-import glob
-import ijson
 import itertools
 import networkx
-import numpy
 import os
 import pandas as pd
 import pickle
-import sys
 
 from collections import Counter
-from functools import reduce
 from google.cloud import storage
-from owlready2 import subprocess
-from rdflib import Graph, Namespace, URIRef, BNode, Literal
-from rdflib.namespace import OWL, RDF, RDFS
+from rdflib import Graph, URIRef
 from reactome2py import content
 from tqdm import tqdm
 from typing import List
@@ -111,10 +104,8 @@ class DataPreprocessing(object):
         dat = self.downloads_data_from_gcs_bucket(file_loc)
 
         if not isinstance(head, List):
-            if sht is not None:
-                df = pd.read_excel(dat, sheet_name=sht, header=head, skiprows=skip, engine='openpyxl')
-            else:
-                df = pd.read_csv(dat, header=head, delimiter=delm, skiprows=skip, low_memory=0)
+            if sht is not None: df = pd.read_excel(dat, sheet_name=sht, header=head, skiprows=skip, engine='openpyxl')
+            else: df = pd.read_csv(dat, header=head, delimiter=delm, skiprows=skip, low_memory=0)
         else:
             if sht is not None:
                 df = pd.read_excel(dat, sheet_name=sht, header=None, names=head, skiprows=skip, engine='openpyxl')
@@ -130,7 +121,7 @@ class DataPreprocessing(object):
         delimited data. The final step is to update the gene_type variable such that each of the variable values is
         re-grouped to be protein-coding, other or ncRNA.
 
-        Return:
+        Returns:
             explode_df_hgnc: A Pandas DataFrame containing processed and filtered data.
         """
 
@@ -172,7 +163,7 @@ class DataPreprocessing(object):
         making each of these extracted fields their own column. The final step is to update the gene_type variable such
         that each of the variable values is re-grouped to be protein-coding, other or ncRNA.
 
-        Return:
+        Returns:
             ensembl_geneset: A Pandas DataFrame containing processed and filtered data.
         """
 
@@ -221,7 +212,7 @@ class DataPreprocessing(object):
         annotation data. The cleaned Ensembl data is saved so that it can be used when generating node metadata for
         transcript identifiers.
 
-        Return:
+        Returns:
             ensembl: A Pandas DataFrame containing processed and filtered data that has been merged with
                 additional annotation  mapping data from uniprot and entrez.
         """
@@ -263,7 +254,7 @@ class DataPreprocessing(object):
         reformatting performed on the data includes removing unnecessary columns and reformatting column values to a
         common set of terms that will be applied universally to all gene and protein identifier data sources.
 
-        Return:
+        Returns:
             explode_df_uniprot: A Pandas DataFrame containing processed and filtered data.
         """
 
@@ -289,7 +280,7 @@ class DataPreprocessing(object):
         delimited data. Then, the gene_type variable is cleaned such that each of the variable's values are re-grouped
         to be protein-coding, other or ncRNA.
 
-        Return:
+        Returns:
             explode_df_ncbi_gene: A Pandas DataFrame containing processed and filtered data.
         """
 
@@ -328,7 +319,7 @@ class DataPreprocessing(object):
         """Processes PRotein Ontology identifier mapping data in order to prepare it for combination with other gene
         identifier data sources.
 
-        Return:
+        Returns:
             pro_mapping: A Pandas DataFrame containing processed and filtered data.
         """
 
@@ -346,7 +337,7 @@ class DataPreprocessing(object):
     def merges_genomic_identifier_data(self) -> pd.DataFrame:
         """Merges HGNC, Ensembl, Uniprot, and PRotein Ontology identifiers into a single Pandas DataFrame.
 
-        Return:
+        Returns:
             merged_data: A Pandas DataFrame of merged genomic identifier information.
         """
 
@@ -502,6 +493,82 @@ class DataPreprocessing(object):
 
         return None
 
+    def _processes_mesh_data(self) -> pd.DataFrame:
+        """Parses MeSH data converting it from n-triples format into Pandas DataFrame that can be merged with ChEBI
+        data.
+
+        Returns:
+            df: A Pandas Data Frame containing three columns: CODES (i.e. 'MESH' identifiers), STRINGS (i.e. string
+                labels or synonyms), and TYPES (i.e. a string signifying if the STRING column entry is a 'NAME' or
+                'SYNONYM').
+        """
+
+        mesh = [x.split('> ') for x in tqdm(open(self.downloads_data_from_gcs_bucket('mesh2021.nt'), 'r').readlines())]
+        mesh_dict, dat = {}, []
+        for row in tqdm(mesh):
+            dbxref, label, msh_type = None, None, None
+            s, p, o = 'MESH_' + row[0].split('/')[-1], row[1].split('#')[-1], row[2]
+            if p == 'preferredConcept' or p == 'concept': dbxref = 'MESH_' + o.split('/')[-1]
+            if 'label' in p.lower(): label = o.split('"')[1]
+            if 'type' in p.lower(): msh_type = o.split('#')[1]
+            if s in mesh_dict.keys():
+                if dbxref is not None: mesh_dict[s]['dbxref'].add(dbxref)
+                if label is not None: mesh_dict[s]['label'].add(label)
+                if msh_type is not None: mesh_dict[s]['type'].add(msh_type)
+            else:
+                mesh_dict[s] = {'dbxref': set(), 'label': set(), 'type': set(), 'synonym': set()}
+                if dbxref is not None: mesh_dict[s]['dbxref'] = {dbxref}
+                if label is not None: mesh_dict[s]['label'] = {label}
+                if msh_type is not None: mesh_dict[s]['type'] = {msh_type}
+        # fine tune dictionary
+        for key in tqdm(mesh_dict.keys()):
+            if 'SCR_Chemical' in mesh_dict[key]['type'] or 'TopicalDescriptor' in mesh_dict[key]['type']:
+                for i in mesh_dict[key]['dbxref']:
+                    if len(mesh_dict[key]['dbxref']) > 0 and i in mesh_dict.keys():
+                        mesh_dict[key]['synonym'] |= mesh_dict[i]['label']
+        dict_keys = [x for x in mesh_dict.keys()
+                     if x.strip('MESH_')[0] not in ['C', 'D'] or ('.' in x or 'Q' in x or len(x.strip('MESH_')) < 5)]
+        for key in tqdm(dict_keys):
+            del mesh_dict[key]
+
+        # convert to pandas DataFrame
+        for key, value in mesh_dict.items():
+            dat += [[key, list(value['label'])[0], 'NAME']]
+            if len(value['synonym']) > 0:
+                for i in value['synonym']:
+                    dat += [[key, i, 'SYNONYM']]
+        df = pandas.DataFrame({'CODE': [x[0] for x in dat], 'TYPE': [x[2] for x in dat], 'STRING': [x[1] for x in dat]})
+        # lowercase all strings and remove white space and punctuation
+        df['STRING'] = df['STRING'].str.lower()
+        df['STRING'] = df['STRING'].str.replace('[^\w]', '')
+
+        return df
+
+    def _processes_chebi_data(self) -> pd.DataFrame:
+        """Parses ChEBI data into a Pandas DataFrame that can be merged with MeSH data.
+
+        Returns:
+            chebi_filtered: A Pandas DataFrame containing three columns: CODES (i.e. 'CHEBI' identifiers), STRINGS (i.e.
+                string labels or synonyms), and TYPES (i.e. a string signifying if the STRING column entry is a
+                'NAME' or 'SYNONYM').
+        """
+
+        chebi = self.reads_gcs_bucket_data_to_df('names.tsv', '\t', 0, 0, None)
+
+        # preprocess data
+        chebi_filtered = chebi[['COMPOUND_ID', 'TYPE', 'NAME']]
+        chebi_filtered.drop_duplicates(subset=None, keep='first', inplace=True)
+        chebi_filtered.columns = ['CODE', 'TYPE', 'STRING']
+
+        # append CHEBI to the number in each code
+        chebi_filtered['CODE'] = chebi_filtered['CODE'].apply(lambda x: "{}{}".format('CHEBI_', x))
+
+        # lowercase all strings and remove white space and punctuation
+        chebi_filtered['STRING'] = chebi_filtered['STRING'].str.lower()
+        chebi_filtered['STRING'] = chebi_filtered['STRING'].str.replace('[^\w]', '')
+
+        return chebi_filtered
+
     def maps_chebi_to_mesh(self) -> None:
         """
 
@@ -509,34 +576,54 @@ class DataPreprocessing(object):
             None.
         """
 
-        # TODO: MAKE THIS SCRIPT OR ADD SCRIPT TO MAKE BIOPORTAL API CALL
+        chebi_filtered = self._processes_mesh_data()
+        mesh_filtered = self._processes_chebi_data()
+
+        # merge data
+        chem_merge = pandas.merge(chebi_filtered[['STRING', 'CODE']],
+                                  mesh_filtered[['STRING', 'CODE']], on='STRING', how='inner')
+
+        # filter results
+        mesh_edges = set()
+        for idx, row in chem_merge.drop_duplicates().iterrows():
+            mesh, chebi = row['CODE_y'], row['CODE_x']
+            syns = [x for x in mesh_dict[mesh]['dbxref'] if 'C' in x or 'D' in x]
+            mesh_edges.add(tuple([mesh, chebi]))
+            if len(syns) > 0:
+                for x in syns:
+                    mesh_edges.add(tuple([x, chebi]))
+
+        # write results and push data to gcs bucket
+        filename = 'MESH_CHEBI_MAP.txt'
+        with open(self.temp_dir + '/' + filename, 'w') as out:
+            for pair in mesh_edges:
+                out.write(pair[0] + '\t' + pair[1] + '\n')
+        self.uploads_data_to_gcs_bucket(filename)
 
         return None
 
     def _preprocess_disease_mapping_data(self) -> Tuple[Dict, Dict]:
         """Method processes MONDO and HPO ontology data in order to create a dictionary that aligns HPO and MONDO
-        concepts with other types of disease terminology identifiers.
+        concepts with other types of disease terminology identifiers. This is done by obtaining database
+        cross-references (dbxrefs) for each ontology and then combining the results into a single large dictionary
+        keyed by dbxrefs with MONDO and HP identifiers as values.
 
-        Return:
+        Returns:
             mondo_dict: A dict where disease identifiers mapped to mondo are keys and mondo identifiers are values.
             hp_dict: A dict where disease identifiers mapped to hpo are keys and mondo identifiers are values.
         """
 
         # mondo data
         mondo_graph = Graph().parse(self.downloads_data_from_gcs_bucket('mondo_with_imports.owl'))
-        dbxref_res = [x for x in tqdm(mondo_graph) if 'MONDO' in x[0] and 'hasdbxref' in str(x[1]).lower()]
-        dbxrefs = {str(x[2]).lower().split('/')[-1]: {str(x[0]).split('/')[-1].replace('_', ':')} for x in dbxref_res}
-        exact_res = [x for x in tqdm(mondo_graph) if 'MONDO' in x[0] and 'exactmatch' in str(x[1]).lower()]
-        exacts = {str(x[2]).lower().split('/')[-1]: {str(x[0]).split('/')[-1].replace('_', ':')} for x in exact_res}
-        mondo_dict = {**dbxrefs, **exacts}
+        dbxref_res = gets_ontology_class_dbxrefs(mondo_graph)[0]
+        mondo_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
+                      for k, v in dbxref_res.items() if 'MONDO' in str(v)}
 
         # hp data
         hp_graph = Graph().parse(self.downloads_data_from_gcs_bucket('hp_with_imports.owl'))
-        dbxref_res = [x for x in tqdm(hp_graph) if 'HP' in x[0] and 'hasdbxref' in str(x[1]).lower()]
-        dbxrefs = {str(x[2]).lower().split('/')[-1]: {str(x[0]).split('/')[-1].replace('_', ':')} for x in dbxref_res}
-        exact_res = [x for x in tqdm(hp_graph) if 'HP' in x[0] and 'exactmatch' in str(x[1]).lower()]
-        exacts = {str(x[2]).lower().split('/')[-1]: {str(x[0]).split('/')[-1].replace('_', ':')} for x in exact_res}
-        hp_dict = {**dbxrefs, **exacts}
+        dbxref_res = gets_ontology_class_dbxrefs(hp_graph)[0]
+        hp_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
+                   for k, v in dbxref_res.items() if 'HP' in str(v)}
 
         return mondo_dict, hp_dict
 
@@ -557,10 +644,14 @@ class DataPreprocessing(object):
         # get all CUIs found with HPO and MONDO
         ont_dict, disease_data_keep = {}, data.query('vocabulary == "hpo" | vocabulary == "mondo"')
         for idx, row in tqdm(disease_data_keep.iterrows(), total=disease_data_keep.shape[0]):
-            if row['vocabulary'] == 'mondo': key, value = 'umls:' + row['diseaseId'], 'MONDO:' + row['code']
-            else: key, value = 'umls:' + row['diseaseId'], row['code']
-            if key in ont_dict.keys(): ont_dict[key] |= {value}
-            else: ont_dict[key] = {value}
+            if row['vocabulary'] == 'mondo':
+                key, value = 'umls:' + row['diseaseId'], 'MONDO:' + row['code']
+            else:
+                key, value = 'umls:' + row['diseaseId'], row['code']
+            if key in ont_dict.keys():
+                ont_dict[key] |= {value}
+            else:
+                ont_dict[key] = {value}
         for key in tqdm(ont_dict.keys()):  # add ontology mappings from MONDO and HPO
             if key in mondo_dict.keys(): ont_dict[key] = set(list(ont_dict[key]) + list(mondo_dict[key]))
             if key in hp_dict.keys(): ont_dict[key] = set(list(ont_dict[key]) + list(hp_dict[key]))
@@ -570,14 +661,20 @@ class DataPreprocessing(object):
             vocab, ids, code = row['vocabulary'], row['diseaseId'], row['code']
             if vocab == 'mondo' or vocab == 'hpo':
                 key, value = 'umls:' + ids.lower(), code
-                if key in disease_dict.keys(): disease_dict[key] |= {value}
-                else: disease_dict[key] = {value}
+                if key in disease_dict.keys():
+                    disease_dict[key] |= {value}
+                else:
+                    disease_dict[key] = {value}
             else:
                 if 'mondo' not in code or 'hp' not in code:
-                    if ':' not in code: key, value = vocab + ':' + code, ont_dict['umls:' + ids]
-                    else: key, value = code, ont_dict['umls:' + ids]
-                    if key in disease_dict.keys(): disease_dict[key] |= value
-                    else: disease_dict[key] = value
+                    if ':' not in code:
+                        key, value = vocab + ':' + code, ont_dict['umls:' + ids]
+                    else:
+                        key, value = code, ont_dict['umls:' + ids]
+                    if key in disease_dict.keys():
+                        disease_dict[key] |= value
+                    else:
+                        disease_dict[key] = value
 
         # save data and push to GCS bucket
         file1, file2 = 'DISEASE_MONDO_MAP.txt', 'PHENOTYPE_HPO_MAP.txt'
@@ -679,7 +776,7 @@ class DataPreprocessing(object):
 
         # process gtex data -- using only those protein-coding genes not already in hpa
         gtex_results, hpa_genes = [], list(hpa['Ensembl'].drop_duplicates(keep='first', inplace=False))
-        gtex = gtex.loc[gtex['Name'].apply(lambda x: x not in hpa_genes)]
+        gtex = gtex.loc[gtex['Name'].apply(lambda i: i not in hpa_genes)]
         for idx, row in tqdm(gtex.iterrows(), total=gtex.shape[0]):
             for col in list(gtex.columns)[2:]:
                 typ = 'cell line' if 'Cells' in col else 'anatomy'
@@ -705,21 +802,21 @@ class DataPreprocessing(object):
         """
 
         pw_graph = Graph().parse(self.downloads_data_from_gcs_bucket('pw_with_imports.owl'))
-        class_list = [x for x in tqdm(pw_graph) if 'PW_' in str(x[0]) and 'synonym' in str(x[1]).lower()]
-        synonym_uris = {str(x[2]).lower(): str(x[0]) for x in class_list}
-        dbxref_res = [x for x in tqdm(pw_graph) if 'PW_' in str(x[0]) and 'hasdbxref' in str(x[1]).lower()]
-        dbxref_uris = {str(x[2]).lower(): str(x[0]) for x in dbxref_res}
-        exact_res = [x for x in tqdm(pw_graph) if 'PW_' in str(x[0]) and 'exactmatch' in str(x[1]).lower()]
-        exact_uris = {str(x[2]).lower(): str(x[0]) for x in exact_res}
+        dbxref_res = gets_ontology_class_dbxrefs(pw_graph)[0]
+        dbxref_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
+                       for k, v in dbxref_res.items() if 'PW_' in str(v)}
+        syn_res = gets_ontology_class_synonyms(pw_graph)[0]
+        synonym_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
+                        for k, v in syn_res.items() if 'PW_' in str(v)}
 
-        id_mappings = {**synonym_uris, **dbxref_uris, **exact_uris}
+        id_mappings = {**dbxref_dict, **synonym_dict}
 
         return id_mappings
 
     def _processes_reactome_data(self) -> Dict:
         """Reads in different annotation data sets provided by reactome and combines them into a dictionary.
 
-        Return:
+        Returns:
             reactome: A dictionary mapping different pathway identifiers to the Pathway Ontology.
         """
 
@@ -756,12 +853,16 @@ class DataPreprocessing(object):
         for idx, row in tqdm(compath.iterrows(), total=compath.shape[0]):
             if row[6] == 'kegg' and 'kegg:' + row[5].strip('path:hsa') in pw_dict.keys() and row[2] == 'reactome':
                 for x in pw_dict['kegg:' + row[5].strip('path:hsa')]:
-                    if row[1] in reactome.keys(): reactome[row[1]] |= {x.split('/')[-1]}
-                    else: reactome[row[1]] = {x.split('/')[-1]}
+                    if row[1] in reactome.keys():
+                        reactome[row[1]] |= {x.split('/')[-1]}
+                    else:
+                        reactome[row[1]] = {x.split('/')[-1]}
             if (row[2] == 'kegg' and 'kegg:' + row[1].strip('path:hsa') in pw_dict.keys()) and row[6] == 'reactome':
                 for x in pw_dict['kegg:' + row[1].strip('path:hsa')]:
-                    if row[5] in reactome.keys(): reactome[row[5]] |= {x.split('/')[-1]}
-                    else: reactome[row[5]] = {x.split('/')[-1]}
+                    if row[5] in reactome.keys():
+                        reactome[row[5]] |= {x.split('/')[-1]}
+                    else:
+                        reactome[row[5]] = {x.split('/')[-1]}
 
         return reactome
 
@@ -783,16 +884,21 @@ class DataPreprocessing(object):
         for idx, row in tqdm(kegg_reactome_map.iterrows(), total=kegg_reactome_map.shape[0]):
             if row[src] == 'reactome' and 'kegg:' + row[tar_ids].strip('path:hsa') in pw_dict.keys():
                 for x in pw_dict['kegg:' + row[tar_ids].strip('path:hsa')]:
-                    if row[src_ids] in reactome.keys(): reactome[row[src_ids]] |= {x.split('/')[-1]}
-                    else: reactome[row[src_ids]] = {x.split('/')[-1]}
+                    if row[src_ids] in reactome.keys():
+                        reactome[row[src_ids]] |= {x.split('/')[-1]}
+                    else:
+                        reactome[row[src_ids]] = {x.split('/')[-1]}
             if row[tar] == 'reactome' and 'kegg:' + row[src].strip('path:hsa') in pw_dict.keys():
                 for x in pw_dict['kegg:' + row[src_ids].strip('path:hsa')]:
-                    if row[tar_ids] in reactome.keys(): reactome[row[tar_ids]] |= {x.split('/')[-1]}
-                    else: reactome[row[tar_ids]] = {x.split('/')[-1]}
+                    if row[tar_ids] in reactome.keys():
+                        reactome[row[tar_ids]] |= {x.split('/')[-1]}
+                    else:
+                        reactome[row[tar_ids]] = {x.split('/')[-1]}
 
         return reactome
 
-    def _queries_reactome_api(self, reactome: Dict) -> Dict:
+    @staticmethod
+    def _queries_reactome_api(reactome: Dict) -> Dict:
         """Runs a set of reactome identifiers against the reactome API in order to obtain mappings to the Gene
         Ontology, specifically to Biological Processes.
 
@@ -803,31 +909,33 @@ class DataPreprocessing(object):
              reactome: An extended dictionary mapping different pathway identifiers to the Pathway Ontology.
         """
 
+        print('Querying Reactome API to Obtain Gene Ontology Mappings')
+
         for request_ids in tqdm(list(chunks(list(reactome.keys()), 20))):
-            result = content.query_ids(ids=','.join(request_ids))
+            result, key = content.query_ids(ids=','.join(request_ids)), 'goBiologicalProcess'
             if result is not None:
-                for x in result:
-                    for key in x.keys():
-                        if key == 'goBiologicalProcess':
-                            for _ in x[key]:
-                                if x['stId'] in reactome.keys(): reactome[x['stId']] |= {'GO_' + x[key]['accession']}
-                                else: reactome[x['stId']] = {'GO_' + x[key]['accession']}
+                for res in result:
+                    if key in res.keys():
+                        if res['stId'] in reactome.keys():
+                            reactome[res['stId']] |= {'GO_' + res[key]['accession']}
+                        else:
+                            reactome[res['stId']] = {'GO_' + res[key]['accession']}
 
         return reactome
 
-    def creates_pathway_identifier_mappings(self) -> None:
+    def _creates_pathway_identifier_mappings(self) -> Dict:
         """Processes the canonical pathways and other kegg-reactome pathway mapping files from the ComPath
         Ecosystem in order to create the following identifier mappings: Reactome Pathway Identifiers ➞ KEGG Pathway
         Identifiers ➞ Pathway Ontology Identifiers.
 
         Returns:
-            None.
+            reactome: A dictionary mapping different types of pathway identifiers to sequence ontology classes.
         """
 
         pw_dict = self._preprocess_disease_mapping_data()
         reactome = self._processes_reactome_data()
         compath_reactome = self._processes_compath_pathway_data(reactome, pw_dict)
-        kegg_reactome = self._processes_kegg_pathway_data(compath_reactome. pw_dict)
+        kegg_reactome = self._processes_kegg_pathway_data(compath_reactome, pw_dict)
         reactome = self._queries_reactome_api(kegg_reactome)
 
         # write data
@@ -838,13 +946,443 @@ class DataPreprocessing(object):
                     if x.startswith('PW') or x.startswith('GO'): out.write(key + '\t' + x + '\n')
         self.uploads_data_to_gcs_bucket(filename)
 
+        return reactome
+
+    def _preprocesses_gene_types(self, genomic_map: Dict) -> Dict:
+        """Creates mappings between bio types for different gene identifiers to sequence ontology classes.
+
+        Args:
+            genomic_map: A dictionary containing mappings between gene identifier types and Sequence Ontology
+                identifiers.
+
+        Returns:
+            sequence_map: A dictionary containing genomic identifiers as keys and Sequence Ontology classes as values.
+        """
+
+        gene_ids = pickle.load(open(self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl', 'rb'), encoding='bytes')
+        sequence_map = {}
+        for ids in tqdm(gene_ids.keys()):
+            if ids.startswith('entrez_id_') and ids.replace('entrez_id_', '') != 'None':
+                id_clean = ids.replace('entrez_id_', '')
+                ensembl = [x.replace('ensembl_gene_type_', '') for x in gene_ids[ids] if
+                           x.startswith('ensembl_gene_type') and x != 'ensembl_gene_type_unknown']
+                hgnc = [x.replace('hgnc_gene_type_', '') for x in gene_ids[ids] if
+                        x.startswith('hgnc_gene_type') and x != 'hgnc_gene_type_unknown']
+                entrez = [x.replace('entrez_gene_type_', '') for x in gene_ids[ids] if
+                          x.startswith('entrez_gene_type') and x != 'entrez_gene_type_unknown']
+                # determine gene type
+                if len(ensembl) > 0:
+                    gene_type = genomic_map[ensembl[0].replace('ensembl_gene_type_', '') + '_Gene']
+                elif len(hgnc) > 0:
+                    gene_type = genomic_map[hgnc[0].replace('hgnc_gene_type_', '') + '_Gene']
+                elif len(entrez) > 0:
+                    gene_type = genomic_map[entrez[0].replace('entrez_gene_type_', '') + '_Gene']
+                else:
+                    gene_type = 'SO_0000704'
+                # update sequence map
+                if id_clean in sequence_map.keys():
+                    sequence_map[id_clean] += [gene_type]
+                else:
+                    sequence_map[id_clean] = [gene_type]
+
+        return sequence_map
+
+    def _preprocesses_transcript_types(self, genomic_map: Dict, sequence_map: Dict) -> Dict:
+        """Creates mappings between bio types for different transcript identifiers to sequence ontology classes.
+
+        Args:
+            genomic_map: A dictionary containing mappings between transcript identifier types and Sequence Ontology
+                identifiers.
+            sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
+
+        Returns:
+            sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
+        """
+
+        trans_data = self.reads_gcs_bucket_data_to_df('ensembl_identifier_data_cleaned.txt', '\t', 0, 0, None)
+        trans, trans_id = {}, 'transcript_stable_id'
+        for idx, row in tqdm(trans_data.iterrows(), total=trans_data.shape[0]):
+            if row[trans_id] != 'None':
+                if row[trans_id].replace('transcript_stable_id_', '') in trans.keys():
+                    trans[row[trans_id].replace('transcript_stable_id_', '')] += [row['ensembl_transcript_type']]
+                else:
+                    trans[row[trans_id].replace('transcript_stable_id_', '')] = [row['ensembl_transcript_type']]
+        # update SO map dictionary
+        for ids in tqdm(transcripts.keys()):
+            if trans[ids][0] == 'protein_coding':
+                trans_type = genomic_map['protein-coding_Transcript']
+            elif trans[ids][0] == 'misc_RNA':
+                trans_type = genomic_map['miscRNA_Transcript']
+            else:
+                trans_type = genomic_map[list(set(trans[ids]))[0] + '_Transcript']
+            sequence_map[ids] = [trans_type, 'SO_0000673']
+
+        return sequence_map
+
+    def _preprocesses_variant_types(self, genomic_map: Dict, sequence_map: Dict) -> Dict:
+        """Creates mappings between bio types for different transcript identifiers to sequence ontology classes.
+
+        Args:
+            genomic_map: A dict containing mappings between variant identifier types and Sequence Ontology identifiers.
+             sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
+
+        Returns:
+            sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
+        """
+
+        variant_data, var = self.reads_gcs_bucket_data_to_df('variant_summary.txt', '\t', 0, 0, None), {}
+        for idx, row in tqdm(variant_data.iterrows(), total=variant_data.shape[0]):
+            if row['Assembly'] == 'GRCh38' and row['RS# (dbSNP)'] != -1:
+                if 'rs' + str(row['RS# (dbSNP)']) in var.keys(): var['rs' + str(row['RS# (dbSNP)'])] |= {row['Type']}
+                else: var['rs' + str(row['RS# (dbSNP)'])] = {row['Type']}
+        # update SO map dictionary
+        for identifier in tqdm(variants.keys()):
+            for typ in variants[identifier]:
+                var_type = genomic_map[typ.lower() + '_Variant']
+                if identifier in sequence_map.keys(): sequence_map[identifier] += [var_type]
+                else: sequence_map[identifier] = [var_type]
+
+        return sequence_map
+
+    def _creates_sequence_identifier_mappings(self) -> Dict:
+        """Maps a Sequence Ontology concept to all gene, transcript, and variant identifiers.
+
+        Returns:
+            sequence_map: A dict containing different types of genomic identifiers as keys and Sequence Ontology
+                classes as values.
+        """
+
+        mapping_data = self.reads_gcs_bucket_data_to_df('genomic_sequence_ontology_mappings.xlsx', '\t', 0, 0,
+                                                        'GenomicType_SO_Map_09Mar2020')
+        genomic_type_so_map = {}
+        for idx, row in tqdm(mapping_data.iterrows(), total=mapping_data.shape[0]):
+            genomic_type_so_map[row['source_*_type'] + '_' + row['Genomic']] = row['SO ID']
+
+        # add genes, transcripts, and variants
+        genomic_sequence_map = self._preprocesses_gene_types(genomic_type_so_map)
+        trans_sequence_map = self._preprocesses_transcript_types(genomic_type_so_map, genomic_sequence_map)
+        sequence_map = self._preprocesses_variant_types(genomic_type_so_map, trans_sequence_map)
+
+        # output data
+        filename = 'SO_GENE_TRANSCRIPT_VARIANT_TYPE_MAPPING.txt'
+        with open(self.temp_dir + '/' + filename, 'w') as outfile:
+            for key in tqdm(sequence_map.keys()):
+                for map_type in sequence_map[key]:
+                    outfile.write(key + '\t' + map_type + '\n')
+        self.uploads_data_to_gcs_bucket(filename)
+
+        return sequence_map
+
+    def combines_pathway_and_sequence_ontology_dictionaries(self) -> None:
+        """Combines the Pathway Ontology and Sequence Ontology dictionaries into a dictionary.
+
+        Returns:
+            None.
+        """
+
+        sequence_map = self._creates_sequence_identifier_mappings()
+        reactome_map = self._creates_pathway_identifier_mappings()
+
+        # combine genomic and pathway maps + iterate over pathway lists and combine them into a single dictionary
+        sequence_map.update(reactome_map)
+        subclass_mapping = {}
+        for key in tqdm(sequence_map.keys()):
+            subclass_mapping[key] = sequence_map[key]
+
+        # save file and push to gcs
+        filename = 'subclass_construction_map.pkl'
+        pickle.dump(subclass_mapping, open(self.temp_dir + '/' + filename, 'wb'), protocol=4)
+        self.uploads_data_to_gcs_bucket(filename)
+
         return None
 
+    def processes_relation_ontology_data(self) -> None:
+        """Processes the Relations Ontology (RO) in order to obtain all ObjectProperties and their inverse relations.
+        Additionally, the method writes out a file of all of the labels for all relations.
+
+        Returns:
+             None.
+        """
+
+        ro_graph = Graph().parse(self.downloads_data_from_gcs_bucket('ro_with_imports.owl'))
+        labs = {str(x[2]).lower(): str(x[0]) for x in ro_graph if '/RO_' in str(x[0]) and 'label' in str(x[1]).lower()}
+
+        # identify relations and their inverses
+        write_dir, filename1 = './resources/construction_approach/', 'INVERSE_RELATIONS.txt'
+        with open(self.temp_dir + '/' + filename, 'w') as out1:
+            out1.write('Relation' + '\t' + 'Inverse_Relation' + '\n')
+            for s, p, o in ro_graph:
+                if 'owl#inverseOf' in str(p) and ('RO' in str(s) and 'RO' in str(o)):
+                    out1.write(str(s.split('/')[-1]) + '\t' + str(o.split('/')[-1]) + '\n')
+                    out1.write(str(o.split('/')[-1]) + '\t' + str(s.split('/')[-1]) + '\n')
+        self.uploads_data_to_gcs_bucket(filename1)
+
+        # identify relation labels
+        filename2 = 'INVERSE_RELATIONS.txt'
+        with open(self.temp_dir + '/' + filename2, 'w') as out1:
+            out1.write('Relation' + '\t' + 'Label' + '\n')
+            for k, v in labs.items():
+                out1.write(str(k).split('/')[-1] + '\t' + str(v) + '\n')
+        self.uploads_data_to_gcs_bucket(filename2)
+
+        return None
+
+    def processes_clinvar_data(self) -> None:
+        """Processes ClinVar data by performing light tidying and filtering.
+
+        Returns:
+            None.
+        """
+
+        clinvar_data = self.reads_gcs_bucket_data_to_df('variant_summary.txt', '\t', 0, 0, None)
+        clinvar_data.fillna('None', inplace=True)
+
+        # explode nested data
+        explode_df_clinvar = explodes_data(clinvar_data.copy(), ['PhenotypeIDS'], ';')
+        explode_df_clinvar = explodes_data(explode_df_clinvar.copy(), ['PhenotypeIDS'], ',')
+        explode_df_clinvar['PhenotypeIDS'].replace('Orphanet:ORPHA', 'ORPHA:', inplace=True, regex=True)
+        explode_df_clinvar['PhenotypeIDS'].replace('Human Phenotype Ontology:HP:', 'HP_', inplace=True, regex=True)
+
+        # write data
+        filename = 'CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt'
+        explode_df_clinvar.to_csv(self.temp_dir + '/' + filename, header=True, sep='\t', encoding='utf-8', index=False)
+        self.uploads_data_to_gcs_bucket(filename)
+
+        return None
+
+    def processes_cofactor_catalyst_data(self) -> None:
+        """Processes uniprot-cofactor-catalyst.tab file from the Uniprot Knowledge Base in order to enable the building
+        of protein-cofactor and protein-catalyst edges.
+
+        Returns:
+            None.
+        """
+
+        data = open(self.downloads_data_from_gcs_bucket('uniprot-cofactor-catalyst.tab')).readlines()
+
+        # reformat data and write data
+        filename1, filename2 = 'UNIPROT_PROTEIN_COFACTOR.txt', 'UNIPROT_PROTEIN_CATALYST.txt'
+        with open(self.temp_dir + '/' + filename1, 'w') as out1, open(self.temp_dir + '/' + filename2, 'w') as out2:
+            for line in tqdm(data):
+                # get cofactors
+                if 'CHEBI' in line.split('\t')[4]:
+                    for i in line.split('\t')[4].split(';'):
+                        chebi = i.split('[')[-1].replace(']', '').replace(':', '_')
+                        out1.write('PR_' + line.split('\t')[3].strip(';') + '\t' + chebi + '\n')
+                # get catalysts
+                if 'CHEBI' in line.split('\t')[5]:
+                    for j in line.split('\t')[5].split(';'):
+                        chebi = j.split('[')[-1].replace(']', '').replace(':', '_')
+                        out2.write('PR_' + line.split('\t')[3].strip(';') + '\t' + chebi + '\n')
+        # push data to gsc bucket
+        self.uploads_data_to_gcs_bucket(filename1)
+        self.uploads_data_to_gcs_bucket(filename2)
+
+        return None
+
+    def _creates_gene_metadata_dict(self) -> Dict:
+        """Creates a dictionary to store labels, synonyms, and a description for each Entrez gene identifier present
+        in the input data file.
+
+        Returns:
+            gene_metadata_dict: A dictionary containing metadata that's keyed by Entrez gene identifier and whose
+                values is a dictionary containing label, description, and synonym information. For example:
+                {{'1': {
+                    'Label': 'A1BG',
+                    'Description': "A1BG has locus group 'protein-coding' and is located on chromosome 19 (19q13.43).",
+                    'Synonym': 'HEL-S-163pA|A1B|ABG|HYST2477alpha-1B-glycoprotein|GAB'}, ...}
+        """
+
+        data = self.reads_gcs_bucket_data_to_df('Homo_sapiens.gene_info', '\t', 0, 0, None)
+        data = data.loc[data['#tax_id'].apply(lambda x: x == 9606)]
+        data.fillna('None', inplace=True)
+        data.replace('-', 'None', inplace=True, regex=False)
+
+        # create metadata
+        genes, lab, desc, syn = [], [], [], []
+        for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
+            gene_id, sym, defn, gene_type = row['GeneID'], row['Symbol'], row['description'], row['type_of_gene']
+            chrom, map_loc, s1, s2 = row['chromosome'], row['map_location'], row['Synonyms'], row['Other_designations']
+            if gene_id != 'None':
+                genes.append(gene_id)
+                if sym != 'None' or sym != '': lab.append(sym)
+                else: lab.append('Entrez_ID:' + gene_id)
+                if 'None' not in [defn, gene_type, chrom, map_loc]:
+                    desc_str = "{} has locus group '{}' and is located on chromosome {} ({})."
+                    desc.append(desc_str.format(sym, gene_type, chrom, map_loc))
+                else:
+                    desc.append("{} locus group '{}'.".format(sym, gene_type))
+                if s1 != 'None' and s2 != 'None':
+                    syn.append('|'.join(set([x for x in (s1 + s2).split('|') if x != 'None' or x != ''])))
+                elif s1 != 'None': syn.append('|'.join(set([x for x in s1.split('|') if x != 'None' or x != ''])))
+                elif s2 != 'None': syn.append('|'.join(set([x for x in s2.split('|') if x != 'None' or x != ''])))
+                else: syn.append('None')
+
+        # combine into new data frame
+        metadata = pandas.DataFrame(list(zip(genes, lab, desc, syn)), columns=['ID', 'Label', 'Description', 'Synonym'])
+        metadata = metadata.astype(str)
+        metadata.drop_duplicates(subset='ID', keep='first', inplace=True)
+        # convert df to dictionary
+        metadata.set_index('ID', inplace=True)
+        gene_metadata_dict = metadata.to_dict('index')
+
+        return gene_metadata_dict
+
+    def _creates_transcript_metadata_dict(self) -> Dict:
+        """Creates a dictionary to store labels, synonyms, and a description for each Entrez gene identifier present
+        in the input data file.
+
+        Returns:
+            rna_metadata_dict: A dictionary containing metadata that's keyed by Ensembl transcript identifier and whose
+                values is a dictionary containing label, description, and synonym information. For example:
+                {'ENST00000456328': {
+                    'Label': 'DDX11L1-202',
+                    'Description': "Transcript DDX11L1-202 is classified as type 'processed_transcript'.",
+                    'Synonym': 'None'}, ...}
+        """
+
+        data = self.reads_gcs_bucket_data_to_df('ensembl_identifier_data_cleaned.txt', '\t', 0, 0, None)
+        data = data.loc[data['transcript_stable_id'].apply(lambda x: x != 'None')]
+        data.drop(['ensembl_gene_id', 'symbol', 'protein_stable_id', 'uniprot_id', 'master_transcript_type',
+                   'entrez_id', 'ensembl_gene_type', 'master_gene_type', 'symbol'], axis=1, inplace=True)
+        data.drop_duplicates(subset=['transcript_stable_id', 'transcript_name', 'ensembl_transcript_type'],
+                             keep='first', inplace=True)
+        data.fillna('None', inplace=True)
+
+        # create metadata
+        rna, lab, desc, syn = [], [], [], []
+        for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
+            rna_id, ent_type, nme = row['transcript_stable_id'], row['ensembl_transcript_type'], row['transcript_name']
+            rna.append(rna_id)
+            if nme != 'None': lab.append(nme)
+            else:
+                lab.append('Ensembl_Transcript_ID:' + rna_id)
+                nme = 'Ensembl_Transcript_ID:' + rna_id
+            if ent_type != 'None': desc.append("Transcript {} is classified as type '{}'.".format(nme, ent_type))
+            else: desc.append('None')
+            syn.append('None')
+
+        # combine into new data frame
+        metadata = pandas.DataFrame(list(zip(rna, lab, desc, syn)), columns=['ID', 'Label', 'Description', 'Synonym'])
+        metadata = metadata.astype(str)
+        metadata.drop_duplicates(subset='ID', keep='first', inplace=True)
+        # convert df to dictionary
+        metadata.set_index('ID', inplace=True)
+        rna_metadata_dict = metadata.to_dict('index')
+
+        return rna_metadata_dict
+
+    def _creates_variant_metadata_dict(self) -> Dict:
+        """Creates a dictionary to store labels, synonyms, and a description for each ClinVar variant identifier present
+        in the input data file.
+
+        Returns:
+            variant_metadata_dict: A dictionary containing metadata that's keyed by ClinVar variant identifier and whose
+                values is a dictionary containing label, description, and synonym information. For example:
+                {{'rs141138948': {
+                    'Label': 'NM_016042.4(EXOSC3):c.395A>C (p.Asp132Ala)',
+                    'Description': "This variant is a germline;inherited;paternal;unknown single nucleotide variant on
+                    chromosome 9 (NC_000009.12, start:37783993/stop:37783993 positions,cytogenetic location:9p13.2) and
+                    has clinical significance 'Pathogenic/Likely pathogenic'. This entry is for the GRCh38 and was last
+                    reviewed on Sep 30, 2020 with review status 'criteria provided, multiple submitters, no conflict'.",
+                    'Synonym': 'None'}, ...}
+        """
+
+        data = self.reads_gcs_bucket_data_to_df('variant_summary.txt', '\t', 0, 0, None)
+        data = data.loc[var_data['Assembly'].apply(lambda x: x == 'GRCh38')]
+        data = data.loc[data['RS# (dbSNP)'].apply(lambda x: x != -1)]
+        data = data[['#AlleleID', 'Type', 'Name', 'ClinicalSignificance', 'RS# (dbSNP)', 'Origin', 'Start', 'Stop',
+                     'ChromosomeAccession', 'Chromosome',  'ReferenceAllele', 'Assembly', 'AlternateAllele',
+                     'Cytogenetic', 'ReviewStatus', 'LastEvaluated']]
+        var_metadata.replace('na', 'None', inplace=True)
+        var_metadata.fillna('None', inplace=True)
+        data.sort_values('LastEvaluated', ascending=False, inplace=True)
+        data.drop_duplicates(subset='RS# (dbSNP)', keep='first', inplace=True)
+
+        # create metadata
+        variant, label, desc, syn = [], [], [], []
+        for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
+            var_id, lab = row['RS# (dbSNP)'], row['Name']
+            if var_id != 'None':
+                variant.append('rs' + str(var_id))
+                if lab != 'None': label.append(lab)
+                else: label.append('dbSNP_ID:rs' + str(var_id))
+                sent = "This variant is a {} {} on chromosome {} ({}, start:{}/stop:{} positions," + \
+                       "cytogenetic location:{}) and has clinical significance '{}'." + \
+                       "This entry is for the {} and was last reviewed on {} with review status '{}'."
+                desc.append(
+                    sent.format(row['Origin'], row['Type'], row['Chromosome'], row['ChromosomeAccession'], row['Start'],
+                                row['Stop'], row['Cytogenetic'], row['ClinicalSignificance'], row['Assembly'],
+                                row['LastEvaluated'], row['ReviewStatus']).replace('None', 'UNKNOWN'))
+                syn.append('None')
+
+        # combine into new data frame
+        metadata = pandas.DataFrame(list(zip(var, label, desc, syn)), columns=['ID', 'Label', 'Description', 'Synonym'])
+        metadata.drop_duplicates(subset=None, keep='first', inplace=True)
+        metadata = metadata.astype(str)
+        # convert df to dictionary
+        metadata.set_index('ID', inplace=True)
+        variant_metadata_dict = metadata.to_dict('index')
+
+        return variant_metadata_dict
+
+    def _creates_pathway_metadata_dict(self) -> Dict:
+        """Creates a dictionary to store labels, synonyms, and a description for each Reactome Pathway identifier
+        present in the input data file.
+
+        Returns:
+            pathway_metadata_dict: A dictionary containing metadata that's keyed by Reactome Pathway identifier and
+            whose values is a dictionary containing label, description, and synonym information. For example:
+                {{'R-HSA-157858': {
+                    'Label': 'Gap junction trafficking and regulation',
+                    'Description': 'None',
+                    'Synonym': 'Gap junction trafficking and regulation'}}, ...}
+        """
+
+        data = self.reads_gcs_bucket_data_to_df('ReactomePathways.txt', '\t', 0, None, None)
+        data = data.loc[data[2].apply(lambda x: x == 'Homo sapiens')]
+
+        # get metadata
+        nodes = set(list(data[0]))
+        metadata = metadata_api_mapper(list(nodes))
+
+        # convert df to dictionary
+        metadata.set_index('ID', inplace=True)
+        pathway_metadata_dict = metadata.to_dict('index')
+
+        return pathway_metadata_dict
+
+    def creates_non_ontology_class_metadata_dict(self) -> None:
+        """Combines the gene metadata, transcript metadata, variant metadata, and pathway metadata dictionaries into a
+        single large metadata dictionary. See the specific functions used below for examples of the output.
+
+        Returns:
+            master_metadata_dictionary: A dictionary keyed by Entrez gene identifier, Ensembl transcript identifier,
+                and variant identifier with a dictionary as values containing labels, descriptions, and synonyms.
+        """
+
+        # create single dictionary of
+        master_metadata_dictionary = {**self._creates_gene_metadata_dict(),
+                                      **self._creates_transcript_metadata_dict(),
+                                      **self._creates_variant_metadata_dict(),
+                                      **self._creates_pathway_metadata_dict()}
+
+        # save data and push to gcs bucket
+        filename = 'node_metadata_dict.pkl'
+        pickle.dump(master_metadata_dictionary, open(self.temp_dir + '/' + filename, 'wb'), protocol=4)
+        self.uploads_data_to_gcs_bucket(filename)
+
+        return master_metadata_dictionary
+
+    def preprocesses_build_data(self) -> None:
+        """Main method for class which calls orchestrates the complete data preprocessing workflow. All data is
+        preprocessed, written locally, and pushed to the processed_data Google Cloud Storage bucket for the current
+        build.
+
+        Returns:
+            None.
+        """
 
 
 
-
-
-
-
-
+        return None
