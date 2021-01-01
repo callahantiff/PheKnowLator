@@ -3,6 +3,8 @@
 
 # import needed libraries
 import os
+import shutil
+import re
 
 from google.cloud import storage
 
@@ -118,7 +120,7 @@ def main():
 
     # define write path to Google Cloud Storage bucket
     release = 'release_v' + __version__
-    bucket_files = [file.name for file in bucket.list_blobs(prefix=release)]
+    bucket_files = [file.name.split('/')[1] for file in bucket.list_blobs(prefix=release)]
     build = 'build_' + sorted([x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0])[-1]
     gcs_original_data = '{}/{}/data/{}'.format(release, build, 'original_data/')
     gcs_processed_data = '{}/{}/data/{}'.format(release, build, 'processed_data/')
@@ -126,7 +128,7 @@ def main():
     ###############################################
     # STEP 2 - PREPROCESS BUILD DATA
     lod_data = DataPreprocessing(bucket, gcs_original_data, gcs_processed_data, temp_dir)
-    lod_data.preprocess_build_data()
+    lod_data.preprocesses_build_data()
 
     ###############################################
     # STEP 3 - CLEAN ONTOLOGY DATA
