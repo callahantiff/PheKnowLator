@@ -60,3 +60,4 @@ UniProt2Reactome_All_Levels.txt, https://reactome.org/download/current/UniProt2R
 
 # local build data
 OWL_NETS_Property_Types.txt, https://storage.googleapis.com/pheknowlator/release_v2.0.0/curated_data/OWL_NETS_Property_Types.txt
+genomic_typing_dict.pkl, https://storage.googleapis.com/pheknowlator/release_v2.0.0/curated_data/genomic_typing_dict.pkl
