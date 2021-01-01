@@ -3,6 +3,7 @@
 
 # import needed libraries
 import os
+import shutil
 
 from datetime import date, datetime
 from google.cloud import storage
