@@ -13,59 +13,50 @@ http://purl.obolibrary.org/obo/ro.owl
 
 # linked open data
 # human transcript, gene, and protein identifier mapping
-ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/hgnc_complete_set.txt
-ftp://ftp.ensembl.org/pub/release-102/gtf/homo_sapiens/Homo_sapiens.GRCh38.102.gtf.gz
-ftp://ftp.ensembl.org/pub/release-102/tsv/homo_sapiens/Homo_sapiens.GRCh38.102.uniprot.tsv.gz
-ftp://ftp.ensembl.org/pub/release-102/tsv/homo_sapiens/Homo_sapiens.GRCh38.102.entrez.tsv.gz
-https://www.uniprot.org/uniprot/?query=&fil=organism%3A%22Homo%20sapiens%20(Human)%20%5B9606%5D%22&columns=id%2Creviewed%2Cdatabase(GeneID)%2Cdatabase(Ensembl)%2Cdatabase(HGNC)%2Cgenes(ALTERNATIVE)%2Cgenes(PREFERRED)&format=tab
-ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz
-https://proconsortium.org/download/current/promapping.txt
-ftp://nlmpubs.nlm.nih.gov/online/mesh/rdf/2021/mesh2021.nt
-ftp://ftp.ebi.ac.uk/pub/databases/chebi/Flat_file_tab_delimited/names.tsv.gz
+hgnc_complete_set.txt, ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/hgnc_complete_set.txt
+Homo_sapiens.GRCh38.102.gtf, ftp://ftp.ensembl.org/pub/release-102/gtf/homo_sapiens/Homo_sapiens.GRCh38.102.gtf.gz
+Homo_sapiens.GRCh38.102.uniprot.tsv, ftp://ftp.ensembl.org/pub/release-102/tsv/homo_sapiens/Homo_sapiens.GRCh38.102.uniprot.tsv.gz
+Homo_sapiens.GRCh38.102.entrez.tsv, ftp://ftp.ensembl.org/pub/release-102/tsv/homo_sapiens/Homo_sapiens.GRCh38.102.entrez.tsv.gz
+uniprot_identifier_mapping.tab, https://www.uniprot.org/uniprot/?query=&fil=organism%3A%22Homo%20sapiens%20(Human)%20%5B9606%5D%22&columns=id%2Creviewed%2Cdatabase(GeneID)%2Cdatabase(Ensembl)%2Cdatabase(HGNC)%2Cgenes(ALTERNATIVE)%2Cgenes(PREFERRED)&format=tab
+Homo_sapiens.gene_info, ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz
+promapping.txt, https://proconsortium.org/download/current/promapping.txt
+mesh2021.nt, ftp://nlmpubs.nlm.nih.gov/online/mesh/rdf/2021/mesh2021.nt
+names.tsv, ftp://ftp.ebi.ac.uk/pub/databases/chebi/Flat_file_tab_delimited/names.tsv.gz
 # disease and phenotype identifiers
-https://www.disgenet.org/static/disgenet_ap1/files/downloads/disease_mappings.tsv.gz
+disease_mappings.tsv, https://www.disgenet.org/static/disgenet_ap1/files/downloads/disease_mappings.tsv.gz
 # human protein atlas/gtex tissue/cells - uberon + cell ontology + cell line ontology
-https://www.proteinatlas.org/api/search_download.php?search=&columns=g,eg,up,pe,rnatsm,rnaclsm,rnacasm,rnabrsm,rnabcsm,rnablsm,scl,t_RNA_adipose_tissue,t_RNA_adrenal_gland,t_RNA_amygdala,t_RNA_appendix,t_RNA_basal_ganglia,t_RNA_bone_marrow,t_RNA_breast,t_RNA_cerebellum,t_RNA_cerebral_cortex,t_RNA_cervix,_uterine,t_RNA_colon,t_RNA_corpus_callosum,t_RNA_ductus_deferens,t_RNA_duodenum,t_RNA_endometrium_1,t_RNA_epididymis,t_RNA_esophagus,t_RNA_fallopian_tube,t_RNA_gallbladder,t_RNA_heart_muscle,t_RNA_hippocampal_formation,t_RNA_hypothalamus,t_RNA_kidney,t_RNA_liver,t_RNA_lung,t_RNA_lymph_node,t_RNA_midbrain,t_RNA_olfactory_region,t_RNA_ovary,t_RNA_pancreas,t_RNA_parathyroid_gland,t_RNA_pituitary_gland,t_RNA_placenta,t_RNA_pons_and_medulla,t_RNA_prostate,t_RNA_rectum,t_RNA_retina,t_RNA_salivary_gland,t_RNA_seminal_vesicle,t_RNA_skeletal_muscle,t_RNA_skin_1,t_RNA_small_intestine,t_RNA_smooth_muscle,t_RNA_spinal_cord,t_RNA_spleen,t_RNA_stomach_1,t_RNA_testis,t_RNA_thalamus,t_RNA_thymus,t_RNA_thyroid_gland,t_RNA_tongue,t_RNA_tonsil,t_RNA_urinary_bladder,t_RNA_vagina,t_RNA_B-cells,t_RNA_dendritic_cells,t_RNA_granulocytes,t_RNA_monocytes,t_RNA_NK-cells,t_RNA_T-cells,t_RNA_total_PBMC,cell_RNA_A-431,cell_RNA_A549,cell_RNA_AF22,cell_RNA_AN3-CA,cell_RNA_ASC_diff,cell_RNA_ASC_TERT1,cell_RNA_BEWO,cell_RNA_BJ,cell_RNA_BJ_hTERT+,cell_RNA_BJ_hTERT+_SV40_Large_T+,cell_RNA_BJ_hTERT+_SV40_Large_T+_RasG12V,cell_RNA_CACO-2,cell_RNA_CAPAN-2,cell_RNA_Daudi,cell_RNA_EFO-21,cell_RNA_fHDF/TERT166,cell_RNA_HaCaT,cell_RNA_HAP1,cell_RNA_HBEC3-KT,cell_RNA_HBF_TERT88,cell_RNA_HDLM-2,cell_RNA_HEK_293,cell_RNA_HEL,cell_RNA_HeLa,cell_RNA_Hep_G2,cell_RNA_HHSteC,cell_RNA_HL-60,cell_RNA_HMC-1,cell_RNA_HSkMC,cell_RNA_hTCEpi,cell_RNA_hTEC/SVTERT24-B,cell_RNA_hTERT-HME1,cell_RNA_HUVEC_TERT2,cell_RNA_K-562,cell_RNA_Karpas-707,cell_RNA_LHCN-M2,cell_RNA_MCF7,cell_RNA_MOLT-4,cell_RNA_NB-4,cell_RNA_NTERA-2,cell_RNA_PC-3,cell_RNA_REH,cell_RNA_RH-30,cell_RNA_RPMI-8226,cell_RNA_RPTEC_TERT1,cell_RNA_RT4,cell_RNA_SCLC-21H,cell_RNA_SH-SY5Y,cell_RNA_SiHa,cell_RNA_SK-BR-3,cell_RNA_SK-MEL-30,cell_RNA_T-47d,cell_RNA_THP-1,cell_RNA_TIME,cell_RNA_U-138_MG,cell_RNA_U-2_OS,cell_RNA_U-2197,cell_RNA_U-251_MG,cell_RNA_U-266/70,cell_RNA_U-266/84,cell_RNA_U-698,cell_RNA_U-87_MG,cell_RNA_U-937,cell_RNA_WM-115,blood_RNA_basophil,blood_RNA_classical_monocyte,blood_RNA_eosinophil,blood_RNA_gdT-cell,blood_RNA_intermediate_monocyte,blood_RNA_MAIT_T-cell,blood_RNA_memory_B-cell,blood_RNA_memory_CD4_T-cell,blood_RNA_memory_CD8_T-cell,blood_RNA_myeloid_DC,blood_RNA_naive_B-cell,blood_RNA_naive_CD4_T-cell,blood_RNA_naive_CD8_T-cell,blood_RNA_neutrophil,blood_RNA_NK-cell,blood_RNA_non-classical_monocyte,blood_RNA_plasmacytoid_DC,blood_RNA_T-reg,blood_RNA_total_PBMC,brain_RNA_amygdala,brain_RNA_basal_ganglia,brain_RNA_cerebellum,brain_RNA_cerebral_cortex,brain_RNA_hippocampal_formation,brain_RNA_hypothalamus,brain_RNA_midbrain,brain_RNA_olfactory_region,brain_RNA_pons_and_medulla,brain_RNA_thalamus&format=tsv
-https://storage.googleapis.com/gtex_analysis_v8/rna_seq_data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_median_tpm.gct.gz
-https://www.dropbox.com/s/lxp8vxj39eumvcn/zooma_tissue_cell_mapping_04JAN2020.xlsx?dl=1
+proteinatlas_search.tsv, https://www.proteinatlas.org/api/search_download.php?search=&columns=g,eg,up,pe,rnatsm,rnaclsm,rnacasm,rnabrsm,rnabcsm,rnablsm,scl,t_RNA_adipose_tissue,t_RNA_adrenal_gland,t_RNA_amygdala,t_RNA_appendix,t_RNA_basal_ganglia,t_RNA_bone_marrow,t_RNA_breast,t_RNA_cerebellum,t_RNA_cerebral_cortex,t_RNA_cervix,_uterine,t_RNA_colon,t_RNA_corpus_callosum,t_RNA_ductus_deferens,t_RNA_duodenum,t_RNA_endometrium_1,t_RNA_epididymis,t_RNA_esophagus,t_RNA_fallopian_tube,t_RNA_gallbladder,t_RNA_heart_muscle,t_RNA_hippocampal_formation,t_RNA_hypothalamus,t_RNA_kidney,t_RNA_liver,t_RNA_lung,t_RNA_lymph_node,t_RNA_midbrain,t_RNA_olfactory_region,t_RNA_ovary,t_RNA_pancreas,t_RNA_parathyroid_gland,t_RNA_pituitary_gland,t_RNA_placenta,t_RNA_pons_and_medulla,t_RNA_prostate,t_RNA_rectum,t_RNA_retina,t_RNA_salivary_gland,t_RNA_seminal_vesicle,t_RNA_skeletal_muscle,t_RNA_skin_1,t_RNA_small_intestine,t_RNA_smooth_muscle,t_RNA_spinal_cord,t_RNA_spleen,t_RNA_stomach_1,t_RNA_testis,t_RNA_thalamus,t_RNA_thymus,t_RNA_thyroid_gland,t_RNA_tongue,t_RNA_tonsil,t_RNA_urinary_bladder,t_RNA_vagina,t_RNA_B-cells,t_RNA_dendritic_cells,t_RNA_granulocytes,t_RNA_monocytes,t_RNA_NK-cells,t_RNA_T-cells,t_RNA_total_PBMC,cell_RNA_A-431,cell_RNA_A549,cell_RNA_AF22,cell_RNA_AN3-CA,cell_RNA_ASC_diff,cell_RNA_ASC_TERT1,cell_RNA_BEWO,cell_RNA_BJ,cell_RNA_BJ_hTERT+,cell_RNA_BJ_hTERT+_SV40_Large_T+,cell_RNA_BJ_hTERT+_SV40_Large_T+_RasG12V,cell_RNA_CACO-2,cell_RNA_CAPAN-2,cell_RNA_Daudi,cell_RNA_EFO-21,cell_RNA_fHDF/TERT166,cell_RNA_HaCaT,cell_RNA_HAP1,cell_RNA_HBEC3-KT,cell_RNA_HBF_TERT88,cell_RNA_HDLM-2,cell_RNA_HEK_293,cell_RNA_HEL,cell_RNA_HeLa,cell_RNA_Hep_G2,cell_RNA_HHSteC,cell_RNA_HL-60,cell_RNA_HMC-1,cell_RNA_HSkMC,cell_RNA_hTCEpi,cell_RNA_hTEC/SVTERT24-B,cell_RNA_hTERT-HME1,cell_RNA_HUVEC_TERT2,cell_RNA_K-562,cell_RNA_Karpas-707,cell_RNA_LHCN-M2,cell_RNA_MCF7,cell_RNA_MOLT-4,cell_RNA_NB-4,cell_RNA_NTERA-2,cell_RNA_PC-3,cell_RNA_REH,cell_RNA_RH-30,cell_RNA_RPMI-8226,cell_RNA_RPTEC_TERT1,cell_RNA_RT4,cell_RNA_SCLC-21H,cell_RNA_SH-SY5Y,cell_RNA_SiHa,cell_RNA_SK-BR-3,cell_RNA_SK-MEL-30,cell_RNA_T-47d,cell_RNA_THP-1,cell_RNA_TIME,cell_RNA_U-138_MG,cell_RNA_U-2_OS,cell_RNA_U-2197,cell_RNA_U-251_MG,cell_RNA_U-266/70,cell_RNA_U-266/84,cell_RNA_U-698,cell_RNA_U-87_MG,cell_RNA_U-937,cell_RNA_WM-115,blood_RNA_basophil,blood_RNA_classical_monocyte,blood_RNA_eosinophil,blood_RNA_gdT-cell,blood_RNA_intermediate_monocyte,blood_RNA_MAIT_T-cell,blood_RNA_memory_B-cell,blood_RNA_memory_CD4_T-cell,blood_RNA_memory_CD8_T-cell,blood_RNA_myeloid_DC,blood_RNA_naive_B-cell,blood_RNA_naive_CD4_T-cell,blood_RNA_naive_CD8_T-cell,blood_RNA_neutrophil,blood_RNA_NK-cell,blood_RNA_non-classical_monocyte,blood_RNA_plasmacytoid_DC,blood_RNA_T-reg,blood_RNA_total_PBMC,brain_RNA_amygdala,brain_RNA_basal_ganglia,brain_RNA_cerebellum,brain_RNA_cerebral_cortex,brain_RNA_hippocampal_formation,brain_RNA_hypothalamus,brain_RNA_midbrain,brain_RNA_olfactory_region,brain_RNA_pons_and_medulla,brain_RNA_thalamus&format=tsv
+GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_median_tpm.gct, https://storage.googleapis.com/gtex_analysis_v8/rna_seq_data/GTEx_Analysis_2017-06-05_v8_RNASeQCv1.1.9_gene_median_tpm.gct.gz
+zooma_tissue_cell_mapping_04JAN2020.xlsx, https://storage.googleapis.com/pheknowlator/release_v2.0.0/curated_data/zooma_tissue_cell_mapping_04JAN2020.xlsx
 # mapping reactome pathways to the pathway ontology
-https://reactome.org/download/current/ReactomePathways.txt
-https://reactome.org/download/current/gene_association.reactome.gz
-https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
-http://compath.scai.fraunhofer.de/export_mappings
-https://raw.githubusercontent.com/ComPath/resources/master/mappings/kegg_reactome.csv
+ReactomePathways.txt, https://reactome.org/download/current/ReactomePathways.txt
+gene_association.reactome, https://reactome.org/download/current/gene_association.reactome.gz
+ChEBI2Reactome_All_Levels.txt, https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
+compath_canonical_pathway_mappings.txt, http://compath.scai.fraunhofer.de/export_mappings
+kegg_reactome.csv, https://raw.githubusercontent.com/ComPath/resources/master/mappings/kegg_reactome.csv
 # mapping genomic identifiers to the sequence ontology
-https://www.dropbox.com/s/g0blo27qc8ogvk2/genomic_sequence_ontology_mappings.xlsx?dl=1
+genomic_sequence_ontology_mappings.xlsx, https://storage.googleapis.com/pheknowlator/release_v2.0.0/curated_data/genomic_sequence_ontology_mappings.xlsx
 # protein ontology consortium sparql query results
-https://sparql.proconsortium.org/virtuoso/sparql?query=PREFIX+obo%3A+%3Chttp%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F%3E%0D%0A%0D%0ASELECT+%3FPRO_term%0D%0AFROM+%3Chttp%3A%2F%2Fpurl.obolibrary.org%2Fobo%2Fpr%3E%0D%0AWHERE+%7B%0D%0A+++++++%3FPRO_term+rdf%3Atype+owl%3AClass+.%0D%0A+++++++%3FPRO_term+rdfs%3AsubClassOf+%3Frestriction+.%0D%0A+++++++%3Frestriction+owl%3AonProperty+obo%3ARO_0002160+.%0D%0A+++++++%3Frestriction+owl%3AsomeValuesFrom+obo%3ANCBITaxon_9606+.%0D%0A%0D%0A+++++++%23+use+this+to+filter-out+things+like+hgnc+ids%0D%0A+++++++FILTER+%28regex%28%3FPRO_term%2C%22http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F*%22%29%29+.%0D%0A%7D&format=text%2Fhtml&debug=
+human_pro_classes.html, https://sparql.proconsortium.org/virtuoso/sparql?query=PREFIX+obo%3A+%3Chttp%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F%3E%0D%0A%0D%0ASELECT+%3FPRO_term%0D%0AFROM+%3Chttp%3A%2F%2Fpurl.obolibrary.org%2Fobo%2Fpr%3E%0D%0AWHERE+%7B%0D%0A+++++++%3FPRO_term+rdf%3Atype+owl%3AClass+.%0D%0A+++++++%3FPRO_term+rdfs%3AsubClassOf+%3Frestriction+.%0D%0A+++++++%3Frestriction+owl%3AonProperty+obo%3ARO_0002160+.%0D%0A+++++++%3Frestriction+owl%3AsomeValuesFrom+obo%3ANCBITaxon_9606+.%0D%0A%0D%0A+++++++%23+use+this+to+filter-out+things+like+hgnc+ids%0D%0A+++++++FILTER+%28regex%28%3FPRO_term%2C%22http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F*%22%29%29+.%0D%0A%7D&format=text%2Fhtml&debug=
 # clinvar variant-diseases and phenotypes
-ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz
+variant_summary.txt, ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz
 # uniprot protein-cofactor and protein-catalyst
-https://www.uniprot.org/uniprot/?query=&fil=organism%3A%22Homo%20sapiens%20(Human)%20%5B9606%5D%22&columns=id%2Creviewed%2Centry%20name%2Cdatabase(PRO)%2Cchebi(Cofactor)%2Cchebi(Catalytic%20activity)&format=tab
+uniprot-cofactor-catalyst.tab, https://www.uniprot.org/uniprot/?query=&fil=organism%3A%22Homo%20sapiens%20(Human)%20%5B9606%5D%22&columns=id%2Creviewed%2Centry%20name%2Cdatabase(PRO)%2Cchebi(Cofactor)%2Cchebi(Catalytic%20activity)&format=tab
 
 # edge source list
-http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
-http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
-http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
-http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
-https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
-http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
-http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
-http://compbio.charite.de/jenkins/job/hpo.annotations/lastStableBuild/artifact/misc/phenotype_annotation.tab
-https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
-http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
-http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
-https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
-https://reactome.org/download/current/gene_association.reactome.gz
-https://reactome.org/download/current/gene_association.reactome.gz
-https://reactome.org/download/current/gene_association.reactome.gz
-http://geneontology.org/gene-associations/goa_human.gaf.gz
-http://geneontology.org/gene-associations/goa_human.gaf.gz
-http://geneontology.org/gene-associations/goa_human.gaf.gz
-https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
-https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
+CTD_chemicals_diseases.tsv, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
+CTD_chem_gene_ixns.tsv, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
+CTD_chem_go_enriched.tsv, http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
+ChEBI2Reactome_All_Levels.txt, https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
+CTD_chemicals_diseases.tsv, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
+phenotype_annotation.tab, http://compbio.charite.de/jenkins/job/hpo.annotations/lastStableBuild/artifact/misc/phenotype_annotation.tab
+curated_gene_disease_associations.tsv, https://www.disgenet.org/static/disgenet_ap1/files/downloads/curated_gene_disease_associations.tsv.gz
+COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt, http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
+CTD_genes_pathways.tsv, http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
+gene_association.reactome, https://reactome.org/download/current/gene_association.reactome.gz
+goa_human.gaf, http://geneontology.org/gene-associations/goa_human.gaf.gz
+UniProt2Reactome_All_Levels.txt, https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
+9606.protein.links.v11.0.txt, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
 
 # local build data
-https://www.dropbox.com/s/bxkflkrukuoqlzw/OWL_NETS_Property_Types.txt?dl=1
+OWL_NETS_Property_Types.txt, https://storage.googleapis.com/pheknowlator/release_v2.0.0/curated_data/OWL_NETS_Property_Types.txt
