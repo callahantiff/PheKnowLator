@@ -60,3 +60,6 @@ coverage.xml
 
 # project api keys
 /resources/project_keys/*
+
+# builds data
+builds/temp/*
