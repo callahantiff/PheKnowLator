@@ -1,5 +1,6 @@
 google==1.9.3
 networkx==2.4
+numpy==1.18.1
 pandas==1.0.5
 Owlready2==0.25
 rdflib==4.2.2
