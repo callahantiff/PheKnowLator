@@ -8,7 +8,6 @@ import shutil
 
 from datetime import date, datetime
 from google.cloud import storage
-from owlready2 import subprocess
 
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
@@ -150,7 +149,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
     for url in urls:
         if url.startswith('http://purl.obolibrary.org/obo/'):
             file_path = temp_directory + '/' + url.split('/')[-1][:-4] + '_with_imports.owl'
-            subprocess.check_call(['./pkt_kg/libs/owltools', url, '--merge-import-closure', '-o', file_path])
+            os.system("./pkt_kg/libs/owltools {} --merge-import-closure -o {}".format(url, file_path))
         else:
             filename, url = url.split(', ')
             file_path = temp_directory + '/' + re.sub('.zip|.gz', '', filename)
