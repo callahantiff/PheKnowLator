@@ -39,15 +39,22 @@ Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. A Framework for Automated Co
 Releases
 ########
 
-All code and output for each release are free to download, see `Wiki <https://github.com/callahantiff/PheKnowLator/wiki>`__ for full release archive.
+All data and output for each release are free to download from our dedicated Google Cloud Storage Bucket (GCS). All data can be downloaded from the `PheKnowLator GCS Bucket
+<https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator>`__, which is organized by release and build..
 
 **Current Release:**
 
-- ``v2.0.0`` ➞ data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
+- ``v2.0.0``
+
+  - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__
+  - `Data Access <https://console.cloud.google.com/storage/browser/pheknowlator/release_v2.0.0?project=pheknowlator>`__
 
 **Prior Releases:**
 
-- ``v1.0.0`` ➞ data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
+- ``v1.0.0``
+
+  - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__
+  - `Data Access <https://console.cloud.google.com/storage/browser/pheknowlator/release_v1.0.0?project=pheknowlator>`__
 
 |
 
