@@ -54,7 +54,7 @@ def gets_ontology_classes(graph: Graph) -> Set:
         ValueError: If the query returns zero nodes with type owl:ObjectProperty.
     """
 
-    print('\nQuerying Knowledge Graph to Obtain all OWL:Class Nodes')
+    print('Querying Knowledge Graph to Obtain all OWL:Class Nodes')
 
     class_list = {x for x in graph.subjects(RDF.type, OWL.Class) if isinstance(x, URIRef)}
 
@@ -72,7 +72,7 @@ def gets_deprecated_ontology_classes(graph: Graph) -> Set:
         class_list: A list of all of the deprecated OWL classes in the graph.
     """
 
-    print('\nQuerying Knowledge Graph to Obtain all deprecated OWL:Class Nodes')
+    print('Querying Knowledge Graph to Obtain all deprecated OWL:Class Nodes')
 
     class_list = {x for x in graph.subjects(OWL.deprecated, Literal('true', datatype=URIRef(schema + 'boolean')))}
 
@@ -92,7 +92,7 @@ def gets_object_properties(graph: Graph) -> Set:
         ValueError: If the query returns zero nodes with type owl:ObjectProperty.
     """
 
-    print('\nQuerying Knowledge Graph to Obtain all OWL:ObjectProperty Nodes')
+    print('Querying Knowledge Graph to Obtain all OWL:ObjectProperty Nodes')
 
     object_property_list = {x for x in graph.subjects(RDF.type, OWL.ObjectProperty) if isinstance(x, URIRef)}
 
@@ -119,7 +119,7 @@ def gets_ontology_class_synonyms(graph: Graph) -> Tuple:
                     {'susceptibility to herpesvirus': 'hasExactSynonym', 'full upper lip': 'hasExactSynonym'}
     """
 
-    print('\nQuerying Knowledge Graph to Obtain all OWL:Class Nodes and Synonyms')
+    print('Querying Knowledge Graph to Obtain all OWL:Class Nodes and Synonyms')
 
     # find all classes in graph
     class_list = [x for x in graph if 'synonym' in str(x[1]).lower() and isinstance(x[0], URIRef)]
@@ -152,7 +152,7 @@ def gets_ontology_class_dbxrefs(graph: Graph):
                 {
     """
 
-    print('\nQuerying Knowledge Graph to Obtain all OWL:Class Nodes and DbXRefs')
+    print('Querying Knowledge Graph to Obtain all OWL:Class Nodes and DbXRefs')
 
     # dbxrefs
     dbxref_res = [x for x in graph if 'hasdbxref' in str(x[1]).lower() if isinstance(x[0], URIRef)]
@@ -225,7 +225,7 @@ def merges_ontologies(ontology_files: List[str], write_location: str, merged_ont
         else:
             ont1, ont2 = ontology_files.pop(), ontology_files.pop()
         try:
-            print('\nMerging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
+            print('Merging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
             subprocess.check_call([owltools_location, str(ont1), str(ont2), '--merge-support-ontologies',
                                    '-o', write_location + merged_ont_kg])
         except subprocess.CalledProcessError as error:
@@ -253,7 +253,7 @@ def ontology_file_formatter(write_location: str, full_kg: str,
         TypeError: If the input file contains no data.
     """
 
-    print('\n*** Applying OWL API Formatting to Knowledge Graph OWL File ***')
+    print('Applying OWL API Formatting to Knowledge Graph OWL File')
     graph_write_location = write_location + full_kg
     if '.owl' not in graph_write_location: raise TypeError('The provided file is not type .owl')
     elif not os.path.exists(graph_write_location): raise IOError('{} does not exist!'.format(graph_write_location))
@@ -416,7 +416,7 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
         IOError: If the file referenced by filename does not exist.
     """
 
-    print('\nConverting Knowledge Graph to MultiDiGraph')
+    print('Converting Knowledge Graph to MultiDiGraph')
 
     # read in knowledge graph if class graph attribute is not present
     if not isinstance(graph, Graph):
@@ -424,12 +424,14 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
         file_type = 'xml' if 'OWLNETS' not in full_kg else full_kg.split('.')[-1]
         ext = '.owl' if file_type == 'xml' else '.nt'
         graph.parse(write_location + full_kg + ext, format=file_type)
+
     # convert graph to networkx object
     nx_mdg = networkx.MultiDiGraph()
     for s, p, o in tqdm(graph):
         nx_mdg.add_edge(s, o, **{'key': p})
+
     # pickle networkx graph
-    print('\nPickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
+    print('Pickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
     networkx.write_gpickle(nx_mdg, write_location + full_kg + '_NetworkxMultiDiGraph.gpickle')
     del nx_mdg   # clean up environment
 
