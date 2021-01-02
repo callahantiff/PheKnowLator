@@ -351,22 +351,25 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
 
     results = []
     for key in tqdm(id_dict.keys()):
-        ent_type = [x.split('_')[-1] for x in id_dict[key] if x.startswith(genomic_type)]
-        g_type = ent_type[0] if genomic_type and len(ent_type) > 0 else 'None'
-        if g_type != 'None':
-            for res in id_dict[key]:
-                if genomic1 in key and res.startswith(genomic2):
-                    if prefix1 and prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), '_'.join(res.split('_')[-2:])
-                    elif not prefix1 and prefix2: res1, res2 = key.split('_')[-1], '_'.join(res.split('_')[-2:])
-                    elif prefix1 and not prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), res.split('_')[-1]
-                    else: res1, res2 = key.split('_')[-1], res.split('_')[-1]
-                elif genomic2 in key and res.startswith(genomic1):
-                    if prefix1 and prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), '_'.join(key.split('_')[-2:])
-                    elif not prefix1 and prefix2: res1, res2 = res.split('_')[-1], '_'.join(key.split('_')[-2:])
-                    elif prefix1 and not prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), key.split('_')[-1]
-                    else: res1, res2 = res.split('_')[-1], key.split('_')[-1]
-                else: continue
-                results += [[res1, res2, g_type]]
+        if genomic_type is not None:
+            ent_type = [x.split('_')[-1] for x in id_dict[key] if x.startswith(genomic_type)]
+            g_type = ent_type[0] if len(ent_type) > 0 else 'None'
+        else:
+            g_type = 'None'
+        for res in id_dict[key]:
+            if genomic1 in key and res.startswith(genomic2):
+                if prefix1 and prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), '_'.join(res.split('_')[-2:])
+                elif not prefix1 and prefix2: res1, res2 = key.split('_')[-1], '_'.join(res.split('_')[-2:])
+                elif prefix1 and not prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), res.split('_')[-1]
+                else: res1, res2 = key.split('_')[-1], res.split('_')[-1]
+            elif genomic2 in key and res.startswith(genomic1):
+                if prefix1 and prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), '_'.join(key.split('_')[-2:])
+                elif not prefix1 and prefix2: res1, res2 = res.split('_')[-1], '_'.join(key.split('_')[-2:])
+                elif prefix1 and not prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), key.split('_')[-1]
+                else: res1, res2 = res.split('_')[-1], key.split('_')[-1]
+            else:
+                continue
+            results += [[res1, res2, g_type]]
 
     # write results locally
     with open(filename, 'w') as outfile:
