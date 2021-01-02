@@ -3,6 +3,7 @@
 
 # import needed libraries
 import os
+import re
 import shutil
 
 from datetime import date, datetime
@@ -152,10 +153,11 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
             subprocess.check_call(['./pkt_kg/libs/owltools', url, '--merge-import-closure', '-o', file_path])
         else:
             filename, url = url.split(', ')
-            file_path = temp_directory + '/' + filename
+            file_path = temp_directory + '/' + re.sub('.zip|.gz', '', filename)
             data_downloader(url, temp_directory + '/', filename)
         metadata += [get_file_metadata(url, file_path, gcs_url)]
-        uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, file_path.replace(temp_directory + '/', ''))
+        f_name = re.sub('.zip|.gz', '', file_path.replace(temp_directory + '/', ''))
+        uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, f_name)
 
     # writes metadata locally and pushes it to a Google Cloud Storage bucket
     writes_metadata(metadata, bucket, original_data, temp_directory)
