@@ -349,11 +349,12 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
         None.
     """
 
-    with open(filename, 'w') as outfile:
-        for key in tqdm(id_dict.keys()):
-            id_data = id_dict[key]
-            g_type = [x.split('_')[-1] for x in id_data if x.startswith(genomic_type)][0] if genomic_type else 'None'
-            for res in id_data:
+    results = []
+    for key in tqdm(id_dict.keys()):
+        ent_type = [x.split('_')[-1] for x in id_dict[key] if x.startswith(genomic_type)]
+        g_type = ent_type[0] if genomic_type and len(ent_type) > 0 else 'None'
+        if g_type != 'None':
+            for res in id_dict[key]:
                 if genomic1 in key and res.startswith(genomic2):
                     if prefix1 and prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), '_'.join(res.split('_')[-2:])
                     elif not prefix1 and prefix2: res1, res2 = key.split('_')[-1], '_'.join(res.split('_')[-2:])
@@ -365,8 +366,12 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
                     elif prefix1 and not prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), key.split('_')[-1]
                     else: res1, res2 = res.split('_')[-1], key.split('_')[-1]
                 else: continue
-                if 'none' not in res1.lower() and 'none' not in res2.lower():
-                    outfile.write(res1 + '\t' + res2 + '\t' + g_type + '\n')
+                results += [[res1, res2, g_type]]
+
+    # write results locally
+    with open(filename, 'w') as outfile:
+        for row in set(tuple(x) for x in results):
+            outfile.write(row[0] + '\t' + row[1] + '\t' + row[2] + '\n')
     outfile.close()
 
     return None
