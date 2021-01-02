@@ -5,19 +5,20 @@
 import fnmatch
 import itertools
 import networkx
+import numpy
 import os
 import pandas
 import pickle
+import sys
 
 from google.cloud import storage
-from owlready2 import subprocess
 from rdflib import Graph, URIRef
 from reactome2py import content
 from tqdm import tqdm
 from typing import Dict, List, Optional, Tuple, Union
 
 # import script containing helper functions
-from pkt_kg.utils import *  # tests written for called methods in pkt_kg/utils/data_utils.py
+from pkt_kg.utils import *
 
 
 class DataPreprocessing(object):
@@ -44,38 +45,29 @@ class DataPreprocessing(object):
         self.processed_data: str = processed_data
         self.temp_dir = temp_dir
 
-    def uploads_data_to_gcs_bucket(self, file_loc: str, original_data: bool = False) -> None:
+    def uploads_data_to_gcs_bucket(self, filename: str) -> None:
         """Takes a file name and pushes the data referenced by the filename object and stored locally in that object to
         a Google Cloud Storage bucket.
 
         Args:
-            file_loc: A string containing the name of file to write to a Google Cloud Storage bucket.
-            original_data: A bool indicating whether the data should be updated to the processed_data and
-                original_data buckets on Google Cloud Storage for the current build (default=False).
+            filename: A string containing the name of file to write to a Google Cloud Storage bucket.
 
         Returns:
             None.
         """
 
-        print('Uploading {} to GCS bucket: {}'.format(file_loc, self.processed_data))
-
-        if original_data:
-            blob_original = self.bucket.blob(self.original_data + file_loc)
-            blob_original.upload_from_filename(self.temp_dir + '/' + file_loc)
-            blob_processed = self.bucket.blob(self.processed_data + file_loc)
-            blob_processed.upload_from_filename(self.temp_dir + '/' + file_loc)
-        else:
-            blob = self.bucket.blob(self.processed_data + file_loc)
-            blob.upload_from_filename(self.temp_dir + '/' + file_loc)
+        blob = self.bucket.blob(self.processed_data + filename)
+        blob.upload_from_filename(self.temp_dir + '/' + filename)
 
         return None
 
-    def downloads_data_from_gcs_bucket(self, file_loc: str) -> str:
+    def downloads_data_from_gcs_bucket(self, filename: str) -> str:
         """Takes a filename and a data object and writes the data in that object to the Google Cloud Storage bucket
-        specified in the filename.
+        specified in the filename. Note, before downloading a file from the Google Cloud Storage bucket, the method
+        checks to see if it exists locally.
 
         Args:
-            file_loc: A string containing the name of file to write to a Google Cloud Storage bucket.
+            filename: A string containing the name of file to write to a Google Cloud Storage bucket.
 
         Returns:
             data_file: A string containing the local filepath for a file downloaded from a GSC bucket.
@@ -84,26 +76,25 @@ class DataPreprocessing(object):
             ValueError: when trying to download a non-existent file from the GCS original_data dir of the current build.
         """
 
-        print('Downloading {} from the GCS original_data directory of the current build'.format(file_loc))
-
         try:
             _files = [_.name for _ in self.bucket.list_blobs(prefix=self.original_data)]
-            matched_file = fnmatch.filter(_files, '*/' + file_loc)[0]  # poor man's glob
-            self.bucket.blob(matched_file).download_to_filename(self.temp_dir + '/' + matched_file.split('/')[-1])
+            matched_file = fnmatch.filter(_files, '*/' + filename)[0]  # poor man's glob
             data_file = self.temp_dir + '/' + matched_file.split('/')[-1]
+            if not os.path.exists(data_file):  # only download if file has not yet been downloaded
+                self.bucket.blob(matched_file).download_to_filename(self.temp_dir + '/' + matched_file.split('/')[-1])
         except IndexError:
-            raise ValueError('Cannot find {} in the GCS original_data directory of the current build'.format(file_loc))
+            raise ValueError('Cannot find {} in the GCS original_data directory of the current build'.format(filename))
 
         return data_file
 
-    def reads_gcs_bucket_data_to_df(self, file_loc: str, delm: str, skip: int = 0,
+    def reads_gcs_bucket_data_to_df(self, filename: str, delm: str, skip: int = 0,
                                     head: Optional[Union[int, List]] = None,
                                     sht: Optional[Union[int, str]] = None) -> pandas.DataFrame:
         """Takes a Google Cloud Storage bucket and a filename and downloads to the data to a local temp directory.
         Once downloaded, the file is read into a Pandas DataFrame.
 
         Args:
-            file_loc: A string containing the name of file that exists in a Google Cloud Storage bucket.
+            filename: A string containing the name of file that exists in a Google Cloud Storage bucket.
             delm: A string specifying a file delimiter.
             skip: An integer specifying the number of rows to skip when reading in the data.
             head: An integer specifying the header row, None for no header or a list of header names.
@@ -113,33 +104,35 @@ class DataPreprocessing(object):
              df: A Pandas DataFrame object containing data read from a Google Cloud Storage bucket.
         """
 
-        dat = self.downloads_data_from_gcs_bucket(file_loc)
+        data = self.downloads_data_from_gcs_bucket(filename)
 
         if not isinstance(head, List):
             if sht is not None:
-                df = pandas.read_excel(dat, sheet_name=sht, header=head, skiprows=skip, engine='openpyxl')
+                df = pandas.read_excel(data, sheet_name=sht, header=head, skiprows=skip, engine='openpyxl')
             else:
-                df = pandas.read_csv(dat, header=head, delimiter=delm, skiprows=skip, low_memory=0)
+                df = pandas.read_csv(data, header=head, delimiter=delm, skiprows=skip, low_memory=0)
         else:
             if sht is not None:
-                df = pandas.read_excel(dat, sheet_name=sht, header=None, names=head, skiprows=skip, engine='openpyxl')
+                df = pandas.read_excel(data, sheet_name=sht, header=None, names=head, skiprows=skip, engine='openpyxl')
             else:
-                df = pandas.read_csv(data_file, header=None, names=head, delm=delm, skiprows=skip, low_memory=0)
+                df = pandas.read_csv(data, header=None, names=head, delimiter=delm, skiprows=skip, low_memory=0)
 
         return df
 
-    def _loads_genomic_typing_dictionary(self) -> Dict:
-        """Downloads and loads genomic typing dictionary needed to process teh genomic identifier data.
+    def _loads_genomic_typing_dictionary(self) -> None:
+        """Downloads and loads genomic typing dictionary needed to process the genomic identifier data. This
+        dictionary object is keyed by specific column names in each genomic identifier Pandas DataFrame and has
+        values which are a dictionary where keys are values in the specific column and values are a new string to
+        translate that key string into.
 
         Returns:
-            genomic_typing_dict: A nested dictionary keyed by genomic identifier type with a dictionary as the value
-                containing mappings between different genomic types.
+            None.
         """
 
         data_file = self.downloads_data_from_gcs_bucket('genomic_typing_dict.pkl')
-        genomic_typing_dict = pickle.load(open(data_file, 'rb'))
+        self.genomic_type_mapper = pickle.load(open(data_file, 'rb'))
 
-        return genomic_typing_dict
+        return None
 
     def _preprocess_hgnc_data(self) -> pandas.DataFrame:
         """Processes HGNC data in order to prepare it for combination with other gene identifier data sources. Data
@@ -152,9 +145,7 @@ class DataPreprocessing(object):
             explode_df_hgnc: A Pandas DataFrame containing processed and filtered data.
         """
 
-        print('Processing HGNC Gene Identifier Data')
-
-        hgnc = self.reads_gcs_bucket_data_to_df('hgnc_complete_set.txt', '\t', 0, 0, None)
+        hgnc = self.reads_gcs_bucket_data_to_df(filename='hgnc_complete_set.txt', delm='\t', skip=0, head=0, sht=None)
         hgnc = hgnc.loc[hgnc['status'].apply(lambda x: x == 'Approved')]
         hgnc = hgnc[['hgnc_id', 'entrez_id', 'ensembl_gene_id', 'uniprot_ids', 'symbol', 'locus_type', 'alias_symbol',
                      'name', 'location', 'alias_name']]
@@ -196,8 +187,8 @@ class DataPreprocessing(object):
             ensembl_geneset: A Pandas DataFrame containing processed and filtered data.
         """
 
-        ensembl_geneset = self.reads_gcs_bucket_data_to_df('Homo_sapiens.GRCh38.*.gtf', '\t', 5, None, None)
-        cleaned_col = []
+        f_name, cleaned_col = 'Homo_sapiens.GRCh38.*.gtf', []
+        ensembl_geneset = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=5, head=None, sht=None)
         data_cols = ['gene_id', 'transcript_id', 'gene_name', 'gene_biotype', 'transcript_name', 'transcript_biotype']
         for data_list in tqdm(list(ensembl_geneset[8])):
             data_list = data_list if not data_list.endswith(';') else data_list[:-1]
@@ -246,22 +237,22 @@ class DataPreprocessing(object):
                 additional annotation  mapping data from uniprot and entrez.
         """
 
-        print('Processing Ensembl Gene and Transcript Identifier Data')
-
         drop_cols = ['db_name', 'info_type', 'source_identity', 'xref_identity', 'linkage_type']
+        un_name, ent_name = 'Homo_sapiens.GRCh38.*.uniprot.tsv', 'Homo_sapiens.GRCh38.*.entrez.tsv'
         # uniprot data
-        ensembl_uniprot = self.reads_gcs_bucket_data_to_df('Homo_sapiens.GRCh38.*.uniprot.tsv', '\t', 0, 0, None)
+        ensembl_uniprot = self.reads_gcs_bucket_data_to_df(filename=un_name, delm='\t', skip=0, head=0, sht=None)
         ensembl_uniprot.rename(columns={'xref': 'uniprot_id', 'gene_stable_id': 'ensembl_gene_id'}, inplace=True)
         ensembl_uniprot.replace('-', 'None', inplace=True)
         ensembl_uniprot.fillna('None', inplace=True)
         ensembl_uniprot.drop(drop_cols, axis=1, inplace=True)
         # entrez data
-        ensembl_entrez = self.reads_gcs_bucket_data_to_df('Homo_sapiens.GRCh38.*.entrez.tsv', '\t', 0, 0)
+        ensembl_entrez = self.reads_gcs_bucket_data_to_df(filename=ent_name, delm='\t', skip=0, head=0, sht=None)
         ensembl_entrez.rename(columns={'xref': 'entrez_id', 'gene_stable_id': 'ensembl_gene_id'}, inplace=True)
         ensembl_entrez = ensembl_entrez.loc[ensembl_entrez['db_name'].apply(lambda x: x == 'EntrezGene')]
         ensembl_entrez.replace('-', 'None', inplace=True)
         ensembl_entrez.fillna('None', inplace=True)
         ensembl_entrez.drop(drop_cols, axis=1, inplace=True)
+
         # merge annotation data
         mrglist = ['ensembl_gene_id', 'transcript_stable_id', 'protein_stable_id']
         ensembl_annot = pandas.merge(ensembl_uniprot, ensembl_entrez, left_on=mrglist, right_on=mrglist, how='outer')
@@ -273,7 +264,7 @@ class DataPreprocessing(object):
         ensembl.replace('NA', 'None', inplace=True, regex=False)
         ensembl.drop_duplicates(subset=None, keep='first', inplace=True)
 
-        # save data
+        # save data locally and push to gcs bucket
         filename = 'ensembl_identifier_data_cleaned.txt'
         ensembl.to_csv(self.temp_dir + '/' + filename, header=True, sep='\t', index=False)
         self.uploads_data_to_gcs_bucket(filename)
@@ -289,16 +280,15 @@ class DataPreprocessing(object):
             explode_df_uniprot: A Pandas DataFrame containing processed and filtered data.
         """
 
-        print('Processing UniProt Protein Identifier Data')
-
-        uniprot = self.reads_gcs_bucket_data_to_df('uniprot_identifier_mapping.tab', '\t', 0, 0, None)
+        f_name = 'uniprot_identifier_mapping.tab'
+        uniprot = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=0, head=0, sht=None)
         uniprot.fillna('None', inplace=True)
         uniprot.rename(columns={'Entry': 'uniprot_id', 'Cross-reference (GeneID)': 'entrez_id',
                                 'Ensembl transcript': 'transcript_stable_id', 'Cross-reference (HGNC)': 'hgnc_id',
                                 'Gene names  (synonym )': 'synonyms', 'Gene names  (primary )': 'symbol'}, inplace=True)
         uniprot['synonyms'] = uniprot['synonyms'].apply(lambda x: '|'.join(x.split()) if x.isupper() else x)
 
-        # explode nested data and perform light reformatting
+        # explode nested data and perform light value reformatting
         explode_df_uniprot = explodes_data(uniprot.copy(), ['transcript_stable_id', 'entrez_id', 'hgnc_id'], ';')
         explode_df_uniprot = explodes_data(explode_df_uniprot.copy(), ['symbol'], '|')
         explode_df_uniprot['transcript_stable_id'].replace('\s.*', '', inplace=True, regex=True)  # strip uniprot names
@@ -317,9 +307,8 @@ class DataPreprocessing(object):
             explode_df_ncbi_gene: A Pandas DataFrame containing processed and filtered data.
         """
 
-        print('Processing NCBI Entrez Gene Identifier Data')
-
-        ncbi_gene = self.reads_gcs_bucket_data_to_df('Homo_sapiens.gene_info', '\t', 0, 0, None)
+        f_name = 'Homo_sapiens.gene_info'
+        ncbi_gene = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=0, head=0, sht=None)
         ncbi_gene = ncbi_gene.loc[ncbi_gene['#tax_id'].apply(lambda x: x == 9606)]  # remove non-human rows
         ncbi_gene.replace('-', 'None', inplace=True)
         ncbi_gene.rename(columns={'GeneID': 'entrez_id', 'Symbol': 'symbol', 'Synonyms': 'synonyms'}, inplace=True)
@@ -329,7 +318,6 @@ class DataPreprocessing(object):
         # explode nested data
         explode_df_ncbi_gene = explodes_data(ncbi_gene.copy(), ['symbol', 'name'], '|')
         explode_df_ncbi_gene['entrez_id'] = explode_df_ncbi_gene['entrez_id'].astype(str)
-
         # reformat entrez gene type
         explode_df_ncbi_gene['entrez_gene_type'] = explode_df_ncbi_gene['type_of_gene']
         gene_dict = self.genomic_type_mapper['entrez_gene_type']
@@ -354,21 +342,20 @@ class DataPreprocessing(object):
         identifier data sources.
 
         Returns:
-            pro_mapping: A Pandas DataFrame containing processed and filtered data.
+            pro: A Pandas DataFrame containing processed and filtered data.
         """
 
-        print('Processing PRotein Ontology Protein Identifier Mapping Data')
-
         col_names = ['pro_id', 'Entry', 'pro_mapping']
-        pro_mapping = self.reads_gcs_bucket_data_to_df('promapping.txt', '\t', 0, col_names, None)
-        pro_mapping = pro_mapping.loc[pro_mapping['Entry'].apply(lambda x: x.startswith('UniProtKB:'))]
-        pro_mapping['pro_id'].replace('PR:', 'PR_', inplace=True, regex=True)  # replace PR: with PR_
-        pro_mapping['Entry'].replace('(^\w*\:)', '', inplace=True, regex=True)  # remove id type which appear before ':'
-        pro_mapping.rename(columns={'Entry': 'uniprot_id'}, inplace=True)
-        pro_mapping.drop(['pro_mapping'], axis=1, inplace=True)
-        pro_mapping.drop_duplicates(subset=None, keep='first', inplace=True)
+        pro = self.reads_gcs_bucket_data_to_df(filename='promapping.txt', delm='\t', skip=0, head=col_names, sht=None)
+        pro = pro.loc[pro['Entry'].apply(lambda x: x.startswith('UniProtKB:') and '_VAR' not in x and ', ' not in x)]
+        pro = pro.loc[pro['pro_mapping'].apply(lambda x: x.startswith('exact'))]
+        pro['pro_id'].replace('PR:', 'PR_', inplace=True, regex=True)  # replace PR: with PR_
+        pro['Entry'].replace('(^\w*\:)', '', inplace=True, regex=True)  # remove ids which appear before ':'
+        pro.rename(columns={'Entry': 'uniprot_id'}, inplace=True)
+        pro.drop(['pro_mapping'], axis=1, inplace=True)
+        pro.drop_duplicates(subset=None, keep='first', inplace=True)
 
-        return pro_mapping
+        return pro
 
     def _merges_genomic_identifier_data(self) -> pandas.DataFrame:
         """Merges HGNC, Ensembl, Uniprot, and PRotein Ontology identifiers into a single Pandas DataFrame.
@@ -377,29 +364,32 @@ class DataPreprocessing(object):
             merged_data: A Pandas DataFrame of merged genomic identifier information.
         """
 
-        print('Merging Genomic Identifier Mapping Data')
+        print('\t- Loading, Processing, and Merging Genomic Identifier Data')
 
         # hgnc + ensembl
+        hgnc, ensembl = self._preprocess_hgnc_data(), self.merges_ensembl_mapping_data()
         merge_cols = ['ensembl_gene_id', 'entrez_id', 'uniprot_id', 'master_gene_type', 'symbol']
-        ensembl_hgnc = pandas.merge(self.merges_ensembl_mapping_data(), self._preprocess_hgnc_data(),
-                                    on=merge_cols, how='outer')
+        ensembl_hgnc = pandas.merge(ensembl, hgnc, on=merge_cols, how='outer')
         ensembl_hgnc.fillna('None', inplace=True)
         ensembl_hgnc.drop_duplicates(subset=None, keep='first', inplace=True)
+
         # ensembl_hgnc + uniprot
+        uniprot = self._preprocess_uniprot_data()
         merge_cols = ['entrez_id', 'hgnc_id', 'uniprot_id', 'transcript_stable_id', 'symbol', 'synonyms']
-        ensembl_hgnc_uniprot = pandas.merge(ensembl_hgnc, self._preprocess_uniprot_data(),
-                                            on=merge_cols, how='outer')
+        ensembl_hgnc_uniprot = pandas.merge(ensembl_hgnc, uniprot, on=merge_cols, how='outer')
         ensembl_hgnc_uniprot.fillna('None', inplace=True)
         ensembl_hgnc_uniprot.drop_duplicates(subset=None, keep='first', inplace=True)
+
         # ensembl_hgnc_uniprot + Homo_sapiens.gene_info
+        ncbi = self._preprocess_ncbi_data()
         merge_cols = ['entrez_id', 'master_gene_type', 'symbol', 'synonyms', 'name', 'map_location']
-        ensembl_hgnc_uniprot_ncbi = pandas.merge(ensembl_hgnc_uniprot, self._preprocess_ncbi_data(),
-                                                 on=merge_cols, how='outer')
+        ensembl_hgnc_uniprot_ncbi = pandas.merge(ensembl_hgnc_uniprot, ncbi, on=merge_cols, how='outer')
         ensembl_hgnc_uniprot_ncbi.fillna('None', inplace=True)
         ensembl_hgnc_uniprot_ncbi.drop_duplicates(subset=None, keep='first', inplace=True)
+
         # ensembl_hgnc_uniprot_ncbi + promapping.txt
-        merged_data = pandas.merge(ensembl_hgnc_uniprot_ncbi, self._preprocess_protein_ontology_mapping_data(),
-                                   on='uniprot_id', how='outer')
+        pro = self._preprocess_protein_ontology_mapping_data()
+        merged_data = pandas.merge(ensembl_hgnc_uniprot_ncbi, pro, on='uniprot_id', how='outer')
         merged_data.fillna('None', inplace=True)
         merged_data.drop_duplicates(subset=None, keep='first', inplace=True)
 
@@ -411,8 +401,6 @@ class DataPreprocessing(object):
         Returns:
             merged_data_clean: A Pandas DataFrame with fix genomic symbols.
         """
-
-        print('Cleaning Genomic Identifier Mapping Data')
 
         clean_dates, merged_data = [], self._merges_genomic_identifier_data()
         for x in tqdm(list(merged_data['symbol'])):
@@ -433,82 +421,82 @@ class DataPreprocessing(object):
 
         return merged_data_clean
 
-    def _harmonizes_genomic_mapping_data(self) -> Tuple:
+    def _cross_maps_genomic_identifier_data(self) -> Dict:
         """Takes a Pandas Dataframe of merged genomic identifiers and expands them to create a complete mapping between
         the identifiers. A master dictionary is built, where the keys are ensembl_gene_id, transcript_stable_id,
-        symbol, protein_stable_id, uniprot_id, entrez_id, hgnc_id, and pro_id identifiers and values are the list of
-        identifiers that match to each identifier. It's important to note that there are several labeling identifiers
-        (i.e. name, chromosome, map_location, Other_designations, synonyms, transcript_name, *_gene_types, and
-        trasnscript_type_update), which will only be mapped when clustered against one of the primary identifier types
-        (i.e. the keys described above).
+        protein_stable_id, uniprot_id, entrez_id, hgnc_id, and pro_id identifiers and values are the list of identifiers
+        that match to each identifier. This function takes 40-50 minutes to complete.
 
         Returns:
-            master_dict: A dictionary with the formatting described above.
-            ids: A list of identifiers.
-            stop_point: An integer used to sort ids.
+            master_dict: A dict where keys are genomic identifiers and values are lists of other identifiers and
+                metadata mapped to that identifier.
         """
 
-        print('Harmonizing Genomic Identifier Mapping Data -- this process can take up to 90 minutes')
+        # reformat data to convert all nones, empty values, and unknowns to NaN
+        merged_data, master_dict = self._fixes_genomic_symbols(), {}
+        for col in merged_data.columns:
+            merged_data[col] = merged_data[col].apply(lambda x: '|'.join([i for i in x.split('|') if i != 'None']))
+        merged_data.replace(to_replace=['None', '', 'unknown'], value=numpy.nan, inplace=True)
+        identifiers = [x for x in merged_data.columns if x.endswith('_id')] + ['symbol']
 
-        df, stop_point = self._fixes_genomic_symbols(), 8
-        # get all permutations of identifiers (e.g. ['entrez_id', 'ensembl_gene_id'])
-        ids = ['ensembl_gene_id', 'transcript_stable_id', 'protein_stable_id', 'uniprot_id', 'entrez_id', 'hgnc_id',
-               'pro_id', 'symbol', 'synonyms', 'ensembl_gene_type', 'transcript_name', 'ensembl_transcript_type',
-               'master_gene_type', 'master_transcript_type', 'hgnc_gene_type', 'name', 'map_location', 'chromosome',
-               'Other_designations', 'entrez_gene_type']
-        # get list of data types that ignores subjects of a permutation pair that are metadata
-        identifier_list = [x for x in list(itertools.permutations(ids, 2)) if x[0] not in ids[stop_point:]]
-
+        # convert data to dictionary
         master_dict = {}
-        for ids in tqdm(identifier_list):
-            x = {k: [ids[1] + '_' + x for x in set(g[ids[1]].tolist()) if x != 'None'] for k, g in df.groupby(ids[0])}
-            for key in x.keys():
-                if ids[0] + '_' + key in master_dict.keys():
-                    master_dict[ids[0] + '_' + key] += x[key]
-                else:
-                    master_dict[ids[0] + '_' + key] = x[key]
+        for idx in tqdm(identifiers):
+            grouped_data = merged_data.groupby(idx)
+            grp_ids = set([x for x in list(grouped_data.groups.keys()) if x != numpy.nan])
+            for grp in grp_ids:
+                df = grouped_data.get_group(grp).dropna(axis=1, how='all')
+                df_cols, key = df.columns, idx + '_' + grp
+                val_df = [[c + '_' + x for x in set(df[c]) if isinstance(x, str)] for c in df_cols if c != idx]
+                if len(val_df) > 0:
+                    if key in master_dict.keys(): master_dict[key] += [i for j in val_df for i in j if len(i) > 0]
+                    else: master_dict[key] = [i for j in val_df for i in j if len(i) > 0]
 
-        return master_dict, ids, stop_point
+        return master_dict
 
     def creates_master_genomic_identifier_map(self) -> Dict:
-        """Takes a dictionary of genomic identifier information and finalizes its formatting in order
+        """Identifies a master gene and transcript type for each entity because the last ran code chunk can result in
+        several genes and transcripts with differing types (i.e. protein-coding or not protein-coding). The next step
+        collects all information for each gene and transcript and performs a voting procedure to select a single
+        primary gene and transcript type.
 
         Returns:
-            reformatted_mapped_ids: A dictionary containing genomic identifier information which is keyed by genomic
+            reformatted_mapped_ids: A dict containing genomic identifier information which is keyed by genomic
                 identifier types and where values are lists of all other genomic identifiers that map to that key.
         """
 
-        print('Finalizing Genomic Identifier Cross-Mapping Dictionary')
+        print('\t- Creating Genomic Identifier Cross-Mapping Dictionary')
 
-        gene_var, transcript_var, reformatted_mapped_ids = 'master_gene_type', 'master_transcript_type', {}
-        master, ids, stop = self._harmonizes_genomic_mapping_data()
-        for ident in tqdm(master.keys()):
-            id_info, type_updates = set(), []
-            for i in master[ident]:  # get all identifying information for all linked identifiers
-                if not any(x for x in ids[stop:] if i.startswith(x)) and i in master.keys():
-                    id_info |= set(master[i])
-                else:
-                    continue
-            genes = [x.split('_')[-1] for x in id_info if x.startswith(gene_type_var)]
-            trans = [x.split('_')[-1] for x in id_info if x.startswith(transcript_type_var)]
-            for types in [genes if len(genes) > 0 else ['None'], trans if len(trans) > 0 else ['None']]:
-                if 'protein-coding' in set(types):
-                    type_updates.append('protein-coding')
-                else:
-                    type_updates.append('not protein-coding')
-            # update identifier set information
-            identifier_info = [x for x in id_info if not x.startswith(gene_var) and not x.startswith(transcript_var)]
-            identifier_info += ['gene_type_update_' + type_updates[0], 'transcript_type_update_' + type_updates[1]]
-            reformatted_mapped_ids[ident] = identifier_info
+        master_dict = self._cross_maps_genomic_identifier_data()
+        reformatted_mapped_identifiers, gene_type, transcript_type = {}, 'gene_type', 'transcript_type'
+        for key, values in tqdm(master_dict.items()):
+            g_type_list, t_type_list, g_types, t_types, identifier_info = [], [], [], [], []
+            if any(x for x in ['ensembl_gene_id', 'entrez_id', 'hgnc_id', 'symbol'] if x in key):
+                for idx in values:
+                    if gene_type in idx: g_types += [idx.split('_')[-1]]
+                    else: identifier_info += [idx]
+                for i in [g_types if len(g_types) > 0 else ['None']]:
+                    g_type_list += ['protein-coding' if 'protein-coding' in i else 'not protein-coding']
+                identifier_info += ['gene_type_update_' + max(set(g_type_list), key=g_type_list.count)]
+            elif 'transcript' in key:
+                for idx in values:
+                    if transcript_type in idx: t_types += [idx.split('_')[-1]]
+                    else: identifier_info += [idx]
+                for i in [t_types if len(t_types) > 0 else ['None']]:
+                    t_type_list += ['protein-coding' if 'protein-coding' in i else 'not protein-coding']
+                identifier_info += ['transcript_type_update_' + max(set(t_type_list), key=t_type_list.count)]
+            else:
+                identifier_info = values
+            reformatted_mapped_identifiers[key] = identifier_info
 
         # save results for output > 4GB requires special approach: https://stackoverflow.com/questions/42653386
         filename = 'Merged_gene_rna_protein_identifiers.pkl'
         with open(self.temp_dir + '/' + filename, 'wb') as f_out:
-            for idx in range(0, sys.getsizeof(pickle.dumps(reformatted_mapped_ids)), 2 ** 31 - 1):
-                f_out.write(pickle.dumps(reformatted_mapped_ids)[idx:idx + (2 ** 31 - 1)])
+            for idx in range(0, sys.getsizeof(pickle.dumps(reformatted_mapped_identifiers)), 2 ** 31 - 1):
+                f_out.write(pickle.dumps(reformatted_mapped_identifiers)[idx:idx + (2 ** 31 - 1)])
         self.uploads_data_to_gcs_bucket(filename)
 
-        return reformatted_mapped_ids
+        return reformatted_mapped_identifiers
 
     def generates_specific_genomic_identifier_maps(self) -> None:
         """Method takes a list of information needed to create mappings between specific sets of genomic identifiers.
@@ -517,9 +505,10 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Creating Pairwise Genomic Identifier Cross-Mapping Sets')
+        print('\t- Generating Genomic Identifier Cross-Mapping Sets')
 
-        reformatted_mapped_ids = self.creates_master_genomic_identifier_map()
+        self._loads_genomic_typing_dictionary()  # creates genomic typing dictionary
+        reformatted_mapped_identifiers = self.creates_master_genomic_identifier_map()
         gene_sets = [
             ['/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt', 'ensembl_gene_id', 'entrez_id', 'gene_type_update', False, False],
             ['/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt', 'transcript_stable_id', 'pro_id',
@@ -534,7 +523,7 @@ class DataPreprocessing(object):
         ]
 
         for x in gene_sets:
-            genomic_id_mapper(reformatted_mapped_ids, self.temp_dir + x[0], x[1], x[2], x[3], x[4], x[5])
+            genomic_id_mapper(reformatted_mapped_identifiers, self.temp_dir + x[0], x[1], x[2], x[3], x[4], x[5])
             self.uploads_data_to_gcs_bucket(x[0])
 
         return None
@@ -544,15 +533,15 @@ class DataPreprocessing(object):
         data.
 
         Returns:
-            mesh_df: A Pandas Data Frame containing three columns: ID (i.e. 'MESH' identifiers), STR (i.e. string
+            msh_df: A Pandas Data Frame containing three columns: ID (i.e. 'MESH' identifiers), STR (i.e. string
                 labels or synonyms), and TYP (i.e. a string denoting if the STR column entry is a 'NAME' or 'SYNONYM').
-            mesh_dict: A nested dictionary where keys are MeSH identifiers and the values are a dictionary of labels,
-                dbxrefs, and synonyms for each key.
+            msh_dict: A nested dict where keys are MeSH identifiers and the values are a dict of labels, dbxrefs, and
+                synonyms for each key.
         """
 
-        print('Processing MeSH Data')
+        print('\t- Processing MeSH Data')
 
-        mesh = [x.split('> ') for x in tqdm(open(self.downloads_data_from_gcs_bucket('mesh2021.nt'), 'r').readlines())]
+        mesh = [x.split('> ') for x in tqdm(open(self.downloads_data_from_gcs_bucket('mesh*.nt'), 'r').readlines())]
         msh_dict, res = {}, []
         for row in tqdm(mesh):
             s, p, o, dbx, lab, msh_type = row[0].split('/')[-1], row[1].split('#')[-1], row[2], None, None, None
@@ -574,16 +563,16 @@ class DataPreprocessing(object):
 
         # expand data and convert to pandas DataFrame
         for key, value in tqdm(msh_dict.items()):
-            res += [[key, list(value['label'])[0], 'NAME']]
+            res += [[key, list(value['lab'])[0], 'NAME']]
             if len(value['syn']) > 0:
                 for i in value['syn']:
                     res += [[key, i, 'SYNONYM']]
-        mesh_df = pandas.DataFrame({'ID': [x[0] for x in res], 'TYP': [x[2] for x in res], 'STR': [x[1] for x in res]})
-        # lowercase all strings and remove white space and punctuation
-        mesh_df['STR'] = mesh_df['STR'].str.lower()
-        mesh_df['STR'] = mesh_df['STR'].str.replace('[^\w]', '')
 
-        return mesh_df, mesh_dict
+        msh_df = pandas.DataFrame({'ID': [x[0] for x in res], 'TYP': [x[2] for x in res], 'STR': [x[1] for x in res]})
+        msh_df['STR'] = msh_df['STR'].str.lower()
+        msh_df['STR'] = msh_df['STR'].str.replace('[^\w]', '')  # remove white space and punctuation
+
+        return msh_df, msh_dict
 
     def _processes_chebi_data(self) -> pandas.DataFrame:
         """Parses ChEBI data into a Pandas DataFrame that can be merged with MeSH data.
@@ -593,41 +582,38 @@ class DataPreprocessing(object):
                 labels or synonyms), and TYP (i.e. a string denoting if the STR column entry is a 'NAME' or 'SYNONYM').
         """
 
-        print('Processing ChEBI Data')
+        print('\t- Processing ChEBI Data')
 
-        chebi = self.reads_gcs_bucket_data_to_df('names.tsv', '\t', 0, 0, None)
-
-        # preprocess data
+        chebi = self.reads_gcs_bucket_data_to_df(filename='names.tsv', delm='\t', skip=0, head=0, sht=None)
         chebi_df = chebi[['COMPOUND_ID', 'TYPE', 'NAME']]  # remove unneeded columns
         chebi_df.drop_duplicates(subset=None, keep='first', inplace=True)
         chebi_df.columns = ['ID', 'TYP', 'STR']  # rename columns
         chebi_df['ID'] = chebi_df['ID'].apply(lambda x: "{}{}".format('CHEBI_', x))  # append CHEBI to # in each id
-        # lowercase all strings and remove white space and punctuation
         chebi_df['STR'] = chebi_df['STR'].str.lower()
-        chebi_df['STR'] = chebi_df['STR'].str.replace('[^\w]', '')
+        chebi_df['STR'] = chebi_df['STR'].str.replace('[^\w]', '')  # remove white space and punctuation
 
         return chebi_df
 
     def creates_chebi_to_mesh_identifier_mappings(self) -> None:
-        """Recapitulates the LOOM algorithm () utilized by the BioPortal API to create mappings between MeSH
-        and ChEBI identifiers. This is accomplished by performing an inner join on the MeSH and ChEBI Pandas
-        DataFrames. The resulting mappings are then written out locally and pushed to the process_data directory in
-        the Google Cloud Storage bucket for the current build.
+        """Recapitulates the LOOM algorithm (https://www.bioontology.org/wiki/BioPortal_Mappings) utilized by the
+        BioPortal API to create mappings between MeSH and ChEBI identifiers. This is accomplished by performing an
+        inner join on the MeSH and ChEBI Pandas DataFrames. The resulting mappings are then written out locally and
+        pushed to the process_data directory in the Google Cloud Storage bucket for the current build.
 
         Return:
             None.
         """
 
-        print('Creating MeSH-ChEBI Identifier Mapping Data')
+        print('Creating MeSH-ChEBI Identifier Cross-Mapping Data')
 
-        # load and merge data
         mesh_df, mesh_dict = self._processes_mesh_data()
         chebi_df = self._processes_chebi_data()
-        chem_merge = pandas.merge(chebi_df[['STR', 'ID']], mesh_df[['STR', 'ID']], on='STR', how='inner')
+        merge_cols = ['STR', 'ID']
+        identifier_merge = pandas.merge(chebi_df[merge_cols], mesh_df[merge_cols], on='STR', how='inner')
 
-        # filter results
+        # filter merged data
         mesh_edges = set()
-        for idx, row in chem_merge.drop_duplicates().iterrows():
+        for idx, row in identifier_merge.drop_duplicates().iterrows():
             mesh, chebi = row['ID_y'], row['ID_x']
             syns = [x for x in mesh_dict[mesh]['dbx'] if 'C' in x or 'D' in x]
             mesh_edges.add(tuple([mesh, chebi]))
@@ -654,7 +640,7 @@ class DataPreprocessing(object):
             mondo_dict: A dict where disease identifiers mapped to mondo are keys and mondo identifiers are values.
         """
 
-        print('Processing MonDO Disease Ontology Data')
+        print('\t- Loading MonDO Disease Ontology Data')
 
         mondo_graph = Graph().parse(self.downloads_data_from_gcs_bucket('mondo_with_imports.owl'))
         dbxref_res = gets_ontology_class_dbxrefs(mondo_graph)[0]
@@ -673,7 +659,7 @@ class DataPreprocessing(object):
             hp_dict: A dict where disease identifiers mapped to hpo are keys and mondo identifiers are values.
         """
 
-        print('Processing Human Phenotype Ontology Data')
+        print('\t- Loading Human Phenotype Ontology Data')
 
         hp_graph = Graph().parse(self.downloads_data_from_gcs_bucket('hp_with_imports.owl'))
         dbxref_res = gets_ontology_class_dbxrefs(hp_graph)[0]
@@ -691,10 +677,10 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Creating Human Phenotype and Disease Mapping Data')
+        print('Creating Phenotype and Disease Identifier Cross-Mapping Data')
 
         mondo_dict, hp_dict = self._preprocess_mondo_mapping_data(), self._preprocess_hpo_mapping_data()
-        data = self.reads_gcs_bucket_data_to_df('disease_mappings.tsv', '\t', 0, 0, None)
+        data = self.reads_gcs_bucket_data_to_df(filename='disease_mappings.tsv', delm='\t', skip=0, head=0, sht=None)
         data['vocabulary'], data['diseaseId'] = data['vocabulary'].str.lower(), data['diseaseId'].str.lower()
         data['vocabulary'] = ['doid' if x == 'do' else 'ordoid' if x == 'ordo' else x for x in data['vocabulary']]
 
@@ -738,30 +724,6 @@ class DataPreprocessing(object):
 
         return None
 
-    def extracts_hpa_tissue_information(self) -> pandas.DataFrame:
-        """Method reads in Human Protein Atlas (HPA) data and saves the columns, which contain the anatomical
-        entities (i.e. cell types, cell lines, tissues, and fluids) that need manual alignment to ontologies. These
-        data are not necessarily needed for every build, only when updating the ontology alignment mappings.
-
-        Note. This only needs to be run when HPA and GTEx data are updated.
-
-        Returns:
-             hpa: A Pandas DataFrame object containing tissue data.
-        """
-
-        print('Extracts Anatomical Entities from the Human Protein Atlas')
-
-        hpa = self.reads_gcs_bucket_data_to_df('proteinatlas_search.tsv', '\t', 0, 0, None)
-        hpa.fillna('None', inplace=True)
-
-        # write results
-        with open(self.temp_dir + '/HPA_tissues.txt', 'w') as outfile:
-            for x in tqdm(list(hpa.columns)):
-                if x.endswith('[NX]'): outfile.write(x.split('RNA - ')[-1].split(' [NX]')[:-1][0] + '\n')
-        self.uploads_data_to_gcs_bucket('HPA_tissues.txt')
-
-        return hpa
-
     def _hpa_gtex_ontology_alignment(self) -> None:
         """Processes data to align Human Protein Atlas (HPA) and Genotype-Tissue Expression Project (GTEx) data to the
         Uber-Anatomy (UBERON), Cell Ontology (CL), and the Cell Line Ontology (CLO). The processed data is then
@@ -771,10 +733,8 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Writes Ontology-Anatomical Entity Mapping Data')
-
-        mapping_data = self.reads_gcs_bucket_data_to_df('zooma_tissue_cell_mapping_04JAN2020.xlsx', '\t', 0, 0,
-                                                        'Concept_Mapping - 04JAN2020')
+        mapping_data = self.reads_gcs_bucket_data_to_df(filename='zooma_tissue_cell_mapping_04JAN2020.xlsx',
+                                                        delm='\t', skip=0, head=0, sht='Concept_Mapping - 04JAN2020')
         mapping_data.fillna('NA', inplace=True)
 
         # write data to useful format for pheknowlator and push to gcs
@@ -782,11 +742,32 @@ class DataPreprocessing(object):
         with open(self.temp_dir + '/' + filename, 'w') as out:
             for idx, row in tqdm(mapping_data.iterrows(), total=mapping_data.shape[0]):
                 if row['UBERON'] != 'NA': out.write(str(row['TERM']).strip() + '\t' + str(row['UBERON']).strip() + '\n')
-                if row['CL ID'] != 'NA': out.write(str(row['TERM']).strip() + '\t' + str(row['CL ID']).strip() + '\n')
-                if row['CLO ID'] != 'NA': out.write(str(row['TERM']).strip() + '\t' + str(row['CLO ID']).strip() + '\n')
+                if row['CL'] != 'NA': out.write(str(row['TERM']).strip() + '\t' + str(row['CL']).strip() + '\n')
+                if row['CLO'] != 'NA': out.write(str(row['TERM']).strip() + '\t' + str(row['CLO']).strip() + '\n')
         self.uploads_data_to_gcs_bucket(filename)
 
         return None
+
+    def _extracts_hpa_tissue_information(self) -> pandas.DataFrame:
+        """Method reads in Human Protein Atlas (HPA) data and saves the columns, which contain the anatomical
+        entities (i.e. cell types, cell lines, tissues, and fluids) that need manual alignment to ontologies. These
+        data are not necessarily needed for every build, only when updating the ontology alignment mappings.
+
+        Returns:
+             hpa: A Pandas DataFrame object containing tissue data.
+        """
+
+        hpa = self.reads_gcs_bucket_data_to_df(filename='proteinatlas_search.tsv', delm='\t', skip=0, head=0, sht=None)
+        hpa.fillna('None', inplace=True)
+
+        # write results
+        filename = 'HPA_tissues.txt'
+        with open(self.temp_dir + '/' + filename, 'w') as outfile:
+            for x in tqdm(list(hpa.columns)):
+                if x.endswith('[NX]'): outfile.write(x.split('RNA - ')[-1].split(' [NX]')[:-1][0] + '\n')
+        self.uploads_data_to_gcs_bucket(filename)
+
+        return hpa
 
     def processes_hpa_gtex_data(self) -> None:
         """Method processes and combines gene expression experiment results from the Human protein Atlas (HPA) and the
@@ -796,16 +777,17 @@ class DataPreprocessing(object):
             - GTEx: All protein-coding genes that appear in the HPA data set are removed. Then, only those non-coding
               genes with a median expression >= 1.0 are maintained. GTEx data are formatted such the anatomical
               entities are stored as columns and genes stored as rows, thus the expression filtering step is
-              performed while also reformatting the file resulting in a nested list.
+              performed while also reformatting the file, resulting in a nested list.
 
         Returns:
             None.
         """
 
-        print('Creates Human Protein Atlas and Genotype-Tissue Expression Project Edge Data')
+        print('Creating Human Protein Atlas and Genotype-Tissue Expression Project Cross-Mapping Data')
 
         hpa = self._extracts_hpa_tissue_information()
-        gtex = self.reads_gcs_bucket_data_to_df('GTEx_Analysis_*_RNASeQC*_gene_median_tpm.gct', '\t', 2, 0, None)
+        f_name = 'GTEx_Analysis_*_RNASeQC*_gene_median_tpm.gct'
+        gtex = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=2, head=0, sht=None)
         gtex.fillna('None', inplace=True)
         gtex['Name'].replace('(\..*)', '', inplace=True, regex=True)
 
@@ -840,7 +822,7 @@ class DataPreprocessing(object):
 
         # write results
         filename = 'HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt'
-        with open(processed_data_location + '/' + filename, 'w') as out:
+        with open(self.temp_dir + '/' + filename, 'w') as out:
             for x in hpa_results + gtex_results:
                 out.write(x[0] + '\t' + x[1] + '\t' + x[2] + '\t' + x[3] + '\t' + x[4] + '\t' + x[5] + '\n')
         self.uploads_data_to_gcs_bucket(filename)
@@ -852,10 +834,10 @@ class DataPreprocessing(object):
         with other types of pathway identifiers.
 
         Returns:
-             id_mappings: A dictionary containing mappings between the PW and other relevant ontologies.
+             id_mappings: A dict containing mappings between the PW and other relevant ontologies.
         """
 
-        print('Processing Pathway Ontology Data')
+        print('\t- Loading Protein Ontology Data')
 
         pw_graph = Graph().parse(self.downloads_data_from_gcs_bucket('pw_with_imports.owl'))
         dbxref_res = gets_ontology_class_dbxrefs(pw_graph)[0]
@@ -864,7 +846,6 @@ class DataPreprocessing(object):
         syn_res = gets_ontology_class_synonyms(pw_graph)[0]
         synonym_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
                         for k, v in syn_res.items() if 'PW_' in str(v)}
-
         id_mappings = {**dbxref_dict, **synonym_dict}
 
         return id_mappings
@@ -873,21 +854,23 @@ class DataPreprocessing(object):
         """Reads in different annotation data sets provided by reactome and combines them into a dictionary.
 
         Returns:
-            reactome: A dictionary mapping different pathway identifiers to the Pathway Ontology.
+            reactome: A dict mapping different pathway identifiers to the Pathway Ontology.
         """
 
-        print('Processing Reactome Annotation Data Sets')
+        print('\t- Loading Reactome Annotation Data')
+
+        r_name, g_name, c_name = 'ReactomePathways.txt', 'gene_association.reactome', 'ChEBI2Reactome_All_Levels.txt'
 
         # reactome pathways
-        reactome_pathways = self.reads_gcs_bucket_data_to_df('ReactomePathways.txt', '\t', 0, None, None)
+        reactome_pathways = self.reads_gcs_bucket_data_to_df(filename=r_name, delm='\t', skip=0, head=None, sht=None)
         reactome_pathways = reactome_pathways.loc[reactome_pathways[2].apply(lambda x: x == 'Homo sapiens')]
         reactome = {x: {'PW_0000001'} for x in set(list(reactome_pathways[0]))}
         # reactome - GO associations
-        reactome_pathways2 = self.reads_gcs_bucket_data_to_df('gene_association.reactome', '\t', 1, None, None)
+        reactome_pathways2 = self.reads_gcs_bucket_data_to_df(filename=g_name, delm='\t', skip=1, head=None, sht=None)
         reactome_pathways2 = reactome_pathways2.loc[reactome_pathways2[12].apply(lambda x: x == 'taxon:9606')]
         reactome.update({x.split(':')[-1]: {'PW_0000001'} for x in set(list(reactome_pathways2[5]))})
         # reactome CHEBI
-        reactome_pathways3 = self.reads_gcs_bucket_data_to_df('ChEBI2Reactome_All_Levels.txt', '\t', 0, None, None)
+        reactome_pathways3 = self.reads_gcs_bucket_data_to_df(filename=c_name, delm='\t', skip=0, head=None, sht=None)
         reactome_pathways3 = reactome_pathways3.loc[reactome_pathways3[5].apply(lambda x: x == 'Homo sapiens')]
         reactome.update({x: {'PW_0000001'} for x in set(list(reactome_pathways3[1]))})
 
@@ -898,26 +881,31 @@ class DataPreprocessing(object):
         mappings from KEGG to reactome and the Pathway Ontology (PW).
 
         Args:
-            reactome: A dictionary mapping different pathway identifiers to the Pathway Ontology.
-            pw_dict: A dictionary containing dbxref mappings to PW identifiers.
+            reactome: A dict mapping different pathway identifiers to the Pathway Ontology.
+            pw_dict: A dict containing dbxref mappings to PW identifiers.
 
         Returns:
-             reactome: An extended dictionary mapping different pathway identifiers to the Pathway Ontology.
+             reactome: An extended dict mapping different pathway identifiers to the Pathway Ontology.
         """
 
-        print('Processing ComPath Reactome Annotation Data')
+        print('\t- Loading ComPath Canonical Pathway Data')
 
-        compath = self.reads_gcs_bucket_data_to_df('compath_canonical_pathway_mappings.txt', '\t', 0, None, None)
+        f_name = 'compath_canonical_pathway_mappings.txt'
+        compath = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=0, head=None, sht=None)
         compath.fillna('None', inplace=True)
         for idx, row in tqdm(compath.iterrows(), total=compath.shape[0]):
             if row[6] == 'kegg' and 'kegg:' + row[5].strip('path:hsa') in pw_dict.keys() and row[2] == 'reactome':
                 for x in pw_dict['kegg:' + row[5].strip('path:hsa')]:
-                    if row[1] in reactome.keys(): reactome[row[1]] |= {x.split('/')[-1]}
-                    else: reactome[row[1]] = {x.split('/')[-1]}
+                    if row[1] in reactome.keys():
+                        reactome[row[1]] |= {x.split('/')[-1]}
+                    else:
+                        reactome[row[1]] = {x.split('/')[-1]}
             if (row[2] == 'kegg' and 'kegg:' + row[1].strip('path:hsa') in pw_dict.keys()) and row[6] == 'reactome':
                 for x in pw_dict['kegg:' + row[1].strip('path:hsa')]:
-                    if row[5] in reactome.keys(): reactome[row[5]] |= {x.split('/')[-1]}
-                    else: reactome[row[5]] = {x.split('/')[-1]}
+                    if row[5] in reactome.keys():
+                        reactome[row[5]] |= {x.split('/')[-1]}
+                    else:
+                        reactome[row[5]] = {x.split('/')[-1]}
 
         return reactome
 
@@ -926,16 +914,17 @@ class DataPreprocessing(object):
         KEGG to reactome and the Pathway Ontology (PW).
 
         Args:
-            reactome: A dictionary mapping different pathway identifiers to the Pathway Ontology.
-            pw_dict: A dictionary containing dbxref mappings to PW identifiers.
+            reactome: A dict mapping different pathway identifiers to the Pathway Ontology.
+            pw_dict: A dict containing dbxref mappings to PW identifiers.
 
         Returns:
-             reactome: An extended dictionary mapping different pathway identifiers to the Pathway Ontology.
+             reactome: An extended dict mapping different pathway identifiers to the Pathway Ontology.
         """
 
-        print('Processing ComPath KEGG Annotation Data')
+        print('\t- Loading KEGG Data')
 
-        kegg_reactome_map = self.reads_gcs_bucket_data_to_df('kegg_reactome.csv', ',', 0, None, None)
+        f_name = 'kegg_reactome.csv'
+        kegg_reactome_map = self.reads_gcs_bucket_data_to_df(filename=f_name, delm=',', skip=0, head=0, sht=None)
         src, tar, tar_ids, src_ids = 'Source Resource', 'Target Resource', 'Target ID', 'Source ID'
 
         for idx, row in tqdm(kegg_reactome_map.iterrows(), total=kegg_reactome_map.shape[0]):
@@ -956,13 +945,13 @@ class DataPreprocessing(object):
         Ontology, specifically to Biological Processes.
 
         Args:
-            reactome: A dictionary mapping different pathway identifiers to the Pathway Ontology.
+            reactome: A dict mapping different pathway identifiers to the Pathway Ontology.
 
         Returns:
-             reactome: An extended dictionary mapping different pathway identifiers to the Pathway Ontology.
+             reactome: An extended dict mapping different pathway identifiers to the Pathway Ontology.
         """
 
-        print('Querying Reactome API to Obtain Gene Ontology Mappings')
+        print('\t- Querying Reactome API to Obtain Reactome-GO Biological Process Mappings')
 
         for request_ids in tqdm(list(chunks(list(reactome.keys()), 20))):
             result, key = content.query_ids(ids=','.join(request_ids)), 'goBiologicalProcess'
@@ -980,12 +969,12 @@ class DataPreprocessing(object):
         Identifiers ➞ Pathway Ontology Identifiers.
 
         Returns:
-            reactome: A dictionary mapping different types of pathway identifiers to sequence ontology classes.
+            reactome: A dict mapping different types of pathway identifiers to sequence ontology classes.
         """
 
-        print('Generating Pathway Ontology Identifier Cross-Mappings')
+        print('\nCreating Pathway Ontology Identifier Cross-Mapping Data')
 
-        pw_dict = self._preprocess_disease_mapping_data()
+        pw_dict = self._preprocess_pathway_mapping_data()
         reactome = self._processes_reactome_data()
         compath_reactome = self._processes_compath_pathway_data(reactome, pw_dict)
         kegg_reactome = self._processes_kegg_pathway_data(compath_reactome, pw_dict)
@@ -1005,14 +994,13 @@ class DataPreprocessing(object):
         """Creates mappings between bio types for different gene identifiers to sequence ontology classes.
 
         Args:
-            genomic_map: A dictionary containing mappings between gene identifier types and Sequence Ontology
-                identifiers.
+            genomic_map: A dict containing mappings between gene identifier types and Sequence Ontology identifiers.
 
         Returns:
-            sequence_map: A dictionary containing genomic identifiers as keys and Sequence Ontology classes as values.
+            sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
         """
 
-        print('\nMapping Sequence Ontology Classes to Gene Identifiers')
+        print('\t- Mapping Sequence Ontology Classes to Gene Identifiers')
 
         gene_ids = pickle.load(open(self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl', 'rb'), encoding='bytes')
         sequence_map = {}
@@ -1040,26 +1028,26 @@ class DataPreprocessing(object):
         """Creates mappings between bio types for different transcript identifiers to sequence ontology classes.
 
         Args:
-            genomic_map: A dictionary containing mappings between transcript identifier types and Sequence Ontology
-                identifiers.
+            genomic_map: A dict containing mappings between transcript identifier types and Sequence Ontology classes.
             sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
 
         Returns:
             sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
         """
 
-        print('Mapping Sequence Ontology Classes to Transcript Identifiers')
+        print('\t- Mapping Sequence Ontology Classes to Transcript Identifiers')
 
-        trans_data = self.reads_gcs_bucket_data_to_df('ensembl_identifier_data_cleaned.txt', '\t', 0, 0, None)
-        trans, trans_id = {}, 'transcript_stable_id'
+        trans, trans_id, f_name = {}, 'transcript_stable_id', self.temp_dir + '/ensembl_identifier_data_cleaned.txt'
+        trans_data = pandas.read_csv(f_name, header=0, delimiter='\t', low_memory=False)
         for idx, row in tqdm(trans_data.iterrows(), total=trans_data.shape[0]):
             if row[trans_id] != 'None':
                 if row[trans_id].replace('transcript_stable_id_', '') in trans.keys():
                     trans[row[trans_id].replace('transcript_stable_id_', '')] += [row['ensembl_transcript_type']]
                 else:
                     trans[row[trans_id].replace('transcript_stable_id_', '')] = [row['ensembl_transcript_type']]
+
         # update SO map dictionary
-        for ids in tqdm(transcripts.keys()):
+        for ids in tqdm(trans.keys()):
             if trans[ids][0] == 'protein_coding': trans_type = genomic_map['protein-coding_Transcript']
             elif trans[ids][0] == 'misc_RNA': trans_type = genomic_map['miscRNA_Transcript']
             else: trans_type = genomic_map[list(set(trans[ids]))[0] + '_Transcript']
@@ -1078,16 +1066,17 @@ class DataPreprocessing(object):
             sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
         """
 
-        print('Mapping Sequence Ontology Classes to Variant Identifiers')
+        print('\t- Mapping Sequence Ontology Classes to Variant Identifiers')
 
-        variant_data, var = self.reads_gcs_bucket_data_to_df('variant_summary.txt', '\t', 0, 0, None), {}
+        f_name, v_df = 'variant_summary.txt', {}
+        variant_data = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=0, head=0, sht=None)
         for idx, row in tqdm(variant_data.iterrows(), total=variant_data.shape[0]):
             if row['Assembly'] == 'GRCh38' and row['RS# (dbSNP)'] != -1:
-                if 'rs' + str(row['RS# (dbSNP)']) in var.keys(): var['rs' + str(row['RS# (dbSNP)'])] |= {row['Type']}
-                else: var['rs' + str(row['RS# (dbSNP)'])] = {row['Type']}
+                if 'rs' + str(row['RS# (dbSNP)']) in v_df.keys(): v_df['rs' + str(row['RS# (dbSNP)'])] |= {row['Type']}
+                else: v_df['rs' + str(row['RS# (dbSNP)'])] = {row['Type']}
         # update SO map dictionary
-        for identifier in tqdm(variants.keys()):
-            for typ in variants[identifier]:
+        for identifier in tqdm(v_df.keys()):
+            for typ in v_df[identifier]:
                 var_type = genomic_map[typ.lower() + '_Variant']
                 if identifier in sequence_map.keys(): sequence_map[identifier] += [var_type]
                 else: sequence_map[identifier] = [var_type]
@@ -1102,10 +1091,10 @@ class DataPreprocessing(object):
                 classes as values.
         """
 
-        print('Generating Sequence Ontology Identifier Cross-Mappings')
+        print('\nCreating Sequence Ontology Identifier Cross-Mapping Data')
 
-        mapping_data = self.reads_gcs_bucket_data_to_df('genomic_sequence_ontology_mappings.xlsx', '\t', 0, 0,
-                                                        'GenomicType_SO_Map_09Mar2020')
+        f_name, sht = 'genomic_sequence_ontology_mappings.xlsx', 'GenomicType_SO_Map_09Mar2020'
+        mapping_data = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=0, head=0, sht=sht)
         genomic_type_so_map = {}
         for idx, row in tqdm(mapping_data.iterrows(), total=mapping_data.shape[0]):
             genomic_type_so_map[row['source_*_type'] + '_' + row['Genomic']] = row['SO ID']
@@ -1126,8 +1115,8 @@ class DataPreprocessing(object):
         return sequence_map
 
     def combines_pathway_and_sequence_ontology_dictionaries(self) -> None:
-        """Combines the Pathway Ontology and Sequence Ontology dictionaries into a dictionary. This data is needed
-        for the subclass construction approach of the knowledge graph build process.
+        """Combines the Pathway Ontology and Sequence Ontology dictionaries into a dict. This data is needed for the
+        subclass construction approach of the knowledge graph build process.
 
         Returns:
             None.
@@ -1159,24 +1148,48 @@ class DataPreprocessing(object):
             networkx_mdg: A Networkx MultiDiGraph object containing protein ontology data.
         """
 
-        print('Processing Protein Ontology Data ... This Step Takes Several Minutes')
+        print('\t- Loading Protein Ontology Data')
 
         pr_graph = Graph().parse(self.downloads_data_from_gcs_bucket('pr_with_imports.owl'))
 
-        # convert RDF graph to multidigraph
+        # convert rdf graph to networkx multidigraph
         networkx_mdg: networkx.MultiDiGraph = networkx.MultiDiGraph()
         for s, p, o in tqdm(pr_graph):
             networkx_mdg.add_edge(s, o, **{'key': p})
 
         return networkx_mdg
 
-    def _constructs_human_protein_ontology(self) -> str:
+    def _logically_verifies_human_protein_ontology(self, input_filename, output_filename, reasoner) -> None:
+        """Logically verifies constructed Human Protein Ontology by running a deductive logic reasoner
+
+        Args:
+            input_filename: A string containing the name of the file to run the reasoner on.
+            output_filename: A string containing the filename to write the reasoner results to.
+            reasoner: A string containing the name of the deductive reasoner to use.
+
+        Returns:
+            None.
+        """
+
+        print('\t- Logically Verifying Constructed Human Protein Ontology'.format(reasoner.lower()))
+
+        # run reasoner
+        command = "./pkt_kg/libs/owltools ./{} --reasoner {} --run-reasoner --assert-implied -o ./{}"
+        os.system(command.format(input_filename, reasoner.lower(), output_filename))
+
+        # pushes closed graph to GCS bucket
+        self.uploads_data_to_gcs_bucket(input_filename.split('/')[-1])
+        self.uploads_data_to_gcs_bucket(output_filename.split('/')[-1])
+
+        return None
+
+    def constructs_human_protein_ontology(self) -> Tuple[str, str]:
         """Creates a human version of the PRotein Ontology (PRO) by traversing the ontology to obtain forward and
         reverse breadth first search. If the resulting human PRO contains a single connected component it's written
         locally.
 
         Returns:
-            The filename of the human version of the PRO saved locally.
+            None.
 
         Raises:
             ValueError: When the human versions of the PRO contains more than a single connected component.
@@ -1200,31 +1213,12 @@ class DataPreprocessing(object):
                 human_networkx_mdg.add_edge(path[0], path[1], path[2])
 
         # check data and write it locally
-        if networkx.number_connected_components(human_networkx_mdg.to_undirected()):
+        if networkx.number_connected_components(human_networkx_mdg.to_undirected()) == 1:
             human_pro_graph.serialize(destination=self.temp_dir + '/human_pro.owl', format='xml')
+            f_name1, f_name2 = self.temp_dir + '/human_pro.owl', self.temp_dir + '/pr_with_imports.owl'
+            self._logically_verifies_human_protein_ontology(f_name1, f_name2, 'elk')
         else:
-            raise ValueError('Human PRO contains more than a single connected component')
-
-        return '/human_pro.owl'
-
-    def logically_verifies_human_protein_ontology(self) -> None:
-        """Logically verifies constructed Human Protein Ontology by running a deductive logic reasoner.
-
-        Returns:
-            None
-        """
-
-        input_filename = self._constructs_human_protein_ontology()
-
-        # run reasoner
-        output_filename = 'pr.owl'
-        subprocess.run(['./pkt_kg/libs/owltools',
-                        self.temp_dir + input_filename,
-                        '--reasoner {}'.format(reasoner.lower()), '--run-reasoner', '--assert-implied',
-                        '-o', self.temp_dir + '/' + 'pr.owl'])
-
-        # pushes closed graph to GCS bucket
-        self.uploads_data_to_gcs_bucket(output_filename, True)
+            raise ValueError('Human PRO Contains More than a Single Connected Component')
 
         return None
 
@@ -1243,7 +1237,7 @@ class DataPreprocessing(object):
 
         # identify relations and their inverses
         write_dir, filename1 = './resources/construction_approach/', 'INVERSE_RELATIONS.txt'
-        with open(self.temp_dir + '/' + filename, 'w') as out1:
+        with open(self.temp_dir + '/' + filename1, 'w') as out1:
             out1.write('Relation' + '\t' + 'Inverse_Relation' + '\n')
             for s, p, o in ro_graph:
                 if 'owl#inverseOf' in str(p) and ('RO' in str(s) and 'RO' in str(o)):
@@ -1252,7 +1246,7 @@ class DataPreprocessing(object):
         self.uploads_data_to_gcs_bucket(filename1)
 
         # identify relation labels
-        filename2 = 'INVERSE_RELATIONS.txt'
+        filename2 = 'RELATIONS_LABELS.txt'
         with open(self.temp_dir + '/' + filename2, 'w') as out1:
             out1.write('Relation' + '\t' + 'Label' + '\n')
             for k, v in labs.items():
@@ -1269,9 +1263,10 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('\nCreating ClinVar Edge Data')
+        print('Generating ClinVar Cross-Mapping Data')
 
-        clinvar_data = self.reads_gcs_bucket_data_to_df('variant_summary.txt', '\t', 0, 0, None)
+        f_name = 'variant_summary.txt'
+        clinvar_data = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=0, head=0, sht=None)
         clinvar_data.fillna('None', inplace=True)
 
         # explode nested data
@@ -1295,7 +1290,7 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Creating Cofactor and Catalyst Edge Data')
+        print('Creating Protein-Cofactor and Protein-Catalyst Cross-Mapping Data')
 
         data = open(self.downloads_data_from_gcs_bucket('uniprot-cofactor-catalyst.tab')).readlines()
 
@@ -1322,17 +1317,18 @@ class DataPreprocessing(object):
         in the input data file.
 
         Returns:
-            gene_metadata_dict: A dictionary containing metadata that's keyed by Entrez gene identifier and whose
-                values is a dictionary containing label, description, and synonym information. For example:
-                {{'1': {
-                    'Label': 'A1BG',
-                    'Description': "A1BG has locus group 'protein-coding' and is located on chromosome 19 (19q13.43).",
-                    'Synonym': 'HEL-S-163pA|A1B|ABG|HYST2477alpha-1B-glycoprotein|GAB'}, ...}
+            gene_metadata_dict: A dict containing metadata that's keyed by Entrez gene identifier and whose values are
+                dicts containing label, description, and synonym information. For example:
+                    {{'1': {
+                        'Label': 'A1BG',
+                        'Description': "A1BG is 'protein-coding' and is located on chromosome 19 (19q13.43).",
+                        'Synonym': 'HEL-S-163pA|A1B|ABG|HYST2477alpha-1B-glycoprotein|GAB'}, ...}
         """
 
-        print('Generating Metadata for Gene Identifiers')
+        print('\t- Generating Metadata for Gene Identifiers')
 
-        data = self.reads_gcs_bucket_data_to_df('Homo_sapiens.gene_info', '\t', 0, 0, None)
+        f_name = self.temp_dir + '/' + 'Homo_sapiens.gene_info'
+        data = pandas.read_csv(f_name, header=0, delimiter='\t', low_memory=False)
         data = data.loc[data['#tax_id'].apply(lambda x: x == 9606)]
         data.fillna('None', inplace=True)
         data.replace('-', 'None', inplace=True, regex=False)
@@ -1344,8 +1340,10 @@ class DataPreprocessing(object):
             chrom, map_loc, s1, s2 = row['chromosome'], row['map_location'], row['Synonyms'], row['Other_designations']
             if gene_id != 'None':
                 genes.append(gene_id)
-                if sym != 'None' or sym != '': ab.append(sym)
-                else: lab.append('Entrez_ID:' + gene_id)
+                if sym != 'None' or sym != '':
+                    lab.append(sym)
+                else:
+                    lab.append('Entrez_ID:' + gene_id)
                 if 'None' not in [defn, gene_type, chrom, map_loc]:
                     desc_str = "{} has locus group '{}' and is located on chromosome {} ({})."
                     desc.append(desc_str.format(sym, gene_type, chrom, map_loc))
@@ -1374,28 +1372,29 @@ class DataPreprocessing(object):
         in the input data file.
 
         Returns:
-            rna_metadata_dict: A dictionary containing metadata that's keyed by Ensembl transcript identifier and whose
-                values is a dictionary containing label, description, and synonym information. For example:
-                {'ENST00000456328': {
-                    'Label': 'DDX11L1-202',
-                    'Description': "Transcript DDX11L1-202 is classified as type 'processed_transcript'.",
-                    'Synonym': 'None'}, ...}
+            rna_metadata_dict: A dict containing metadata that's keyed by Ensembl transcript identifier and whose values
+                are a dict containing label, description, and synonym information. For example:
+                    {'ENST00000456328': {
+                        'Label': 'DDX11L1-202',
+                        'Description': "Transcript DDX11L1-202 is classified as type 'processed_transcript'.",
+                        'Synonym': 'None'}, ...}
         """
 
-        print('Generating Metadata for Transcript Identifiers')
+        print('\t- Generating Metadata for Transcript Identifiers')
 
-        data = self.reads_gcs_bucket_data_to_df('ensembl_identifier_data_cleaned.txt', '\t', 0, 0, None)
+        f_name = 'ensembl_identifier_data_cleaned.txt'
+        dup_cols = ['transcript_stable_id', 'transcript_name', 'ensembl_transcript_type']
+        data = pandas.read_csv(self.temp_dir + '/' + f_name, header=0, delimiter='\t', low_memory=False)
         data = data.loc[data['transcript_stable_id'].apply(lambda x: x != 'None')]
         data.drop(['ensembl_gene_id', 'symbol', 'protein_stable_id', 'uniprot_id', 'master_transcript_type',
                    'entrez_id', 'ensembl_gene_type', 'master_gene_type', 'symbol'], axis=1, inplace=True)
-        data.drop_duplicates(subset=['transcript_stable_id', 'transcript_name', 'ensembl_transcript_type'],
-                             keep='first', inplace=True)
+        data.drop_duplicates(subset=dup_cols, keep='first', inplace=True)
         data.fillna('None', inplace=True)
 
         # create metadata
         rna, lab, desc, syn = [], [], [], []
         for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
-            rna_id, ent_type, nme = row['transcript_stable_id'], row['ensembl_transcript_type'], row['transcript_name']
+            rna_id, ent_type, nme = row[dup_cols[0]], row[dup_cols[2]], row[dup_cols[1]]
             rna.append(rna_id)
             if nme != 'None':
                 lab.append(nme)
@@ -1420,45 +1419,47 @@ class DataPreprocessing(object):
         in the input data file.
 
         Returns:
-            variant_metadata_dict: A dictionary containing metadata that's keyed by ClinVar variant identifier and whose
-                values is a dictionary containing label, description, and synonym information. For example:
-                {{'rs141138948': {
-                    'Label': 'NM_016042.4(EXOSC3):c.395A>C (p.Asp132Ala)',
-                    'Description': "This variant is a germline;inherited;paternal;unknown single nucleotide variant on
-                    chromosome 9 (NC_000009.12, start:37783993/stop:37783993 positions,cytogenetic location:9p13.2) and
-                    has clinical significance 'Pathogenic/Likely pathogenic'. This entry is for the GRCh38 and was last
-                    reviewed on Sep 30, 2020 with review status 'criteria provided, multiple submitters, no conflict'.",
-                    'Synonym': 'None'}, ...}
+            variant_metadata_dict: A dict containing metadata that's keyed by ClinVar variant identifier and whose
+                values are a dict containing label, description, and synonym information. For example:
+                    {{'rs141138948': {
+                        'Label': 'NM_016042.4(EXOSC3):c.395A>C (p.Asp132Ala)',
+                        'Description': "This variant is a germline single nucleotide variant on chromosome 9
+                        (NC_000009.12, start:37783993/stop:37783993 positions,cytogenetic location:9p13.2) and
+                        has clinical significance 'Pathogenic/Likely pathogenic'. This entry is for the GRCh38 and was
+                        last reviewed on Sep 30, 2020 with review status 'criteria provided, multiple submitters,
+                        no conflict'.", 'Synonym': 'None'}, ...}
         """
 
-        print('Generating Metadata for Variant Identifiers')
+        print('\t- Generating Metadata for Variant Identifiers')
 
-        data = self.reads_gcs_bucket_data_to_df('variant_summary.txt', '\t', 0, 0, None)
-        data = data.loc[var_data['Assembly'].apply(lambda x: x == 'GRCh38')]
+        f_name = self.temp_dir + '/' + 'variant_summary.txt'
+        data = pandas.read_csv(f_name, header=0, delimiter='\t', low_memory=False)
+        data = data.loc[data['Assembly'].apply(lambda x: x == 'GRCh38')]
         data = data.loc[data['RS# (dbSNP)'].apply(lambda x: x != -1)]
         data = data[['#AlleleID', 'Type', 'Name', 'ClinicalSignificance', 'RS# (dbSNP)', 'Origin', 'Start', 'Stop',
                      'ChromosomeAccession', 'Chromosome', 'ReferenceAllele', 'Assembly', 'AlternateAllele',
                      'Cytogenetic', 'ReviewStatus', 'LastEvaluated']]
-        var_metadata.replace('na', 'None', inplace=True)
-        var_metadata.fillna('None', inplace=True)
+        data.replace('na', 'None', inplace=True)
+        data.fillna('None', inplace=True)
         data.sort_values('LastEvaluated', ascending=False, inplace=True)
         data.drop_duplicates(subset='RS# (dbSNP)', keep='first', inplace=True)
 
         # create metadata
-        variant, label, desc, syn = [], [], [], []
+        var, label, desc, syn = [], [], [], []
         for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
             var_id, lab = row['RS# (dbSNP)'], row['Name']
             if var_id != 'None':
-                variant.append('rs' + str(var_id))
+                var.append('rs' + str(var_id))
                 if lab != 'None': label.append(lab)
                 else: label.append('dbSNP_ID:rs' + str(var_id))
-                sent = "This variant is a {} {} on chromosome {} ({}, start:{}/stop:{} positions," + \
-                       "cytogenetic location:{}) and has clinical significance '{}'." + \
+                sent = "This variant is a {} {} located on chromosome {} ({}, start:{}/stop:{} positions, " + \
+                       "cytogenetic location:{}) and has clinical significance '{}'. " + \
                        "This entry is for the {} and was last reviewed on {} with review status '{}'."
                 desc.append(
-                    sent.format(row['Origin'], row['Type'], row['Chromosome'], row['ChromosomeAccession'], row['Start'],
-                                row['Stop'], row['Cytogenetic'], row['ClinicalSignificance'], row['Assembly'],
-                                row['LastEvaluated'], row['ReviewStatus']).replace('None', 'UNKNOWN'))
+                    sent.format(row['Origin'].replace(';', '/'), row['Type'].replace(';', '/'), row['Chromosome'],
+                                row['ChromosomeAccession'], row['Start'], row['Stop'], row['Cytogenetic'],
+                                row['ClinicalSignificance'], row['Assembly'], row['LastEvaluated'],
+                                row['ReviewStatus']).replace('None', 'UNKNOWN'))
                 syn.append('None')
 
         # combine into new data frame then convert it to dictionary
@@ -1475,20 +1476,20 @@ class DataPreprocessing(object):
         present in the input data file.
 
         Returns:
-            pathway_metadata_dict: A dictionary containing metadata that's keyed by Reactome Pathway identifier and
-            whose values is a dictionary containing label, description, and synonym information. For example:
-                {{'R-HSA-157858': {
-                    'Label': 'Gap junction trafficking and regulation',
-                    'Description': 'None',
-                    'Synonym': 'Gap junction trafficking and regulation'}}, ...}
+            pathway_metadata_dict: A dict containing metadata that's keyed by Reactome Pathway identifier and whose
+                values are a dict containing label, description, and synonym information. For example:
+                    {{'R-HSA-157858': {
+                        'Label': 'Gap junction trafficking and regulation',
+                        'Description': 'None',
+                        'Synonym': 'Gap junction trafficking and regulation'}}, ...}
         """
 
-        print('Generating Metadata for Pathway Identifiers')
-
-        data = self.reads_gcs_bucket_data_to_df('ReactomePathways.txt', '\t', 0, None, None)
-        data = data.loc[data[2].apply(lambda x: x == 'Homo sapiens')]
+        print('\t- Generating Metadata for Pathway Identifiers')
 
         # get metadata then convert it to a dictionary
+        f_name = self.temp_dir + '/' + 'ReactomePathways.txt'
+        data = pandas.read_csv(f_name, header=None, delimiter='\t', low_memory=False)
+        data = data.loc[data[2].apply(lambda x: x == 'Homo sapiens')]
         nodes = set(list(data[0]))
         metadata = metadata_api_mapper(list(nodes))
         metadata.set_index('ID', inplace=True)
@@ -1519,7 +1520,7 @@ class DataPreprocessing(object):
 
         return None
 
-    def preprocesses_build_data(self):
+    def preprocesses_build_data(self) -> None:
         """Master method that performs all needed data preprocessing tasks in preparation of generating PheKnowLator
         knowledge graphs. This method completes this work in 10 steps
 
@@ -1527,48 +1528,47 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('#' * 35 + '\nPerforming Data Preprocessing Tasks\n' + '#' * 35)
+        print('*** PROCESSING LINKED OPEN DATA SOURCES ***')
 
         # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
-        print('\n*** STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
-        self.genomic_type_mapper = self._loads_genomic_typing_dictionary()
-        self.creates_master_genomic_identifier_map()
+        print('\nSTEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
         self.generates_specific_genomic_identifier_maps()
 
         # STEP 2: MeSH-ChEBI Identifier Mapping
-        print('\n*** STEP 2: MESH-CHEBI IDENTIFIER MAPPING')
+        print('\STEP 2: MESH-CHEBI IDENTIFIER MAPPING')
         self.creates_chebi_to_mesh_identifier_mappings()
 
         # STEP 3: Disease and Phenotype Identifier Mapping
-        print('\n*** STEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
+        print('\nSTEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
         self.creates_disease_identifier_mappings()
 
         # STEP 4: Human Protein Atlas/GTEx Tissue/Cells Edge Data
-        print('\n*** STEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
+        print('\nSTEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
+        self._hpa_gtex_ontology_alignment()
         self.processes_hpa_gtex_data()
 
         # STEP 5: Creating Pathway and Sequence Ontology Mappings
-        print('\n*** STEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
+        print('\nSTEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
         self.combines_pathway_and_sequence_ontology_dictionaries()
 
         # STEP 6: Creating a Human Protein Ontology
-        print('\n*** STEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
-        self.logically_verifies_human_protein_ontology()
+        print('\nSTEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
+        self.constructs_human_protein_ontology()
 
         # STEP 7: Extracting Relations Ontology Information
-        print('\n*** STEP 7: EXTRACTING RELATION ONTOLOGY INFORMATION')
+        print('\nSTEP 7: EXTRACTING RELATION ONTOLOGY INFORMATION')
         self.processes_relation_ontology_data()
 
         # STEP 8: Clinvar Variant-Diseases and Phenotypes Edge Data
-        print('\n*** STEP 8: CREATING CLINVAR VARIANT, DISEASE, PHENOTYPE DATA')
+        print('\nSTEP 8: CREATING CLINVAR VARIANT, DISEASE, PHENOTYPE DATA')
         self.processes_clinvar_data()
 
         # STEP 9: Uniprot Protein-Cofactor and Protein-Catalyst Edge Data
-        print('\n*** STEP 9: CREATING COFACTOR + CATALYST EDGE DATA')
+        print('\nSTEP 9: CREATING COFACTOR + CATALYST EDGE DATA')
         self.processes_cofactor_catalyst_data()
 
         # STEP 10: Non-Ontology Metadata Dictionary
-        print('\n*** STEP 10: CREATING ONO-ONTOLOGY METADATA DICTIONARY')
+        print('\nSTEP 10: CREATING ONO-ONTOLOGY METADATA DICTIONARY')
         self.creates_non_ontology_class_metadata_dict()
 
         return None
