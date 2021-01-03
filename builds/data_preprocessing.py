@@ -1175,11 +1175,15 @@ class DataPreprocessing(object):
 
         # run reasoner
         command = "./pkt_kg/libs/owltools ./{} --reasoner {} --run-reasoner --assert-implied -o ./{}"
-        os.system(command.format(input_filename, reasoner.lower(), output_filename))
+        return_code = os.system(command.format(input_filename, reasoner.lower(), output_filename))
 
-        # pushes closed graph to GCS bucket
-        self.uploads_data_to_gcs_bucket(input_filename.split('/')[-1])
-        self.uploads_data_to_gcs_bucket(output_filename.split('/')[-1])
+        if return_code == 0:
+            ontology_file_formatter(self.temp_dir, '/' + input_filename.split('/')[-1], self.owltools_location)
+            ontology_file_formatter(self.temp_dir, '/' + output_filename.split('/')[-1], self.owltools_location)
+            self.uploads_data_to_gcs_bucket(input_filename.split('/')[-1])
+            self.uploads_data_to_gcs_bucket(output_filename.split('/')[-1])
+        else:
+            raise ValueError('Reasoner Finished with Errors.')
 
         return None
 
