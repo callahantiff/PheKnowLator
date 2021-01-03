@@ -1160,7 +1160,7 @@ class DataPreprocessing(object):
         return networkx_mdg
 
     def _logically_verifies_human_protein_ontology(self, input_filename, output_filename, reasoner) -> None:
-        """Logically verifies constructed Human Protein Ontology by running a deductive logic reasoner
+        """Logically verifies constructed Human Protein Ontology by running a deductive logic reasoner.
 
         Args:
             input_filename: A string containing the name of the file to run the reasoner on.
@@ -1522,7 +1522,7 @@ class DataPreprocessing(object):
 
     def preprocesses_build_data(self) -> None:
         """Master method that performs all needed data preprocessing tasks in preparation of generating PheKnowLator
-        knowledge graphs. This method completes this work in 10 steps
+        knowledge graphs. This method completes this work in 10 steps.
 
         Returns:
             None.
