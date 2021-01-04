@@ -4,17 +4,17 @@
 # import needed libraries
 import fnmatch
 import itertools
-import networkx
-import numpy
+import networkx  # type: ignore
+import numpy  # type: ignore
 import os
-import pandas
+import pandas  # type: ignore
 import pickle
 import sys
 
-from google.cloud import storage
-from rdflib import Graph, URIRef
-from reactome2py import content
-from tqdm import tqdm
+from google.cloud import storage  # type: ignore
+from rdflib import Graph, URIRef  # type: ignore
+from reactome2py import content  # type: ignore
+from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Tuple, Union
 
 # import script containing helper functions
@@ -44,6 +44,7 @@ class DataPreprocessing(object):
         self.original_data: str = org_data
         self.processed_data: str = processed_data
         self.temp_dir = temp_dir
+        self.owltools_location = './pkt_kg/libs/owltools'
 
     def uploads_data_to_gcs_bucket(self, filename: str) -> None:
         """Takes a file name and pushes the data referenced by the filename object and stored locally in that object to
@@ -433,14 +434,14 @@ class DataPreprocessing(object):
         """
 
         # reformat data to convert all nones, empty values, and unknowns to NaN
-        merged_data, master_dict = self._fixes_genomic_symbols(), {}
+        merged_data: pandas.DataFrame = self._fixes_genomic_symbols()
+        master_dict: Dict = {}
         for col in merged_data.columns:
             merged_data[col] = merged_data[col].apply(lambda x: '|'.join([i for i in x.split('|') if i != 'None']))
         merged_data.replace(to_replace=['None', '', 'unknown'], value=numpy.nan, inplace=True)
         identifiers = [x for x in merged_data.columns if x.endswith('_id')] + ['symbol']
 
         # convert data to dictionary
-        master_dict = {}
         for idx in tqdm(identifiers):
             grouped_data = merged_data.groupby(idx)
             grp_ids = set([x for x in list(grouped_data.groups.keys()) if x != numpy.nan])
@@ -523,8 +524,9 @@ class DataPreprocessing(object):
         ]
 
         for x in gene_sets:
-            genomic_id_mapper(reformatted_mapped_identifiers, self.temp_dir + x[0], x[1], x[2], x[3], x[4], x[5])
-            self.uploads_data_to_gcs_bucket(x[0])
+            genomic_id_mapper(reformatted_mapped_identifiers,
+                              self.temp_dir + x[0], x[1], x[2], x[3], x[4], x[5])  # type: ignore
+            self.uploads_data_to_gcs_bucket(x[0])  # type: ignore
 
         return None
 
@@ -542,7 +544,8 @@ class DataPreprocessing(object):
         print('\t- Processing MeSH Data')
 
         mesh = [x.split('> ') for x in tqdm(open(self.downloads_data_from_gcs_bucket('mesh*.nt'), 'r').readlines())]
-        msh_dict, res = {}, []
+        msh_dict: Dict = {}
+        res: List = []
         for row in tqdm(mesh):
             s, p, o, dbx, lab, msh_type = row[0].split('/')[-1], row[1].split('#')[-1], row[2], None, None, None
             if s[0] in ['C', 'D'] and ('.' not in s and 'Q' not in s) and len(s) >= 5:
@@ -685,7 +688,8 @@ class DataPreprocessing(object):
         data['vocabulary'] = ['doid' if x == 'do' else 'ordoid' if x == 'ordo' else x for x in data['vocabulary']]
 
         # get all CUIs mapped to HPO and MONDO
-        ont_dict, disease_data_keep = {}, data.query('vocabulary == "hpo" | vocabulary == "mondo"')
+        ont_dict: Dict = {}
+        disease_data_keep = data.query('vocabulary == "hpo" | vocabulary == "mondo"')
         for idx, row in tqdm(disease_data_keep.iterrows(), total=disease_data_keep.shape[0]):
             if row['vocabulary'] == 'mondo': key, value = 'umls:' + row['diseaseId'], 'MONDO:' + row['code']
             else: key, value = 'umls:' + row['diseaseId'], row['code']
@@ -695,7 +699,8 @@ class DataPreprocessing(object):
             if key in mondo_dict.keys(): ont_dict[key] = set(list(ont_dict[key]) + list(mondo_dict[key]))
             if key in hp_dict.keys(): ont_dict[key] = set(list(ont_dict[key]) + list(hp_dict[key]))
         # get all rows for HPO/MONDO CUIs to obtain mappings to other disease identifiers
-        disease_dict, disease_data_other = {}, data[data.diseaseId.isin(disease_data_keep['diseaseId'])]
+        disease_dict: Dict = {}
+        disease_data_other = data[data.diseaseId.isin(disease_data_keep['diseaseId'])]
         for idx, row in tqdm(disease_data_other.iterrows(), total=disease_data_other.shape[0]):
             vocab, ids, code = row['vocabulary'], row['diseaseId'], row['code']
             if vocab == 'mondo' or vocab == 'hpo':
@@ -1003,7 +1008,7 @@ class DataPreprocessing(object):
         print('\t- Mapping Sequence Ontology Classes to Gene Identifiers')
 
         gene_ids = pickle.load(open(self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl', 'rb'), encoding='bytes')
-        sequence_map = {}
+        sequence_map: Dict = {}
         for ids in tqdm(gene_ids.keys()):
             if ids.startswith('entrez_id_') and ids.replace('entrez_id_', '') != 'None':
                 id_clean = ids.replace('entrez_id_', '')
@@ -1037,7 +1042,9 @@ class DataPreprocessing(object):
 
         print('\t- Mapping Sequence Ontology Classes to Transcript Identifiers')
 
-        trans, trans_id, f_name = {}, 'transcript_stable_id', self.temp_dir + '/ensembl_identifier_data_cleaned.txt'
+        trans: Dict = {}
+        trans_id: str = 'transcript_stable_id'
+        f_name = self.temp_dir + '/ensembl_identifier_data_cleaned.txt'
         trans_data = pandas.read_csv(f_name, header=0, delimiter='\t', low_memory=False)
         for idx, row in tqdm(trans_data.iterrows(), total=trans_data.shape[0]):
             if row[trans_id] != 'None':
@@ -1068,7 +1075,8 @@ class DataPreprocessing(object):
 
         print('\t- Mapping Sequence Ontology Classes to Variant Identifiers')
 
-        f_name, v_df = 'variant_summary.txt', {}
+        f_name: str = 'variant_summary.txt'
+        v_df: Dict = {}
         variant_data = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=0, head=0, sht=None)
         for idx, row in tqdm(variant_data.iterrows(), total=variant_data.shape[0]):
             if row['Assembly'] == 'GRCh38' and row['RS# (dbSNP)'] != -1:
@@ -1171,7 +1179,7 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('\t- Logically Verifying Constructed Human Protein Ontology'.format(reasoner.lower()))
+        print('\t- Logically Verifying Constructed Human Protein Ontology')
 
         # run reasoner
         command = "./pkt_kg/libs/owltools ./{} --reasoner {} --run-reasoner --assert-implied -o ./{}"
@@ -1187,7 +1195,7 @@ class DataPreprocessing(object):
 
         return None
 
-    def constructs_human_protein_ontology(self) -> Tuple[str, str]:
+    def constructs_human_protein_ontology(self) -> None:
         """Creates a human version of the PRotein Ontology (PRO) by traversing the ontology to obtain forward and
         reverse breadth first search. If the resulting human PRO contains a single connected component it's written
         locally.

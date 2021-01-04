@@ -7,7 +7,7 @@ import re
 import shutil
 
 from datetime import date, datetime
-from google.cloud import storage
+from google.cloud import storage  # type: ignore
 
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
