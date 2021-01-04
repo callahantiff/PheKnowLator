@@ -186,8 +186,6 @@ def main():
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/{}/data/original_data/'.format(release, build)
     downloads_build_data(bucket, gcs_original_data, gcs_url, temp_dir)
 
-    shutil.rmtree(temp_dir)  # clean up environment after uploading all processed data
-
 
 if __name__ == '__main__':
     main()
