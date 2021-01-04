@@ -32,9 +32,6 @@ class DataPreprocessing(object):
         org_data: A string specifying the location of the original_data directory for a specific build.
         processed_data: A string specifying the location of the original_data directory for a specific build.
         temp_dir: A string specifying a temporary directory to use while processing data locally.
-
-    Raises:
-        ValueError: when trying to download a non-existent file from the GCS original_data dir of the current build
     """
 
     def __init__(self, gcs_bucket: storage.bucket.Bucket, org_data: str, processed_data: str, temp_dir: str) -> None:
@@ -47,8 +44,8 @@ class DataPreprocessing(object):
         self.owltools_location = './pkt_kg/libs/owltools'
 
     def uploads_data_to_gcs_bucket(self, filename: str) -> None:
-        """Takes a file name and pushes the data referenced by the filename object and stored locally in that object to
-        a Google Cloud Storage bucket.
+        """Takes a file name and pushes the corresponding data referenced by the filename object from a local
+        temporary directory to a Google Cloud Storage bucket.
 
         Args:
             filename: A string containing the name of file to write to a Google Cloud Storage bucket.
@@ -63,9 +60,8 @@ class DataPreprocessing(object):
         return None
 
     def downloads_data_from_gcs_bucket(self, filename: str) -> str:
-        """Takes a filename and a data object and writes the data in that object to the Google Cloud Storage bucket
-        specified in the filename. Note, before downloading a file from the Google Cloud Storage bucket, the method
-        checks to see if it exists locally.
+        """Takes a filename and and downloads the corresponding data to a local temporary directory, if it has not
+        already been downloaded.
 
         Args:
             filename: A string containing the name of file to write to a Google Cloud Storage bucket.
@@ -91,8 +87,7 @@ class DataPreprocessing(object):
     def reads_gcs_bucket_data_to_df(self, filename: str, delm: str, skip: int = 0,
                                     head: Optional[Union[int, List]] = None,
                                     sht: Optional[Union[int, str]] = None) -> pandas.DataFrame:
-        """Takes a Google Cloud Storage bucket and a filename and downloads to the data to a local temp directory.
-        Once downloaded, the file is read into a Pandas DataFrame.
+        """Reads data corresponding to the input file_location variable into a Pandas DataFrame.
 
         Args:
             filename: A string containing the name of file that exists in a Google Cloud Storage bucket.
