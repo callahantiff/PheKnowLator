@@ -37,7 +37,7 @@ COPY resources /PheKnowLator/resources
 
 # install needed python libraries
 RUN pip install --upgrade pip setuptools
-RUN pip install -r /PheKnowLator/requirements.txt
+RUN pip install .
 
 
 ############################################
