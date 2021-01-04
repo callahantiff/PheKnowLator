@@ -1,0 +1,18 @@
+name: Publish Docker Image
+on:
+  release:
+    types: [published]
+jobs:
+  push_to_registry:
+    name: Push Docker Image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check-Out Repository
+        uses: actions/checkout@v2
+      - name: Push Container to Docker Hub
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{secrets.DOCKER_USERNAME}}
+          password: ${{secrets.DOCKER_PASSWORD}}
+          repository: callahantiff/pheknowlator
+          tag_with_ref: true
