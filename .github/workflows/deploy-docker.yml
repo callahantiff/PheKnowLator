@@ -9,6 +9,10 @@ jobs:
     steps:
       - name: Check-Out Repository
         uses: actions/checkout@v2
+      - name: Dropping BuildKit
+        run: |
+          export DOCKER_BUILDKIT=0
+          export COMPOSE_DOCKER_CLI_BUILD=0
       - name: Push Container to Docker Hub
         uses: docker/build-push-action@v2
         with:
