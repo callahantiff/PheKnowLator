@@ -20,6 +20,7 @@
 !pkt_kg/utils/*
 !pkt_kg/*.py
 !setup.py
+!README.rst
 
 # scripts needed to run pkt
 !Main.py
