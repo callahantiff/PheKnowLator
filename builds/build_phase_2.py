@@ -12,6 +12,7 @@ from datetime import date, datetime
 from google.cloud import storage
 
 from builds.data_preprocessing import DataPreprocessing
+from builds.ontology_cleaning import OntologyCleaner
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
@@ -113,15 +114,13 @@ def main():
 
     print('#' * 35 + '\nBUILD PHASE 2: DATA PRE-PROCESSING\n' + '#' * 35)
 
-    # create temp directory to use locally for writing data GCS data to
     temp_dir = 'builds/temp'
-    os.mkdir(temp_dir)
+    if not os.path.exists(temp_dir): os.mkdir(temp_dir)
 
     ###############################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
     storage_client = storage.Client()
     bucket = storage_client.get_bucket('pheknowlator')
-
     # define write path to Google Cloud Storage bucket
     release = 'release_v' + __version__
     bucket_files = [file.name.split('/')[1] for file in bucket.list_blobs(prefix=release)]
@@ -143,11 +142,9 @@ def main():
     ###############################################
     # STEP 4 - GENERATE METADATA DOCUMENTATION
     metadata, processed_data = [], glob.glob(temp_dir + '/*')
-
     for data_file in tqdm(processed_data):
         url = gcs_url + '/original_data/' + data_file.replace(temp_dir + '/', '')
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
-
     writes_metadata(metadata, temp_dir)
 
     ###############################################
@@ -162,7 +159,8 @@ def main():
     resources = 'https://raw.githubusercontent.com/callahantiff/PheKnowLator/master/resources/resource_info.txt'
     updates_dependency_documents(gcs_url, resources, bucket, temp_dir)
 
-    shutil.rmtree(temp_dir)  # clean up environment after uploading all processed data
+    # clean up environment after uploading all processed data
+    shutil.rmtree(temp_dir)
 
 
 if __name__ == '__main__':
