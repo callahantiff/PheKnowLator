@@ -32,12 +32,11 @@ COPY pkt_kg /PheKnowLator/pkt_kg
 
 # copy scripts/files needed to run pkt_kg
 COPY Main.py /PheKnowLator
-COPY requirements.txt /PheKnowLator
 COPY resources /PheKnowLator/resources
 
 # install needed python libraries
 RUN pip install --upgrade pip setuptools
-RUN pip install -r /PheKnowLator/requirements.txt
+RUN pip install .
 
 
 ############################################
