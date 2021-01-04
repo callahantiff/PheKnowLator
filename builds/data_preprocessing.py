@@ -1326,7 +1326,7 @@ class DataPreprocessing(object):
         Returns:
             gene_metadata_dict: A dict containing metadata that's keyed by Entrez gene identifier and whose values are
                 dicts containing label, description, and synonym information. For example:
-                    {{'1': {
+                    {{'http://www.ncbi.nlm.nih.gov/gene/1': {
                         'Label': 'A1BG',
                         'Description': "A1BG is 'protein-coding' and is located on chromosome 19 (19q13.43).",
                         'Synonym': 'HEL-S-163pA|A1B|ABG|HYST2477alpha-1B-glycoprotein|GAB'}, ...}
@@ -1346,7 +1346,7 @@ class DataPreprocessing(object):
             gene_id, sym, defn, gene_type = row['GeneID'], row['Symbol'], row['description'], row['type_of_gene']
             chrom, map_loc, s1, s2 = row['chromosome'], row['map_location'], row['Synonyms'], row['Other_designations']
             if gene_id != 'None':
-                genes.append(gene_id)
+                genes.append('http://www.ncbi.nlm.nih.gov/gene/' + str(gene_id))
                 if sym != 'None' or sym != '':
                     lab.append(sym)
                 else:
@@ -1381,7 +1381,7 @@ class DataPreprocessing(object):
         Returns:
             rna_metadata_dict: A dict containing metadata that's keyed by Ensembl transcript identifier and whose values
                 are a dict containing label, description, and synonym information. For example:
-                    {'ENST00000456328': {
+                    {'https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=ENST00000456328': {
                         'Label': 'DDX11L1-202',
                         'Description': "Transcript DDX11L1-202 is classified as type 'processed_transcript'.",
                         'Synonym': 'None'}, ...}
@@ -1402,7 +1402,7 @@ class DataPreprocessing(object):
         rna, lab, desc, syn = [], [], [], []
         for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
             rna_id, ent_type, nme = row[dup_cols[0]], row[dup_cols[2]], row[dup_cols[1]]
-            rna.append(rna_id)
+            rna.append('https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=' + rna_id)
             if nme != 'None':
                 lab.append(nme)
             else:
@@ -1428,7 +1428,7 @@ class DataPreprocessing(object):
         Returns:
             variant_metadata_dict: A dict containing metadata that's keyed by ClinVar variant identifier and whose
                 values are a dict containing label, description, and synonym information. For example:
-                    {{'rs141138948': {
+                    {{'https://www.ncbi.nlm.nih.gov/snp/rs141138948': {
                         'Label': 'NM_016042.4(EXOSC3):c.395A>C (p.Asp132Ala)',
                         'Description': "This variant is a germline single nucleotide variant on chromosome 9
                         (NC_000009.12, start:37783993/stop:37783993 positions,cytogenetic location:9p13.2) and
@@ -1456,7 +1456,7 @@ class DataPreprocessing(object):
         for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
             var_id, lab = row['RS# (dbSNP)'], row['Name']
             if var_id != 'None':
-                var.append('rs' + str(var_id))
+                var.append('https://www.ncbi.nlm.nih.gov/snp/rs' + str(var_id))
                 if lab != 'None': label.append(lab)
                 else: label.append('dbSNP_ID:rs' + str(var_id))
                 sent = "This variant is a {} {} located on chromosome {} ({}, start:{}/stop:{} positions, " + \
@@ -1485,7 +1485,7 @@ class DataPreprocessing(object):
         Returns:
             pathway_metadata_dict: A dict containing metadata that's keyed by Reactome Pathway identifier and whose
                 values are a dict containing label, description, and synonym information. For example:
-                    {{'R-HSA-157858': {
+                    {{'https://reactome.org/content/detail/R-HSA-157858': {
                         'Label': 'Gap junction trafficking and regulation',
                         'Description': 'None',
                         'Synonym': 'Gap junction trafficking and regulation'}}, ...}
@@ -1499,14 +1499,50 @@ class DataPreprocessing(object):
         data = data.loc[data[2].apply(lambda x: x == 'Homo sapiens')]
         nodes = set(list(data[0]))
         metadata = metadata_api_mapper(list(nodes))
+        metadata['ID'] = metadata['ID'].map('https://reactome.org/content/detail/{}'.format)
         metadata.set_index('ID', inplace=True)
         pathway_metadata_dict = metadata.to_dict('index')
 
         return pathway_metadata_dict
 
+    def _creates_relation_metadata_dict(self) -> Dict:
+        """Creates a dictionary to store labels, synonyms, and a description for each Relation Ontology identifier
+        present in the input data file.
+
+        Returns:
+            relation_metadata_dict: A dict containing metadata that's keyed by Relations identifier and whose
+                values are a dict containing label, description, and synonym information. For example:
+                    {{'http://purl.obolibrary.org/obo/RO_0002310': {
+                    'Label': 'exposure event or process',
+                    'Description': 'A process occurring within or in the vicinity of an organism that exerts some causal
+                    influence on the organism via the interaction between an exposure stimulus and an exposure receptor.
+                    The exposure stimulus may be a process, material entity or condition (e.g. lack of nutrients).
+                    The exposure receptor can be an organism, organism population or a part of an organism.',
+                    'Synonym': 'None'}}, ...}
+        """
+
+        # get ontology information
+        ro_graph = Graph().parse(self.downloads_data_from_gcs_bucket('ro_with_imports.owl'))
+        relation_metadata_dict, obo = {}, Namespace('http://purl.obolibrary.org/obo/')
+        cls = [x for x in gets_ontology_classes(ro_graph) if '/RO_' in str(x)] + \
+              [x for x in gets_object_properties(ro_graph) if '/RO_' in str(x)]
+        master_synonyms = [x for x in ro_graph if 'synonym' in str(x[1]).lower() and isinstance(x[0], URIRef)]
+
+        for x in tqdm(cls):
+            cls_label = list(ro_graph.objects(x, RDFS.label))
+            labels = str(cls_label[0]) if len(cls_label) > 0 else 'None'
+            cls_syn = [str(i[2]) for i in master_synonyms if x == i[0]]
+            synonym = str(cls_syn[0]) if len(cls_syn) > 0 else 'None'
+            cls_desc = list(ro_graph.objects(x, obo.IAO_0000115))
+            desc = '|'.join([str(cls_desc[0])]) if len(cls_desc) > 0 else 'None'
+            relation_metadata_dict[str(x)] = {'Label': labels, 'Description': desc, 'Synonym': synonym}
+
+        return relation_metadata_dict
+
     def creates_non_ontology_class_metadata_dict(self) -> None:
-        """Combines the gene metadata, transcript metadata, variant metadata, and pathway metadata dictionaries into a
-        single large metadata dictionary. See the specific functions used below for examples of the output.
+        """Combines the gene metadata, transcript metadata, variant metadata, pathway metadata, and relations metadata
+        dictionaries into a single large metadata dictionary. See the specific functions used below for examples of
+        the output.
 
         Returns:
             None.
@@ -1518,7 +1554,8 @@ class DataPreprocessing(object):
         master_metadata_dictionary = {**self._creates_gene_metadata_dict(),
                                       **self._creates_transcript_metadata_dict(),
                                       **self._creates_variant_metadata_dict(),
-                                      **self._creates_pathway_metadata_dict()}
+                                      **self._creates_pathway_metadata_dict(),
+                                      **self._creates_relations_metadata_dict()}
 
         # save data and push to gcs bucket
         filename = 'node_metadata_dict.pkl'
