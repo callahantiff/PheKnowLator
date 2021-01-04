@@ -1,8 +1,6 @@
 # PheKnowLator Builds  
 **Current Release:** [`v2.0.0`](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0)  
 
-*!!!! CI/CD WORKFLOW IS CURRENTLY UNDER CONSTRUCTION !!!!*
-
 This directory stores the scripts and files utilized by GitHub Actions to perform the monthly knowledge graph builds. As described below the CI/CD Workflow consists of three primary phases, each which serves to process a different component of the full build process. Each of these phases and their triggers and associated scripts are briefly outlines below.
 
 ## Build Phases  
