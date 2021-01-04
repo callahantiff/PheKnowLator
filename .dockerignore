@@ -19,7 +19,7 @@
 !pkt_kg/libs/*.py
 !pkt_kg/utils/*
 !pkt_kg/*.py
-!requirements.txt
+!setup.py
 
 # scripts needed to run pkt
 !Main.py
