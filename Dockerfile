@@ -3,19 +3,16 @@
 
 ############################################
 ## MULTI-STAGE CONTAINER CONFIGURATION ##
-# use linux as base container
-FROM alpine:3.7
-
-# install java
-RUN apk update \
-&& apk upgrade \
-&& apk add --no-cache bash \
-&& apk add --no-cache --virtual=build-dependencies unzip \
-&& apk add --no-cache curl \
-&& apk add --no-cache openjdk8-jre
-
-# install python
-COPY --from=python:3.6.2 / /
+FROM python:3.6.2
+RUN apt-get update && apt-get install -y \
+    apt-transport-https \
+    software-properties-common \
+    unzip \
+    curl
+RUN wget -O- https://apt.corretto.aws/corretto.key | apt-key add - && \
+    add-apt-repository 'deb https://apt.corretto.aws stable main' && \
+    apt-get update && \
+    apt-get install -y java-1.8.0-amazon-corretto-jdk
 
 
 ############################################
