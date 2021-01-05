@@ -54,10 +54,7 @@ def gets_ontology_classes(graph: Graph) -> Set:
         ValueError: If the query returns zero nodes with type owl:ObjectProperty.
     """
 
-    print('Querying Knowledge Graph to Obtain all OWL:Class Nodes')
-
     class_list = {x for x in graph.subjects(RDF.type, OWL.Class) if isinstance(x, URIRef)}
-
     if len(class_list) > 0: return class_list
     else: raise ValueError('ERROR: No classes returned from query.')
 
@@ -71,8 +68,6 @@ def gets_deprecated_ontology_classes(graph: Graph) -> Set:
     Returns:
         class_list: A list of all of the deprecated OWL classes in the graph.
     """
-
-    print('Querying Knowledge Graph to Obtain all deprecated OWL:Class Nodes')
 
     class_list = {x for x in graph.subjects(OWL.deprecated, Literal('true', datatype=URIRef(schema + 'boolean')))}
 
@@ -92,10 +87,7 @@ def gets_object_properties(graph: Graph) -> Set:
         ValueError: If the query returns zero nodes with type owl:ObjectProperty.
     """
 
-    print('Querying Knowledge Graph to Obtain all OWL:ObjectProperty Nodes')
-
     object_property_list = {x for x in graph.subjects(RDF.type, OWL.ObjectProperty) if isinstance(x, URIRef)}
-
     if len(object_property_list) > 0: return object_property_list
     else: raise ValueError('ERROR: No object properties returned from query.')
 
@@ -119,9 +111,6 @@ def gets_ontology_class_synonyms(graph: Graph) -> Tuple:
                     {'susceptibility to herpesvirus': 'hasExactSynonym', 'full upper lip': 'hasExactSynonym'}
     """
 
-    print('Querying Knowledge Graph to Obtain all OWL:Class Nodes and Synonyms')
-
-    # find all classes in graph
     class_list = [x for x in graph if 'synonym' in str(x[1]).lower() and isinstance(x[0], URIRef)]
     synonyms = {str(x[2]).lower(): str(x[0]) for x in class_list}
     synonym_type = {str(x[2]).lower(): str(x[1]).split('#')[-1] for x in class_list}
@@ -151,8 +140,6 @@ def gets_ontology_class_dbxrefs(graph: Graph):
             is for a dbxref or an exact match. An example is shown below:
                 {
     """
-
-    print('Querying Knowledge Graph to Obtain all OWL:Class Nodes and DbXRefs')
 
     # dbxrefs
     dbxref_res = [x for x in graph if 'hasdbxref' in str(x[1]).lower() if isinstance(x[0], URIRef)]
@@ -254,6 +241,7 @@ def ontology_file_formatter(write_location: str, full_kg: str,
     """
 
     print('Applying OWL API Formatting to Knowledge Graph OWL File')
+
     graph_write_location = write_location + full_kg
     if '.owl' not in graph_write_location: raise TypeError('The provided file is not type .owl')
     elif not os.path.exists(graph_write_location): raise IOError('{} does not exist!'.format(graph_write_location))
