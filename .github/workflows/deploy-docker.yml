@@ -7,16 +7,20 @@ jobs:
     name: Push Docker Image to Docker Hub
     runs-on: ubuntu-latest
     steps:
-      - name: Check-Out Repository
-        uses: actions/checkout@v2
-      - name: Dropping BuildKit
-        run: |
-          export DOCKER_BUILDKIT=0
-          export COMPOSE_DOCKER_CLI_BUILD=0
-      - name: Push Container to Docker Hub
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        id: docker_build
         uses: docker/build-push-action@v2
         with:
-          username: ${{secrets.DOCKER_USERNAME}}
-          password: ${{secrets.DOCKER_PASSWORD}}
-          repository: callahantiff/pheknowlator
-          tag_with_ref: true
+            push: true
+            tags: user/app:latest
+            secrets: |
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
