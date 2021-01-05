@@ -29,10 +29,12 @@ Through this repository we provide the following:
 How do I Learn More?
 **********************
 
-Please see the Project `Wiki`_ for more details on available knowledge graphs, the knowledge graph construction process, algorithm, and information on the data sources used to build each knowledge graph.
+- Join an existing or start a new `Discussion`_
 
-**Prelimary Results are Available:**
-Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. A Framework for Automated Construction of Heterogeneous Large-Scale Biomedical Knowledge Graphs. 2020; BioRxiv `DOI: https://doi.org/10.1101/2020.04.30.071407 <https://doi.org/10.1101/2020.04.30.071407>`__
+- The Project `Wiki`_ for more details on available knowledge graphs, the knowledge graph construction process,
+algorithm, and information on the data sources used to build each knowledge graph
+
+- Preliminary results from our 2020 ISMB presentation are available `here <https://doi.org/10.1101/2020.04.30.071407>`__
 
 |
 
