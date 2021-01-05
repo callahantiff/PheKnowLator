@@ -1,9 +1,8 @@
 # WorkFlow Do: install Python dependencies, run tests, linter, and return code coverage
 name: Rosey the Robot
-on:
-  [push, pull_request]
-  release:
-    types: [published]
+on: [push, pull_request, release]
+#  release:
+#    types: [published]
 jobs:
 
   build:
