@@ -1,6 +1,9 @@
 # WorkFlow Do: install Python dependencies, run tests, linter, and return code coverage
 name: Rosey the Robot
-on: [push, pull_request]
+on:
+  [push, pull_request]
+  release:
+    types: [published]
 jobs:
 
   build:
@@ -62,3 +65,19 @@ jobs:
         run: coveralls
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish_docker_container:
+    if: github.event_name == 'push'
+    needs: build
+    name: Push Docker Image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{secrets.DOCKER_USERNAME}}
+          password: ${{secrets.DOCKER_PASSWORD}}
+          repository: callahantiff/pheknowlator
+          tag_with_ref: true

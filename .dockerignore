@@ -19,7 +19,8 @@
 !pkt_kg/libs/*.py
 !pkt_kg/utils/*
 !pkt_kg/*.py
-!requirements.txt
+!setup.py
+!README.rst
 
 # scripts needed to run pkt
 !Main.py
@@ -38,7 +39,7 @@
 ##########################################
 ## DATA NEEDED TO BUILD KNOWLEDGE GRAPH ##
 # external data sets used for identifier mapping (these data are referenced in resources/resource_info.txt)
-!resources/processed_data/DISEASE_DOID_MAP.txt
+!resources/processed_data/DISEASE_MONDO_MAP.txt
 !resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt
 !resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
 !resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt

@@ -1,4 +1,5 @@
 google==1.9.3
+google-cloud-storage==1.28.0
 networkx==2.4
 numpy==1.18.1
 openpyxl==3.0.3
