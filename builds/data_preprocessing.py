@@ -12,7 +12,8 @@ import pickle
 import sys
 
 from google.cloud import storage  # type: ignore
-from rdflib import Graph, URIRef  # type: ignore
+from rdflib import Graph, Namespace, URIRef  # type: ignore
+from rdflib.namespace import RDFS  # type: ignore
 from reactome2py import content  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Tuple, Union
@@ -1505,7 +1506,7 @@ class DataPreprocessing(object):
 
         return pathway_metadata_dict
 
-    def _creates_relation_metadata_dict(self) -> Dict:
+    def _creates_relations_metadata_dict(self) -> Dict:
         """Creates a dictionary to store labels, synonyms, and a description for each Relation Ontology identifier
         present in the input data file.
 
