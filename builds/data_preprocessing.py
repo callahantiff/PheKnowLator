@@ -37,12 +37,15 @@ class DataPreprocessing(object):
 
     def __init__(self, gcs_bucket: storage.bucket.Bucket, org_data: str, processed_data: str, temp_dir: str) -> None:
 
-        self.genomic_type_mapper: Dict = {}
+        # GOOGLE CLOUD STORAGE VARIABLES
         self.bucket: storage.bucket.Bucket = gcs_bucket
         self.original_data: str = org_data
         self.processed_data: str = processed_data
+        # SETTING LOCAL VARIABLES
         self.temp_dir = temp_dir
         self.owltools_location = './pkt_kg/libs/owltools'
+        # OTHER CLASS VARIABLES
+        self.genomic_type_mapper: Dict = {}
 
     def uploads_data_to_gcs_bucket(self, filename: str) -> None:
         """Takes a file name and pushes the corresponding data referenced by the filename object from a local
@@ -369,21 +372,18 @@ class DataPreprocessing(object):
         ensembl_hgnc = pandas.merge(ensembl, hgnc, on=merge_cols, how='outer')
         ensembl_hgnc.fillna('None', inplace=True)
         ensembl_hgnc.drop_duplicates(subset=None, keep='first', inplace=True)
-
         # ensembl_hgnc + uniprot
         uniprot = self._preprocess_uniprot_data()
         merge_cols = ['entrez_id', 'hgnc_id', 'uniprot_id', 'transcript_stable_id', 'symbol', 'synonyms']
         ensembl_hgnc_uniprot = pandas.merge(ensembl_hgnc, uniprot, on=merge_cols, how='outer')
         ensembl_hgnc_uniprot.fillna('None', inplace=True)
         ensembl_hgnc_uniprot.drop_duplicates(subset=None, keep='first', inplace=True)
-
         # ensembl_hgnc_uniprot + Homo_sapiens.gene_info
         ncbi = self._preprocess_ncbi_data()
         merge_cols = ['entrez_id', 'master_gene_type', 'symbol', 'synonyms', 'name', 'map_location']
         ensembl_hgnc_uniprot_ncbi = pandas.merge(ensembl_hgnc_uniprot, ncbi, on=merge_cols, how='outer')
         ensembl_hgnc_uniprot_ncbi.fillna('None', inplace=True)
         ensembl_hgnc_uniprot_ncbi.drop_duplicates(subset=None, keep='first', inplace=True)
-
         # ensembl_hgnc_uniprot_ncbi + promapping.txt
         pro = self._preprocess_protein_ontology_mapping_data()
         merged_data = pandas.merge(ensembl_hgnc_uniprot_ncbi, pro, on='uniprot_id', how='outer')
@@ -436,7 +436,6 @@ class DataPreprocessing(object):
             merged_data[col] = merged_data[col].apply(lambda x: '|'.join([i for i in x.split('|') if i != 'None']))
         merged_data.replace(to_replace=['None', '', 'unknown'], value=numpy.nan, inplace=True)
         identifiers = [x for x in merged_data.columns if x.endswith('_id')] + ['symbol']
-
         # convert data to dictionary
         for idx in tqdm(identifiers):
             grouped_data = merged_data.groupby(idx)
@@ -566,7 +565,6 @@ class DataPreprocessing(object):
             if len(value['syn']) > 0:
                 for i in value['syn']:
                     res += [[key, i, 'SYNONYM']]
-
         msh_df = pandas.DataFrame({'ID': [x[0] for x in res], 'TYP': [x[2] for x in res], 'STR': [x[1] for x in res]})
         msh_df['STR'] = msh_df['STR'].str.lower()
         msh_df['STR'] = msh_df['STR'].str.replace('[^\w]', '')  # remove white space and punctuation
@@ -644,7 +642,8 @@ class DataPreprocessing(object):
         mondo_graph = Graph().parse(self.downloads_data_from_gcs_bucket('mondo_with_imports.owl'))
         dbxref_res = gets_ontology_class_dbxrefs(mondo_graph)[0]
         mondo_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
-                      for k, v in dbxref_res.items() if 'MONDO' in str(v)}
+                      for k, v in dbxref_res.items()
+                      if 'MONDO' in str(v)}
 
         return mondo_dict
 
@@ -663,7 +662,8 @@ class DataPreprocessing(object):
         hp_graph = Graph().parse(self.downloads_data_from_gcs_bucket('hp_with_imports.owl'))
         dbxref_res = gets_ontology_class_dbxrefs(hp_graph)[0]
         hp_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
-                   for k, v in dbxref_res.items() if 'HP' in str(v)}
+                   for k, v in dbxref_res.items()
+                   if 'HP' in str(v)}
 
         return hp_dict
 
@@ -734,8 +734,8 @@ class DataPreprocessing(object):
             None.
         """
 
-        mapping_data = self.reads_gcs_bucket_data_to_df(filename='zooma_tissue_cell_mapping_04JAN2020.xlsx',
-                                                        delm='\t', skip=0, head=0, sht='Concept_Mapping - 04JAN2020')
+        data_file, sheet = 'zooma_tissue_cell_mapping_04JAN2020.xlsx', 'Concept_Mapping - 04JAN2020'
+        mapping_data = self.reads_gcs_bucket_data_to_df(filename=data_file, delm='\t', skip=0, head=0, sht=sheet)
         mapping_data.fillna('NA', inplace=True)
 
         # write data to useful format for pheknowlator and push to gcs
