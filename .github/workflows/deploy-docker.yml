@@ -22,5 +22,3 @@ jobs:
         with:
             push: true
             tags: user/app:latest
-            secrets: |
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
