@@ -61,7 +61,7 @@ All data and output for each release are free to download from our dedicated Goo
 |
 
 Important Updates and Notifications
-***********************************
+########
 
 - *12/21/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!  
 
