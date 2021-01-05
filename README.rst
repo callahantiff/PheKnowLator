@@ -345,7 +345,8 @@ Citing this Work
 Contact
 ########
 
-We’d love to hear from you! To get in touch with us, please `create an issue`_ or `send us an email`_ 💌
+We’d love to hear from you! To get in touch with us, please join or start a new `Discussion`_, `create an issue`_
+or `send us an email`_ 💌
 
 
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
@@ -442,3 +443,5 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 .. _`create an issue`: https://github.com/callahantiff/PheKnowLator/issues/new/choose
 
 .. _`send us an email`: https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=callahantiff@gmail.com
+
+.. _`Discussion`: https://github.com/callahantiff/PheKnowLator/discussions
