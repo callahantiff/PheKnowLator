@@ -54,7 +54,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish_docker_container:
-    if: github.event_name == 'push'
+    if: github.event_name == 'release'
     needs: build
     name: Push Docker Image to Docker Hub
     runs-on: ubuntu-latest
@@ -74,3 +74,5 @@ jobs:
         with:
             push: true
             tags: callahantiff/pheknowlator:latest
+      - name: Image Digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
