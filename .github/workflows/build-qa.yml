@@ -59,6 +59,11 @@ jobs:
     name: Push Docker Image to Docker Hub
     runs-on: ubuntu-latest
     steps:
+      - name: Creating Tag Metadata
+        id: docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+            images: callahantiff/pheknowlator
       - name: Set-up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set-up Docker Buildx
@@ -72,7 +77,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
+            context: .
+            file: ./Dockerfile
             push: true
-            tags: callahantiff/pheknowlator:${{ github.ref }}
-      - name: Image Digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+            tags: ${{ steps.docker_meta.outputs.tags }}
+            labels: ${{ steps.docker_meta.outputs.labels }}
