@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # import needed libraries
+import datetime
 import fnmatch
 import glob
 import os
 import shutil
 import re
 
-from datetime import date, datetime
 from google.cloud import storage  # type: ignore
 
 from builds.data_preprocessing import DataPreprocessing  # type: ignore
@@ -100,7 +100,8 @@ def writes_metadata(metadata, temp_directory):
 
     filename = 'preprocessed_build_metadata.txt'
     with open(temp_directory + '/' + filename, 'w') as out:
-        out.write('=' * 35 + '\n{}\n'.format(str(datetime.utcnow().strftime('%a %b %d %X UTC %Y'))) + '=' * 35 + '\n\n')
+        out.write('=' * 35 + '\n{}\n'.format(str(datetime.datetime.utcnow().strftime('%a %b %d %X UTC %Y'))) +
+                  '=' * 35 + '\n\n')
         for row in metadata:
             for i in range(4):
                 out.write(str(row[i]) + '\n')
@@ -111,7 +112,6 @@ def writes_metadata(metadata, temp_directory):
 
 
 def main():
-
     print('#' * 35 + '\nBUILD PHASE 2: DATA PRE-PROCESSING\n' + '#' * 35)
 
     temp_dir = 'builds/temp'
