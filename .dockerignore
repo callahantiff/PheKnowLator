@@ -11,6 +11,9 @@
 !Dockerfile
 !entrypoint.sh
 
+##########################################
+## PHEKNOWLATOR (PKT_KG) DIRECTORIES ##
+!resources/
 
 ##########################################
 ## PHEKNOWLATOR (PKT_KG) PACKAGE FILES ##
