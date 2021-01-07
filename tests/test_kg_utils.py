@@ -3,12 +3,13 @@ import os
 import os.path
 import unittest
 
-from typing import List, Set
+from typing import Dict, List, Set
 from rdflib import Graph, URIRef, BNode
 
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
     maps_node_ids_to_integers, adds_edges_to_graph, remove_edges_from_graph, finds_node_type, \
-    converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties
+    converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties,\
+    gets_ontology_class_dbxrefs, gets_ontology_class_synonyms
 
 
 class TestKGUtils(unittest.TestCase):
@@ -238,8 +239,7 @@ class TestKGUtils(unittest.TestCase):
         """Tests the gets_ontology_classes method."""
 
         # read in ontology
-        graph = Graph()
-        graph.parse(self.good_ontology_file_location)
+        graph = Graph().parse(self.good_ontology_file_location)
 
         # retrieve classes form graph with data
         classes = gets_ontology_classes(graph)
@@ -257,8 +257,7 @@ class TestKGUtils(unittest.TestCase):
         """Tests the gets_deprecated_ontology_classes method."""
 
         # read in ontology
-        graph = Graph()
-        graph.parse(self.good_ontology_file_location)
+        graph = Graph().parse(self.good_ontology_file_location)
 
         # retrieve classes form graph with data
         classes = gets_deprecated_ontology_classes(graph)
@@ -272,8 +271,7 @@ class TestKGUtils(unittest.TestCase):
         """Tests the gets_object_properties method."""
 
         # read in ontology
-        graph = Graph()
-        graph.parse(self.good_ontology_file_location)
+        graph = Graph().parse(self.good_ontology_file_location)
 
         # retrieve object properties form graph with data
         object_properties = gets_object_properties(graph)
@@ -284,5 +282,37 @@ class TestKGUtils(unittest.TestCase):
         # retrieve object properties form graph with no data
         no_data_graph = Graph()
         self.assertRaises(ValueError, gets_object_properties, no_data_graph)
+
+        return None
+
+    def test_gets_ontology_class_synonyms(self):
+        """Tests the  gets_ontology_class_synonyms method."""
+
+        # read in ontology
+        graph = Graph().parse(self.good_ontology_file_location)
+
+        # retrieve object properties form graph with data
+        synonym_dict, synonym_type_dict = gets_ontology_class_synonyms(graph)
+
+        self.assertIsInstance(synonym_dict, Dict)
+        self.assertIsInstance(synonym_type_dict, Dict)
+        self.assertEqual(4056, len(synonym_dict))
+        self.assertEqual(4056, len(synonym_type_dict))
+
+        return None
+
+    def test_gets_ontology_class_dbxrefs(self):
+        """Tests the  gets_ontology_class_synonyms method."""
+
+        # read in ontology
+        graph = Graph().parse(self.good_ontology_file_location)
+
+        # retrieve object properties form graph with data
+        dbxref_dict, dbxref_type_dict = gets_ontology_class_dbxrefs(graph)
+
+        self.assertIsInstance(dbxref_dict, Dict)
+        self.assertIsInstance(dbxref_type_dict, Dict)
+        self.assertEqual(393, len(dbxref_dict))
+        self.assertEqual(393, len(dbxref_type_dict))
 
         return None

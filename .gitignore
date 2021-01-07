@@ -34,9 +34,9 @@ scratch*.py
 !/resources/embeddings/README.md
 !/resources/knowledge_graphs/OWL_NETS_Property_Types.txt
 !/resources/knowledge_graphs/README.md
+!/resources/node_data/README.md
 !/resources/ontologies/ontology_source_metadata.txt
 !/resources/ontologies/README.md
-!/resources/node_data/README.md
 !/resources/owl_decoding/README.md
 !/resources/relations_data/README.md
 
@@ -57,3 +57,9 @@ coverage.xml
 .notipy.json
 \.vscode/
 /tests/archive/
+
+# project api keys
+/resources/project_keys/*
+
+# builds data
+builds/temp/*

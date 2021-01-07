@@ -29,30 +29,39 @@ Through this repository we provide the following:
 How do I Learn More?
 **********************
 
-Please see the Project `Wiki`_ for more details on available knowledge graphs, the knowledge graph construction process, algorithm, and information on the data sources used to build each knowledge graph.
+- Join an existing or start a new `Discussion`_
 
-**Prelimary Results are Available:**
-Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. A Framework for Automated Construction of Heterogeneous Large-Scale Biomedical Knowledge Graphs. 2020; BioRxiv `DOI: https://doi.org/10.1101/2020.04.30.071407 <https://doi.org/10.1101/2020.04.30.071407>`__
+- The Project `Wiki`_ for more details on available knowledge graphs, the knowledge graph construction process,
+algorithm, and information on the data sources used to build each knowledge graph
+
+- Preliminary results from our 2020 ISMB presentation are available `here <https://doi.org/10.1101/2020.04.30.071407>`__
 
 |
 
 Releases
 ########
 
-All code and output for each release are free to download, see `Wiki <https://github.com/callahantiff/PheKnowLator/wiki>`__ for full release archive.
+All data and output for each release are free to download from our dedicated Google Cloud Storage Bucket (GCS). All data can be downloaded from the `PheKnowLator GCS Bucket
+<https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator>`__, which is organized by release and build..
 
 **Current Release:**
 
-- ``v2.0.0`` ➞ data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
+- ``v2.0.0``
+
+  - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__
+  - `Data Access <https://console.cloud.google.com/storage/browser/pheknowlator/release_v2.0.0?project=pheknowlator>`__
 
 **Prior Releases:**
 
-- ``v1.0.0`` ➞ data and code can be directly downloaded `here <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__.
+- ``v1.0.0``
+
+  - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__
+  - `Data Access <https://console.cloud.google.com/storage/browser/pheknowlator/release_v1.0.0?project=pheknowlator>`__
 
 |
 
 Important Updates and Notifications
-***********************************
+########
 
 - *12/21/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!  
 
@@ -138,7 +147,8 @@ For assistance in creating these documents, please run the following from the ro
 
     python3 generates_dependency_documents.py
 
-Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created. Please see the `Data_Preparation.ipynb`_ Jupyter Notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
+Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created or downloaded for an existing build from the `PheKnowLator GCS Bucket<https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator>`__. To generate these data yourself, please see the `Data_Preparation.ipynb`_ Jupyter Notebook for detailed examples
+of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
 
 *Note.* To ensure reproducibility, after downloading data, a metadata file is output for the ontologies (`ontology_source_metadata.txt`_) and edge data sources (`edge_source_metadata.txt`_).
 
@@ -191,11 +201,9 @@ There are several ways to run ``pkt_kg``. An example workflow is provided below.
  kg = PartialBuild(kg_version='v2.0.0',
                    write_location='./resources/knowledge_graphs',
                    construction='subclass,
-                   edge_data='./resources/Master_Edge_List_Dict.json',
                    node_data='yes,
                    inverse_relations='yes',
-                   decode_owl='yes',
-                   kg_metadata_flag='yes')
+                   decode_owl='yes')
 
  kg.construct_knowledge_graph()
 
@@ -237,11 +245,13 @@ This repo provides 3 different of ways to run ``pkt_kg``:
 
 *DOCKER*
 
+**Pre-Built Containers:** `DockerHub <https://hub.docker.com/repository/docker/callahantiff/pheknowlator/general>`__
+
 ``pkt_kg`` can be run using a Docker instance. In order to utilize the Dockerized version of the code, please make sure that you have downloaded the newest version of `Docker <https://docs.docker.com/get-docker/>`__.
 
 There are two ways to utilize Docker with this repository:
 
-- Obtain the pre-built Docker container from `DockerHub <https://docs.docker.com/get-docker/>`__
+- Obtain the pre-built Docker container from `DockerHub <https://hub.docker.com/repository/docker/callahantiff/pheknowlator>`__
 - Build the Container
 
 |
@@ -258,7 +268,9 @@ To build the ``pkt_kg`` Docker container:
     cd /path/to/PheKnowLator (Note, this is the directory containing the Dockerfile file)
     docker build -t pkt:[VERSION] .
 
-*NOTES:* When building a container using new data sources, the only files that you should have to update are the ``pkt_kg`` input dependency documents (i.e. ``PheKnowLator/resources/resource_info.txt``, ``PheKnowLator/resources/edge_source_list.txt``, and ``PheKnowLator/resources/ontology_source_list.txt``) and the ``PheKnowLatpr/.dockerignore`` (i.e. updating the sources listed under the ``## DATA NEEDED TO BUILD KNOWLEDGE GRAPH ##`` comment, to make sure they match the file paths for all datasets used to map indeitifers listed in the ``PheKnowLator/resources/resource_info.txt`` document).
+*NOTES:* When building a container using new data sources, the only files that you should have to update are the
+``pkt_kg`` input dependency documents (i.e. ``PheKnowLator/resources/resource_info.txt``,
+``PheKnowLator/resources/edge_source_list.txt``, and ``PheKnowLator/resources/ontology_source_list.txt``) and the ``PheKnowLatpr/.dockerignore`` (i.e. updating the sources listed under the ``## DATA NEEDED TO BUILD KNOWLEDGE GRAPH ##`` comment, to make sure they match the file paths for all datasets used to map indentifiers listed in the ``PheKnowLator/resources/resource_info.txt`` document).
 
 |
 
@@ -336,7 +348,8 @@ Citing this Work
 Contact
 ########
 
-We’d love to hear from you! To get in touch with us, please `create an issue`_ or `send us an email`_ 💌
+We’d love to hear from you! To get in touch with us, please join or start a new `Discussion`_, `create an issue`_
+or `send us an email`_ 💌
 
 
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
@@ -437,3 +450,5 @@ We’d love to hear from you! To get in touch with us, please `create an issue`_
 .. _`create an issue`: https://github.com/callahantiff/PheKnowLator/issues/new/choose
 
 .. _`send us an email`: https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=callahantiff@gmail.com
+
+.. _`Discussion`: https://github.com/callahantiff/PheKnowLator/discussions

@@ -271,7 +271,7 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
 
     ids, labels, desc, synonyms = [], [], [], []
 
-    for request_ids in list(chunks(nodes, 20)):
+    for request_ids in tqdm(list(chunks(nodes, 20))):
         results = content.query_ids(ids=','.join(request_ids))
         for row in results:
             ids.append(row['stId'])
@@ -281,9 +281,8 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
             else: synonyms.append('None')
 
     # combine into new data frame
-    node_metadata_final = pd.DataFrame(list(zip(ids, labels, desc, synonyms)),
-                                       columns=['ID', 'Label', 'Description', 'Synonym'])
-    node_metadata_final = node_metadata_final.astype(str)
+    metadata = pd.DataFrame(list(zip(ids, labels, desc, synonyms)), columns=['ID', 'Label', 'Description', 'Synonym'])
+    node_metadata_final = metadata.astype(str)
 
     return node_metadata_final
 
@@ -350,24 +349,32 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
         None.
     """
 
+    results = []
+    for key in tqdm(id_dict.keys()):
+        if genomic_type is not None:
+            ent_type = [x.split('_')[-1] for x in id_dict[key] if x.startswith(genomic_type)]
+            g_type = ent_type[0] if len(ent_type) > 0 else 'None'
+        else:
+            g_type = 'None'
+        for res in id_dict[key]:
+            if genomic1 in key and res.startswith(genomic2):
+                if prefix1 and prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), '_'.join(res.split('_')[-2:])
+                elif not prefix1 and prefix2: res1, res2 = key.split('_')[-1], '_'.join(res.split('_')[-2:])
+                elif prefix1 and not prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), res.split('_')[-1]
+                else: res1, res2 = key.split('_')[-1], res.split('_')[-1]
+            elif genomic2 in key and res.startswith(genomic1):
+                if prefix1 and prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), '_'.join(key.split('_')[-2:])
+                elif not prefix1 and prefix2: res1, res2 = res.split('_')[-1], '_'.join(key.split('_')[-2:])
+                elif prefix1 and not prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), key.split('_')[-1]
+                else: res1, res2 = res.split('_')[-1], key.split('_')[-1]
+            else:
+                continue
+            results += [[res1, res2, g_type]]
+
+    # write results locally
     with open(filename, 'w') as outfile:
-        for key in tqdm(id_dict.keys()):
-            id_data = id_dict[key]
-            g_type = [x.split('_')[-1] for x in id_data if x.startswith(genomic_type)][0] if genomic_type else 'None'
-            for res in id_data:
-                if genomic1 in key and res.startswith(genomic2):
-                    if prefix1 and prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), '_'.join(res.split('_')[-2:])
-                    elif not prefix1 and prefix2: res1, res2 = key.split('_')[-1], '_'.join(res.split('_')[-2:])
-                    elif prefix1 and not prefix2: res1, res2 = '_'.join(key.split('_')[-2:]), res.split('_')[-1]
-                    else: res1, res2 = key.split('_')[-1], res.split('_')[-1]
-                elif genomic2 in key and res.startswith(genomic1):
-                    if prefix1 and prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), '_'.join(key.split('_')[-2:])
-                    elif not prefix1 and prefix2: res1, res2 = res.split('_')[-1], '_'.join(key.split('_')[-2:])
-                    elif prefix1 and not prefix2: res1, res2 = '_'.join(res.split('_')[-2:]), key.split('_')[-1]
-                    else: res1, res2 = res.split('_')[-1], key.split('_')[-1]
-                else: continue
-                if 'none' not in res1.lower() and 'none' not in res2.lower():
-                    outfile.write(res1 + '\t' + res2 + '\t' + g_type + '\n')
+        for row in set(tuple(x) for x in results):
+            outfile.write(row[0] + '\t' + row[1] + '\t' + row[2] + '\n')
     outfile.close()
 
     return None
