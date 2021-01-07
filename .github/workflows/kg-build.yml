@@ -2,8 +2,8 @@ name: Build and Deploy to Google Compute Engine
 on: push
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
-  GCE_INSTANCE: ${{ secrets.GCE_INSTANCE_NAME }}
-  GCE_INSTANCE_ZONE: ${{ secrets.GCE_INSTANCE_ZONE_NAME }}
+  GCE_INSTANCE: pkt-builder
+  GCE_INSTANCE_ZONE: us-central1-a
 
 jobs:
   setup-build-publish-deploy:
@@ -40,3 +40,5 @@ jobs:
         gcloud compute instances update-container "$GCE_INSTANCE" \
           --zone "$GCE_INSTANCE_ZONE" \
           --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-builder:$GITHUB_SHA"
+
+## Need to add instance start and stop commands
