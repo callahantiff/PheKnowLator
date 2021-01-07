@@ -240,7 +240,7 @@ class OntologyCleaner(object):
         all_cls = set([x.split('/')[-1].split('_')[0] for x in class_list])
         errors = [x for x in all_cls if any(i for i in all_cls if i != x and (i in x or x in i))]
         self.ontology_info[key]['IdentifierErrors'] = 'Possible ' + '-'.join(errors) if len(errors) > 0 else 'None'
-        for edge in tqdm(self.ont_graph):
+        for edge in self.ont_graph:
             if 'http://purl.obolibrary.org/obo/{}_'.format(known_errors[0]) in str(edge[0]):
                 updated_subj = str(edge[0]).replace(known_errors[0], known_errors[1])
                 self.ont_graph.add((URIRef(updated_subj), edge[1], edge[2]))
@@ -293,6 +293,10 @@ class OntologyCleaner(object):
             (1) Entities typed as an owl:Class and owl:ObjectProperty --> removes owl:ObjectProperty
             (2) Entities typed as an owl:Class and owl:NamedIndividual --> removes owl:NamedIndividual
             (3) Entities typed as an OWL:ObjectProperty and owl:AnnotationProperty --> removes owl:AnnotationProperty
+            (4) owl:ObjectProperties that are rdfs:subProperty of an owl:AnnotationProperty --> remove rdfs:subProperty
+
+        NOTE. Even though a run will yield a clean a result, reading back in the ontology using any OWL API-based
+        tools (e.g. OWL Tools) will result in a single punning error for RO_0002161.
 
         Returns:
              None.
@@ -304,6 +308,7 @@ class OntologyCleaner(object):
         onts_entities = set([x[0] for x in tqdm(self.ont_graph)])
         for x in tqdm(onts_entities):
             ent_types = list(self.ont_graph.triples((x, RDF.type, None)))
+            subpro = list(self.ont_graph.triples((x, RDFS.subPropertyOf, None)))
             if len(ent_types) > 1:
                 if not any([x for x in ent_types if 'owl' not in str(x[2])]):
                     # class + object properties --> remove object properties
@@ -321,16 +326,13 @@ class OntologyCleaner(object):
                     if (obj_prop in ent_types and a_prop in ent_types) and str(x) not in bad_obj:
                         self.ont_graph.remove(a_prop)
                         bad_obj.add(str(x))
-                else:
-                    # object properties that are the subproperty of something that is not an object property
-                    subpro = list(self.ont_graph.triples((x, RDFS.subPropertyOf, None)))
-                    if len(subpro) > 0 and any([x for x in ent_types if OWL.ObjectProperty == x[2]]):
-                        for s in subpro:
-                            sp_types = list(self.ont_graph.triples((s[2], RDF.type, None)))
-                            for sp in sp_types:
-                                if OWL.ObjectProperty != sp[2]:
-                                    self.ont_graph.remove(sp)
-                                    bad_obj.add(str(x))
+                        # object properties that are subproperty of something that is not an object property
+                        if len(subpro) > 0 and any([x for x in ent_types if OWL.ObjectProperty == x[2]]):
+                            for s in subpro:
+                                for sp in list(self.ont_graph.triples((s[2], RDF.type, None))):
+                                    if OWL.ObjectProperty != sp[2]:
+                                        self.ont_graph.remove(sp)
+                                        bad_obj.add(str(x))
                     else: bad_oth += [str(ent_types[0]) + '-' + '/'.join([str(x[2]) for x in ent_types])]
 
         self.ontology_info[key]['PunningErrors - Classes'] = ', '.join(bad_cls) if len(bad_cls) > 0 else 'None'
