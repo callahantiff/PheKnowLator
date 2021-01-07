@@ -19,6 +19,7 @@ RUN wget -O- https://apt.corretto.aws/corretto.key | apt-key add - && \
 ## PHEKNOWLATOR (PKT_KG) PROJECT SETTINGS ##
 # create needed project directories
 WORKDIR /PheKnowLator
+# I THINK WE NEED LINE 23 -- which I had to delete to get it to run past this point
 #RUN mkdir /PheKnowLator
 RUN mkdir /PheKnowLator/resources
 RUN mkdir /PheKnowLator/resources/edge_data
@@ -36,6 +37,7 @@ COPY resources /PheKnowLator/resources
 
 # install needed python libraries
 RUN pip install --upgrade pip setuptools
+# BILL -- CAN WE REMOVE LINE  41 if we had to add line 21 to get the container to run
 WORKDIR /PheKnowLator
 RUN pip install .
 

@@ -1,5 +1,5 @@
 name: Build and Deploy to Google Compute Engine
-on: push
+on: release
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
   GCE_INSTANCE: pkt-builder
