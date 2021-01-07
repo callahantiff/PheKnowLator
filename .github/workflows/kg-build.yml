@@ -27,18 +27,18 @@ jobs:
     # helper for authentication
     - run: |-
         gcloud --quiet auth configure-docker
-    # Build the Docker image
+      # Build the Docker image
     - name: Build
       run: |-
-        docker build --tag "gcr.io/$PROJECT_ID/pkt-builder:$GITHUB_SHA" -f builds/Dockerfile ./builds
-    # Push the Docker image to Google Container Registry
+        docker build --tag "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA" .
+      # Push the Docker image to Google Container Registry
     - name: Publish
       run: |-
-        docker push "gcr.io/$PROJECT_ID/pkt-builder:$GITHUB_SHA"
+        docker push "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
     - name: Deploy
       run: |-
         gcloud compute instances update-container "$GCE_INSTANCE" \
           --zone "$GCE_INSTANCE_ZONE" \
-          --container-image "gcr.io/$PROJECT_ID/pkt-builder:$GITHUB_SHA"
+          --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
 
 ## Need to add instance start and stop commands
