@@ -33,16 +33,16 @@ def creates_build_directory_structure(bucket, release):
     # set-up file names
     build = 'build_' + datetime.strftime(datetime.strptime(str(date.today()), '%Y-%m-%d'), '%d%b%Y').upper()
     folder_list = [
-        '{}/{}/data/original_data/'.format(release, build),
-        '{}/{}/data/processed_data/'.format(release, build),
-        '{}/{}/knowledge_graphs/subclass_builds/relations_only/owl/'.format(release, build),
-        '{}/{}/knowledge_graphs/subclass_builds/relations_only/owlnets/'.format(release, build),
-        '{}/{}/knowledge_graphs/subclass_builds/inverse_relations/owl/'.format(release, build),
-        '{}/{}/knowledge_graphs/subclass_builds/inverse_relations/owlnets/'.format(release, build),
-        '{}/{}/knowledge_graphs/instance_builds/relations_only/owl/'.format(release, build),
-        '{}/{}/knowledge_graphs/instance_builds/relations_only/owlnets/'.format(release, build),
-        '{}/{}/knowledge_graphs/instance_builds/inverse_relations/owl/'.format(release, build),
-        '{}/{}/knowledge_graphs/instance_builds/inverse_relations/owlnets/'.format(release, build)
+        '{}/archived_builds/{}/data/original_data/'.format(release, build),
+        '{}/archived_builds/{}/data/processed_data/'.format(release, build),
+        '{}/archived_builds/{}/knowledge_graphs/subclass_builds/relations_only/owl/'.format(release, build),
+        '{}/archived_builds/{}/knowledge_graphs/subclass_builds/relations_only/owlnets/'.format(release, build),
+        '{}/archived_builds/{}/knowledge_graphs/subclass_builds/inverse_relations/owl/'.format(release, build),
+        '{}/archived_builds/{}/knowledge_graphs/subclass_builds/inverse_relations/owlnets/'.format(release, build),
+        '{}/archived_builds/{}/knowledge_graphs/instance_builds/relations_only/owl/'.format(release, build),
+        '{}/archived_builds/{}/knowledge_graphs/instance_builds/relations_only/owlnets/'.format(release, build),
+        '{}/archived_builds/{}/knowledge_graphs/instance_builds/inverse_relations/owl/'.format(release, build),
+        '{}/archived_builds/{}/knowledge_graphs/instance_builds/inverse_relations/owlnets/'.format(release, build)
     ]
 
     # add directories to Google Cloud Storage bucket
@@ -50,7 +50,7 @@ def creates_build_directory_structure(bucket, release):
         blob = bucket.blob(folder)
         blob.upload_from_string('')
 
-    return '{}/{}/data/original_data/'.format(release, build)
+    return '{}/archived_builds/{}/data/original_data/'.format(release, build)
 
 
 def uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, filename):
@@ -183,8 +183,8 @@ def main():
 
     ###############################################
     # STEP 2 - DOWNLOAD BUILD DATA
-    gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/{}/data/original_data/'.format(release, build)
-    downloads_build_data(bucket, gcs_original_data, gcs_url, temp_dir)
+    gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/archived_builds/{}/data/original_data/'
+    downloads_build_data(bucket, gcs_original_data, gcs_url.format(release, build), temp_dir)
 
 
 if __name__ == '__main__':
