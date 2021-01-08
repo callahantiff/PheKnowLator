@@ -184,6 +184,7 @@ def main():
     ###############################################
     # STEP 2 - DOWNLOAD BUILD DATA
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/archived_builds/{}/data/original_data/'
+    build = gcs_original_data.split('/')[2]
     downloads_build_data(bucket, gcs_original_data, gcs_url.format(release, build), temp_dir)
 
 
