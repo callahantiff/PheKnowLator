@@ -6,6 +6,7 @@ services:
       - "80:3000"
     environment:
       - SPARQL_BACKEND=http://backend:9999/blazegraph/namespace/pheknowlator/sparql
+      - MAX_LIMIT=5000000
   backend:
     build: ./backend
     ports:
