@@ -19,8 +19,8 @@ RUN mkdir /pkt-data
 WORKDIR /pkt-data
 
 # Download & load the pheknowlator n-triples
-RUN wget http://purl.obolibrary.org/obo/cl.owl
-RUN /run-loader.sh -z /home/developer/blazegraph/conf/log4j.properties -g file://pheknowlator -f rdfxml -r pheknowlator -p /home/developer/blazegraph/conf/RWStore.properties -m mvn -l /pkt-data/cl.owl
+RUN wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/knowledge_graphs/subclass_builds/inverse_relations/owlnets/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
+RUN /run-loader.sh -z /home/developer/blazegraph/conf/log4j.properties -g file://pheknowlator -f ntriples -r pheknowlator -p /home/developer/blazegraph/conf/RWStore.properties -m mvn -l /pkt-data/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
 
 RUN chown -R developer:developer /blazegraph-data
 USER developer
