@@ -8,7 +8,7 @@ This directory stores the scripts and files utilized by GitHub Actions to perfor
 **Script(s):** `build_phase_1.py`  
 
 This phase is triggered on the same date each month and consists of the following three steps:    
-1. **Create Google Cloud Storage Bucket:** To store the build files, a new Google Cloud Storage bucket under the current release and named with the current date is created (e.g. `release_v2.0.0/build_27DEC2020`). Under this directory, the rest of the needed build directories are created. See example below:
+1. **Create Google Cloud Storage Bucket:** Current builds are stored in a new Google Cloud Storage bucket under the current release in a directory called `current_build` (e.g. `release_v2.0.0/current_build). Each subsequent build is also archived and saved with the build date under the `archived_builds` directory for the current release (e.g. `release_v2.0.0/archived_builds/build_27DEC2020`). Under this directory, the rest of the needed build directories are created. See example below:
    ```
     release_V*.0.0
     |---- curated_data/
@@ -67,12 +67,9 @@ This phase is triggered on the same date each month and consists of the followin
 This phase is triggered upon the successful completion of [Phase 1](#Phase-1:-Download-Build-Data) and consists of the following three steps:  
 1. **Preprocess Linked Open Data:** Runs the `pkt_kg/data_preprocessing.py` script, which preprocesses and prepares all Linked Open Data sources (i.e. non-ontology data) needed to the build the knowledge graphs. The cleaned data are output to the `data/processed_data` directory associated with the current build along with a metadata document providing provenance information on the preprocessed and cleaned documents.      
 2. **Preprocess Ontology Data:** Runs the `pkt_kg/ontology_cleaning.py` script, which preprocesses and prepares all ontology data needed to the build the knowledge graphs. The cleaned data are output to the `data/processed_data` directory associated with the current build along with a metadata document providing provenance information on the preprocessed and cleaned documents.  
-3. **Update Input Build Dependencies:** The URLS referenced in the knowledge graph [input dependency documents](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies) `resource_info.txt`, `edge_source_list.txt`, and `ontology_source_list.txt` documents are updated with the Google Cloud Storage bucket URLs for each associated 
-   preprocessed document located in the `data/processed_data` directory associated with the current build.
-   
+3. **Update Input Build Dependencies:** The URLS referenced in the knowledge graph [input dependency documents](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies) `resource_info.txt`, `edge_source_list.txt`, and `ontology_source_list.txt` documents are updated with the Google Cloud Storage bucket URLs for each associated preprocessed document located in the `data/processed_data` directory associated with the current build.  
 4. **Upload Local Build Data:** Generate `preprocessed_build_metadata.txt` a document that lives in the 
-   `processed_data` directory and provides provenance information on each downloaded data source. Also uploads the 
-   ontology data cleaning results (`ontology_cleaning_report.txt`), which provides additional insight into the errors that were cleaned for each ontology.
+   `processed_data` directory and provides provenance information on each downloaded data source. Also uploads the ontology data cleaning results (`ontology_cleaning_report.txt`), which provides additional insight into the errors that were cleaned for each ontology.
 
 <br>
 
@@ -84,11 +81,9 @@ This phase is triggered by the successful completion of [Phase 2](#Phase-2:-Prep
    `ontology_source_list.txt` documents updated in [Phase 2](#Phase-2:-Preprocess-Downloaded-Build-Data) are downloaded locally and committed to the Master branch of the GitHub repository.     
 2. **Downloads Processed Data:** All data processed during [Phase 2](#Phase-2:-Preprocess-Downloaded-Build-Data) are downloaded in preparation of constructing the build Docker container.  
 3. **Build Docker Container:** The primary build Docker container is built and published to Docker Hub.  
-4. **Container Parameterization and Deployment:** GitHub Actions communicates with 
-   Google Cloud Run to duplicate the constructor container and parameterize it for each of the PheKnowLator builds allowing for the knowledge graphs to be constructed in parallel.  
+4. **Container Parameterization and Deployment:** GitHub Actions communicates with Google Cloud Run to duplicate the constructor container and parameterize it for each of the PheKnowLator builds allowing for the knowledge graphs to be constructed in parallel.  
 5. **Completes Build:** Waits for each container to complete and then uploads associated data to the correct Google Cloud Storage bucket associated with the current build.
-6. **Update SPARQL Endpoint:** The successfully built knowledge graphs are pushed to the GraphDB SPARQL Endpoint for 
-   public consumption (*<<TODO: ADD ENDPOINT LINK HERE>>*)   
+6. **Update SPARQL Endpoint:** The successfully built knowledge graphs are pushed to the GraphDB SPARQL Endpoint for public consumption (*<<TODO: ADD ENDPOINT LINK HERE>>*)   
 
 ____
 
