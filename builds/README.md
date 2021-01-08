@@ -11,7 +11,8 @@ This phase is triggered on the same date each month and consists of the followin
 1. **Create Google Cloud Storage Bucket:** To store the build files, a new Google Cloud Storage bucket under the current release and named with the current date is created (e.g. `release_v2.0.0/build_27DEC2020`). Under this directory, the rest of the needed build directories are created. See example below:
    ```
     release_V*.0.0
-    |---- *build_<<date>>/
+    |---- curated_data/
+    |---- current_build/
     |     |---- data/
     |     |     |---- original_data/
     |     |     |---- processed_data/   
@@ -29,8 +30,31 @@ This phase is triggered on the same date each month and consists of the followin
     |     |     |     |     |---- owlnets/     
     |     |     |     |---- inverse_relations/
     |     |     |     |     |---- owl/
-    |     |     |     |     |---- owlnets/      
+    |     |     |     |     |---- owlnets/
+    |---- archived_builds
+    |     |---- *build_<<date>>/
+    |     |     |---- data/
+    |     |     |     |---- original_data/
+    |     |     |     |---- processed_data/   
+    |     |     |---- knowledge_graphs/  
+    |     |     |     |---- subclass_builds/
+    |     |     |     |     |---- relations_only/
+    |     |     |     |     |     |---- owl/
+    |     |     |     |     |     |---- owlnets/     
+    |     |     |     |     |---- inverse_relations/
+    |     |     |     |     |     |---- owl/
+    |     |     |     |     |     |---- owlnets/     
+    |     |     |     |---- instance_builds/
+    |     |     |     |     |---- relations_only/
+    |     |     |     |     |     |---- owl/
+    |     |     |     |     |     |---- owlnets/     
+    |     |     |     |     |---- inverse_relations/
+    |     |     |     |     |     |---- owl/
+    |     |     |     |     |     |---- owlnets/        
    ```
+   <<date>> is the date of download.  
+   curated_data is a directory of hand-curated resources utilized in the builds.  
+   
 2. **Download Knowledge Graph Data:** Using the `data_to_download.txt` text file, all needed build data are downloaded to the `data/original_data` directory associated with the current build. In this file, each source to download is provided as a single URL per row.   
 3. **Upload Local Build Data:** Generate `download_metadata.txt` a document that lives in the `original_data` directory and provides provenance information on each downloaded data source.
 
