@@ -26,4 +26,4 @@ RUN rm /pkt-data/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.
 RUN chown -R developer:developer /blazegraph-data
 RUN chown -R developer:developer /home/developer
 USER developer
-CMD ["java", "-server", "-Xmx10g", "-jar", "-Dbigdata.propertyFile=/home/developer/blazegraph/conf/RWStore.properties", "-Djetty.start.timeout=3600000", "/home/developer/blazegraph/blazegraph.jar"]
+CMD ["java", "-server", "-Xmx32g", "-jar", "-Dbigdata.propertyFile=/home/developer/blazegraph/conf/RWStore.properties", "-Djetty.start.timeout=3600000", "/home/developer/blazegraph/blazegraph.jar"]
