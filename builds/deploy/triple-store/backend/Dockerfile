@@ -20,7 +20,7 @@ WORKDIR /pkt-data
 
 # Download & load the pheknowlator n-triples
 RUN wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/knowledge_graphs/subclass_builds/inverse_relations/owlnets/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
-RUN /run-loader.sh -z /home/developer/blazegraph/conf/log4j.properties -g file://pheknowlator -f ntriples -r pheknowlator -p /home/developer/blazegraph/conf/RWStore.properties -m mvn -l /pkt-data/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
+RUN /run-loader.sh -z /home/developer/blazegraph/conf/log4j.properties -g file://pheknowlator -f ntriples -r kb -p /home/developer/blazegraph/conf/RWStore.properties -m mvn -l /pkt-data/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
 RUN rm /pkt-data/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
 
 COPY override-web.xml /home/developer/
