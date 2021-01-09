@@ -2,12 +2,12 @@ version: "3"
 services:
   api:
     image: dbcls/sparql-proxy
-    ports:
-      - "80:3000"
+    # ports:
+    #   - "3000:3000"
     environment:
       - SPARQL_BACKEND=http://backend:9999/blazegraph/namespace/pheknowlator/sparql
       - MAX_LIMIT=5000000
   backend:
     build: ./backend
     ports:
-      - "8889:9999"
+      - "80:9999"

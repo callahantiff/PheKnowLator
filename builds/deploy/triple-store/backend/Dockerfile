@@ -23,7 +23,9 @@ RUN wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_buil
 RUN /run-loader.sh -z /home/developer/blazegraph/conf/log4j.properties -g file://pheknowlator -f ntriples -r pheknowlator -p /home/developer/blazegraph/conf/RWStore.properties -m mvn -l /pkt-data/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
 RUN rm /pkt-data/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
 
+COPY override-web.xml /home/developer/
+
 RUN chown -R developer:developer /blazegraph-data
 RUN chown -R developer:developer /home/developer
 USER developer
-CMD ["java", "-server", "-Xmx32g", "-jar", "-Dbigdata.propertyFile=/home/developer/blazegraph/conf/RWStore.properties", "-Djetty.start.timeout=3600000", "/home/developer/blazegraph/blazegraph.jar"]
+CMD ["java", "-server", "-Xmx32g", "-jar", "-Dbigdata.propertyFile=/home/developer/blazegraph/conf/RWStore.properties", "-Djetty.start.timeout=3600000" , "-Djetty.overrideWebXml=/home/developer/override-web.xml", "/home/developer/blazegraph/blazegraph.jar"]
