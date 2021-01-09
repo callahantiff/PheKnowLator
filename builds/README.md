@@ -83,7 +83,7 @@ This phase is triggered by the successful completion of [Phase 2](#Phase-2:-Prep
 3. **Build Docker Container:** The primary build Docker container is built and published to Docker Hub.  
 4. **Container Parameterization and Deployment:** GitHub Actions communicates with Google Cloud Run to duplicate the constructor container and parameterize it for each of the PheKnowLator builds allowing for the knowledge graphs to be constructed in parallel.  
 5. **Completes Build:** Waits for each container to complete and then uploads associated data to the correct Google Cloud Storage bucket associated with the current build.
-6. **Update SPARQL Endpoint:** The successfully built knowledge graphs are pushed to the GraphDB SPARQL Endpoint for public consumption (*<<TODO: ADD ENDPOINT LINK HERE>>*)   
+6. **Update SPARQL Endpoint:** The successfully built knowledge graphs are pushed to the GraphDB SPARQL Endpoint for public consumption (Blazegraph SPARQL Endpoint: [here](http://35.233.212.30/blazegraph/#query))   
 
 ____
 
