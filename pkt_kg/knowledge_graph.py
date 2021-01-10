@@ -61,24 +61,18 @@ class KGBuilder(object):
     def __init__(self, construction: str, node_data: str, inverse_relations: str, decode_owl: str,
                  write_location: str = os.path.abspath('./resources/knowledge_graphs')) -> None:
 
-        self.kg_version = 'v' + __version__
         self.build: str = self.gets_build_type().lower().split()[0]
-        self.decode_owl: Optional[str] = None
-        self.edge_dict: Dict = dict()
         self.graph: Graph = Graph()
-        self.inverse_relations: Optional[List] = None
-        self.inverse_relations_dict: Optional[Dict] = None
-        self.node_data: Optional[List] = None
-        self.node_dict: Optional[Dict] = None
-        self.ont_classes: Set = set()
+        self.kg_version: str = 'v' + __version__
         self.obj_properties: Set = set()
-        self.owl_tools = './pkt_kg/libs/owltools'
+        self.ont_classes: Set = set()
+        self.owl_tools: str = './pkt_kg/libs/owltools'
         self.relations_dict: Dict = dict()
-        self.write_location = write_location
-        self.res_dir = os.path.abspath('/'.join(self.write_location.split('/')[:-1]))
+        self.write_location: str = write_location
+        self.res_dir: str = os.path.abspath('/'.join(self.write_location.split('/')[:-1]))
         self.merged_ont_kg: str = self.write_location + '/PheKnowLator_MergedOntologies.owl'
 
-        # FINDING ONTOLOGIES DATA DIRECTORY
+        # ONTOLOGIES DATA DIRECTORY
         ontologies = glob.glob(self.res_dir + '/ontologies/*.owl')
         if not os.path.exists(self.res_dir + '/ontologies'): raise OSError("Can't find 'ontologies/' directory")
         elif len(ontologies) == 0: raise TypeError('The ontologies directory is empty')
@@ -94,26 +88,33 @@ class KGBuilder(object):
         if not os.path.exists(edge_data): raise OSError('The {} file does not exist!'.format(edge_data))
         elif os.stat(edge_data).st_size == 0: raise TypeError('The input file: {} is empty'.format(edge_data))
         else:
-            with(open(edge_data, 'r')) as _file: self.edge_dict = json.load(_file)
+            with(open(edge_data, 'r')) as _file: self.edge_dict: Dict = json.load(_file)
 
         # RELATIONS DATA
         inv, rel_dir = str(inverse_relations).lower(), glob.glob(self.res_dir + '/relations_data/*.txt')
         if inv not in ['yes', 'no']: raise ValueError('inverse_relations not "no" or "yes"')
         elif len(rel_dir) == 0: raise TypeError('relations_data directory is empty')
-        elif inv == 'yes': self.inverse_relations, self.inverse_relations_dict, rel = rel_dir, {}, '_inverseRelations'
+        elif inv == 'yes':
+            self.inverse_relations: Optional[List] = rel_dir
+            self.inverse_relations_dict: Optional[Dict] = {}
+            rel = '_inverseRelations'
         else: self.inverse_relations, self.inverse_relations_dict, rel = None, None, '_relationsOnly'
 
         # NODE METADATA
-        node_data, node_dir = str(node_data).lower(), glob.glob(self.res_dir + '/node_data/*.txt')
+        node_data, node_dir = str(node_data).lower(), glob.glob(self.res_dir + '/node_data/*.pkl')
         if node_data not in ['yes', 'no']: raise ValueError('node_data not "no" or "yes"')
         elif node_data == 'yes' and len(node_dir) == 0: raise TypeError('node_data directory is empty')
-        elif node_data == 'yes' and len(node_dir) != 0: self.node_data, self.node_dict = node_dir, dict()
+        elif node_data == 'yes' and len(node_dir) != 0:
+            self.node_data: Optional[List] = node_dir
+            self.node_dict: Optional[Dict] = dict()
         else: self.node_data, self.node_dict = None, None
 
         # OWL SEMANTICS
         decode_owl = str(decode_owl).lower()
         if decode_owl not in ['yes', 'no']: raise ValueError('decode_semantics not "no" or "yes"')
-        elif decode_owl == 'yes': self.decode_owl, owl_kg = decode_owl, '_noOWL'
+        elif decode_owl == 'yes':
+            self.decode_owl: Optional[str] = decode_owl
+            owl_kg = '_noOWL'
         else: self.decode_owl, owl_kg = None, '_OWL'
 
         # KG FILE NAME
@@ -242,7 +243,6 @@ class KGBuilder(object):
             n1_type, n2_type = self.edge_dict[edge_type]['data_type'].split('-')
             uri, edge_list = self.edge_dict[edge_type]['uri'], copy.deepcopy(self.edge_dict[edge_type]['edge_list'])
             edge_results: List = []
-            # identify relations
             rel = self.edge_dict[edge_type]['edge_relation']
             self.verifies_object_property(URIRef(obo + rel))  # verify object property in knowledge graph
             invrel = self.checks_for_inverse_relations(rel, edge_list) if self.inverse_relations else None
@@ -277,8 +277,9 @@ class KGBuilder(object):
         node_metadata_func(self.graph, self.edge_dict)
         self.graph = ontology_annotator_func(self.full_kg.split('/')[-1], self.graph)
         print('\nSerializing Knowledge Graph')
-        self.graph.serialize(destination=self.write_location + self.full_kg, format='xml')
-        ontology_file_formatter(self.write_location, self.full_kg, self.owl_tools)
+        full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
+        self.graph.serialize(destination=self.write_location + full_kg_owl, format='xml')
+        ontology_file_formatter(self.write_location, full_kg_owl, self.owl_tools)
 
         return None
 
@@ -441,9 +442,9 @@ class FullBuild(KGBuilder):
     def construct_knowledge_graph(self) -> None:
         """Builds a full knowledge graph. Please note that the process to build this version of the knowledge graph
         does not include running a reasoner. The full build includes the following steps: (1) Process relation/inverse
-        relations; (2) Process node metadata; (3) Merge ontologies; and (4) Add master edge list to merged ontologies;
-        (5) Extract and write node metadata; (6) Decode OWL-encoded classes; and (7) Output knowledge graphs and
-        create edge lists.
+        relations; (2) Merge ontologies; (3) Process node metadata; (4) Add master edge list to  merged ontologies; (5)
+        Extract and write node metadata; (6) Decode OWL-encoded classes and (7) Output knowledge graphs and create
+        edge lists.
 
         Returns:
             None.
@@ -458,12 +459,7 @@ class FullBuild(KGBuilder):
         print('*** Loading Relations Data ***')
         self.reverse_relation_processor()
 
-        # STEP 2: PROCESS NODE METADATA
-        print('*** Loading Node Metadata Data ***')
-        metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data: metadata.node_metadata_processor()
-
-        # STEP 3: MERGE ONTOLOGIES
+        # STEP 2: MERGE ONTOLOGIES
         if self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
             print('*** Loading Merged Ontologies ***')
             self.graph.parse(self.merged_ont_kg, format='xml')
@@ -476,18 +472,22 @@ class FullBuild(KGBuilder):
         gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         print('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
+        # STEP 3: PROCESS NODE METADATA
+        print('*** Loading Node Metadata Data ***')
+        metadata = Metadata(kg.kg_version, kg.write_location, kg.full_kg, kg.node_data, kg.node_dict)
+        if self.node_data: metadata.node_metadata_processor(), metadata.extracts_class_metadata(kg.graph)
+
         # STEP 4: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
-        self.ont_classes = gets_ontology_classes(self.graph)
-        self.obj_properties = gets_object_properties(self.graph)
+        kg.ont_classes = gets_ontology_classes(kg.graph)
+        kg.obj_properties = gets_object_properties(kg.graph)
         self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
         print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 5: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
-        # if self.node_data or self.kg_metadata == 'yes': metadata.output_knowledge_graph_metadata(self.graph)
-        if self.node_data: metadata.output_knowledge_graph_metadata(self.graph)
+        if self.node_data: metadata.output_knowledge_graph_metadata()
         del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict  # clean env
 
         # STEP 6: DECODE OWL SEMANTICS
