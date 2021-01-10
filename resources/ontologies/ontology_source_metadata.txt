@@ -1,5 +1,5 @@
 ===================================
-#Sun Jan 10 05:32:24 UTC 2021 
+#Sun Jan 10 07:51:01 UTC 2021 
 ===================================
 
 EDGE: phenotype
@@ -9,7 +9,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/hp.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 86049594
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/hp_with_imports.owl
 
@@ -20,7 +20,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/go.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 158595338
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/go_with_imports.owl
 
@@ -31,7 +31,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/mondo.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 231114807
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/mondo_with_imports.owl
 
@@ -42,7 +42,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/vo.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 8140082
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/vo_with_imports.owl
 
@@ -53,7 +53,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/chebi.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 592367801
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/chebi_with_imports.owl
 
@@ -64,7 +64,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/uberon/ext.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 75793278
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/ext_with_imports.owl
 
@@ -75,7 +75,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/clo.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 122290057
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/clo_with_imports.owl
 
@@ -86,7 +86,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/pr.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 217990574
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/pr_with_imports.owl
 
@@ -97,7 +97,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/so.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 4866009
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/so_with_imports.owl
 
@@ -108,7 +108,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/pw.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 4937325
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/pw_with_imports.owl
 
@@ -119,7 +119,7 @@ DATA PROCESSING INFO
   - EVIDENCE CRITERIA = None
 DATA INFO
   - DOWNLOAD_URL = http://purl.obolibrary.org/obo/ro.owl
-  - DOWNLOAD_DATE = 01/09/2021
+  - DOWNLOAD_DATE = 01/10/2021
   - FILE_SIZE_IN_BYTES = 845100
   - DOWNLOADED_FILE_LOCATION = resources/ontologies/ro_with_imports.owl
 
