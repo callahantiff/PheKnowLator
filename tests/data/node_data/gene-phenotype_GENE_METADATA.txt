@@ -1,4 +1,0 @@
-ID	Label	Description	Synonym
-2	A2M	A2M has locus group 'protein-coding' and is located on chromosome 12 (map_location: 12p13.31).	FWP007|C3 and PZP-like alpha-2-macroglobulin domain-containing protein 5|A2MD|CPAMD5|alpha-2-M|S863-7alpha-2-macroglobulin
-9	NAT1	NAT1 has locus group 'protein-coding' and is located on chromosome 8 (map_location: 8p22).	monomorphic arylamine N-acetyltransferase|NAT-1|AAC1|MNAT|N-acetyltransferase type 1|N-acetyltransferase 1 (arylamine N-acetyltransferase)|arylamide acetylase 1|NATIarylamine N-acetyltransferase 1
-10	NAT2	NAT2 has locus group 'protein-coding' and is located on chromosome 8 (map_location: 8p22).	PNATarylamine N-acetyltransferase 2|NAT-2|AAC2|arylamide acetylase 2|N-acetyltransferase 2 (arylamine N-acetyltransferase)|N-acetyltransferase type 2
