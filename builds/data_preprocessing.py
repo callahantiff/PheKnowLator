@@ -716,10 +716,10 @@ class DataPreprocessing(object):
             for k, v in tqdm({**disease_dict, **mondo_dict, **hp_dict}.items()):
                 if any(x for x in v if x.startswith('MONDO')):
                     for idx in [x.replace(':', '_') for x in v if 'MONDO' in x]:
-                        out1.write(k.upper() + '\t' + idx + '\n')
+                        out1.write(k.upper().split(':')[-1] + '\t' + idx + '\n')
                 if any(x for x in v if x.startswith('HP')):
                     for idx in [x.replace(':', '_') for x in v if 'HP' in x]:
-                        out2.write(k.upper() + '\t' + idx + '\n')
+                        out2.write(k.upper().split(':')[-1] + '\t' + idx + '\n')
         self.uploads_data_to_gcs_bucket(file1)
         self.uploads_data_to_gcs_bucket(file2)
 
