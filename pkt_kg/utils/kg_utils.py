@@ -16,6 +16,7 @@ Interacts with OWL Tools API
 Interacts with Knowledge Graphs
 * adds_edges_to_graph
 * remove_edges_from_graph
+* updates_graph_namespace
 
 Writes Triple Lists
 * maps_node_ids_to_integers
@@ -39,6 +40,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 # set-up environment variables
 schema = Namespace('http://www.w3.org/2001/XMLSchema#')
+oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 
 
 def gets_ontology_classes(graph: Graph) -> Set:
@@ -285,6 +287,23 @@ def remove_edges_from_graph(graph: Graph, edge_list: List) -> Graph:
 
     for edge in set(edge_list):
         graph.remove(edge)
+
+    return graph
+
+
+def updates_graph_namespace(entity_namespace: str, graph: Graph, node: str) -> Graph:
+    """Adds a triple to a graph specifying a node's namespace. This is only used for non-ontology entities.
+
+    Args:
+        entity_namespace: A string containing an entity namespace (i.e. "pathway", "gene").
+        graph: An RDFLib Graph object.
+        node: A string containing the URI for a node in the graph.
+
+    Returns:
+        graph: An RDFLib Graph object.
+    """
+
+    graph.add((URIRef(node), URIRef(oboinowl + 'hasOBONamespace'), Literal(entity_namespace)))
 
     return graph
 

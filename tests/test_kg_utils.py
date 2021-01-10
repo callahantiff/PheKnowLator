@@ -4,10 +4,10 @@ import os.path
 import unittest
 
 from typing import Dict, List, Set
-from rdflib import Graph, URIRef, BNode
+from rdflib import BNode, Graph, Literal, URIRef
 
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
-    maps_node_ids_to_integers, adds_edges_to_graph, remove_edges_from_graph, finds_node_type, \
+    maps_node_ids_to_integers, adds_edges_to_graph, remove_edges_from_graph, finds_node_type, updates_graph_namespace, \
     converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties,\
     gets_ontology_class_dbxrefs, gets_ontology_class_synonyms
 
@@ -194,6 +194,20 @@ class TestKGUtils(unittest.TestCase):
                           'ent1': None,
                           'ent2': None},
                          map_vals5)
+
+        return None
+
+    def test_updates_graph_namespace(self):
+        """tests the updates_graph_namespace method."""
+
+        # test method
+        graph = updates_graph_namespace('phenotype', Graph(), 'http://purl.obolibrary.org/obo/HP_0100443')
+        test_edge = (URIRef('http://purl.obolibrary.org/obo/HP_0100443'),
+                     URIRef('http://www.geneontology.org/formats/oboInOwl#hasOBONamespace'),
+                     Literal('phenotype'))
+        self.assertIsInstance(graph, Graph)
+        self.assertTrue(len(graph) == 1)
+        self.assertIn(test_edge, graph)
 
         return None
 
