@@ -28,6 +28,17 @@ Would require adding:
 
 In this example, Morphine is a non-ontology data node and Migraine is an HPO ontology term. 
 
+A table is provided below showing the different triples that are added as function of edge type (i.e. `class`-`class` vs. `class`-`instance` vs. `instance`-`instance`) and relation strategy (i.e. relations only or relations + inverse relations). 
+
+Edge Type | Relations | Needed Triples  
+:--: | :--: | :--  
+Class-Class | Relations Only | **`GO_1234567`, `REL`, `DOID_1234567`**<br><br>`UUID1`, `rdf:type`, `GO_1234567`<br>`UUID1`, `rdf:type`, `owl:NamedIndividual`<br>`UUID2`, `rdf:type`, `DOID_1234567`<br>`UUID2`, `rdf:type`, `owl:NamedIndividual`<br>`GO_1234567`, `REL`, `DOID_1234567`
+Class-Class | Relations + Inverse Relations | **`GO_1234567`, `REL`, `DOID_1234567`<br>`DOID_1234567`, `INV_REL`, `GO_1234567`**<br><br>`UUID1`, `rdf:type`, `GO_1234567`<br>`UUID1`, `rdf:type`, `owl:NamedIndividual`<br>`UUID2`, `rdf:type`, `DOID_1234567`<br>`UUID2`, `rdf:type`, `owl:NamedIndividual`<br>`GO_1234567`, `REL`, `DOID_1234567`<br>`DOID_1234567`, `INV_REL`, `GO_1234567`
+Class-Instance | Relations Only | **`GO_1234567`, `REL`, `HGNC_1234567`**<br><br>`UUID`, `rdf:type`, `GO_1234567`<br>`UUID`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_1234567`, `rdf:type`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:NamedIndividual`<br>`UUID`, `REL`, `HGNC_1234567`
+Class-Instance | Relations + Inverse Relations | **`GO_1234567`, `REL`, `HGNC_1234567`<br>`HGNC_1234567`, `INV_REL`, `GO_1234567`**<br><br>`UUID`, `rdf:type`, `GO_1234567`<br>`UUID`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_1234567`, `rdf:type`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:NamedIndividual`<br>`UUID`, `REL`, `HGNC_1234567`<br>`HGNC_1234567`, `INV_REL`, `UUID`
+Instance-Instance | Relations Only | **`HGNC_1234567`, `REL`, `HGNC_7654321`**<br><br>`HGNC_1234567`, `rdf:type`,`subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_7654321`, `rdf:type`,`subclass_dict[HGNC_7654321]`<br>`HGNC_7654321`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_1234567`, `REL`, `HGNC_7654321`
+Instance-Instance | Relations + Inverse Relations | **`HGNC_1234567`, `REL`, `HGNC_7654321`<br>`HGNC_7654321`, `INV_REL`, `HGNC_1234567`**<br><br>`HGNC_1234567`, `rdf:type`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_7654321`, `rdf:type`, `subclass_dict[HGNC_7654321]`<br>`HGNC_7654321`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_1234567`, `REL`, `HGNC_7654321`<br>`HGNC_7654321`, `INV_REL`, `HGNC_1234567`
+
 <br>
 
 _NOTE._ While the instance of the class Migraines can be treated as an anonymous node in the knowledge graph, we generate a new international resource identifier for each asserted instance.
@@ -48,6 +59,17 @@ Would require adding:
 - `Type`(Influenza Virus Induced Apoptosis, `owl:Class`)  
 
 Where TGFB1 is an PR ontology term and Influenza Virus Induced Apoptosis is a non-ontology data node. In this example, Influenza A pathway is an existing ontology class.  
+
+A table is provided below showing the different triples that are added as function of edge type (i.e. `class`-`class` vs. `class`-`instance` vs. `instance`-`instance`) and relation strategy (i.e. relations only or relations + inverse relations).  
+
+Edge Type | Relations | Needed Triples  
+:--: | :--: | :--  
+Class-Class | Relations Only | **`GO_1234567`, `REL`, `DOID_1234567`**<br><br>`GO_1234567`, `rdfs:subClassOf`, `UUID`<br>`UUID`, `rdf:type`, `owl:Restriction`<br>`UUID`, `owl:someValuesFrom`, `DOID_1234567`<br>`UUID`, `owl:onProperty`, `REL`  
+Class-Class | Relations + Inverse Relations | **`GO_1234567`, `REL`, `DOID_1234567`<br>`DOID_1234567`, `INV_REL`, `GO_1234567`**<br<br>`GO_1234567`,`rdfs:subClassOf`,`UUID1`<br>`UUID1`, `rdf:type`, `owl:Restriction`<br>`UUID1`, `owl:someValuesFrom`,`DOID_1234567`<br>`UUID1`, `owl:onProperty`, `REL`<br>`DOID_1234567`, `rdfs:subClassOf`, `UUID2`<br>`UUID2`, `rdf:type`, `owl:Restriction`<br>`UUID2`, `owl:someValuesFrom`, `GO_1234567`<br>`UUID2`, `owl:onProperty`, `INV_REL`
+Class-Instance | Relations Only | **`GO_1234567`, `REL`, `HGNC_1234567`**<br><br>`HGNC_1234567`, `rdfs:subClassOf`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:Class`<br>`GO_12334567`, `rdfs:subClassOf`, `UUID`<br>`UUID`, `rdf:type`, `owl:Restriction`<br>`UUID`, `owl:someValuesFrom`, `HGNC_1234567`<br>`UUID`, `owl:onProperty`, `REL`
+Class-Instance | Relations + Inverse Relations | **`GO_1234567`, `REL`, `HGNC_1234567`<br>`HGNC_1234567`, `INV_REL`, `GO_1234567`**<br><br>`HGNC_1234567`, `rdfs:subClassOf`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:Class`<br>`GO_12334567`, `rdfs:subClassOf`, `UUID1`<br>`UUID1`, `rdf:type`, `owl:Restriction`<br>`UUID1`, `owl:someValuesFrom`, `HGNC_1234567`<br>`UUID1`, `owl:onProperty`, `REL`<br>`HGNC_1234567`, `rdfs:subClassOf`, `UUID2`<br>`UUID2`, `rdf:type`, `owl:Restriction`<br>`UUID2`, `owl:someValuesFrom`, `GO_12334567`<br>`UUID2`, `owl:onProperty`, `INV_REL`
+Instance-Instance | Relations Only | **`HGNC_1234567`, `REL`, `HGNC_7654321`**<br><br>`HGNC_1234567`, `rdfs:subClassOf`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:Class`<br>`HGNC_7654321`, `rdfs:subClassOf`, `subclass_dict[HGNC_7654321]`<br>`HGNC_7654321`, `rdf:type`, `owl:Class`<br>`HGNC_1234567`, `rdfs:subClassOf`, `UUID`<br>`UUID`, `rdf:type`, `owl:Restriction`<br>`UUID`, `owl:someValuesFrom`, `HGNC_7654321`<br>`UUID`, `owl:onProperty`, `REL`
+Instance-Instance | Relations + Inverse Relations | **`HGNC_1234567`, `REL`, `HGNC_7654321`<br>`HGNC_7654321`, `INV_REL`, `HGNC_1234567`**<br><br>`HGNC_1234567`, `rdfs:subClassOf`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:Class`<br>`HGNC_7654321`, `rdfs:subClassOf`, `subclass_dict[HGNC_7654321]`<br>`HGNC_7654321`, `rdf:type`, `owl:Class`<br>`HGNC_1234567`, `rdfs:subClassOf`, `UUID1`<br>`UUID1`, `rdf:type`, `owl:Restriction`<br>`UUID1`, `owl:someValuesFrom`, `HGNC_7654321`<br>`UUID1`, `owl:onProperty`, `REL`<br>`HGNC_7654321`, `rdfs:subClassOf`, `UUID2`<br>`UUID2`, `rdf:type`, `owl:Restriction`<br>`UUID2`, `owl:someValuesFrom`, `HGNC_1234567`<br>`UUID2`, `owl:onProperty`, `INV_REL`
 
 <br>
 
