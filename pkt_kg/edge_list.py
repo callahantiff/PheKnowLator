@@ -318,6 +318,30 @@ class CreatesEdgeList(object):
 
             return tuple(zip(list(merged_data[maps[0][0]]), list(merged_data[maps[1][0]])))
 
+    def gets_entity_namespaces(self) -> None:
+        """Identifies namespaces for all non-ontology entities. This is achieved by adding an entity_namespace key to
+        the source_info dictionary, which contains a sub-dictionary keyed by edge entity with it's associated URL as
+        the value. For example:
+            source_info['entity_namespaces']: {'gene': 'http://www.ncbi.nlm.nih.gov/gene/',
+                                               'pathway': 'https://reactome.org/content/detail/',
+                                               'rna': 'https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=',
+                                               'variant': 'https://www.ncbi.nlm.nih.gov/snp/'}
+
+        Returns:
+            None.
+        """
+
+        self.source_info['entity_namespaces'] = {}
+        for key in [x for x in self.source_info.keys() if x != 'entity_namespaces']:
+            data_type, uri = self.source_info[key]['data_type'].split('-'), self.source_info[key]['uri']
+            if data_type != ['class', 'class']:
+                entities = [key.split('-')[data_type.index(x)] for x in data_type if x == 'entity']
+                namespaces = [uri[data_type.index(x)] for x in data_type if x == 'entity']
+                for x in zip(entities, namespaces):
+                    self.source_info['entity_namespaces'][x[0]] = x[1]
+
+        return None
+
     def creates_knowledge_graph_edges(self) -> None:
         """Generates edge lists for each edge type in an input dictionary. In order to generate the edge list,
         the function performs six steps: (1) read in data; (2) apply filtering and evidence criteria; (3) reduce data
@@ -372,6 +396,9 @@ class CreatesEdgeList(object):
             print('Total Unique Edge Count: {}'.format(len(unique_edges)))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(set([x[0] for x in unique_edges]))))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(set([x[1] for x in unique_edges]))))
+
+        # add source entity namespaces
+        self.gets_entity_namespaces()
 
         # save a copy of the final master edge list
         with open('/'.join(self.source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:

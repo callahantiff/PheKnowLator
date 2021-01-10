@@ -293,6 +293,19 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         return None
 
+    def tests_gets_entity_namespaces(self):
+        """Tests gets_entity_namespaces method."""
+
+        self.master_edge_list.gets_entity_namespaces()
+
+        # verify results
+        self.assertIn('entity_namespaces', self.master_edge_list.source_info.keys())
+        self.assertIn('gene', self.master_edge_list.source_info['entity_namespaces'].keys())
+        self.assertEqual('http://purl.uniprot.org/geneid/',
+                         self.master_edge_list.source_info['entity_namespaces']['gene'])
+
+        return None
+
     def tests_creates_knowledge_graph_edges(self):
         """Tests creates_knowledge_graph_edges method."""
 
