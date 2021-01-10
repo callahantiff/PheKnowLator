@@ -1541,9 +1541,20 @@ class DataPreprocessing(object):
         return relation_metadata_dict
 
     def creates_non_ontology_class_metadata_dict(self) -> None:
-        """Combines the gene metadata, transcript metadata, variant metadata, pathway metadata, and relations metadata
-        dictionaries into a single large metadata dictionary. See the specific functions used below for examples of
-        the output.
+        """Combines the gene metadata, transcript metadata, variant metadata, pathway metadata, and relations
+        metadata dictionaries into a single large metadata dictionary. See example output below:
+        {
+            'nodes': {
+                'http://www.ncbi.nlm.nih.gov/gene/1': {
+                    'Label': 'A1BG',
+                    'Description': "A1BG has locus group protein-coding' and is located on chromosome 19 (19q13.43).",
+                    'Synonym': 'HYST2477alpha-1B-glycoprotein|HEL-S-163pA|ABG|A1B|GAB'} ... },
+            'relations': {
+                'http://purl.obolibrary.org/obo/RO_0002533': {
+                    'Label': 'sequence atomic unit',
+                    'Description': 'Any individual unit of a collection of like units arranged in a linear order',
+                    'Synonym': 'None'} ... }
+        }
 
         Returns:
             None.
@@ -1552,11 +1563,11 @@ class DataPreprocessing(object):
         print('Creating Master Metadata Dictionary for Non-Ontology Entities')
 
         # create single dictionary of
-        master_metadata_dictionary = {**self._creates_gene_metadata_dict(),
-                                      **self._creates_transcript_metadata_dict(),
-                                      **self._creates_variant_metadata_dict(),
-                                      **self._creates_pathway_metadata_dict(),
-                                      **self._creates_relations_metadata_dict()}
+        master_metadata_dictionary = {'nodes': {**self._creates_gene_metadata_dict(),
+                                                **self._creates_transcript_metadata_dict(),
+                                                **self._creates_variant_metadata_dict(),
+                                                **self._creates_pathway_metadata_dict()},
+                                      'relations': self._creates_relations_metadata_dict()}
 
         # save data and push to gcs bucket
         filename = 'node_metadata_dict.pkl'
