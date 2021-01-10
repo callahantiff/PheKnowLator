@@ -360,12 +360,12 @@ class CreatesEdgeList(object):
         for edge_type in tqdm(self.source_info.keys()):
             print('\n\n### Processing Edge: {}'.format(edge_type))
 
-            # STEP 1: read in data
+            # STEP 1: Read Data
             print('*** Reading Edge Data ***')
-            edge_data = self.data_reader(self.data_files[edge_type],
-                                         self.source_info[edge_type]['delimiter'])
+            edge_data = self.data_reader(self.data_files[edge_type], self.source_info[edge_type][
+                'delimiter'])
 
-            # STEP 2: apply filtering and evidence criteria
+            # STEP 2: Apply Filtering and Evidence Criteria
             print('*** Applying Filtering and/or Mapping Criteria to Edge Data ***')
             edge_data = self.filter_data(edge_data,
                                          self.source_info[edge_type]['filter_criteria'],
@@ -374,28 +374,27 @@ class CreatesEdgeList(object):
             # STEP 3: reduce data to specific columns, remove duplicates, and ensure proper formatting of column data
             edge_data = self.data_reducer(self.source_info[edge_type]['column_idx'], edge_data)
 
-            # STEP 4: update node column values
+            # STEP 4: Update Node Column Values
             print('*** Reformatting Node Values ***')
             edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
 
-            # STEP 5: rename nodes
+            # STEP 5: Rename Nodes
             edge_data.rename(columns={list(edge_data)[0]: str(list(edge_data)[0]) + '-' + edge_type.split('-')[0],
                                       list(edge_data)[1]: str(list(edge_data)[1]) + '-' + edge_type.split('-')[1]},
                              inplace=True)
 
-            # STEP 6: map identifiers
+            # STEP 6: Map Identifiers
             print('*** Performing Identifier Mapping ***')
-            mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'],
-                                                    edge_data)
-
+            mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'], edge_data)
             self.source_info[edge_type]['edge_list'] = [edge for edge in mapped_data if 'None' not in edge]
 
-            # print edge statistics
+            # print Edge Statistics
             unique_edges = [list(y) for y in set([tuple(x) for x in self.source_info[edge_type]['edge_list']])]
             print('\nPROCESSED EDGE: {}'.format(edge_type))
-            print('Total Unique Edge Count: {}'.format(len(unique_edges)))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(set([x[0] for x in unique_edges]))))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(set([x[1] for x in unique_edges]))))
+            print('Total Unique Edge Count: {}'.format(len(unique_edges)))
+            print('Total Unique Edge Count + Inverses: {}'.format(len(unique_edges)*2))
 
         # add source entity namespaces
         self.gets_entity_namespaces()
