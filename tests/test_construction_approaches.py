@@ -180,7 +180,7 @@ class TestKGConstructionApproach(unittest.TestCase):
 
         return None
 
-    def test_class_edge_constructor_with_inverse(self):
+    def test_subclass_class_edge_constructor_with_inverse(self):
         """Tests the class_edge_constructor method with inverse relations."""
 
         # prepare input vars
@@ -192,14 +192,33 @@ class TestKGConstructionApproach(unittest.TestCase):
         inverse_relation = URIRef('http://purl.obolibrary.org/obo/RO_0002435')
 
         # add edges
-        edges = self.kg_builder.edge_constructor(node1, node2, relation, inverse_relation)
+        edges = self.kg_builder.subclass_edge_constructor(node1, node2, relation, inverse_relation)
 
         self.assertIsInstance(edges, Tuple)
         self.assertEqual(len(edges), 12)
 
         return None
 
-    def test_class_edge_constructor_without_inverse(self):
+    def test_instance_class_edge_constructor_with_inverse(self):
+        """Tests the class_edge_constructor method with inverse relations."""
+
+        # prepare input vars
+        # nodes
+        node1, node2 = URIRef('https://www.ncbi.nlm.nih.gov/gene/2'), URIRef('https://www.ncbi.nlm.nih.gov/gene/10')
+
+        # relations
+        relation = URIRef('http://purl.obolibrary.org/obo/RO_0002435')
+        inverse_relation = URIRef('http://purl.obolibrary.org/obo/RO_0002435')
+
+        # add edges
+        edges = self.kg_builder.instance_edge_constructor(node1, node2, relation, inverse_relation)
+
+        self.assertIsInstance(edges, Tuple)
+        self.assertEqual(len(edges), 10)
+
+        return None
+
+    def test_subclass_class_edge_constructor_without_inverse(self):
         """Tests the class_edge_constructor method without inverse relations."""
 
         # prepare input vars
@@ -212,10 +231,29 @@ class TestKGConstructionApproach(unittest.TestCase):
         inverse_relation = None
 
         # add edges
-        edges = self.kg_builder.edge_constructor(node1, node2, relation, inverse_relation)
+        edges = self.kg_builder.subclass_edge_constructor(node1, node2, relation, inverse_relation)
 
         self.assertIsInstance(edges, Tuple)
         self.assertEqual(len(edges), 7)
+
+        return None
+
+    def test_instance_class_edge_constructor_without_inverse(self):
+        """Tests the class_edge_constructor method without inverse relations."""
+
+        # prepare input vars
+        # nodes
+        node1, node2 = URIRef('https://www.ncbi.nlm.nih.gov/gene/2'), URIRef('https://www.ncbi.nlm.nih.gov/gene/10')
+
+        # relations
+        relation = URIRef('http://purl.obolibrary.org/obo/RO_0002435')
+        inverse_relation = None
+
+        # add edges
+        edges = self.kg_builder.instance_edge_constructor(node1, node2, relation, inverse_relation)
+
+        self.assertIsInstance(edges, Tuple)
+        self.assertEqual(len(edges), 8)
 
         return None
 
@@ -360,7 +398,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 7)
+        self.assertEqual(len(edges), 8)
 
         # prepare input vars -- WITH INVERSE RELATIONS
         # edge information
@@ -374,7 +412,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 12)
+        self.assertEqual(len(edges), 10)
 
         return None
 
