@@ -47,8 +47,8 @@ class Metadata(object):
         self.kg_version: str = kg_version
         self.write_location: str = write_location
         self.full_kg: str = kg_location
-        self.node_data: str = node_data
-        self.node_dict: Dict = node_dict
+        self.node_data = node_data
+        self.node_dict = node_dict
 
     def node_metadata_processor(self) -> None:
         """Loads a directory of node and relations data. The dictionary is nested with the outer keys corresponding
@@ -121,7 +121,7 @@ class Metadata(object):
                         }
                 self.node_dict[key] = {**self.node_dict[key], **temp_dict}
 
-            pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))  # write updated dictionary locally
+            pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))  # type: ignore
 
         return None
 
@@ -139,9 +139,11 @@ class Metadata(object):
         """
 
         key, edges = key_type, []
-        if key == 'nodes': tst = entities[0] in self.node_dict[key].keys() and entities[1] in self.node_dict[key].keys()
-        else: tst = entities[0] in self.node_dict[key].keys()
-        if self.node_dict and tst:
+        if key == 'nodes':
+            t = entities[0] in self.node_dict[key].keys() and entities[1] in self.node_dict[key].keys()  # type: ignore
+        else:
+            t = entities[0] in self.node_dict[key].keys()  # type: ignore
+        if self.node_dict and t:
             if key == 'nodes': entities = [x for x in entities if node_types[entities.index(x)] != 'class']
             for x in entities:
                 metadata = self.node_dict[key][x]
@@ -222,7 +224,7 @@ class Metadata(object):
                 out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'node_id' + '\t' + 'label' + '\t' +
                           'description/definition' + '\t' + 'synonym' + '\n')
                 for nid, nint in tqdm(node_integer_map.items()):
-                    if nid not in self.node_dict['nodes'].keys() or node_id not in self.node_dict['relations'].keys():
+                    if nid not in self.node_dict['nodes'].keys() or nid not in self.node_dict['relations'].keys():
                         etyp, lab, dsc, syn = 'NA', 'NA', 'NA', 'NA'
                     else:
                         if nid in self.node_dict['nodes'].keys():
