@@ -471,6 +471,7 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
 
     return None
 
+
 def gets_class_ancestors(graph: Graph, class_uris: List[Union[URIRef, str]], class_list: Optional[List] = None) -> List:
     """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input class.
 
