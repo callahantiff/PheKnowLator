@@ -1,4 +1,5 @@
 import glob
+import networkx as nx
 import os
 import os.path
 import unittest
@@ -241,10 +242,16 @@ class TestKGUtils(unittest.TestCase):
     def test_converts_rdflib_to_networkx(self):
         """Tests the converts_rdflib_to_networkx method."""
 
-        converts_rdflib_to_networkx(write_location=self.dir_loc, full_kg='/so_with_imports', graph=None)
-
         # check that files were created
+        converts_rdflib_to_networkx(write_location=self.dir_loc, full_kg='/so_with_imports', graph=None)
         self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle'))
+
+        # load graph and check structure
+        s = URIRef('http://purl.obolibrary.org/obo/SO_0000288')
+        o = URIRef('http://purl.obolibrary.org/obo/SO_0000287')
+        p = URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf')
+        graph = nx.read_gpickle(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle')
+        self.assertEqual(graph[s][o][p], {'predicate_key': '9cbd482627d217b38eb407d7eba48020', 'weight': 0.0})
 
         # clean up the environment
         os.remove(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle')

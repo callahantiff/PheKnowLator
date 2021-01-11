@@ -27,6 +27,7 @@ File Type Conversion
 
 # import needed libraries
 import glob
+import hashlib
 import json
 import networkx  # type: ignore
 import os
@@ -370,7 +371,6 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     # build graph from input file and set counter
     out_ints = open(write_location + output_ints, 'w', encoding='utf-8')
     out_ids = open(write_location + output_ints.replace('Integers', 'Identifiers'), 'w', encoding='utf-8')
-    # write file headers
     out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     for edge in tqdm(graph):
@@ -407,7 +407,31 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
 
 
 def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:
-    """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally.
+    """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally. Each node is provided a
+    key that is the URI identifier and each edge is given a key which is an md5 hash of the triple and a weight of
+    0.0. An example of the output is shown below. The md5 hash is meant to store a unique key that represents that
+    predicate with respect to the triples it occurs with.
+
+    Source: https://networkx.org/documentation/stable/reference/classes/multidigraph.html
+
+        Example:
+            Input: (URIRef('http://purl.obolibrary.org/obo/SO_0000288'),
+                    URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
+                    URIRef('http://purl.obolibrary.org/obo/SO_0000287'))
+            Output:
+                - node data: [
+                        (URIRef('http://purl.obolibrary.org/obo/SO_0000288'),
+                        {'key': 'http://purl.obolibrary.org/obo/SO_0000288'}),
+                        (URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
+                        {'key': 'http://www.w3.org/2000/01/rdf-schema#subClassOf'}),
+                        (URIRef('http://purl.obolibrary.org/obo/SO_0000287'),
+                        {'key': 'http://purl.obolibrary.org/obo/SO_0000287'})
+                            ]
+                - edge data: [
+                        (URIRef('http://purl.obolibrary.org/obo/SO_0000288'),
+                         URIRef('http://purl.obolibrary.org/obo/SO_0000287'),
+                         {'predicate_key': '9cbd482627d217b38eb407d7eba48020', 'weight': 0.0})
+                            ]
 
     Args:
         write_location: A string pointing to a local directory for writing data.
@@ -433,7 +457,10 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     # convert graph to networkx object
     nx_mdg = networkx.MultiDiGraph()
     for s, p, o in tqdm(graph):
-        nx_mdg.add_edge(s, o, **{'key': p})
+        pred_key = hashlib.md5('{}{}{}'.format(str(s), str(p), str(o)).encode()).hexdigest()
+        nx_mdg.add_node(s, key=str(s))
+        nx_mdg.add_node(o, key=str(o))
+        nx_mdg.add_edge(s, o, **{'key': p, 'predicate_key': pred_key, 'weight': 0.0})
 
     # pickle networkx graph
     print('Pickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
