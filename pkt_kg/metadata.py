@@ -7,6 +7,7 @@ import json
 import os
 import os.path
 import pandas  # type: ignore
+import pickle
 import re
 import subprocess
 
@@ -15,6 +16,8 @@ from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Set, Union
+
+from pkt_kg.utils import *
 
 # set environmental variables
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
@@ -41,27 +44,29 @@ class Metadata(object):
     def __init__(self, kg_version: str, write_location: str, kg_location: str, node_data: Optional[List],
                  node_dict: Optional[Dict]) -> None:
 
-        self.kg_version = kg_version
-        self.write_location = write_location
-        self.full_kg = kg_location
-        self.node_data = node_data
-        self.node_dict = node_dict
+        self.kg_version: str = kg_version
+        self.write_location: str = write_location
+        self.full_kg: str = kg_location
+        self.node_data: str = node_data
+        self.node_dict: Dict = node_dict
 
     def node_metadata_processor(self) -> None:
-        """Processes a directory of node data sets by reading in each data set a dictionary, which is then added to the
-        class attribute node_dict. This dictionary stores the "ID" column of each data frame as the keys and all other
-        columns as values. For example:
-            {'variant-gene': {397508135: {'Label': 'NM_000492.3(CFTR):c.*80T>G',
-                            'Description': 'This variant is a germline single nucleotide variant that results when a T
-                                allele is changed to G on chromosome 7 (NC_000007.14, start:117667188/stop:117667188
-                                positions, cytogenetic location:7q31.2) and has clinical significance not provided.
-                                This entry is for the GRCh38 and was last reviewed on - with review status "no
-                                assertion provided".'}}}
-
-        Assumptions:
-            1 - Each edge contains a dictionary.
-            2 - Each edge's dictionary is keyed by "ID" and contains at least 1 of the following: "Label",
-                "Description", and "Symbol".
+        """Loads a directory of node and relations data. The dictionary is nested with the outer keys corresponding
+        to the metadata type (i.e. "nodes" or "relations") and the values containing dictionaries keyed by URI and
+        values containing a dictionary of metadata. For
+        example:
+            {
+            'nodes': {
+                'http://www.ncbi.nlm.nih.gov/gene/1': {
+                    'Label': 'A1BG',
+                    'Description': "A1BG has locus group protein-coding' and is located on chromosome 19 (19q13.43).",
+                    'Synonym': 'HYST2477alpha-1B-glycoprotein|HEL-S-163pA|ABG|A1B|GAB'} ... },
+            'relations': {
+                'http://purl.obolibrary.org/obo/RO_0002533': {
+                    'Label': 'sequence atomic unit',
+                    'Description': 'Any individual unit of a collection of like units arranged in a linear order',
+                    'Synonym': 'None'} ... }
+        }
 
         Returns:
             None.
@@ -69,92 +74,172 @@ class Metadata(object):
 
         if self.node_data:
             print('Loading and Processing Node Metadata')
-            # create list where first item is edge type and the second item is the df
-            dfs = [[re.sub('.*/', '', re.sub('((_[^/]*)_.*$)', '', x)),
-                    pandas.read_csv(x, header=0, delimiter='\t')] for x in self.node_data]
-            # convert each data frame to dictionary, using the 'ID' column as the index
-            for i in range(0, len(dfs)):
-                df_processed = dfs[i][1].astype(str)
-                df_processed.drop_duplicates(keep='first', inplace=True)
-                df_processed.set_index('ID', inplace=True)
-                df_dict = df_processed.to_dict('index')
-                # add data frame to master node metadata dictionary
-                self.node_dict[dfs[i][0]] = df_dict  # type: ignore
+
+            with open(self.node_data[0], 'rb') as out:
+                self.node_dict = pickle.load(out)
 
         return None
 
-    def creates_node_metadata(self, node: str, edge_type: str, url: str, graph: Graph) -> Graph:
+    def extracts_class_metadata(self, graph: Graph) -> None:
+        """Functions queries the knowledge graph to obtain labels, definitions/descriptions, and synonyms for all
+        owl:Class, owl:NamedIndividual, and owl:ObjectProperty objects. This information is then added to the existing
+        self.node_dict  dictionary under the key of "nodes" (for owl:Class and owl:NamedIndividual) or "relations" (for
+        owl:ObjectProperty). Each metadata type is saved as a dictionary key with the actual string stored as the
+        value. The metadata types are packaged as a dictionary which is stored as the value to the node identifier as
+        the key.
+
+        Args:
+            graph: An rdflib graph object.
+
+        Returns:
+            None.
+        """
+
+        print('\nExtracting Class Metadata')
+
+        if self.node_dict:
+            domains = [
+                ('nodes', [i[0] for i in list(graph.triples((None, RDF.type, None)))
+                           if isinstance(i[0], URIRef)
+                           and (OWL.Class in i[2] or OWL.NamedIndividual in i[2])
+                           and ('#' not in str(i[0]) or '#' not in str(i[2]))]),
+                ('relations', [i[0] for i in list(graph.triples((None, RDF.type, None)))
+                               if isinstance(i[0], URIRef) and i[2] != OWL.AnnotationProperty])
+            ]
+            for x in domains:
+                key, temp_dict = 'nodes' if x[0] == 'nodes' else 'relations', dict()
+                for i in tqdm(x[1]):
+                    labels = [x for x in list(graph.triples((i, RDFS.label, None)))]
+                    descriptions = [x for x in list(graph.triples((i, obo.IAO_0000115, None)))]
+                    synonyms = [x for x in list(graph.triples((i, None, None))) if 'synonym' in str(x[1]).lower()]
+                    if len(labels) == 0: pass
+                    else:
+                        temp_dict[str(i)] = {
+                            'Label': str(labels[0][2]) if len(labels) > 0 else None,
+                            'Description': str(descriptions[0][2]) if len(descriptions) > 0 else None,
+                            'Synonym': '|'.join([str(c[2]) for c in synonyms]) if len(synonyms) > 0 else None
+                        }
+                self.node_dict[key] = {**self.node_dict[key], **temp_dict}
+
+            pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))  # write updated dictionary locally
+
+        return None
+
+    def creates_node_metadata(self, entities: List, node_types: List, key_type: str = 'nodes') -> Graph:
         """Given a node in the knowledge graph, if the node has metadata information, new edges are created to add
         the metadata to the knowledge graph. Metadata that is added includes: labels, descriptions, and synonyms.
 
         Args:
-            node: A node identifier (e.g. 'HP_0003269', 'rs765907815').
-            edge_type: A string which specifies the edge type (e.g. chemical-gene).
-            url: The node's url needed to form a complete uri (e.g. http://purl.obolibrary.org/obo/), which is
-                specified in the resource_info.txt document.
-            graph: An rdflib graph containing knowledge graph data.
+            entities: A list of two node identifiers (e.g. ['http://example/3075', 'http://example/1080']).
+            node_types: A list of types for each node in nodes (e.g. ['entity', 'entity']).
+            key_type: A string indicating if the key should be 'nodes' or 'relations (default='nodes').
 
         Returns:
-            graph: An rdflib graph with updated metadata edges.
+            edges: A list of tuples containing RDFLib objects used to add metadata to a knowledge graph.
+        """
+
+        key, edges = key_type, []
+        if key == 'nodes': tst = entities[0] in self.node_dict[key].keys() and entities[1] in self.node_dict[key].keys()
+        else: tst = entities[0] in self.node_dict[key].keys()
+        if self.node_dict and tst:
+            if key == 'nodes': entities = [x for x in entities if node_types[entities.index(x)] != 'class']
+            for x in entities:
+                metadata = self.node_dict[key][x]
+                if 'Label' in metadata.keys() and metadata['Label'] != 'None':
+                    edges += [(URIRef(x), RDFS.label, Literal(metadata['Label']))]
+                if 'Description' in metadata.keys() and metadata['Description'] != 'None':
+                    edges += [(URIRef(x), URIRef(obo + 'IAO_0000115'), Literal(metadata['Description']))]
+                if 'Synonym' in metadata.keys() and metadata['Synonym'] != 'None':
+                    for syn in metadata['Synonym'].split('|'):
+                        edges += [(URIRef(x), URIRef(oboinowl + 'hasSynonym'), Literal(syn))]
+            return edges
+        else:
+            return None
+
+    def adds_ontology_annotations(self, filename: str, graph: Graph) -> Graph:
+        """Updates the ontology annotation information for an input knowledge graph or ontology.
+
+        Args:
+            filename: A string containing the name of a knowledge graph.
+            graph: An rdflib graph object.
+
+        Returns:
+            graph: An rdflib graph object with edited ontology annotations.
+        """
+
+        print('\n*** Adding Ontology Annotations ***')
+
+        # set annotation variables
+        authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
+        date_full = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+        # convert filename to permanent url
+        parsed_filename = '_'.join(filename.lower().split('/')[-1].split('_')[2:])
+        url = 'https://pheknowlator.com/pheknowlator_' + parsed_filename
+        pkt_url = 'https://github.com/callahantiff/PheKnowLator'
+
+        # query ontology to obtain existing ontology annotations and remove them
+        results = graph.query(
+            """SELECT DISTINCT ?o ?p ?s
+                WHERE {
+                    ?o rdf:type owl:Ontology .
+                    ?o ?p ?s . }
+            """, initNs={'rdf': RDF, 'owl': OWL})
+        for res in results:
+            graph.remove(res)
+
+        # add new annotations
+        graph.add((URIRef(url + '.owl'), RDF.type, URIRef(OWL + 'Ontology')))
+        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
+        graph.add((URIRef(url + '.owl'), URIRef(OWL + 'versionIRI'), URIRef(pkt_url + '/wiki/' + self.kg_version)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
+        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date_full)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
+        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information visit: ' + pkt_url)))
+
+        return graph
+
+    def output_knowledge_graph_metadata(self, node_integer_map: Dict) -> None:
+        """Loops over the self.node_dict dictionary and writes out the data to a file locally. The data is stored as
+        a tab-delimited '.txt' file with four columns: (1) node identifier; (2) node label; (3) node description or
+        definition; and (4) node synonym.
+
+        NOTE. Not every node in the knowledge class will have metadata. There are some non-ontology nodes that are
+        added (e.g. Ensembl transcript identifiers) that at the time of adding did not include labels, synonyms,
+        or definitions. While these nodes have valid metadata through their original provider, this data may not have
+        been available for download and thus would not have been added to the node_dict.
+
+        Args:
+            node_integer_map: A dictionary where keys are integers and values are node and relation identifiers.
+
+        Returns:
+            None.
         """
 
         if self.node_dict:
-            metadata = self.node_dict[edge_type][node]
-            if 'Label' in metadata.keys() and metadata['Label'] != 'None':
-                graph.add((URIRef(url + str(node)), RDFS.label, Literal(metadata['Label'])))
-            if 'Description' in metadata.keys() and metadata['Description'] != 'None':
-                graph.add((URIRef(url + str(node)), URIRef(obo + 'IAO_0000115'), Literal(metadata['Description'])))
-            if 'Synonym' in metadata.keys() and metadata['Synonym'] != 'None':
-                for syn in metadata['Synonym'].split('|'):
-                    graph.add((URIRef(url + str(node)), URIRef(oboinowl + 'hasExactSynonym'), Literal(syn)))
-            return graph
-        else:
-            return graph
+            print('\nWriting Class Metadata')
+            filename = self.full_kg[:-4] + '_NodeLabels.txt'
+            with open(self.write_location + filename, 'w', encoding='utf-8') as out:
+                out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'node_id' + '\t' + 'label' + '\t' +
+                          'description/definition' + '\t' + 'synonym' + '\n')
+                for nid, nint in tqdm(node_integer_map.items()):
+                    if nid not in self.node_dict['nodes'].keys() or node_id not in self.node_dict['relations'].keys():
+                        etyp, lab, dsc, syn = 'NA', 'NA', 'NA', 'NA'
+                    else:
+                        if nid in self.node_dict['nodes'].keys():
+                            etyp, meta = 'NODES', self.node_dict['nodes'][nid]
+                        if nid in self.node_dict['relations'].keys():
+                            etyp, meta = 'RELATIONS', self.node_dict['relations'][nid]
+                        lab = meta['Label'] if meta['Label'] is not None else 'None'
+                        dsc = meta['Description'] if meta['Description'] is not None else 'None'
+                        syn = meta['Synonym'] if meta['Synonym'] is not None else 'None'
+                    try:
+                        out.write(etyp + '\t' + str(nint) + '\t' + nid + '\t' + lab + '\t' + dsc + '\t' + syn + '\n')
+                    except UnicodeEncodeError:
+                        out.write(etyp.encode('utf-8').decode() + '\t' + str(nint).encode('utf-8').decode() +
+                                  '\t' + nid.encode('utf-8').decode() + '\t' + lab.encode('utf-8').decode() +
+                                  '\t' + dsc.encode('utf-8').decode() + '\t' + syn.encode('utf-8').decode() + '\n')
 
-    def adds_node_metadata(self, graph: Graph, edge_dict: Optional[Dict]) -> Graph:
-        """Iterates over nodes in each edge in the edge_dict, by edge_type. If the node has metadata available in the
-        the node_data dictionary, then it is added to the knowledge graph.
-
-        Args:
-            graph: An RDFLib graph object.
-            edge_dict: A nested dictionary storing the master edge list for the knowledge graph. Where the outer key is
-            an edge-type (e.g. gene-cell) and each inner key contains a dictionary storing details from the
-            resource_info.txt input document. For example:
-            {'chemical-complex': {'source_labels': ';;', 'data_type': 'class-instance', 'edge_relation': 'RO_0002436',
-                                  'uri': ['http://ex', 'https://ex'], 'row_splitter': 'n', 'column_splitter': 't',
-                                  'column_idx': '0;1', 'identifier_maps': 'None', 'evidence_criteria': 'None',
-                                  'filter_criteria': 'None', 'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...]}}
-
-        Returns:
-            graph: An rdflib graph object that includes node metadata.
-        """
-
-        print('\nAdding Non-Ontology Data Metadata to Knowledge Graph')
-
-        if edge_dict:
-            for edge_type in tqdm(edge_dict.keys()):
-                edge_data_type = edge_dict[edge_type]['data_type']
-                if edge_data_type.split('-')[0] == 'class' and edge_data_type.split('-')[1] == 'class':
-                    pass
-                else:
-                    print('Processing ontology terms of {} edge type'.format(edge_data_type))
-                    node_idx = [x for x in range(2) if edge_data_type.split('-')[x] == 'entity']
-                    for edge in tqdm(edge_dict[edge_type]['edge_list']):
-                        if self.node_dict and edge_type in self.node_dict.keys():
-                            if len(node_idx) == 2:
-                                subj, obj = edge[0], edge[1]
-                                if subj in self.node_dict[edge_type].keys() and obj in self.node_dict[edge_type].keys():
-                                    subj_uri = str(edge_dict[edge_type]['uri'][0])
-                                    obj_uri = str(edge_dict[edge_type]['uri'][1])
-                                    graph = self.creates_node_metadata(subj, edge_type, subj_uri, graph)
-                                    graph = self.creates_node_metadata(obj, edge_type, obj_uri, graph)
-                            else:
-                                inst_node = edge[node_idx[0]]
-                                if inst_node in self.node_dict[edge_type].keys():
-                                    node_uri = str(edge_dict[edge_type]['uri'][0])
-                                    graph = self.creates_node_metadata(inst_node, edge_type, node_uri, graph)
-
-            return graph
+        return None
 
     def removes_annotation_assertions(self, owltools_location: str = os.path.abspath('./pkt_kg/libs/owltools')) -> None:
         """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
@@ -200,144 +285,5 @@ class Metadata(object):
         assertions = Graph().parse(filename)
         for edge in tqdm(assertions):
             graph.add(edge)
-
-        return graph
-
-    def extracts_class_metadata(self, graph: Graph) -> None:
-        """Functions queries the knowledge graph to obtain labels, definitions/descriptions, and synonyms for
-        classes. This information is then added to the existing self.node_dict dictionary under the key of 'classes'.
-        Each metadata type is saved as a dictionary key with the actual string stored as the value. The metadata types
-        are packaged as a dictionary which is stored as the value to the node identifier as the key.
-
-        Args:
-            graph: An rdflib graph object.
-
-        Returns:
-            None.
-        """
-
-        print('\nExtracting Class Metadata')
-
-        if self.node_dict:
-            self.node_dict['classes'] = {}
-            results = graph.query(
-                """SELECT DISTINCT ?class ?class_label ?class_definition ?class_syn
-                       WHERE {
-                          ?class rdf:type owl:Class .
-                          optional{?class rdfs:label ?class_label .}
-                          optional{?class obo:IAO_0000115 ?class_definition .}
-                          optional{?class oboinowl:hasExactSynonym ?class_syn .}}
-                       """, initNs={'rdf': RDF, 'rdfs': RDFS, 'owl': OWL, 'obo': obo, 'oboinowl': oboinowl})
-
-            # convert results to dictionary
-            for result in tqdm(results):
-                node = str(result[0]).split('/')[-1]
-                if node in self.node_dict['classes'].keys():
-                    self.node_dict['classes'][node]['Label'].append(str(result[1]) if result[1] else 'None')
-                    self.node_dict['classes'][node]['Description'].append(str(result[2]) if result[2] else 'None')
-                    self.node_dict['classes'][node]['Synonym'].append(str(result[3]) if result[3] else 'None')
-                else:
-                    self.node_dict['classes'][node] = {}
-                    self.node_dict['classes'][node]['Label'] = [str(result[1]) if result[1] else 'None']
-                    self.node_dict['classes'][node]['Description'] = [str(result[2]) if result[2] else 'None']
-                    self.node_dict['classes'][node]['Synonym'] = [str(result[3]) if result[3] else 'None']
-
-        return None
-
-    def output_knowledge_graph_metadata(self, graph: Graph) -> None:
-        """Loops over the self.node_dict dictionary and writes out the data to a file locally. The data is stored as
-        a tab-delimited '.txt' file with four columns: (1) node identifier; (2) node label; (3) node description or
-        definition; and (4) node synonym.
-
-        NOTE. Not every node in the knowledge class will have metadata. There are some non-ontology nodes that are
-        added (e.g. Ensembl transcript identifiers) that at the time of adding did not include labels, synonyms,
-        or definitions. While these nodes have valid metadata through their original provider, this data may not have
-        been available for download and thus would not have been added to the node_dict.
-
-        Args:
-            graph: A rdflib graph object.
-
-        Returns:
-            None.
-        """
-
-        # add metadata for nodes that are data type class to self.node_dict
-        self.extracts_class_metadata(graph)
-        node_tracker: Set = set()  # creat set to ensure nodes are not written out multiple times
-
-        if self.node_dict:
-            print('\nWriting Class Metadata')
-            filename = self.full_kg[:-4] + '_NodeLabels.txt'
-            with open(self.write_location + filename, 'w', encoding='utf-8') as outfile:
-                outfile.write('node_id' + '\t' + 'label' + '\t' + 'description/definition' + '\t' + 'synonym' + '\n')
-                for edge_type in tqdm(self.node_dict.keys()):
-                    for node in self.node_dict[edge_type]:
-                        if node not in node_tracker:
-                            node_tracker |= {node}  # increment node tracker
-                            # labels
-                            label_list = self.node_dict[edge_type][node]['Label']
-                            if isinstance(label_list, list) and len(label_list) > 1: label = '|'.join(set(label_list))
-                            elif isinstance(label_list, list) and len(label_list) == 1: label = label_list[0]
-                            else: label = label_list
-                            # descriptions
-                            desc_list = self.node_dict[edge_type][node]['Description']
-                            if isinstance(desc_list, list) and len(desc_list) > 1: desc = '|'.join(set(desc_list))
-                            elif isinstance(desc_list, list) and len(desc_list) == 1: desc = desc_list[0]
-                            else: desc = desc_list
-                            # synonyms
-                            syn_list = self.node_dict[edge_type][node]['Synonym']
-                            if isinstance(syn_list, list) and len(syn_list) > 1: syn = '|'.join(set(syn_list))
-                            elif isinstance(syn_list, list) and len(syn_list) == 1: syn = syn_list[0]
-                            else: syn = syn_list
-                            try:
-                                outfile.write(node + '\t' + label + '\t' + desc + '\t' + syn + '\n')
-                            except UnicodeEncodeError:
-                                outfile.write(node + '\t' +
-                                              label.encode('utf-8').decode() + '\t' +
-                                              desc.encode('utf-8').decode() + '\t' +
-                                              syn.encode('utf-8').decode() + '\n')
-            outfile.close()
-
-        return None
-
-    def adds_ontology_annotations(self, filename: str, graph: Graph) -> Graph:
-        """Updates the ontology annotation information for an input knowledge graph or ontology.
-
-        Args:
-            filename: A string containing the name of a knowledge graph.
-            graph: An rdflib graph object.
-
-        Returns:
-            graph: An rdflib graph object with edited ontology annotations.
-        """
-
-        print('\n*** Adding Ontology Annotations ***')
-
-        # set annotation variables
-        authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
-        date_full = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
-        # convert filename to permanent url
-        parsed_filename = '_'.join(filename.lower().split('/')[-1].split('_')[2:])
-        url = 'https://pheknowlator.com/pheknowlator_' + parsed_filename
-        pkt_url = 'https://github.com/callahantiff/PheKnowLator'
-
-        # query ontology to obtain existing ontology annotations and remove them
-        results = graph.query(
-            """SELECT DISTINCT ?o ?p ?s
-                WHERE {
-                    ?o rdf:type owl:Ontology .
-                    ?o ?p ?s . }
-            """, initNs={'rdf': RDF, 'owl': OWL})
-        for res in results:
-            graph.remove(res)
-
-        # add new annotations
-        graph.add((URIRef(url + '.owl'), RDF.type, URIRef(OWL + 'Ontology')))
-        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
-        graph.add((URIRef(url + '.owl'), URIRef(OWL + 'versionIRI'), URIRef(pkt_url + '/wiki/' + self.kg_version)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
-        graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date_full)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
-        graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('For more information visit: ' + pkt_url)))
 
         return graph
