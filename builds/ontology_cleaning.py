@@ -65,7 +65,12 @@ class OntologyCleaner(object):
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=18372': ['653067', '653220'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=26418': ['132332'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=30679': ['653067', '653220'],
-            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=26844': ['5414']
+            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=26844': ['5414'],
+            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=31447': ['10529'],
+            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=33870': ['114112'],
+            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=8103': ['10896'],
+            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=26619': ['5058'],
+            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=31424': ['101362076']
         }
         f_data = self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl'
         if not os.path.exists(f_data):
@@ -313,17 +318,17 @@ class OntologyCleaner(object):
                 if not any([x for x in ent_types if 'owl' not in str(x[2])]):
                     # class + object properties --> remove object properties
                     class_prop, obj_prop = (x, RDF.type, OWL.Class), (x, RDF.type, OWL.ObjectProperty)
-                    if (class_prop in ent_types and obj_prop in ent_types) and str(x) not in bad_cls:
+                    if class_prop in ent_types and obj_prop in ent_types:
                         self.ont_graph.remove(obj_prop)
                         bad_cls.add(str(x))
                     # class + individual --> remove individual
                     class_prop, ind_prop = (x, RDF.type, OWL.Class), (x, RDF.type, OWL.NamedIndividual)
-                    if (class_prop in ent_types and ind_prop in ent_types) and str(x) not in bad_cls:
+                    if class_prop in ent_types and ind_prop in ent_types:
                         self.ont_graph.remove(ind_prop)
                         bad_cls.add(str(x))
                     # object property + annotation property --> remove annotation property
                     obj_prop, a_prop = (x, RDF.type, OWL.ObjectProperty), (x, RDF.type, OWL.AnnotationProperty)
-                    if (obj_prop in ent_types and a_prop in ent_types) and str(x) not in bad_obj:
+                    if obj_prop in ent_types and a_prop in ent_types:
                         self.ont_graph.remove(a_prop)
                         bad_obj.add(str(x))
                         # object properties that are subproperty of something that is not an object property
