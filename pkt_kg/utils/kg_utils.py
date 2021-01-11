@@ -343,14 +343,14 @@ def finds_node_type(edge_info: Dict) -> Dict:
     return nodes
 
 
-def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> None:
+def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:
     """Loops over the knowledge graph in order to create three different types of files:
         - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
-        subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
+          subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
         - Identifiers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
-        subject, predicate, object). Both the subject and object identifiers have not been mapped to integers.
+          subject, predicate, object). Both the subject and object identifiers have not been mapped to integers.
         - Identifier-Integer Map: a `.json` file containing a dictionary where the keys are node identifiers and
-        the values are integers.
+          the values are integers.
 
     Args:
         graph: An rdflib graph object.
@@ -359,7 +359,7 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         output_ints_map: the name and file path to write out results.
 
     Returns:
-        None.
+        node_map: A dictionary where keys are integers and values are identifiers.
 
     Raises:
         ValueError: If the length of the graph is not the same as the number of extracted triples.
@@ -394,7 +394,6 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
                           edge[2].encode('utf-8').decode() + '\n')
         # update counter and delete edge
         output_triples += 1
-        graph.remove(edge)
     out_ints.close(), out_ids.close()
 
     # CHECK - verify we get the number of edges that we would expect to get
@@ -403,9 +402,8 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     else:
         with open(write_location + '/' + output_ints_map, 'w') as file_name:
             json.dump(node_map, file_name)
-    del graph  # clean up environment
 
-    return None
+    return node_map
 
 
 def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:
