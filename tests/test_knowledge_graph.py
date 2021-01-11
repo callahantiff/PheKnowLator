@@ -7,6 +7,7 @@ import pickle
 import shutil
 import unittest
 
+from mock import patch
 from rdflib import Graph, URIRef, BNode
 from rdflib.namespace import OWL, RDF
 from typing import Dict, List
@@ -38,10 +39,8 @@ class TestKGBuilder(unittest.TestCase):
 
         # copy needed data data
         # node metadata
-        shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt',
-                        self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
-        shutil.copyfile(self.dir_loc + '/node_data/gene-gene_GENE_METADATA.txt',
-                        self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt')
+        shutil.copyfile(self.dir_loc + '/node_data/node_metadata_dict.pkl',
+                        self.dir_loc_resources + '/node_data/node_metadata_dict.pkl')
         # ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/empty_hp_with_imports.owl',
                         self.dir_loc_resources + '/ontologies/hp_with_imports.owl')
@@ -237,17 +236,14 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the class initialization parameters for node_metadata."""
 
         # remove node metadata
-        gene_phen_data = self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt'
-        gene_gene_data = self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt'
+        gene_phen_data = self.dir_loc_resources + '/node_data/node_metadata_dict.pkl'
         os.remove(gene_phen_data)
-        os.remove(gene_gene_data)
 
         # test method
         self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes', self.write_location)
 
         # add back deleted data
-        shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt', gene_phen_data)
-        shutil.copyfile(self.dir_loc + '/node_data/gene-gene_GENE_METADATA.txt', gene_gene_data)
+        shutil.copyfile(self.dir_loc + '/node_data/node_metadata_dict.pkl', gene_phen_data)
 
         return None
 
@@ -495,7 +491,7 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
         # make sure to add node_metadata
-        self.kg_subclass.kg_metadata = 'no'
+        self.kg_subclass.node_data = 'no'
 
         # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
@@ -524,7 +520,7 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
         # make sure to add node_metadata
-        self.kg_subclass.kg_metadata = 'yes'
+        self.kg_subclass.node_data = 'yes'
 
         # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
@@ -540,6 +536,26 @@ class TestKGBuilder(unittest.TestCase):
 
         # check graph was saved
         self.assertTrue(os.path.exists(self.kg_subclass.write_location + self.kg_subclass.full_kg))
+
+        return None
+
+    @patch('builtins.print')
+    def test_gets_edge_statistics(self, mock_print):
+        """Tests the gets_edge_statistics method."""
+
+        # no inverse edges
+        self.kg_subclass.gets_edge_statistics('gene-gene', None, [x for x in range(0, 100)])
+        mock_print.assert_called_with('Unique gene: 8')
+
+        return None
+
+    @patch('builtins.print')
+    def test_gets_edge_statistics_inverse_relations(self, mock_print):
+        """Tests the gets_edge_statistics method when including inverse relations."""
+
+        # no inverse edges
+        self.kg_subclass.gets_edge_statistics('gene-gene', 'RO_0000000', [x for x in range(0, 100)])
+        mock_print.assert_called_with('Unique gene: 8')
 
         return None
 

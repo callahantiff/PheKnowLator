@@ -17,6 +17,7 @@ Interacts with Knowledge Graphs
 * adds_edges_to_graph
 * remove_edges_from_graph
 * updates_graph_namespace
+* gets_class_ancestors
 
 Writes Triple Lists
 * maps_node_ids_to_integers
@@ -33,15 +34,16 @@ import networkx  # type: ignore
 import os
 import os.path
 from rdflib import Graph, Literal, Namespace, URIRef  # type: ignore
-from rdflib.namespace import RDF, OWL  # type: ignore
+from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 # set-up environment variables
-schema = Namespace('http://www.w3.org/2001/XMLSchema#')
+obo = Namespace('http://purl.obolibrary.org/obo/')
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
+schema = Namespace('http://www.w3.org/2001/XMLSchema#')
 
 
 def gets_ontology_classes(graph: Graph) -> Set:
@@ -468,3 +470,30 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     del nx_mdg   # clean up environment
 
     return None
+
+def gets_class_ancestors(graph: Graph, class_uris: List[Union[URIRef, str]], class_list: Optional[List] = None) -> List:
+    """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input class.
+
+    Args:
+        graph: An RDFLib graph object assumed to contain ontology data.
+        class_uris: A list of at least one ontology class RDFLib URIRef object.
+        class_list: A list of URIs representing the ancestor classes found for the input class_uris.
+
+    Returns:
+        A list of ontology class ordered by the ontology hierarchy.
+    """
+
+    # instantiate list object if none passed to function
+    class_list = [] if class_list is None else class_list
+
+    # check class uris are formatted correctly
+    class_uris = [x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris]
+
+    # gets ancestors
+    ancestor_classes = [j for k in [list(graph.objects(x, RDFS.subClassOf)) for x in class_uris] for j in k]
+
+    if len(ancestor_classes) == 0:
+        return [str(x) for x in class_list][::-1]
+    else:
+        class_list += ancestor_classes
+        return gets_class_ancestors(graph, ancestor_classes, class_list)
