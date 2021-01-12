@@ -20,22 +20,20 @@ jobs:
       run: |
         gcloud auth configure-docker
 
-    # Build the Docker image
-    - name: Build & Publish
-      run: |
-        gcloud config set project ${{ secrets.GCE_PROJECT }}
-        gcloud builds submit --tag gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets.GCP_APPLICATION }} \
-        --file=builds/Dockerfile ./builds
-        gcloud config set run/region us-central1
+#    # Build the Docker image
+   - name: Build and Push Container
+            run: |-
+              docker build -t gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets.GCP_APPLICATION }}:${{ github.sha }} -f builds/Dockerfile ./builds
+              docker push gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets.GCP_APPLICATION }}:${{ github.sha }}
 
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |
-        gcloud run deploy ${{ secrets.GCP_APPLICATION }} --image gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets
-        .GCP_APPLICATION }} \
-        --platform managed \
-        --allow-unauthenticated \
-        --memory 512M
+        gcloud run deploy ${{ secrets.GCP_APPLICATION }}  \
+          --image gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets.GCP_APPLICATION }} \
+          --platform managed \
+          --allow-unauthenticated \
+          --memory 512M
 
 #name: Build and Deploy to Google Compute Engine
 #on: push
