@@ -1,43 +1,86 @@
-name: Build and Deploy to Google Compute Engine
-on: push
-env:
-  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
-  GCE_INSTANCE: pkt-builder
-  GCE_INSTANCE_ZONE: us-central1-a
-
+name: cloudrun-deploy
+on:
+  push:
+    branches:
+      - main
 jobs:
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
-      with:
-       ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+      uses: actions/checkout@master
 
     # Setup gcloud CLI
-    - uses: google-github-actions/setup-gcloud@master
+    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
       with:
-        version: '290.0.1'
-        service_account_key: ${{ secrets.GCE_SA_KEY }}
-        project_id: ${{ secrets.GCE_PROJECT }}
+        service_account_email: ${{ secrets.GCP_CLOUD_RUN_EMAIL }}
+        service_account_key: ${{ secrets.GCP_CLOUD_RUN_CREDENTIALS }}
+        export_default_credentials: true
 
-    # Configure Docker to use the gcloud command-line tool as a credential
-    # helper for authentication
-    - run: |-
-        gcloud --quiet auth configure-docker
-      # Build the Docker image
-    - name: Build
-      run: |-
-        docker build --tag "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA" -f builds/Dockerfile ./builds
-      # Push the Docker image to Google Container Registry
-    - name: Publish
-      run: |-
-        docker push "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
+    # Configure Docker with Credentials
+    - name: Configure Docker
+      run: |
+        gcloud auth configure-docker
+
+    # Build the Docker image
+    - name: Build & Publish
+      run: |
+        gcloud config set project ${{ secrets.GCE_PROJECT }}
+        gcloud builds submit --tag gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets.GCP_APPLICATION }}
+        gcloud config set run/region us-central1
+
+    # Deploy the Docker image to the GKE cluster
     - name: Deploy
-      run: |-
-        gcloud compute instances update-container "$GCE_INSTANCE" \
-          --zone "$GCE_INSTANCE_ZONE" \
-          --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
+      run: |
+        gcloud run deploy ${{ secrets.GCP_APPLICATION }} --image gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets
+        .GCP_APPLICATION }} \
+        --platform managed \
+        --allow-unauthenticated \
+        --memory 512M
 
-## Need to add instance start and stop commands 
+#name: Build and Deploy to Google Compute Engine
+#on: push
+#env:
+#  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
+#  GCE_INSTANCE: pkt-builder
+#  GCE_INSTANCE_ZONE: us-central1-a
+#
+#jobs:
+#  setup-build-publish-deploy:
+#    name: Setup, Build, Publish, and Deploy
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#    - name: Checkout
+#      uses: actions/checkout@v2
+#      with:
+#       ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+#
+#
+#    # Setup gcloud CLI
+#    - uses: google-github-actions/setup-gcloud@master
+#      with:
+#        version: '290.0.1'
+#        service_account_key: ${{ secrets.GCE_SA_KEY }}
+#        project_id: ${{ secrets.GCE_PROJECT }}
+#
+#    # Configure Docker to use the gcloud command-line tool as a credential
+#    # helper for authentication
+#    - run: |-
+#        gcloud --quiet auth configure-docker
+#      # Build the Docker image
+#    - name: Build
+#      run: |-
+#        docker build --tag "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA" -f builds/Dockerfile ./builds
+#      # Push the Docker image to Google Container Registry
+#    - name: Publish
+#      run: |-
+#        docker push "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
+#    - name: Deploy
+#      run: |-
+#        gcloud compute instances update-container "$GCE_INSTANCE" \
+#          --zone "$GCE_INSTANCE_ZONE" \
+#          --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
+#
+### Need to add instance start and stop commands
