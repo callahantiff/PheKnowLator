@@ -1,5 +1,11 @@
 name: cloudrun-deploy
 on: push
+
+env:
+  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
+  SERVICE: ${{ secrets.GCP_APPLICATION }}
+  REGION: us-central1
+
 jobs:
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
