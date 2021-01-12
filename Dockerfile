@@ -19,12 +19,11 @@ RUN wget -O- https://apt.corretto.aws/corretto.key | apt-key add - && \
 ## PHEKNOWLATOR (PKT_KG) PROJECT SETTINGS ##
 # create needed project directories
 WORKDIR /PheKnowLator
-# I THINK WE NEED LINE 23 -- which I had to delete to get it to run past this point
-#RUN mkdir /PheKnowLator
-RUN mkdir /PheKnowLator/resources
-RUN mkdir /PheKnowLator/resources/edge_data
-RUN mkdir /PheKnowLator/resources/knowledge_graphs
-RUN mkdir /PheKnowLator/resources/ontologies
+RUN mkdir -p /PheKnowLator
+RUN mkdir -p /PheKnowLator/resources
+RUN mkdir -p /PheKnowLator/resources/edge_data
+RUN mkdir -p /PheKnowLator/resources/knowledge_graphs
+RUN mkdir -p /PheKnowLator/resources/ontologies
 
 # copy pkt_kg scripts
 COPY pkt_kg /PheKnowLator/pkt_kg
