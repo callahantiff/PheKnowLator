@@ -13,7 +13,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
       with:
-       ref: scripting_prebuild_notebooks
+       ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
 
     # Setup gcloud CLI
     - uses: google-github-actions/setup-gcloud@master
