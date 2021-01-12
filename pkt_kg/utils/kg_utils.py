@@ -465,7 +465,7 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
         nx_mdg.add_edge(s, o, **{'key': p, 'predicate_key': pred_key, 'weight': 0.0})
 
     # pickle networkx graph
-    print('Pickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
+    print('Pickling MultiDiGraph -- For Large Networks Process Takes Several Minutes.')
     networkx.write_gpickle(nx_mdg, write_location + full_kg + '_NetworkxMultiDiGraph.gpickle')
     del nx_mdg   # clean up environment
 
