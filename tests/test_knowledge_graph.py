@@ -81,7 +81,8 @@ class TestKGBuilder(unittest.TestCase):
                                          "edge_list": [["DOID_3075", "DOID_1080"], ["DOID_3075", "DOID_4267"],
                                                        ["DOID_4800", "DOID_10190"], ["DOID_4800", "DOID_80219"],
                                                        ["DOID_2729", "DOID_1962"], ["DOID_2729", "DOID_5096"],
-                                                       ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]}
+                                                       ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]},
+                     "entity_namespaces": {"gene": "http://purl.uniprot.org/geneid/"}
                      }
 
         edge_dict_inst = {"gene-phenotype": {"data_type": "entity-class",
@@ -107,7 +108,8 @@ class TestKGBuilder(unittest.TestCase):
                                               "edge_list": [["DOID_3075", "DOID_1080"], ["DOID_3075", "DOID_4267"],
                                                             ["DOID_4800", "DOID_10190"], ["DOID_4800", "DOID_80219"],
                                                             ["DOID_2729", "DOID_1962"], ["DOID_2729", "DOID_5096"],
-                                                            ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]}
+                                                            ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]},
+                          "entity_namespaces": {"gene": "http://purl.uniprot.org/geneid/"}
                           }
 
         # save data
@@ -486,12 +488,12 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.reverse_relation_processor()
 
         # make sure that kg is empty
-        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        self.kg_subclass.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
         # make sure to add node_metadata
-        self.kg_subclass.node_data = 'no'
+        self.kg_subclass.node_data = []
 
         # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
@@ -513,29 +515,26 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the creates_knowledge_graph_edges method and adds node metadata to the KG."""
 
         self.kg_subclass.reverse_relation_processor()
-
         # make sure that kg is empty
-        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        self.kg_subclass.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
         # make sure to add node_metadata
-        self.kg_subclass.node_data = 'yes'
-
-        # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
                             self.kg_subclass.node_data, self.kg_subclass.node_dict)
         metadata.node_metadata_processor()
-
+        metadata.extracts_class_metadata(self.kg_subclass.graph)
+        self.kg_subclass.node_dict = metadata.node_dict
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
-
+        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata,
+                                                       metadata.adds_ontology_annotations)
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 42477)
-
+        self.assertEqual(len(self.kg_subclass.graph), 42239)
         # check graph was saved
-        self.assertTrue(os.path.exists(self.kg_subclass.write_location + self.kg_subclass.full_kg))
+        f_name = '/PheKnowLator_v2.0.0_full_subclass_inverseRelations_noOWL.owl'
+        self.assertTrue(os.path.exists(self.kg_subclass.write_location + f_name))
 
         return None
 
@@ -648,9 +647,9 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    def tearDown(self):
-
-        # remove resource directory
-        shutil.rmtree(self.dir_loc_resources)
-
-        return None
+    # def tearDown(self):
+    #
+    #     # remove resource directory
+    #     shutil.rmtree(self.dir_loc_resources)
+    #
+    #     return None

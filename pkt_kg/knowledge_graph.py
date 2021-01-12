@@ -85,6 +85,7 @@ class KGBuilder(object):
 
         # GRAPH EDGE DATA
         edge_data = self.res_dir + '/Master_Edge_List_Dict.json'
+        print(edge_data)
         if not os.path.exists(edge_data): raise OSError('The {} file does not exist!'.format(edge_data))
         elif os.stat(edge_data).st_size == 0: raise TypeError('The input file: {} is empty'.format(edge_data))
         else:
@@ -256,29 +257,29 @@ class KGBuilder(object):
             None.
         """
 
-        edge_builder = KGConstructionApproach(kg.edge_dict, kg.res_dir)  # initialize construction approaches
-        for edge_type in [x for x in kg.edge_dict.keys() if '-' in x]:
-            n1_type, n2_type = kg.edge_dict[edge_type]['data_type'].split('-')
-            uri, edge_list = kg.edge_dict[edge_type]['uri'], copy.deepcopy(kg.edge_dict[edge_type]['edge_list'])
+        edge_builder = KGConstructionApproach(self.edge_dict, self.res_dir)  # initialize construction approaches
+        for edge_type in [x for x in self.edge_dict.keys() if '-' in x]:
+            n1_type, n2_type = self.edge_dict[edge_type]['data_type'].split('-')
+            uri, edge_list = self.edge_dict[edge_type]['uri'], copy.deepcopy(self.edge_dict[edge_type]['edge_list'])
             edge_results: List = []
-            rel = kg.edge_dict[edge_type]['edge_relation']
-            kg.verifies_object_property(URIRef(obo + rel))  # verify object property in knowledge graph
-            invrel = kg.checks_for_inverse_relations(rel, edge_list) if kg.inverse_relations else None
+            rel = self.edge_dict[edge_type]['edge_relation']
+            self.verifies_object_property(URIRef(obo + rel))  # verify object property in knowledge graph
+            invrel = self.checks_for_inverse_relations(rel, edge_list) if self.inverse_relations else None
             print('\nCreating {} ({}-{}) Edges ***'.format(edge_type.upper(), n1_type, n2_type))
             for edge in tqdm(edge_list):
                 edge_info = {'n1': n1_type, 'n2': n2_type, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
                 meta = node_metadata_func([''.join(x) for x in list(zip(uri, edge))], [n1_type, n2_type])
-                metadata_logic = [True if kg.node_data is None and meta is None
-                                  or kg.node_data is not None and meta is not None else False][0]
-                if kg.check_ontology_class_nodes(edge_info) and metadata_logic:  # make sure ont class nodes are in KG
-                    if n1_type != 'class': updates_graph_namespace(n1_type, kg.graph, uri[0 + edge[0]])
-                    if n2_type != 'class': updates_graph_namespace(n2_type, kg.graph, uri[1 + edge[1]])
-                    if kg.construct_approach == 'subclass':
-                        kg.edge_dict, new_edges = edge_builder.subclass_constructor(edge_info, edge_type)
+                metadata_logic = [True if self.node_data is None and meta is None
+                                  or self.node_data is not None and meta is not None else False][0]
+                if self.check_ontology_class_nodes(edge_info) and metadata_logic:  # make sure ont class nodes are in KG
+                    if n1_type != 'class': updates_graph_namespace(n1_type, self.graph, uri[0 + edge[0]])
+                    if n2_type != 'class': updates_graph_namespace(n2_type, self.graph, uri[1 + edge[1]])
+                    if self.construct_approach == 'subclass':
+                        self.edge_dict, new_edges = edge_builder.subclass_constructor(edge_info, edge_type)
                         edge_results += new_edges
                         if self.node_data and meta: self.graph = adds_edges_to_graph(self.graph, new_edges + meta)
                     else:
-                        kg.edge_dict, new_edges = edge_builder.instance_constructor(edge_info, edge_type)
+                        self.edge_dict, new_edges = edge_builder.instance_constructor(edge_info, edge_type)
                         edge_results += new_edges
                         if self.node_data and meta: self.graph = adds_edges_to_graph(self.graph, new_edges)
                 else: self.edge_dict[edge_type]['edge_list'].pop(self.edge_dict[edge_type]['edge_list'].index(edge))
@@ -325,8 +326,8 @@ class PartialBuild(KGBuilder):
     def construct_knowledge_graph(self) -> None:
         """Builds a partial knowledge graph. A partial knowledge graph build is recommended when one intends to build a
         knowledge graph and intends to run a reasoner over it. The partial build includes the following steps: (1)
-        Process relation/inverse relation data; (2) Process node metadata; (3) Merge ontologies; and (4) Add master
-        edge list to merged ontologies.
+        Process relation/inverse relations; (2) Merge ontologies; (3) Process node metadata; and (4) Add master edge
+        list to merged ontologies.
 
         Returns:
             None.
@@ -341,12 +342,7 @@ class PartialBuild(KGBuilder):
         print('*** Loading Relations Data ***')
         self.reverse_relation_processor()
 
-        # STEP 2: PROCESS NODE METADATA
-        print('*** Loading Node Metadata Data ***')
-        metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data: metadata.node_metadata_processor()
-
-        # STEP 3: MERGE ONTOLOGIES
+        # STEP 2: MERGE ONTOLOGIES
         if self.merged_ont_kg in glob.glob(self.write_location + '/*.owl'):
             print('*** Loading Merged Ontologies ***')
             self.graph.parse(self.merged_ont_kg, format='xml')
@@ -355,19 +351,26 @@ class PartialBuild(KGBuilder):
             merged_ontology_location = self.merged_ont_kg.split('/')[-1]
             merges_ontologies(self.ontologies, merged_ontology_location, self.owl_tools)
             self.graph.parse(self.merged_ont_kg, format='xml')  # load the merged ontology
-        # print merged ontology statistics
+        # print statistics on the merged ontologies
         gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         print('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
-        # STEP 4: ADD MASTER EDGE DATA TO KNOWLEDGE GRAPH
-        # build knowledge graph
-        print('*** Building Knowledge Graph Edges ***')
+        # STEP 3: PROCESS NODE METADATA
+        print('*** Loading Node Metadata Data ***')
+        metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
+        if self.node_data: metadata.node_metadata_processor(), metadata.extracts_class_metadata(self.graph)
+        self.node_dict = metadata.node_dict
+
+        # STEP 4: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
+        print('\n*** Building Knowledge Graph Edges ***')
         self.ont_classes = gets_ontology_classes(self.graph)
         self.obj_properties = gets_object_properties(self.graph)
-        self.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
-        # print statistics
+        self.creates_knowledge_graph_edges(metadata.creates_node_metadata, metadata.adds_ontology_annotations)
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
         print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
+
+        # clean environment
+        del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
 
         return None
 
@@ -385,8 +388,8 @@ class PostClosureBuild(KGBuilder):
         built knowledge graph and completes the build process.
 
         The post-closure build utilizes the following steps: (1) Process relation and inverse relation data; (2)
-        Process node metadata; (3) Load closed knowledge graph; (4) Extract and write node metadata; (5) Decode
-        OWL-encoded classes; and (6) Output knowledge graph files and create edge lists.
+        Load closed knowledge graph; (3) Process node metadata; (4) Decode OWL-encoded classes; (5) Output knowledge
+        graph files and create edge lists; and (6) Extract and write node metadata.
 
         Returns:
             None.
@@ -402,12 +405,7 @@ class PostClosureBuild(KGBuilder):
         print('*** Loading Relations Data ***')
         self.reverse_relation_processor()
 
-        # STEP 2: PROCESS NODE METADATA
-        print('*** Loading Node Metadata Data ***')
-        metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data: metadata.node_metadata_processor()
-
-        # STEP 3: LOAD CLOSED KNOWLEDGE GRAPH
+        # STEP 2: LOAD CLOSED KNOWLEDGE GRAPH
         closed_kg_location = glob.glob(self.write_location + '/*.owl')
         if len(closed_kg_location) == 0:
             raise OSError('The closed KG file does not exist!')
@@ -422,24 +420,31 @@ class PostClosureBuild(KGBuilder):
             gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
             print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
-        # STEP 4: EXTRACT AND WRITE NODE METADATA
-        print('\n*** Processing Knowledge Graph Metadata ***')
-        if self.node_data: metadata.output_knowledge_graph_metadata(self.graph)
-        del metadata, self.edge_dict, self.node_dict, self.relations_dict, self.inverse_relations_dict  # clean env
+        # STEP 3: PROCESS NODE METADATA
+        print('*** Loading Node Metadata Data ***')
+        metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
+        if self.node_data: metadata.node_metadata_processor(), metadata.extracts_class_metadata(self.graph)
+        self.node_dict = metadata.node_dict
 
-        # STEP 5: DECODE OWL SEMANTICS
+        # STEP 4: DECODE OWL SEMANTICS
         if self.decode_owl:
             print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-            owl_nets = OwlNets(self.construct_approach, self.graph, self.write_location, self.full_kg, self.owl_tools)
+            owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
             self.graph = owl_nets.run_owl_nets()
-        else:
-            converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
+        else: converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
 
-        # STEP 6: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
-        print('*** Writing Knowledge Graph Edge Lists ***')
-        maps_node_ids_to_integers(self.graph, self.write_location,
-                                  self.full_kg[:-4] + '_Triples_Integers.txt',
-                                  self.full_kg[:-4] + '_Triples_Integer_Identifier_Map.json')
+        # STEP 5: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
+        print('\n*** Writing Knowledge Graph Edge Lists ***')
+        node_int_map = maps_node_ids_to_integers(self.graph, self.write_location,
+                                                 self.full_kg[:-4] + '_Triples_Integers.txt',
+                                                 self.full_kg[:-4] + '_Triples_Integer_Identifier_Map.json')
+
+        # STEP 6: EXTRACT AND WRITE NODE METADATA
+        print('\n*** Processing Knowledge Graph Metadata ***')
+        if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
+
+        # clean environment
+        del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
 
         return None
 
@@ -454,9 +459,9 @@ class FullBuild(KGBuilder):
     def construct_knowledge_graph(self) -> None:
         """Builds a full knowledge graph. Please note that the process to build this version of the knowledge graph
         does not include running a reasoner. The full build includes the following steps: (1) Process relation/inverse
-        relations; (2) Merge ontologies; (3) Process node metadata; (4) Add master edge list to  merged ontologies; (5)
-        Extract and write node metadata; (6) Decode OWL-encoded classes and (7) Output knowledge graphs and create
-        edge lists.
+        relations; (2) Merge ontologies; (3) Process node metadata; (4) Add master edge list to merged ontologies; (5)
+        Decode OWL-encoded classes; (6) Output knowledge graphs and create edge lists and (7) Extract and write node
+        metadata.
 
         Returns:
             None.
@@ -486,30 +491,35 @@ class FullBuild(KGBuilder):
 
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
-        metadata = Metadata(kg.kg_version, kg.write_location, kg.full_kg, kg.node_data, kg.node_dict)
-        if self.node_data: metadata.node_metadata_processor(), metadata.extracts_class_metadata(kg.graph)
+        metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
+        if self.node_data: metadata.node_metadata_processor(), metadata.extracts_class_metadata(self.graph)
         self.node_dict = metadata.node_dict
 
         # STEP 4: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
-        kg.ont_classes = gets_ontology_classes(kg.graph)
-        kg.obj_properties = gets_object_properties(kg.graph)
+        self.ont_classes = gets_ontology_classes(self.graph)
+        self.obj_properties = gets_object_properties(self.graph)
         self.creates_knowledge_graph_edges(metadata.creates_node_metadata, metadata.adds_ontology_annotations)
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
         print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
+        ## TODO: ADD METHOD HERE TO ADD RDF TYPE TO EDGE DICT TYPE FOR INSTANCE-BASED OWL-NETS KGS and CONSIDER HOW YOU
+        ## MIGHT ALSO BE ABLE TO DO THIS FOR THE SUBCLASS
+
         # STEP 5: DECODE OWL SEMANTICS
         if self.decode_owl:
             print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
+            purified = self.full_kg[-4] + '_{}_Purified'.format(self.construct_approach.upper())
+            owl_nets_pure = OwlNets(self.graph, self.write_location, purified, self.construct_approach, self.owl_tools)
             owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
-            self.graph = owl_nets.run_owl_nets()
+            self.graph, _ = owl_nets.run_owl_nets(), owl_nets_pure.run_owl_nets()
         else: converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
 
         # STEP 6: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('\n*** Writing Knowledge Graph Edge Lists ***')
-        node_int_map = maps_node_ids_to_integers(kg.graph, kg.write_location,
-                                                 kg.full_kg[:-4] + '_Triples_Integers.txt',
-                                                 kg.full_kg[:-4] + '_Triples_Integer_Identifier_Map.json')
+        node_int_map = maps_node_ids_to_integers(self.graph, self.write_location,
+                                                 self.full_kg[:-4] + '_Triples_Integers.txt',
+                                                 self.full_kg[:-4] + '_Triples_Integer_Identifier_Map.json')
 
         # STEP 7: EXTRACT AND WRITE NODE METADATA
         print('\n*** Processing Knowledge Graph Metadata ***')
