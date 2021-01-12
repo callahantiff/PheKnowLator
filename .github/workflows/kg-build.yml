@@ -3,7 +3,7 @@ on: push
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
   GCE_INSTANCE: ${{ secrets.GCE_INSTANCE_NAME }}
-  GCE_INSTANCE_ZONE: ${{ secrets.GCE_INSTANCE_ZONE_NAME }}
+  GCE_INSTANCE_ZONE: us-central1-a
 
 jobs:
   setup-build-publish-deploy:
