@@ -22,7 +22,7 @@ jobs:
       with:
         version: '290.0.1'
         service_account_key: ${{ secrets.GCE_SERVICE_ACCOUNT_KEY }}
-        project_id: "$PROJECT_ID"
+        project_id: ${{ env.PROJECT_ID }}
     - run: gcloud --quiet auth configure-docker  # Configure Docker to use the gcloud command-line tool as a credential
 
     - name: Build Container
