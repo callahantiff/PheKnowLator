@@ -36,7 +36,7 @@ jobs:
     - name: Deploy
       run: |
         gcloud run deploy ${{ secrets.GCP_APPLICATION }}  \
-          --project ${{ secrets.GCE_PROJECT }}
+          --project ${{ secrets.GCE_PROJECT }} \
           --image gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets.GCP_APPLICATION }}:${{ github.sha }} \
           --platform managed \
           --allow-unauthenticated \
