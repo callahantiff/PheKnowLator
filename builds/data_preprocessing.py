@@ -1481,7 +1481,9 @@ class DataPreprocessing(object):
 
     def _creates_pathway_metadata_dict(self) -> Dict:
         """Creates a dictionary to store labels, synonyms, and a description for each Reactome Pathway identifier
-        present in the input data file.
+        present in the human Reactome Pathway Database identifier data set (ReactomePathways.txt); Reactome-Gene
+        Association data (gene_association.reactome.gz), and Reactome-ChEBI data (ChEBI2Reactome_All_Levels.txt). The
+        keys of the dictionary are Reactome identifiers and the values are dictionaries for each metadata type.
 
         Returns:
             pathway_metadata_dict: A dict containing metadata that's keyed by Reactome Pathway identifier and whose
@@ -1494,11 +1496,22 @@ class DataPreprocessing(object):
 
         print('\t- Generating Metadata for Pathway Identifiers')
 
-        # get metadata then convert it to a dictionary
+        # reactome pathways
         f_name = self.temp_dir + '/' + 'ReactomePathways.txt'
         data = pandas.read_csv(f_name, header=None, delimiter='\t', low_memory=False)
         data = data.loc[data[2].apply(lambda x: x == 'Homo sapiens')]
-        nodes = set(list(data[0]))
+        # reactome gene association data
+        f_name1 = self.temp_dir + '/' + 'gene_association.reactome'
+        data1 = pandas.read_csv(f_name1, header=None, delimiter='\t', skiprows=1, low_memory=False)
+        data1 = data1.loc[data1[12].apply(lambda x: x == 'taxon:9606')]
+        data1[5].replace('REACTOME:', '', inplace=True, regex=True)
+        # reactome CHEBI data
+        f_name2 = self.temp_dir + '/' + 'ChEBI2Reactome_All_Levels.txt'
+        data2 = pandas.read_csv(f_name2, header=None, delimiter='\t', low_memory=False)
+        data2 = data2.loc[data2[5].apply(lambda x: x == 'Homo sapiens')]
+
+        # set unique node list
+        nodes = set(list(data[0]) + list(data1[5]) + list(data2[1]))
         metadata = metadata_api_mapper(list(nodes))
         metadata['ID'] = metadata['ID'].map('https://reactome.org/content/detail/{}'.format)
         metadata.set_index('ID', inplace=True)
