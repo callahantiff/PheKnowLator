@@ -34,13 +34,11 @@ class TestOwlNets(unittest.TestCase):
         # set-up input arguments
         self.write_location = self.dir_loc_resources + '/knowledge_graphs'
         self.kg_filename = '/so_with_imports.owl'
-        self.object_properties = self.dir_loc_resources + '/owl_decoding/OWL_NETS_Property_Types.txt'
         # read in knowledge graph
-        self.graph = Graph()
-        self.graph.parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
         # initialize class
-        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph, write_location=self.write_location,
-                                filename=self.kg_filename)
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
@@ -90,10 +88,36 @@ class TestOwlNets(unittest.TestCase):
         """Tests the class initialization state for graphs."""
 
         # verify input graph object - when wrong data type
-        self.assertRaises(TypeError, OwlNets, 'subclass', list(), self.write_location, self.kg_filename)
+        self.assertRaises(TypeError, OwlNets,
+                          kg_construct_approach='subclass', graph=list(),
+                          write_location=self.write_location, filename=self.kg_filename)
 
         # verify input graph object - when graph file is empty
-        self.assertRaises(ValueError, OwlNets, 'subclass', Graph(), self.write_location, self.kg_filename)
+        self.assertRaises(ValueError, OwlNets, kg_construct_approach='subclass', graph=Graph(),
+                          write_location=self.write_location, filename=self.kg_filename)
+
+        return None
+
+    def test_graph_input_types(self):
+        """Tests different graph input types."""
+
+        # when graph is provided
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.graph,
+                           write_location=self.write_location,
+                           filename=self.kg_filename,
+                           owl_tools='test_location')
+
+        self.assertIsInstance(owl_nets.graph, Graph)
+
+        # when path to graph is provided
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl',
+                           write_location=self.write_location,
+                           filename=self.kg_filename,
+                           owl_tools='test_location')
+
+        self.assertIsInstance(owl_nets.graph, Graph)
 
         return None
 
@@ -103,6 +127,31 @@ class TestOwlNets(unittest.TestCase):
         self.assertIsInstance(self.owl_nets.kg_construct_approach, str)
         self.assertTrue(self.owl_nets.kg_construct_approach == 'subclass')
         self.assertFalse(self.owl_nets.kg_construct_approach == 'instance')
+
+        return None
+
+    def test_initialization_owl_nets_dict(self):
+        """Tests the class initialization state for owl_nets_dict."""
+
+        self.assertIsInstance(self.owl_nets.owl_nets_dict, Dict)
+        self.assertIn('owl_nets', self.owl_nets.owl_nets_dict.keys())
+        self.assertIn('decoded_classes', self.owl_nets.owl_nets_dict['owl_nets'])
+        self.assertIn('complementOf', self.owl_nets.owl_nets_dict['owl_nets'].keys())
+        self.assertIn('cardinality', self.owl_nets.owl_nets_dict['owl_nets'].keys())
+        self.assertIn('negation', self.owl_nets.owl_nets_dict['owl_nets'].keys())
+        self.assertIn('misc', self.owl_nets.owl_nets_dict['owl_nets'].keys())
+        self.assertIn('disjointWith', self.owl_nets.owl_nets_dict.keys())
+        self.assertIn('filtered_triples', self.owl_nets.owl_nets_dict.keys())
+        self.assertIn('{}_approach_purified'.format(self.owl_nets.kg_construct_approach),
+                      self.owl_nets.owl_nets_dict.keys())
+
+        return None
+
+    def test_initialization_class_list(self):
+        """Tests the class initialization state for class_list."""
+
+        self.assertIsInstance(self.owl_nets.class_list, List)
+        self.assertEqual(len(self.owl_nets.class_list), 2573)
 
         return None
 
@@ -244,15 +293,16 @@ class TestOwlNets(unittest.TestCase):
         """Tests the creates_edge_dictionary method."""
 
         # set-up inputs
+        self.owl_nets.converts_rdflib_to_networkx_multidigraph()
         node = URIRef('http://purl.obolibrary.org/obo/SO_0000822')
-        edge_dict, cardinality = self.owl_nets.creates_edge_dictionary(node)
+        edge_dict = self.owl_nets.creates_edge_dictionary(node)
 
         # test method
-        self.assertIsInstance(edge_dict, Dict)
-        self.assertEqual(len(edge_dict), 5)
-        self.assertIsInstance(edge_dict[list(edge_dict.keys())[0]], Dict)
-        self.assertIsInstance(cardinality, Set)
-        self.assertEqual(len(cardinality), 0)
+        self.assertIsInstance(edge_dict[0], Dict)
+        self.assertEqual(len(edge_dict[0]), 5)
+        self.assertIsInstance(edge_dict[0][list(edge_dict[0].keys())[0]], Dict)
+        self.assertIsInstance(edge_dict[1], Set)
+        self.assertEqual(len(edge_dict[1]), 0)
 
         return None
 
@@ -358,8 +408,6 @@ class TestOwlNets(unittest.TestCase):
             'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/NCBITaxon_9606'),
             'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002160'),
             'type': URIRef('http://www.w3.org/2002/07/owl#Restriction')}}, set())
-
-        # print(self.owl_nets.owl_nets_dict)
 
         # test method
         decision = self.owl_nets.detects_constructed_class_to_ignore(results, node)
@@ -570,6 +618,7 @@ class TestOwlNets(unittest.TestCase):
 
         # set-up inputs
         self.owl_nets.class_list = [URIRef('http://purl.obolibrary.org/obo/SO_0000822')]
+        self.owl_nets.converts_rdflib_to_networkx_multidigraph()
 
         # test method
         decoded_graph = self.owl_nets.cleans_owl_encoded_classes()
@@ -587,13 +636,44 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_removes_non_obo_namespace_triples(self):
-        """Tests the removes_non_obo_namespace_triples method."""
+    def test_purifies_graph_build_none(self):
+        """Tests the purifies_graph_build method when kg_construction is None."""
+
+        # initialize method
+        owl_nets = OwlNets(graph=self.graph, write_location=self.write_location, filename=self.kg_filename)
+
+        # test method
+        owl_nets.purifies_graph_build()
+        dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
+        self.assertTrue(len(dict_keys), 0)
 
         return None
 
-    def test_purifies_graph_build(self):
-        """Tests the purifies_graph_build method."""
+    def test_purifies_graph_build_instance(self):
+        """Tests the purifies_graph_build method when kg_construction is instance."""
+
+        # initialize method
+        owl_nets = OwlNets(kg_construct_approach='instance', graph=self.graph,
+                           write_location=self.write_location, filename=self.kg_filename)
+
+        # test method
+        owl_nets.purifies_graph_build()
+        dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
+        self.assertTrue(len(dict_keys), 3054)
+
+        return None
+
+    def test_purifies_graph_build_subclass(self):
+        """Tests the purifies_graph_build method when kg_construction is subclass."""
+
+        # initialize method
+        owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                           write_location=self.write_location, filename=self.kg_filename)
+
+        # test method
+        owl_nets.purifies_graph_build()
+        dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
+        self.assertTrue(len(dict_keys), 6616)
 
         return None
 
@@ -608,6 +688,7 @@ class TestOwlNets(unittest.TestCase):
         nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/so_with_imports_OWLNETS.nt'))
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/OWL-NETS_decoding_dict.pkl'))
 
         return None
 
