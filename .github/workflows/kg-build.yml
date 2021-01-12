@@ -40,4 +40,4 @@ jobs:
           --zone "$GCE_INSTANCE_ZONE" \
           --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
 
-## Need to add instance start and stop commands
+## Need to add instance start and stop commands 
