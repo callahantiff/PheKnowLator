@@ -10,7 +10,7 @@ from rdflib import BNode, Graph, Literal, URIRef
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
     maps_node_ids_to_integers, adds_edges_to_graph, remove_edges_from_graph, finds_node_type, updates_graph_namespace, \
     converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties, \
-    gets_ontology_class_dbxrefs, gets_ontology_class_synonyms
+    gets_ontology_class_dbxrefs, gets_ontology_class_synonyms, gets_class_ancestors
 
 
 class TestKGUtils(unittest.TestCase):
@@ -337,5 +337,33 @@ class TestKGUtils(unittest.TestCase):
         self.assertIsInstance(dbxref_type_dict, Dict)
         self.assertEqual(393, len(dbxref_dict))
         self.assertEqual(393, len(dbxref_type_dict))
+
+        return None
+
+    def test_finds_class_ancestors(self):
+        """Tests the finds_class_ancestors method."""
+
+        # load ontology
+        graph = Graph().parse(self.good_ontology_file_location, format='xml')
+        so_class = [URIRef('http://purl.obolibrary.org/obo/SO_0000348')]
+
+        # get ancestors when a valid class is provided -- class is URIRef
+        ancestors1 = gets_class_ancestors(graph, so_class)
+        self.assertIsInstance(ancestors1, List)
+        self.assertEqual(ancestors1,
+                         ['http://purl.obolibrary.org/obo/SO_0000400',
+                          'http://purl.obolibrary.org/obo/SO_0000443'])
+
+        # get ancestors when a valid class is provided -- class is not URIRef
+        ancestors1 = gets_class_ancestors(graph, [str(x).split('/')[-1] for x in so_class])
+        self.assertIsInstance(ancestors1, List)
+        self.assertEqual(ancestors1,
+                         ['http://purl.obolibrary.org/obo/SO_0000400',
+                          'http://purl.obolibrary.org/obo/SO_0000443'])
+
+        # get ancestors when no class is provided
+        ancestors2 = gets_class_ancestors(graph, [])
+        self.assertIsInstance(ancestors2, List)
+        self.assertEqual(ancestors2, [])
 
         return None
