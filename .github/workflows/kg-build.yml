@@ -20,7 +20,7 @@ jobs:
       run: |
         gcloud auth configure-docker
 
-#    # Build the Docker image
+   # Build the Docker image
    - name: Build and Push Container
             run: |-
               docker build -t gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets.GCP_APPLICATION }}:${{ github.sha }} -f builds/Dockerfile ./builds
