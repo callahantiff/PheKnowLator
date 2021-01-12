@@ -2,8 +2,8 @@ name: Build and Deploy to Google Compute Engine
 on: push
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
-  GCE_INSTANCE: ${{ GCE_INSTANCE_ZONE_NAME }}
-  GCE_INSTANCE_ZONE: ${{ GCE_INSTANCE_ZONE_NAME }}
+  GCE_INSTANCE: ${{ secrets.GCE_INSTANCE_ZONE_NAME }}
+  GCE_INSTANCE_ZONE: ${{ secrets.GCE_INSTANCE_ZONE_NAME }}
 
 jobs:
   setup-build-publish-deploy:
