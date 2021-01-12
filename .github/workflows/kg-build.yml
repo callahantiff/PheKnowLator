@@ -1,8 +1,5 @@
 name: cloudrun-deploy
-on:
-  push:
-    branches:
-      - main
+on: push
 jobs:
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
@@ -27,7 +24,8 @@ jobs:
     - name: Build & Publish
       run: |
         gcloud config set project ${{ secrets.GCE_PROJECT }}
-        gcloud builds submit --tag gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets.GCP_APPLICATION }}
+        gcloud builds submit --tag gcr.io/${{ secrets.GCE_PROJECT }}/${{ secrets.GCP_APPLICATION }} \
+        --file=builds/Dockerfile ./builds
         gcloud config set run/region us-central1
 
     # Deploy the Docker image to the GKE cluster
