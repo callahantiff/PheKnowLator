@@ -1,5 +1,5 @@
 name: cloudrun-deploy
-on: release
+on: push
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
   SERVICE: ${{ secrets.GCP_APPLICATION }}
@@ -15,7 +15,7 @@ jobs:
        ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
 
     - name: Setup Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0.2.0
+      uses: google-github-actions/setup-gcloud@master
       with:
         project_id: ${{ env.PROJECT_ID }}
         service_account_key: ${{ secrets.GCP_CLOUD_RUN_CREDENTIALS }}
@@ -34,7 +34,7 @@ jobs:
           --region ${{ env.REGION }} \
           --image gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }} \
           --platform "managed" \
-          --quiet
+          --allow-unauthenticated
 
 #name: Build and Deploy to Google Compute Engine
 #on: push
