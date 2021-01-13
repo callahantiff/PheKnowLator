@@ -11,4 +11,4 @@ WORKDIR /PheKnowLator/builds/
 RUN pip install -r build_requirements.txt
 EXPOSE 8080
 #ENTRYPOINT ["python", "build_phase_3.py"]
-ENTRYPOINT ["exec", "gunicorn", "--bind", ":$PORT", "--workers", "1", "--threads", "8", "--timeout", "0", "main:app"]
+ENTRYPOINT ["gunicorn", "--bind", ":$PORT", "--workers", "1", "--threads", "8", "--timeout", "0", "main:app"]
