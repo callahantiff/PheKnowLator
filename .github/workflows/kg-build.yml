@@ -33,7 +33,7 @@ jobs:
 
     - name: Deploy Container
       run: |-
-        gcloud compute instances update-container "$GCE_INSTANCE" \
+        gcloud compute instances update-container ${{ env.GCE_INSTANCE }}\
           --zone "$GCE_INSTANCE_ZONE" \
           --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
 
