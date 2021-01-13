@@ -9,7 +9,7 @@ import os.path
 import pickle
 
 from collections import Counter
-from rdflib import Graph, BNode, Literal, URIRef  # type: ignore
+from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple, Union
@@ -507,7 +507,6 @@ class OwlNets(object):
                 self.owl_nets_dict['owl_nets']['decoded_classes'][str(node)] = {
                     tuple([(str(x[0]), str(x[1]), str(x[2])) for x in cleaned_classes])}
         pbar.close()
-        # del self.nx_mdg  # delete networkx graph object to free up memory
         print('=' * 75 + '\nDecoded {} owl-encoded classes. Note the following:'.format(len(cleaned_nodes)))
         print('{} cardinality elements'.format(len(list(self.owl_nets_dict['owl_nets']['cardinality'].keys()))))
         print('ignored {} misc elements'.format(len(list(self.owl_nets_dict['owl_nets']['misc'].keys()))))
@@ -548,7 +547,6 @@ class OwlNets(object):
             ancs_filter = tuple([x for x in o_ancs if x.split('_')[0] == str(edge[2]).split('_')[0]])
             for node in ancs_filter:
                 self.graph.add((edge[0], pure_rel, URIRef(node)))
-
             # update tracking dict
             self.owl_nets_dict['{}_approach_purified'.format(self.kg_construct_approach)] |= set(edge + ancs_filter)
 
@@ -572,7 +570,7 @@ class OwlNets(object):
 
         print('\nCreating OWL-NETS graph')
 
-        original_graph = self.graph  # store the original graph
+        original_graph, f_name_lab = self.graph, '_OWLNETS.nt'
         self.removes_disjoint_with_axioms()
         self.converts_rdflib_to_networkx_multidigraph()  # create networkx representation
         if self.kg_construct_approach == 'instance': self.updates_class_instance_identifiers()
@@ -581,9 +579,9 @@ class OwlNets(object):
 
         # write out owl-nets graph
         print('\nSerializing OWL-NETS Graph')
-        f_name = [self.filename[:-4] + '_OWLNETS.nt' if '.owl' in self.filename
-                  else '.'.join(self.filename.split('.')[:-1]) + '_OWLNETS.nt' if '.' in self.filename
-                  else self.filename + '_OWLNETS.nt'][0]
+        f_name = [self.filename[:-4] + f_name_lab if '.owl' in self.filename
+                  else '.'.join(self.filename.split('.')[:-1]) + f_name_lab if '.' in self.filename
+                  else self.filename + f_name_lab][0]
         f_name = '/' + f_name if not f_name.startswith('/') else f_name
         self.graph.serialize(destination=self.write_location + f_name, format='nt')
 
