@@ -35,10 +35,17 @@ class Metadata(object):
         node_dict: A nested dictionary storing metadata for the nodes in the edge_dict. Where the outer key is a node
             identifier and each inner key is an identifier type keyed by the identifier type with the value being the
             corresponding metadata for that identifier type. For example:
-                {'6469': {'Label': 'SHH',
-                          'Description': 'Sonic Hedgehog Signaling Molecule is a protein-coding gene that is located on
-                                          chromosome 7 (map_location: 7q36.3).',
-                          'Synonym': 'HHG1|HLP3|HPE3|MCOPCB5|SMMCI|ShhNC|TPT|TPTPS|sonic hedgehog protein'}}
+                { 'nodes': {
+                    'http://www.ncbi.nlm.nih.gov/gene/1': {
+                        'Label': 'A1BG',
+                        'Description': "A1BG is protein-coding' and is located on chromosome 19 (19q13.43).",
+                        'Synonym': 'HYST2477alpha-1B-glycoprotein|HEL-S-163pA|ABG|A1B|GAB'} ... },
+                'relations': {
+                    'http://purl.obolibrary.org/obo/RO_0002533': {
+                        'Label': 'sequence atomic unit',
+                        'Description': 'Any individual unit of a collection of like units arranged in a linear order',
+                        'Synonym': 'None'} ... }
+                }
     """
 
     def __init__(self, kg_version: str, write_location: str, kg_location: str, node_data: Optional[List],
@@ -53,20 +60,7 @@ class Metadata(object):
     def node_metadata_processor(self) -> None:
         """Loads a directory of node and relations data. The dictionary is nested with the outer keys corresponding
         to the metadata type (i.e. "nodes" or "relations") and the values containing dictionaries keyed by URI and
-        values containing a dictionary of metadata. For
-        example:
-            {
-            'nodes': {
-                'http://www.ncbi.nlm.nih.gov/gene/1': {
-                    'Label': 'A1BG',
-                    'Description': "A1BG has locus group protein-coding' and is located on chromosome 19 (19q13.43).",
-                    'Synonym': 'HYST2477alpha-1B-glycoprotein|HEL-S-163pA|ABG|A1B|GAB'} ... },
-            'relations': {
-                'http://purl.obolibrary.org/obo/RO_0002533': {
-                    'Label': 'sequence atomic unit',
-                    'Description': 'Any individual unit of a collection of like units arranged in a linear order',
-                    'Synonym': 'None'} ... }
-        }
+        values containing a dictionary of metadata.
 
         Returns:
             None.
@@ -121,17 +115,19 @@ class Metadata(object):
                         }
                 self.node_dict[key] = {**self.node_dict[key], **temp_dict}
 
-            pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))  # type: ignore
+            with open(self.node_data[0], 'wb') as out:
+                pickle.dump(self.node_dict, out)
 
         return None
 
-    def creates_node_metadata(self, entities: List, node_types: List, key_type: str = 'nodes') -> Graph:
-        """Given a node in the knowledge graph, if the node has metadata information, new edges are created to add
-        the metadata to the knowledge graph. Metadata that is added includes: labels, descriptions, and synonyms.
+    def creates_node_metadata(self, ent: List, e_type: Optional[List] = None, key_type: str = 'nodes') -> Graph:
+        """Given a node in the knowledge graph, if the node is not an ontology class and if it has metadata information,
+        then new edges are created to add the metadata to the knowledge graph. Metadata that is added includes: labels,
+        descriptions, and synonyms.
 
         Args:
-            entities: A list of two node identifiers (e.g. ['http://example/3075', 'http://example/1080']).
-            node_types: A list of types for each node in nodes (e.g. ['entity', 'entity']).
+            ent: A list of two node identifiers (e.g. ['http://example/3075', 'http://example/1080']).
+            e_type: A list of types for each node in nodes (e.g. ['entity', 'entity']).
             key_type: A string indicating if the key should be 'nodes' or 'relations (default='nodes').
 
         Returns:
@@ -139,24 +135,24 @@ class Metadata(object):
         """
 
         key, edges = key_type, []
-        if key == 'nodes':
-            t = entities[0] in self.node_dict[key].keys() and entities[1] in self.node_dict[key].keys()  # type: ignore
-        else:
-            t = entities[0] in self.node_dict[key].keys()  # type: ignore
-        if self.node_dict and t:
-            if key == 'nodes': entities = [x for x in entities if node_types[entities.index(x)] != 'class']
-            for x in entities:
-                metadata = self.node_dict[key][x]
-                if 'Label' in metadata.keys() and metadata['Label'] != 'None':
-                    edges += [(URIRef(x), RDFS.label, Literal(metadata['Label']))]
-                if 'Description' in metadata.keys() and metadata['Description'] != 'None':
-                    edges += [(URIRef(x), URIRef(obo + 'IAO_0000115'), Literal(metadata['Description']))]
-                if 'Synonym' in metadata.keys() and metadata['Synonym'] != 'None':
-                    for syn in metadata['Synonym'].split('|'):
-                        edges += [(URIRef(x), URIRef(oboinowl + 'hasSynonym'), Literal(syn))]
-            return edges
-        else:
-            return None
+
+        # find eligible entities to add (i.e. all relations and nodes for entities that are not a class)
+        if self.node_dict:
+            if key == 'relations' and e_type is None: x = [i for i in ent if i in self.node_dict[key].keys()]
+            else: x = [i for i in ent if e_type[ent.index(i)] != 'class' and i in self.node_dict[key].keys()]
+            if len(x) > 0:  # add metadata for eligible entities
+                for i in x:
+                    metadata = self.node_dict[key][i]
+                    if 'Label' in metadata.keys() and metadata['Label'] != 'None':
+                        edges += [(URIRef(i), RDFS.label, Literal(metadata['Label']))]
+                    if 'Description' in metadata.keys() and metadata['Description'] != 'None':
+                        edges += [(URIRef(i), URIRef(obo + 'IAO_0000115'), Literal(metadata['Description']))]
+                    if 'Synonym' in metadata.keys() and metadata['Synonym'] != 'None':
+                        for syn in metadata['Synonym'].split('|'):
+                            edges += [(URIRef(i), URIRef(oboinowl + 'hasSynonym'), Literal(syn))]
+                return edges
+            else: return None
+        else: return None
 
     def adds_ontology_annotations(self, filename: str, graph: Graph) -> Graph:
         """Updates the ontology annotation information for an input knowledge graph or ontology.

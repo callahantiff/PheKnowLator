@@ -23,6 +23,9 @@ class TestMetadata(unittest.TestCase):
         dir_loc2 = os.path.join(current_directory, 'utils/owltools')
         self.owltools_location = os.path.abspath(dir_loc2)
 
+        # create graph data
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+
         # set-up input arguments
         self.metadata = Metadata(kg_version='v2.0.0',
                                  write_location=self.dir_loc,
@@ -37,6 +40,13 @@ class TestMetadata(unittest.TestCase):
 
     def test_node_metadata_processor(self):
         """Tests the node_metadata_processor method."""
+
+        # set-up input arguments
+        self.metadata = Metadata(kg_version='v2.0.0', write_location=self.dir_loc,
+                                 kg_location=self.dir_loc + '/ontologies/so_with_imports.owl',
+                                 node_data=glob.glob(self.dir_loc + '/node_data/*dict.pkl'),
+                                 node_dict=dict())
+        self.metadata.node_metadata_processor()  # load dictionary
 
         # make sure that the dictionary has the "schtuff"
         self.assertIsInstance(self.metadata.node_dict, Dict)
@@ -64,34 +74,37 @@ class TestMetadata(unittest.TestCase):
     def test_creates_node_metadata_nodes(self):
         """Tests the creates_node_metadata method."""
 
+        self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.metadata.extracts_class_metadata(self.graph)
+
         # test when the node has metadata
-        updated_graph_1 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/1',
-                                                               'http://www.ncbi.nlm.nih.gov/gene/2'],
-                                                              ['entity', 'entity'])
+        updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['entity', 'entity'])
         self.assertTrue(len(updated_graph_1) == 16)
 
         # check that the correct info is returned if only one is an entity
-        updated_graph_2 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/1',
-                                                               'http://www.ncbi.nlm.nih.gov/gene/2'],
-                                                              ['entity', 'class'])
+        updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['entity', 'class'])
         self.assertTrue(len(updated_graph_2) == 8)
         # check that nothing is returned if the entities are classes
-        updated_graph_3 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/1',
-                                                               'http://www.ncbi.nlm.nih.gov/gene/2'],
-                                                              ['class', 'class'])
-        self.assertTrue(len(updated_graph_3) == 0)
+        updated_graph_3 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['class', 'class'])
+        self.assertTrue(updated_graph_3 is None)
 
         # test when the node does not have metadata
-        updated_graph_4 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/None',
-                                                               'http://www.ncbi.nlm.nih.gov/gene/None'],
-                                                              ['entity', 'entity'])
+        updated_graph_4 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              e_type=['entity', 'entity'])
         self.assertTrue(updated_graph_4 is None)
 
         # test when node_data is None
         self.metadata.node_data = None
-        updated_graph_5 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/None',
-                                                               'http://www.ncbi.nlm.nih.gov/gene/None'],
-                                                              ['entity', 'entity'])
+        updated_graph_5 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              e_type=['entity', 'entity'])
         self.assertTrue(updated_graph_5 is None)
 
         return None
@@ -99,24 +112,53 @@ class TestMetadata(unittest.TestCase):
     def test_creates_node_metadata_relations(self):
         """Tests the creates_node_metadata method."""
 
+        self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.metadata.extracts_class_metadata(self.graph)
+
         # test when the node has metadata
-        updated_graph_1 = self.metadata.creates_node_metadata(['http://purl.obolibrary.org/obo/RO_0002597'],
-                                                              ['entity', 'entity'], 'relations')
+        updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002310'],
+                                                              key_type='relations')
         self.assertTrue(len(updated_graph_1) == 2)
 
-        # check that the correct info is returned if only one is an entity
-        updated_graph_2 = self.metadata.creates_node_metadata(['http://purl.obolibrary.org/obo/RO_0002597'],
-                                                              ['entity', 'class'], 'relations')
-        self.assertTrue(len(updated_graph_2) == 2)
-
         # check that nothing is returned if the entities are classes
-        updated_graph_3 = self.metadata.creates_node_metadata(['http://purl.obolibrary.org/obo/RO_0002597'],
-                                                              ['class', 'class'], 'relations')
-        self.assertTrue(len(updated_graph_3) == 2)
+        updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002597'],
+                                                              e_type=['class'], key_type='relations')
+        self.assertTrue(updated_graph_2 is None)
 
         # test when the node does not have metadata
-        updated_graph_4 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/None'],
-                                                              ['entity', 'entity'], 'relations')
+        updated_graph_3 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              key_type='relations')
+        self.assertTrue(updated_graph_3 is None)
+
+        return None
+
+    def test_creates_node_metadata_none(self):
+        """Tests the creates_node_metadata method when node_dict is None."""
+
+        self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.metadata.extracts_class_metadata(self.graph)
+        self.metadata.node_dict = None
+
+        # relations -- with valid input
+        updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002597'],
+                                                              key_type='relations')
+        self.assertTrue(updated_graph_1 is None)
+
+        # relations -- without valid input
+        updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/None'],
+                                                              key_type='relations')
+        self.assertTrue(updated_graph_2 is None)
+
+        # nodes -- with valid input
+        updated_graph_3 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['class', 'class'])
+        self.assertTrue(updated_graph_3 is None)
+
+        # nodes -- without valid input
+        updated_graph_4 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              e_type=['entity', 'entity'])
         self.assertTrue(updated_graph_4 is None)
 
         return None
@@ -171,14 +213,11 @@ class TestMetadata(unittest.TestCase):
     def test_extracts_class_metadata(self):
         """Tests the extracts_class_metadata data."""
 
-        # load dictionary and graph
-        self.metadata.node_metadata_processor()
-        graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         org_file_size = os.path.getsize(self.metadata.node_data[0])
 
         # extract metadata
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
-        self.metadata.extracts_class_metadata(graph=graph)
+        self.metadata.extracts_class_metadata(graph=self.graph)
 
         # check that it worked
         # nodes
@@ -196,9 +235,6 @@ class TestMetadata(unittest.TestCase):
 
         # check that larger dict was saved
         self.assertTrue(os.path.getsize(self.metadata.node_data[0]) >= org_file_size)
-
-        # clean up environment
-        os.remove(self.metadata.node_data[0].replace('.pkl', '_test.pkl'))
 
         return None
 
@@ -250,5 +286,14 @@ class TestMetadata(unittest.TestCase):
         self.assertTrue(len(results_list) == 21)
         self.assertIn('https://pheknowlator.com/pheknowlator_test_file.owl', results_list)
         self.assertIn('tests/data/so_tests_test_file', results_list)
+
+        return None
+
+    def tearDown(self):
+
+        if self.metadata.node_data:
+            test_data_location = glob.glob(self.dir_loc + '/node_data/*_test.pkl')
+            if len(test_data_location) > 0:
+                os.remove(test_data_location[0])
 
         return None
