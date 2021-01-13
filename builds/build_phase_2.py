@@ -150,7 +150,7 @@ def main():
     # STEP 4 - GENERATE METADATA DOCUMENTATION
     metadata, processed_data = [], glob.glob(temp_dir + '/*')
     for data_file in tqdm(processed_data):
-        url = gcs_url + '/original_data/' + data_file.replace(temp_dir + '/', '')
+        url = gcs_url + 'original_data/' + data_file.replace(temp_dir + '/', '')
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
     writes_metadata(metadata, temp_dir)
 
