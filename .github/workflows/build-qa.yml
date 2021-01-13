@@ -26,7 +26,7 @@ jobs:
       - name: Run Tests and Generate Coverage Results
         run: |
           pytest --cov=pkt_kg --cov-report xml:coverage.xml
-          coveralls
+          coveralls --service=github
           coverage report
           coverage xml
           python-codacy-coverage -r coverage.xml
