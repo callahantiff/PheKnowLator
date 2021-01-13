@@ -10,7 +10,7 @@ This directory stores the scripts and files needed for the automatic monthly bui
 **Script(s):** `build_phase_1.py`  
 
 This phase is triggered on the same date each month and consists of the following three steps:    
-1. **Create Google Cloud Storage Bucket:** Current builds are stored in a new Google Cloud Storage bucket under the current release in a directory called `current_build` (e.g. `release_v2.0.0/current_build). Each subsequent build is also archived and saved with the build date under the `archived_builds` directory for the current release (e.g. `release_v2.0.0/archived_builds/build_27DEC2020`). Under this directory, the rest of the needed build directories are created. See example below:
+1. **Create Google Cloud Storage Bucket:** Current builds are stored in a new Google Cloud Storage bucket under the current release in a directory called `current_build` (e.g. `release_v2.0.0/current_build`). Each subsequent build is also archived and saved with the build date under the `archived_builds` directory for the current release (e.g. `release_v2.0.0/archived_builds/build_27DEC2020`). Under this directory, the rest of the needed build directories are created. See example below:
    ```
     release_V*.0.0
     |---- curated_data/
