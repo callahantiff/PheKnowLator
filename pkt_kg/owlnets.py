@@ -16,6 +16,9 @@ from typing import Any, Dict, IO, List, Optional, Set, Tuple, Union
 
 from pkt_kg.utils import *
 
+# add global variables
+obo = Namespace('http://purl.obolibrary.org/obo/')
+
 
 class OwlNets(object):
     """Class removes OWL semantics from an ontology or knowledge graph using the OWL-NETS method. OWL-encoded or
@@ -318,14 +321,10 @@ class OwlNets(object):
             An rdflib.term object that represents an owl:ObjectProperty.
         """
 
-        if ('PATO' in sub and 'PATO' in obj) and not prop:
-            return RDFS.subClassOf
-        elif ('PATO' not in sub and 'PATO' not in obj) and not prop:
-            return RDFS.subClassOf
-        elif 'PATO' not in sub and 'PATO' in obj:
-            return URIRef('http://purl.obolibrary.org/obo/RO_0000086')
-        else:
-            return prop
+        if ('PATO' in sub and 'PATO' in obj) and not prop: return RDFS.subClassOf
+        elif ('PATO' not in sub and 'PATO' not in obj) and not prop: return RDFS.subClassOf
+        elif 'PATO' not in sub and 'PATO' in obj: return URIRef(obo + 'RO_0000086')
+        else: return prop
 
     @staticmethod
     def parses_anonymous_axioms(edges: Dict, class_dict: Dict) -> Dict:
@@ -537,7 +536,7 @@ class OwlNets(object):
 
         # get original and purification relation
         org_rel = RDF.type if self.kg_construct_approach == 'subclass' else RDFS.subClassOf
-        pure_rel = RDFS.subClassOf if org_rel == RDF.type else RDFS.subClassOf
+        pure_rel = RDFS.subClassOf if org_rel == RDF.type else RDF.type
 
         # find all edges that need to be updated
         dirty_edges = list(self.graph.triples((None, org_rel, None)))
