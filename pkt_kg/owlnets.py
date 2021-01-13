@@ -497,7 +497,7 @@ class OwlNets(object):
 
         return decoded_graph
 
-    def purifies_graph_build(self) -> None:
+    def purifies_graph_build(self, original_graph: Graph()) -> None:
         """Purifies an existing graph according to its kg_construction approach (i.e. "subclass" or "instance"). When
         kg_construction is "subclass", then all triples where the subject and object are connected by RDF.type are
         purified by converting RDF.type to RDFS.subClassOf for each triple as well as making the subject of this
@@ -505,6 +505,9 @@ class OwlNets(object):
         kg_construction is "instance", then all triples where the subject and object are connected by RDFS.subClassOf
         are purified by converting RDFS.subClassOf to RDF.type for each triple as well as making the subject of this
         triple the RDF.type all ancestors of the object in this triple. Examples are provided below.
+
+        Args:
+            original_graph: An RDF Lib graph object. The original un-decoded graph needed to find concept ancestors.
 
         Returns:
              None.
@@ -522,7 +525,7 @@ class OwlNets(object):
             self.graph.add((edge[0], pure_rel, edge[2]))  # fix primary edge
             self.graph.remove(edge)
             # make s "rel" (pure_rel - RDF.type or RDFS.subClassOf) all ancestors of o
-            o_ancs = gets_class_ancestors(self.graph, [edge[2]])  # filter to keep same namespace
+            o_ancs = gets_class_ancestors(original_graph, [edge[2]])  # filter to keep same namespace
             ancs_filter = tuple([x for x in o_ancs if x.split('_')[0] == str(edge[2]).split('_')[0]])
             for node in ancs_filter:
                 self.graph.add((edge[0], pure_rel, URIRef(node)))
@@ -550,11 +553,14 @@ class OwlNets(object):
 
         print('\nCreating OWL-NETS graph')
 
+        original_graph = self.graph  # store the original graph
         self.removes_disjoint_with_axioms()
         self.converts_rdflib_to_networkx_multidigraph()  # create networkx representation
         if self.kg_construct_approach == 'instance': self.updates_class_instance_identifiers()
         self.graph = self.removes_edges_with_owl_semantics() + self.cleans_owl_encoded_classes()
-        if self.kg_construct_approach is not None: self.purifies_graph_build()  # purifies kg to construction app
+        print(len(original_graph))
+        print(len(self.graph))
+        if self.kg_construct_approach is not None: self.purifies_graph_build(original_graph)
 
         # write out owl-nets graph
         print('\nSerializing OWL-NETS Graph')

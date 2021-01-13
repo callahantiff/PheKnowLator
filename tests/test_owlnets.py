@@ -643,7 +643,7 @@ class TestOwlNets(unittest.TestCase):
         owl_nets = OwlNets(graph=self.graph, write_location=self.write_location, filename=self.kg_filename)
 
         # test method
-        owl_nets.purifies_graph_build()
+        owl_nets.purifies_graph_build(owl_nets.graph)
         dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
         self.assertTrue(len(dict_keys), 0)
 
@@ -657,7 +657,7 @@ class TestOwlNets(unittest.TestCase):
                            write_location=self.write_location, filename=self.kg_filename)
 
         # test method
-        owl_nets.purifies_graph_build()
+        owl_nets.purifies_graph_build(owl_nets.graph)
         dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
         self.assertTrue(len(dict_keys), 3054)
 
@@ -671,7 +671,7 @@ class TestOwlNets(unittest.TestCase):
                            write_location=self.write_location, filename=self.kg_filename)
 
         # test method
-        owl_nets.purifies_graph_build()
+        owl_nets.purifies_graph_build(owl_nets.graph)
         dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
         self.assertTrue(len(dict_keys), 6616)
 
