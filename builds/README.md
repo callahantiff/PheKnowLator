@@ -1,10 +1,12 @@
 # PheKnowLator Builds  
 **Current Release:** [`v2.0.0`](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0)  
 
-This directory stores the scripts and files utilized by GitHub Actions to perform the monthly knowledge graph builds. As described below the CI/CD Workflow consists of three primary phases, each which serves to process a different component of the full build process. Each of these phases and their triggers and associated scripts are briefly outlines below.
-
-## Build Phases  
-### Phase 1: Download Build Data  
+This directory stores the scripts and files needed for the automatic monthly builds. Our continuous integration (CI)/Continuous deployment (CD) pipeline is managed entirely using [GitHub Actions](https://github.com/actions). Each build is processed using Dockerized [Flask](https://flask.palletsprojects.com/) applications which are served via [Gunicorn](https://gunicorn.org/) and deployed to [Google Cloud Run](https://cloud.google.com/run). Builds are triggered on the first of each month and consist of three separate asynchronous phases (each phase is briefly described below):  
+1. Data Download 
+2. Data Processing and Quality Control   
+3. Knowledge Graph Construction  
+ 
+## Phase 1: Download Build Data 
 **Script(s):** `build_phase_1.py`  
 
 This phase is triggered on the same date each month and consists of the following three steps:    
@@ -60,7 +62,7 @@ This phase is triggered on the same date each month and consists of the followin
 
 <br>
 
-### Phase 2: Preprocess Downloaded Build Data     
+## Phase 2: Preprocess Downloaded Build Data       
 **Script(s):** `build_phase_2.py`; `pkt_kg/data_preprocessing.py`; `pkt_kg/ontology_cleaning.py`   
 **Data:** `genomic_typing_dict.pkl`
 
@@ -73,7 +75,7 @@ This phase is triggered upon the successful completion of [Phase 1](#Phase-1:-Do
 
 <br>
 
-### Phase 3: Build Knowledge Graph  
+## Phase 3: Build Knowledge Graph    
 **Script(s):** `build_phase_3.py`; `complete_build.py`  
 
 This phase is triggered by the successful completion of [Phase 2](#Phase-2:-Preprocess-Downloaded-Build-Data) and is the primary step responsible for constructing the PheKnowLator knowledge graphs and consists of the following seven steps:  
@@ -83,7 +85,9 @@ This phase is triggered by the successful completion of [Phase 2](#Phase-2:-Prep
 3. **Build Docker Container:** The primary build Docker container is built and published to Docker Hub.  
 4. **Container Parameterization and Deployment:** GitHub Actions communicates with Google Cloud Run to duplicate the constructor container and parameterize it for each of the PheKnowLator builds allowing for the knowledge graphs to be constructed in parallel.  
 5. **Completes Build:** Waits for each container to complete and then uploads associated data to the correct Google Cloud Storage bucket associated with the current build.
-6. **Update SPARQL Endpoint:** The successfully built knowledge graphs are pushed to the GraphDB SPARQL Endpoint for public consumption (Blazegraph SPARQL Endpoint: [here](http://35.233.212.30/blazegraph/#query))   
+6. **Update Public Endpoints:** After a successful build, knowledge graphs are pushed to:   
+    - Blazegraph SPARQL Endpoint: [http://sparql.pheknowlator.com](http://sparql.pheknowlator.com/)  
+    - Neo4J Endpoint and User Interface: [http://neo4j.pheknowlator.com]()  -- *COMING SOON*   
 
 ____
 
