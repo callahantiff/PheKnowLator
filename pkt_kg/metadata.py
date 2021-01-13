@@ -115,8 +115,9 @@ class Metadata(object):
                         }
                 self.node_dict[key] = {**self.node_dict[key], **temp_dict}
 
-            with open(self.node_data[0], 'wb') as out:
-                pickle.dump(self.node_dict, out)
+            if self.node_data:
+                with open(self.node_data[0], 'wb') as out:
+                    pickle.dump(self.node_dict, out)
 
         return None
 
@@ -134,12 +135,13 @@ class Metadata(object):
             edges: A list of tuples containing RDFLib objects used to add metadata to a knowledge graph.
         """
 
-        key, edges = key_type, []
+        key, edges, x = key_type, [], []
 
         # find eligible entities to add (i.e. all relations and nodes for entities that are not a class)
         if self.node_dict:
             if key == 'relations' and e_type is None: x = [i for i in ent if i in self.node_dict[key].keys()]
-            else: x = [i for i in ent if e_type[ent.index(i)] != 'class' and i in self.node_dict[key].keys()]
+            elif e_type: x = [i for i in ent if e_type[ent.index(i)] != 'class' and i in self.node_dict[key].keys()]
+            else: pass
             if len(x) > 0:  # add metadata for eligible entities
                 for i in x:
                     metadata = self.node_dict[key][i]

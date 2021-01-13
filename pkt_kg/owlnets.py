@@ -517,7 +517,7 @@ class OwlNets(object):
 
         return decoded_graph
 
-    def purifies_graph_build(self, original_graph: Graph()) -> None:
+    def purifies_graph_build(self, original_graph: Graph) -> None:
         """Purifies an existing graph according to its kg_construction approach (i.e. "subclass" or "instance"). When
         kg_construction is "subclass", then all triples where the subject and object are connected by RDF.type are
         purified by converting RDF.type to RDFS.subClassOf for each triple as well as making the subject of this

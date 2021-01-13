@@ -357,8 +357,10 @@ class PartialBuild(KGBuilder):
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
         metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data: metadata.node_metadata_processor(), metadata.extracts_class_metadata(self.graph)
-        self.node_dict = metadata.node_dict
+        if self.node_data:
+            metadata.node_metadata_processor()
+            metadata.extracts_class_metadata(self.graph)
+            self.node_dict = metadata.node_dict
 
         # STEP 4: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
@@ -422,8 +424,10 @@ class PostClosureBuild(KGBuilder):
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
         metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data: metadata.node_metadata_processor(), metadata.extracts_class_metadata(self.graph)
-        self.node_dict = metadata.node_dict
+        if self.node_data:
+            metadata.node_metadata_processor()
+            metadata.extracts_class_metadata(self.graph)
+            self.node_dict = metadata.node_dict
 
         # STEP 4: DECODE OWL SEMANTICS
         if self.decode_owl:
@@ -491,8 +495,10 @@ class FullBuild(KGBuilder):
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
         metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data: metadata.node_metadata_processor(), metadata.extracts_class_metadata(self.graph)
-        self.node_dict = metadata.node_dict
+        if self.node_data:
+            metadata.node_metadata_processor()
+            metadata.extracts_class_metadata(self.graph)
+            self.node_dict = metadata.node_dict
 
         # STEP 4: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
