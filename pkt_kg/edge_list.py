@@ -79,7 +79,6 @@ class CreatesEdgeList(object):
                                               '|'.join([str(x) for x in list(df_without_header)])).ratio()
         # determine if header should be used
         if abs(with_header_test-without_header_test) < 0.5: return 0
-        elif with_header_test >= without_header_test: return None
         else: return None
 
     def data_reader(self, file_path: str, delimiter: str = 't') -> pd.DataFrame:
@@ -120,8 +119,7 @@ class CreatesEdgeList(object):
         edge_data = pd.read_csv(file_path, header=header, delimiter=splitter, low_memory=False, skiprows=skip)
         # clean environment and return verified data
         del data, skip
-        if len(list(edge_data)) >= 2 and len(edge_data) > 10: return edge_data.fillna('None', inplace=False)
-        else: raise ValueError('ERROR: Data could not be properly read in')
+        return edge_data.fillna('None', inplace=False)
 
     @staticmethod
     def filter_fixer(criteria):
@@ -187,9 +185,8 @@ class CreatesEdgeList(object):
                         else:
                             exp = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
                     edge_data = edge_data.loc[edge_data[col].apply(lambda x: eval(exp))]
-            # verify and return data
-            if len(list(edge_data)) >= 2 and len(edge_data) >= 1: return edge_data
-            else: raise Exception('ERROR: Data could not be properly read in')
+
+            return edge_data
 
     @staticmethod
     def data_reducer(cols: str, edge_data: pd.DataFrame) -> pd.DataFrame:
