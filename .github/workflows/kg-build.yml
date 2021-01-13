@@ -1,5 +1,7 @@
 name: cloudrun-deploy
-on: push
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # runs midnight on the first day of each month
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
   SERVICE: ${{ secrets.GCP_APPLICATION }}
@@ -36,42 +38,3 @@ jobs:
           --platform "managed" \
           --port 8080 \
           --allow-unauthenticated
-
-#name: Build and Deploy to Google Compute Engine
-#on: push
-#env:
-#  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
-#  GCE_INSTANCE: ${{ secrets.GCE_INSTANCE_NAME }}
-#  GCE_INSTANCE_ZONE: us-central1-a
-#
-#jobs:
-#  setup-build-publish-deploy:
-#    name: Setup, Build, Publish, and Deploy
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#    - name: Checkout
-#      uses: actions/checkout@v2
-#      with:
-#       ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
-#
-#
-#    # Setup gcloud CLI
-#    - uses: google-github-actions/setup-gcloud@master
-#      with:
-#        version: '290.0.1'
-#        service_account_key: ${{ secrets.GCE_SERVICE_ACCOUNT_KEY }}
-#        project_id: ${{ env.PROJECT_ID }}
-#    - run: gcloud --quiet auth configure-docker  # Configure Docker to use the gcloud command-line tool as a credential
-#
-#    - name: Build Container
-#      run: docker build --tag "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA" -f builds/Dockerfile ./builds
-#
-#    - name: Publish Container
-#      run: docker push "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
-#
-#    - name: Deploy Container
-#      run: |-
-#        gcloud compute instances update-container ${{ env.GCE_INSTANCE }}\
-#          --zone "$GCE_INSTANCE_ZONE" \
-#          --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
