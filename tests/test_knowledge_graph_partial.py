@@ -30,17 +30,13 @@ class TestPartialBuild(unittest.TestCase):
         os.mkdir(self.dir_loc_resources + '/ontologies')
         os.mkdir(self.dir_loc_resources + '/construction_approach')
 
-        # copy needed data
+        # copy needed data data
         # node metadata
-        shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt',
-                        self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
-        shutil.copyfile(self.dir_loc + '/node_data/gene-gene_GENE_METADATA.txt',
-                        self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt')
-
+        shutil.copyfile(self.dir_loc + '/node_data/node_metadata_dict.pkl',
+                        self.dir_loc_resources + '/node_data/node_metadata_dict.pkl')
         # ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/empty_hp_with_imports.owl',
                         self.dir_loc_resources + '/ontologies/hp_with_imports.owl')
-
         # merged ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/so_with_imports.owl',
                         self.dir_loc_resources + '/knowledge_graphs/PheKnowLator_MergedOntologies.owl')
@@ -57,20 +53,29 @@ class TestPartialBuild(unittest.TestCase):
         # create edge list
         edge_dict = {"gene-phenotype": {"data_type": "entity-class",
                                         "edge_relation": "RO_0003302",
-                                        "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
+                                        "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
                                                 "http://purl.obolibrary.org/obo/"],
-                                        "edge_list": [["2", "HP_0002511"], ["2", "HP_0000716"],
-                                                      ["2", "HP_0000100"], ["9", "HP_0030955"],
-                                                      ["9", "HP_0009725"], ["9", "HP_0100787"],
-                                                      ["9", "HP_0012125"], ["10", "HP_0009725"],
-                                                      ["10", "HP_0010301"], ["10", "HP_0045005"]]},
+                                        "edge_list": [["2", "SO_0000162"], ["2", "SO_0000196"],
+                                                      ["2", "SO_0000323"], ["9", "SO_0001490"],
+                                                      ["9", "SO_0000301"], ["9", "SO_0001560"],
+                                                      ["9", "SO_0001560"], ["10", "SO_0000444"],
+                                                      ["10", "SO_0002138"], ["10", "SO_0000511"]]},
                      "gene-gene": {"data_type": "entity-entity",
                                    "edge_relation": "RO_0002435",
-                                   "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
-                                           "https://www.ncbi.nlm.nih.gov/gene/"],
-                                   "edge_list": [["3075", "1080"], ["3075", "4267"], ["4800", "10190"],
-                                                 ["4800", "80219"], ["2729", "1962"], ["2729", "5096"],
-                                                 ["8837", "6774"], ["8837", "8754"]]}
+                                   "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
+                                           "http://www.ncbi.nlm.nih.gov/gene/"],
+                                   "edge_list": [["1", "2"], ["2", "3"], ["3", "18"],
+                                                 ["17", "19"], ["4", "17"], ["5", "11"],
+                                                 ["11", "12"], ["4", "5"]]},
+                     "disease-disease": {"data_type": "class-class",
+                                         "edge_relation": "RO_0002435",
+                                         "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
+                                                 "http://www.ncbi.nlm.nih.gov/gene/"],
+                                         "edge_list": [["DOID_3075", "DOID_1080"], ["DOID_3075", "DOID_4267"],
+                                                       ["DOID_4800", "DOID_10190"], ["DOID_4800", "DOID_80219"],
+                                                       ["DOID_2729", "DOID_1962"], ["DOID_2729", "DOID_5096"],
+                                                       ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]},
+                     "entity_namespaces": {"gene": "http://purl.uniprot.org/geneid/"}
                      }
 
         # save data
@@ -78,12 +83,9 @@ class TestPartialBuild(unittest.TestCase):
             json.dump(edge_dict, filepath)
 
         # create subclass mapping data
-        subcls_map = {"2": ['SO_0001217'], "9": ['SO_0001217'], "10": ['SO_0001217'], "1080": ['SO_0001217'],
-                      "1962": ['SO_0001217'], "2729": ['SO_0001217'], "3075": ['SO_0001217'],
-                      "4267": ['SO_0001217'],
-                      "4800": ['SO_0001217'], "5096": ['SO_0001217'], "6774": ['SO_0001217'],
-                      "8754": ['SO_0001217'],
-                      "8837": ['SO_0001217'], "10190": ['SO_0001217'], "80219": ['SO_0001217']}
+        subcls_map = {"1": ['SO_0001217'], "2": ['SO_0001217'], "3": ['SO_0001217'], "4": ['SO_0001217'],
+                      "5": ['SO_0001217'], "11": ['SO_0001217'], "12": ['SO_0001217'], "17": ['SO_0001217'],
+                      "18": ['SO_0001217'], "5096": ['SO_0001217'], "6774": ['SO_0001217'], "19": ['SO_0001217']}
 
         # save data
         with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
@@ -118,8 +120,8 @@ class TestPartialBuild(unittest.TestCase):
         self.kg.construct_knowledge_graph()
 
         # check for output files
-        kg = 'PheKnowLator_v2.0.0_partial_subclass_inverseRelations_noOWL.owl'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + kg))
+        f_name = self.kg.full_kg.replace('_noOWL.owl', '_OWL.owl')
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
 
         return None
 

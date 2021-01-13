@@ -451,10 +451,9 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
 
     # read in knowledge graph if class graph attribute is not present
     if not isinstance(graph, Graph):
-        graph = Graph()
         file_type = 'xml' if 'OWLNETS' not in full_kg else full_kg.split('.')[-1]
         ext = '.owl' if file_type == 'xml' else '.nt'
-        graph.parse(write_location + full_kg + ext, format=file_type)
+        graph = Graph().parse(write_location + full_kg + ext, format=file_type)
 
     # convert graph to networkx object
     nx_mdg = networkx.MultiDiGraph()

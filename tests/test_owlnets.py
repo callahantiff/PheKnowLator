@@ -688,7 +688,8 @@ class TestOwlNets(unittest.TestCase):
         nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/so_with_imports_OWLNETS.nt'))
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/OWL-NETS_decoding_dict.pkl'))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs'
+                                                                '/so_with_imports_OWLNETS_decoding_dict.pkl'))
 
         return None
 

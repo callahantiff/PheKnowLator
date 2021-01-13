@@ -60,8 +60,10 @@ class OwlNets(object):
         # VERIFY INPUT GRAPH
         if not isinstance(graph, Graph) and not isinstance(graph, str):
             raise TypeError('Graph must be an RDFLib Graph Object or a str.')
-        elif isinstance(graph, Graph) and len(graph) == 0: raise ValueError('RDFLib Graph Object is empty.')
-        else: self.graph = graph if isinstance(graph, Graph) else Graph().parse(graph)
+        elif isinstance(graph, Graph) and len(graph) == 0:
+            raise ValueError('RDFLib Graph Object is empty.')
+        else:
+            self.graph = graph if isinstance(graph, Graph) else Graph().parse(graph)
         self.class_list: List = list(gets_ontology_classes(self.graph))
 
         # OWL-NETS CLEANING DICTIONARY
@@ -167,13 +169,19 @@ class OwlNets(object):
                      if (OWL.Class in i[2] or OWL.NamedIndividual in i[2]) and '#' not in str(x[2])]
                 p = [i for i in list(self.graph.triples((x[1], RDF.type, None))) if i[2] != OWL.AnnotationProperty]
                 if len(s) > 0 and len(o) > 0 and len(p) > 0:
-                    if OWL.ObjectProperty in p[0][2]: keep_predicates.add(x)
-                    else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
+                    if OWL.ObjectProperty in p[0][2]:
+                        keep_predicates.add(x)
+                    else:
+                        filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
                 if len(s) > 0 and len(o) > 0 and len(p) == 0:
-                    if RDFS.subClassOf in x[1]: keep_predicates.add(x)
-                    elif RDF.type in x[1]: keep_predicates.add(x)
-                    else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
-            else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
+                    if RDFS.subClassOf in x[1]:
+                        keep_predicates.add(x)
+                    elif RDF.type in x[1]:
+                        keep_predicates.add(x)
+                    else:
+                        filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
+            else:
+                filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
 
         filtered_graph = adds_edges_to_graph(Graph(), list(keep_predicates))  # create a new graph from filtered edges
         self.owl_nets_dict['filtered_triples'] |= filtered_triples
@@ -288,7 +296,8 @@ class OwlNets(object):
                        for k, v in node_info[0].items() if 'onProperty' in v.keys()])}
             return True
 
-        else: return False
+        else:
+            return False
 
     @staticmethod
     def returns_object_property(sub: URIRef, obj: URIRef, prop: URIRef = None) -> URIRef:
@@ -309,10 +318,14 @@ class OwlNets(object):
             An rdflib.term object that represents an owl:ObjectProperty.
         """
 
-        if ('PATO' in sub and 'PATO' in obj) and not prop: return RDFS.subClassOf
-        elif ('PATO' not in sub and 'PATO' not in obj) and not prop: return RDFS.subClassOf
-        elif 'PATO' not in sub and 'PATO' in obj: return URIRef('http://purl.obolibrary.org/obo/RO_0000086')
-        else: return prop
+        if ('PATO' in sub and 'PATO' in obj) and not prop:
+            return RDFS.subClassOf
+        elif ('PATO' not in sub and 'PATO' not in obj) and not prop:
+            return RDFS.subClassOf
+        elif 'PATO' not in sub and 'PATO' in obj:
+            return URIRef('http://purl.obolibrary.org/obo/RO_0000086')
+        else:
+            return prop
 
     @staticmethod
     def parses_anonymous_axioms(edges: Dict, class_dict: Dict) -> Dict:
@@ -331,10 +344,14 @@ class OwlNets(object):
                 or 'someValuesFrom').
         """
 
-        if isinstance(edges['first'], URIRef) and isinstance(edges['rest'], BNode): return class_dict[edges['rest']]
-        elif isinstance(edges['first'], URIRef) and isinstance(edges['rest'], URIRef): return class_dict[edges['first']]
-        elif isinstance(edges['first'], BNode) and isinstance(edges['rest'], URIRef): return class_dict[edges['first']]
-        else: return {**class_dict[edges['first']], **class_dict[edges['rest']]}
+        if isinstance(edges['first'], URIRef) and isinstance(edges['rest'], BNode):
+            return class_dict[edges['rest']]
+        elif isinstance(edges['first'], URIRef) and isinstance(edges['rest'], URIRef):
+            return class_dict[edges['first']]
+        elif isinstance(edges['first'], BNode) and isinstance(edges['rest'], URIRef):
+            return class_dict[edges['first']]
+        else:
+            return {**class_dict[edges['first']], **class_dict[edges['rest']]}
 
     def parses_constructors(self, node: URIRef, edges: Dict, class_dict: Dict, relation: URIRef = None) \
             -> Tuple[Set, Optional[Dict]]:
@@ -382,8 +399,10 @@ class OwlNets(object):
                     obj_property = self.returns_object_property(node, edge_batch['first'], relation)
                     cleaned_classes |= {(node, obj_property, edge_batch['first'])}
                     edge_batch = None
-                else: edge_batch = self.parses_anonymous_axioms(edge_batch, class_dict)
-            else: break
+                else:
+                    edge_batch = self.parses_anonymous_axioms(edge_batch, class_dict)
+            else:
+                break
 
         return cleaned_classes, edge_batch
 
@@ -459,7 +478,8 @@ class OwlNets(object):
             node = self.class_list.pop(0)
             node_info = self.creates_edge_dictionary(node)
             if len(node_info[0]) == 0: pass
-            if self.detects_constructed_class_to_ignore(node_info, node) is True: pass
+            if self.detects_constructed_class_to_ignore(node_info, node) is True:
+                pass
             else:
                 cleaned_nodes |= {node}
                 cleaned_classes: Set = set()
@@ -558,15 +578,14 @@ class OwlNets(object):
         self.converts_rdflib_to_networkx_multidigraph()  # create networkx representation
         if self.kg_construct_approach == 'instance': self.updates_class_instance_identifiers()
         self.graph = self.removes_edges_with_owl_semantics() + self.cleans_owl_encoded_classes()
-        print(len(original_graph))
-        print(len(self.graph))
         if self.kg_construct_approach is not None: self.purifies_graph_build(original_graph)
 
         # write out owl-nets graph
         print('\nSerializing OWL-NETS Graph')
         f_name = [self.filename[:-4] + '_OWLNETS.nt' if '.owl' in self.filename
-                  else self.filename.split('.')[0] + '_OWLNETS.nt' if '.' in self.filename
+                  else '.'.join(self.filename.split('.')[:-1]) + '_OWLNETS.nt' if '.' in self.filename
                   else self.filename + '_OWLNETS.nt'][0]
+        f_name = '/' + f_name if not f_name.startswith('/') else f_name
         self.graph.serialize(destination=self.write_location + f_name, format='nt')
 
         # get output statistics
@@ -578,10 +597,10 @@ class OwlNets(object):
         print('The OWL-Decoded Knowledge Graph Contains: {} Unique Relations'.format(len(unique_relations)))
 
         # write out owl_nets dictionary
-        with open(self.write_location + '/OWL-NETS_decoding_dict.pkl', 'wb') as out:
+        with open(self.write_location + f_name.strip('.nt') + '_decoding_dict.pkl', 'wb') as out:
             pickle.dump(self.owl_nets_dict, out)
 
         # convert graph to NetworkX MultiDigraph
-        converts_rdflib_to_networkx(self.write_location, f_name.split('.')[0], self.graph)
+        converts_rdflib_to_networkx(self.write_location, f_name.strip('.nt'), self.graph)
 
         return self.graph
