@@ -1,6 +1,9 @@
 # import phase 3 container
 FROM callahantiff/pheknowlator:latest
 
+# allow statements and log messages to immediately appear in the Knative logs
+ENV PYTHONUNBUFFERED True
+
 # copying local scripts to container
 COPY *.py *.txt /PheKnowLator/builds/
 

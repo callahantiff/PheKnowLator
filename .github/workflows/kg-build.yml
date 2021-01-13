@@ -34,6 +34,7 @@ jobs:
           --region ${{ env.REGION }} \
           --image gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }} \
           --platform "managed" \
+          --port 8080 \
           --allow-unauthenticated
 
 #name: Build and Deploy to Google Compute Engine
