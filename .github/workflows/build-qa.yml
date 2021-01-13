@@ -49,7 +49,7 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       - name: Coveralls
-        run: coveralls
+        run: coveralls --service=github
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
