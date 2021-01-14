@@ -41,6 +41,7 @@ jobs:
           --cpu 4 \
           --memory=8Gi \
           --timeout=60m0s
+          --quiet
 
 
 #name: Build and Deploy to Google Compute Engine
