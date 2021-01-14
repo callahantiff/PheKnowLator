@@ -4,6 +4,7 @@
 # import needed libraries
 import fnmatch
 import glob
+import logging
 import os
 import shutil
 import re
@@ -17,7 +18,7 @@ from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
 # set environment variable -- this should be replaced with GitHub Secret for build
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
 
 def get_file_metadata(url, file_location, gcs_url):
@@ -77,7 +78,7 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
     Args:
         gcs_url: A string containing a URL to the current Google Cloud Storage bucket.
         file_url: A string containing a URL to a build dependency document.
-        bucket: A storage Bucket object specifying a Google Cloud Storage bucket.
+        bucket: A storage bucket object specifying a Google Cloud Storage bucket.
         temp_directory: A local directory where preprocessed data is stored.
 
     Returns:
@@ -118,7 +119,7 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
     return None
 
 
-def main():
+def run_phase_2():
     print('#' * 35 + '\nBUILD PHASE 2: DATA PRE-PROCESSING\n' + '#' * 35)
 
     temp_dir = 'temp'
@@ -173,6 +174,4 @@ def main():
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)
 
-
-if __name__ == '__main__':
-    main()
+    return None

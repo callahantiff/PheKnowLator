@@ -5,6 +5,7 @@
 import datetime
 import fnmatch
 import glob
+import logging
 import pickle
 import os
 import re
@@ -44,7 +45,7 @@ class OntologyCleaner(object):
         self.original_data: str = org_data
         self.processed_data: str = proc_data
         # SETTING LOCAL VARIABLES
-        self.owltools_location = './pkt_kg/libs/owltools'
+        self.owltools_location = './owltools'
         self.temp_dir = temp
         self.merged_ontology_filename: str = 'PheKnowLator_MergedOntologies.owl'
         # ONTOLOGY INFORMATION DICTIONARY
@@ -152,7 +153,7 @@ class OntologyCleaner(object):
         filename = self.temp_dir + '/' + self.ont_file_location
         self.ont_graph.serialize(destination=filename, format='xml')
 
-        command = "./pkt_kg/libs/owltools {} --reasoner {} --run-reasoner --assert-implied -o {}"
+        command = "./owltools {} --reasoner {} --run-reasoner --assert-implied -o {}"
         return_code = os.system(command.format(filename, 'elk', filename))
         if return_code == 0:
             ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)

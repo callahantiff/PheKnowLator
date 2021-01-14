@@ -4,6 +4,7 @@
 # import needed libraries
 import fnmatch
 import itertools
+import logging
 import networkx  # type: ignore
 import numpy  # type: ignore
 import os
@@ -43,7 +44,7 @@ class DataPreprocessing(object):
         self.processed_data: str = processed_data
         # SETTING LOCAL VARIABLES
         self.temp_dir = temp_dir
-        self.owltools_location = './pkt_kg/libs/owltools'
+        self.owltools_location = './owltools'
         # OTHER CLASS VARIABLES
         self.genomic_type_mapper: Dict = {}
 
@@ -1178,7 +1179,7 @@ class DataPreprocessing(object):
         print('\t- Logically Verifying Constructed Human Protein Ontology')
 
         # run reasoner
-        command = "./pkt_kg/libs/owltools ./{} --reasoner {} --run-reasoner --assert-implied -o ./{}"
+        command = "./owltools ./{} --reasoner {} --run-reasoner --assert-implied -o ./{}"
         return_code = os.system(command.format(input_filename, reasoner.lower(), output_filename))
 
         if return_code == 0:
