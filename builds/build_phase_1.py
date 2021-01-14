@@ -5,6 +5,7 @@
 import os
 import re
 import shutil
+import sys
 
 from datetime import date, datetime
 from google.cloud import storage  # type: ignore
@@ -166,7 +167,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
 
 def main():
 
-    print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35, flush=True)
+    print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35, , file=sys.stdout)
 
     # create temp directory to use locally for writing data GCS data to
     temp_dir = 'builds/temp'
@@ -190,3 +191,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+    # print('This is error output', file=sys.stderr)
+    # print('This is standard output', file=sys.stdout)
