@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 @app.route('/')
 def build_phase_1():
     app.logger.info('Processing default request')
-    run_phase_1(app.logger)
+    run_phase_1()
     return 'Phase 1 Completed!'
 
 

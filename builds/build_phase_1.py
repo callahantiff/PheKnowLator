@@ -14,6 +14,7 @@ from google.cloud import storage  # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
+
 # set environment variable -- this should be replaced with GitHub Secret for build
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
@@ -127,7 +128,7 @@ def writes_metadata(metadata, bucket, original_data, temp_directory):
     return None
 
 
-def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_loc='./builds/data_to_download.txt'):
+def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_loc='temp/data_to_download.txt'):
     """Reads in the list of data to download for the current build, downloads each object, and pushes the downloaded
     object up to a Google Cloud Storage bucket. Once all of the data are downloaded, a metadata file object is
     generated and pushed with the downloaded data to the original_data Google Cloud Storage bucket for the current
@@ -149,6 +150,8 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
 
     urls, metadata = [x.strip('\n') for x in open(file_loc, 'r').readlines() if not x.startswith('#') and x != '\n'], []
     for url in urls:
+        print('**' * 10 + url + '**' * 10)
+
         if url.startswith('http://purl.obolibrary.org/obo/'):
             file_path = temp_directory + '/' + url.split('/')[-1][:-4] + '_with_imports.owl'
             os.system("./pkt_kg/libs/owltools {} --merge-import-closure -o {}".format(url, file_path))
@@ -166,10 +169,10 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
     return None
 
 
-def run_phase_1(logger_var):
+def run_phase_1():
 
     # print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35,, file=sys.stdout)
-    logger_var.info('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
+    logging.info('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
 
     # create temp directory to use locally for writing data GCS data to
     temp_dir = 'temp'
@@ -191,11 +194,3 @@ def run_phase_1(logger_var):
     downloads_build_data(bucket, gcs_original_data, gcs_url.format(release, build), temp_dir)
 
     return None
-
-
-# if __name__ == '__main__':
-#     main()
-
-
-    # print('This is error output', file=sys.stderr)
-    # print('This is standard output', file=sys.stdout)
