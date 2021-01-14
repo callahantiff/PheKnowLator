@@ -2,13 +2,15 @@ import os
 
 from flask import Flask, request
 
+import build_phase_1
+
 app = Flask(__name__)
 
 
 @app.route('/')
-def hello_world():
-    name = request.args.get('name', 'World')
-    return f'Hello {name}!'
+def build_phase_1():
+    build_phase_1
+    return 'Phase 1 Completed!'
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
 # set environment variable -- this should be replaced with GitHub Secret for build
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
 
 def creates_build_directory_structure(bucket, release):

@@ -1,7 +1,7 @@
 name: cloudrun-deploy
-on:
-  schedule:
-    - cron: '0 0 1 * *'  # runs midnight on the first day of each month
+on: push
+#  schedule:
+#    - cron: '0 0 1 * *'  # runs midnight on the first day of each month
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
   SERVICE: ${{ secrets.GCP_APPLICATION }}
