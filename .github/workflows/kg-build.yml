@@ -39,4 +39,5 @@ jobs:
           --port 8080 \
           --allow-unauthenticated \
           --cpu 4 \
-          --memory=8Gi
+          --memory=8Gi \
+          --timeout=15m0s
