@@ -38,5 +38,5 @@ jobs:
           --platform "managed" \
           --port 8080 \
           --allow-unauthenticated \
-          --cpu 4
-          --memory 8GiB
+          --cpu 4 \
+          --memory=8Gi
