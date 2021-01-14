@@ -40,7 +40,7 @@ jobs:
           --allow-unauthenticated \
           --cpu 4 \
           --memory=8Gi \
-          --timeout=60m0s
+          --timeout=60m0s \
           --quiet
 
 
