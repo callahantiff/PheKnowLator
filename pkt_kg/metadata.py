@@ -70,7 +70,7 @@ class Metadata(object):
             print('Loading and Processing Node Metadata')
 
             with open(self.node_data[0], 'rb') as out:
-                self.node_dict = pickle.load(out)
+                self.node_dict = pickle.load(out, encoding="utf8")
 
         return None
 
