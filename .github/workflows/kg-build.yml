@@ -32,7 +32,7 @@ jobs:
 
     - name: Deploy to Cloud Run
       run: |-
-        gcloud run deploy ${{ env.SERVICE }} \
+        gcloud beta run deploy ${{ env.SERVICE }} \
           --region ${{ env.REGION }} \
           --image gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }} \
           --platform "managed" \
@@ -40,7 +40,7 @@ jobs:
           --allow-unauthenticated \
           --cpu 4 \
           --memory=8Gi \
-          --timeout=15m0s
+          --timeout=60m0s
 
 
 #name: Build and Deploy to Google Compute Engine
