@@ -10,7 +10,7 @@ import os
 import re
 
 from google.cloud import storage  # type: ignore
-from owlready2 import *  # type: ignore
+from owlready2 import OwlReadyOntologyParsingError  # type: ignore
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 from tqdm import tqdm  # type: ignore
@@ -74,11 +74,10 @@ class OntologyCleaner(object):
         }
         f_data = self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl'
         if not os.path.exists(f_data):
-            url = 'https://storage.googleapis.com/pheknowlator/release_v2.0.0/build_31DEC2020/data/processed_data/'
+            url = 'https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/data/processed_data'
             data_downloader(url + f_data.split('/')[-1], self.temp_dir + '/')
-            self.gene_ids = pickle.load(open(f_data, 'rb'), encoding='bytes')
-        else:
-            self.gene_ids = pickle.load(open(f_data, 'rb'), encoding='bytes')
+        with open(f_data, 'rb') as out:
+            self.gene_ids = pickle.load(out, encoding='bytes')
 
     def uploads_data_to_gcs_bucket(self, file_loc: str) -> None:
         """Takes a file name and pushes the corresponding data referenced by the filename object from a local
@@ -122,7 +121,8 @@ class OntologyCleaner(object):
                 raise ValueError('{} Not in the GCS original_data Directory of the Current Build'.format(filename))
 
             return data_file
-        else: return None
+        else:
+            return None
 
     def reads_gcs_bucket_data_to_graph(self, file_location: str) -> Graph:
         """Reads data corresponding to the input file_location variable into a Pandas DataFrame.
@@ -178,7 +178,8 @@ class OntologyCleaner(object):
             self.ontology_info[self.ont_file_location]['Original GCS URL'] = gcs_org_url + self.ont_file_location
             self.ontology_info[self.ont_file_location]['Processed GCS URL'] = gcs_proc_url + self.ont_file_location
             key = 'Starting Statistics'
-        else: key = 'Final Statistics'
+        else:
+            key = 'Final Statistics'
         classes, obj_props = len(gets_ontology_classes(self.ont_graph)), len(gets_object_properties(self.ont_graph))
         triples, indv = len(self.ont_graph), len(list(self.ont_graph.triples((None, RDF.type, OWL.NamedIndividual))))
         stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals'.format(classes, obj_props, triples, indv)
@@ -194,10 +195,14 @@ class OntologyCleaner(object):
         """
 
         errors = {}
-        try: _ = get_ontology(self.temp_dir + '/' + self.ont_file_location).load()  # type: ignore
-        except OwlReadyOntologyParsingError as o: errors['OwlReadyOntologyParsingError'] = str(o)  # type: ignore
-        except KeyError as k: errors['KeyError'] = str(k)
-        except TypeError as p: errors['PunningError'] = str(p)
+        try:
+            _ = get_ontology(self.temp_dir + '/' + self.ont_file_location).load()  # type: ignore
+        except OwlReadyOntologyParsingError as o:
+            errors['OwlReadyOntologyParsingError'] = str(o)  # type: ignore
+        except KeyError as k:
+            errors['KeyError'] = str(k)
+        except TypeError as p:
+            errors['PunningError'] = str(p)
 
         return errors
 
@@ -298,7 +303,7 @@ class OntologyCleaner(object):
             (1) Entities typed as an owl:Class and owl:ObjectProperty --> removes owl:ObjectProperty
             (2) Entities typed as an owl:Class and owl:NamedIndividual --> removes owl:NamedIndividual
             (3) Entities typed as an OWL:ObjectProperty and owl:AnnotationProperty --> removes owl:AnnotationProperty
-            (4) owl:ObjectProperties that are rdfs:subProperty of an owl:AnnotationProperty --> remove rdfs:subProperty
+              - Any owl:ObjectProperty redeclared as an owl:AnnotationProperty never used in other triples are removed
 
         NOTE. Even though a run will yield a clean a result, reading back in the ontology using any OWL API-based
         tools (e.g. OWL Tools) will result in a single punning error for RO_0002161.
@@ -313,31 +318,32 @@ class OntologyCleaner(object):
         onts_entities = set([x[0] for x in tqdm(self.ont_graph)])
         for x in tqdm(onts_entities):
             ent_types = list(self.ont_graph.triples((x, RDF.type, None)))
-            subpro = list(self.ont_graph.triples((x, RDFS.subPropertyOf, None)))
             if len(ent_types) > 1:
                 if not any([x for x in ent_types if 'owl' not in str(x[2])]):
                     # class + object properties --> remove object properties
                     class_prop, obj_prop = (x, RDF.type, OWL.Class), (x, RDF.type, OWL.ObjectProperty)
-                    if class_prop in ent_types and obj_prop in ent_types:
+                    if class_prop in ent_types and obj_prop in ent_types and str(x) not in bad_cls:
                         self.ont_graph.remove(obj_prop)
                         bad_cls.add(str(x))
                     # class + individual --> remove individual
                     class_prop, ind_prop = (x, RDF.type, OWL.Class), (x, RDF.type, OWL.NamedIndividual)
-                    if class_prop in ent_types and ind_prop in ent_types:
+                    if class_prop in ent_types and ind_prop in ent_types and str(x) not in bad_cls:
                         self.ont_graph.remove(ind_prop)
                         bad_cls.add(str(x))
                     # object property + annotation property --> remove annotation property
                     obj_prop, a_prop = (x, RDF.type, OWL.ObjectProperty), (x, RDF.type, OWL.AnnotationProperty)
-                    if obj_prop in ent_types and a_prop in ent_types:
+                    if obj_prop in ent_types and a_prop in ent_types and str(x) not in bad_obj:
                         self.ont_graph.remove(a_prop)
                         bad_obj.add(str(x))
-                        # object properties that are subproperty of something that is not an object property
-                        if len(subpro) > 0 and any([x for x in ent_types if OWL.ObjectProperty == x[2]]):
-                            for s in subpro:
-                                for sp in list(self.ont_graph.triples((s[2], RDF.type, None))):
-                                    if OWL.ObjectProperty != sp[2]:
-                                        self.ont_graph.remove(sp)
-                                        bad_obj.add(str(x))
+                        # check if the object property is used beyond definition -- if not, delete it
+                        out_edges = list(self.ont_graph.triples((x, None, None)))
+                        in_edges = list(self.ont_graph.triples((None, None, x)))
+                        val_nodes = [i for i in out_edges + in_edges if len(
+                            [j[2] for j in list(self.ont_graph.triples((i, RDF.type, OWL.Class)))] +
+                            [j[2] for j in list(self.ont_graph.triples((i, RDF.type, OWL.NamedIndividual)))]) > 0]
+                        if len(val_nodes) == 0:
+                            self.ont_graph.remove((x, None, None))
+                            bad_obj.add(str(x))
                     else: bad_oth += [str(ent_types[0]) + '-' + '/'.join([str(x[2]) for x in ent_types])]
 
         self.ontology_info[key]['PunningErrors - Classes'] = ', '.join(bad_cls) if len(bad_cls) > 0 else 'None'
@@ -399,21 +405,24 @@ class OntologyCleaner(object):
         for node in tqdm(hgnc):
             trips = list(self.ont_graph.triples((node, None, None))) + list(self.ont_graph.triples((None, None, node)))
             nd = 'hgnc_id_' + str(node).split('/')[-1].split('=')[-1]
-            if nd in g.keys(): ents = [URIRef(url + x) for x in g[nd] if x.startswith('entrez_id_')]
-            else: ents = [URIRef(url + x) for x in self.withdrawn_genes[str(node)]]
+            if nd in g.keys():
+                ents = [URIRef(url + x) for x in g[nd] if x.startswith('entrez_id_')]
+            else:
+                ents = [URIRef(url + x) for x in self.withdrawn_genes[str(node)]]
             for edge in trips:
                 if node in edge[0]:
                     if isinstance(edge[2], URIRef) or isinstance(edge[2], BNode):
                         for i in ents:
                             self.ont_graph.add((i, edge[1], edge[2]))
                             self.ont_graph.remove(edge)
-                    else: self.ont_graph.remove(edge)
+                    else:
+                        self.ont_graph.remove(edge)
                 if node in edge[2]:
                     for i in ents:
                         self.ont_graph.add((edge[0], edge[1], i))
                         self.ont_graph.remove(edge)
 
-        no_ont = len(non_ont)-len(hgnc)
+        no_ont = len(non_ont) - len(hgnc)
         self.ontology_info[self.ont_file_location]['Normalized - NonOnt'] = no_ont if no_ont != 0 else 'None'
         self.ontology_info[self.ont_file_location]['Normalized - Gene IDs'] = len(hgnc) if len(hgnc) > 0 else 'None'
 
@@ -446,16 +455,19 @@ class OntologyCleaner(object):
                 o.write('\t- Punning Error:\n\t\t- Classes:\n')
                 if x['PunningErrors - Classes'] != 'None':
                     for i in x['PunningErrors - Classes'].split(', '): o.write('\t\t\t- {}\n'.format(i))
-                else: o.write('\t\t\t- {}\n'.format(x['PunningErrors - Classes']))
+                else:
+                    o.write('\t\t\t- {}\n'.format(x['PunningErrors - Classes']))
                 o.write('\t\t- ObjectProperties:\n')
                 if x['PunningErrors - ObjectProperty'] != 'None':
                     for i in x['PunningErrors - ObjectProperty'].split(', '): o.write('\t\t\t- {}\n'.format(i))
-                else: o.write('\t\t\t- {}\n'.format(x['PunningErrors - ObjectProperty']))
+                else:
+                    o.write('\t\t\t- {}\n'.format(x['PunningErrors - ObjectProperty']))
                 if 'Normalized - Duplicates' in x.keys():
                     o.write('\t- Entity Normalization:\n')
                     if x['Normalized - Duplicates'] != 'None':
                         for i in x['Normalized - Duplicates'].split(', '): o.write('\t\t- {}\n'.format(i))
-                    else: o.write('\t\t- {}\n'.format(x['Normalized - Duplicates']))
+                    else:
+                        o.write('\t\t- {}\n'.format(x['Normalized - Duplicates']))
                     o.write('\t\t- Other Classes that May Need Normalization: {}\n'.format(x['Normalized - NonOnt']))
                     o.write('\t\t- Normalized HGNC IDs: {}\n'.format(x['Normalized - Gene IDs']))
 
