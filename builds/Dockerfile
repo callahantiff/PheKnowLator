@@ -10,8 +10,13 @@ COPY *.py *.txt /PheKnowLator/builds/
 # set wroking directory in container
 WORKDIR /PheKnowLator/builds/
 
+# download
+RUN wget https://github.com/callahantiff/PheKnowLator/blob/kg_construction_fixes/pkt_kg/libs/owltools && \
+    chmod 755 owltools
+
 # install requirements
 RUN pip install -r build_requirements.txt
+
 EXPOSE 8080
 #ENTRYPOINT ["python", "build_phase_3.py"]
 ENTRYPOINT ["gunicorn", "--bind", ":8080", "--workers", "1", "--threads", "8", "--timeout", "0", "main:app"]
