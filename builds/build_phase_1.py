@@ -155,8 +155,8 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
 
         if url.startswith('http://purl.obolibrary.org/obo/'):
             file_path = temp_directory + '/' + url.split('/')[-1][:-4] + '_with_imports.owl'
-            # os.system("./owltools {} --merge-import-closure -o {}".format(url, file_path))
-            subprocess.check_call(['./owltools', str(url), '--merge-import-closure', '-o', str(file_path)])
+            os.system("./owltools {} --merge-import-closure -o {}".format(url, file_path))
+            # subprocess.check_call(['./owltools', str(url), '--merge-import-closure', '-o', str(file_path)])
         else:
             filename, url = url.split(', ')
             file_path = temp_directory + '/' + re.sub('.zip|.gz', '', filename)
