@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # import needed libraries
+import logging
 import os
 import re
 import shutil
@@ -165,9 +166,10 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
     return None
 
 
-def main():
+def run_phase_1(logger_var):
 
-    print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35, , file=sys.stdout)
+    # print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35, file=sys.stdout)
+    logger_var.info('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
 
     # create temp directory to use locally for writing data GCS data to
     temp_dir = 'builds/temp'
@@ -188,9 +190,11 @@ def main():
     build = gcs_original_data.split('/')[2]
     downloads_build_data(bucket, gcs_original_data, gcs_url.format(release, build), temp_dir)
 
+    return None
 
-if __name__ == '__main__':
-    main()
+
+# if __name__ == '__main__':
+#     main()
 
 
     # print('This is error output', file=sys.stderr)

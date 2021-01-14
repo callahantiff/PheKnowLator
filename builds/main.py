@@ -1,15 +1,19 @@
 import os
+import logging
 
 from flask import Flask, request
 
-import build_phase_1
+from build_phase_1 import *
 
 app = Flask(__name__)
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 @app.route('/')
 def build_phase_1():
-    build_phase_1
+    app.logger.info('Processing default request')
+    run_phase_1(app.logger)
     return 'Phase 1 Completed!'
 
 
