@@ -10,7 +10,7 @@ import os
 import re
 
 from google.cloud import storage  # type: ignore
-from owlready2 import OwlReadyOntologyParsingError  # type: ignore
+from owlready2 import get_ontology, OwlReadyOntologyParsingError  # type: ignore
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 from tqdm import tqdm  # type: ignore
