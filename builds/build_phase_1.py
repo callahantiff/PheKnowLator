@@ -166,7 +166,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
 
 def main():
 
-    print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
+    print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35, flush=True)
 
     # create temp directory to use locally for writing data GCS data to
     temp_dir = 'builds/temp'
