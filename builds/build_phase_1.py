@@ -128,7 +128,7 @@ def writes_metadata(metadata, bucket, original_data, temp_directory):
     return None
 
 
-def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_loc='temp/data_to_download.txt'):
+def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_loc='data_to_download.txt'):
     """Reads in the list of data to download for the current build, downloads each object, and pushes the downloaded
     object up to a Google Cloud Storage bucket. Once all of the data are downloaded, a metadata file object is
     generated and pushed with the downloaded data to the original_data Google Cloud Storage bucket for the current
