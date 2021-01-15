@@ -512,6 +512,7 @@ class OwlNets(object):
         print('ignored {} misc elements'.format(len(list(self.owl_nets_dict['owl_nets']['misc'].keys()))))
         print('{} owl:complementOf removed'.format(len(list(self.owl_nets_dict['owl_nets']['complementOf'].keys()))))
         print('{} negation elements\n'.format(len(list(self.owl_nets_dict['owl_nets']['negation'].keys()))) + '=' * 75)
+        del self.nx_mdg  # clean up environment
 
         return decoded_graph
 
