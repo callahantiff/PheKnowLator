@@ -284,7 +284,7 @@ class TestKGConstructionApproach(unittest.TestCase):
 
         return None
 
-    def test_subclass_constructor_class_subclass(self):
+    def test_subclass_constructor_class_subclass_without_inverse(self):
         """Tests the subclass_constructor method for edge with class-subclass data type."""
 
         # prepare input vars - NO INVERSE RELATIONS
@@ -300,6 +300,11 @@ class TestKGConstructionApproach(unittest.TestCase):
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 9)
+
+        return None
+
+    def test_subclass_constructor_class_subclass_inverse(self):
+        """Tests the subclass_constructor method for edge with class-subclass data type with inverse relations."""
 
         # prepare input vars - WITH INVERSE RELATIONS
         # edge information
@@ -317,8 +322,8 @@ class TestKGConstructionApproach(unittest.TestCase):
 
         return None
 
-    def test_subclass_constructor_class_class(self):
-        """Tests the subclass_constructor method for edge with class-class data type."""
+    def test_subclass_constructor_class_class_no_inverse(self):
+        """Tests the subclass_constructor method for edge with class-class data type with relations only."""
 
         # prepare input vars - NO INVERSE
         # edge information
@@ -333,6 +338,11 @@ class TestKGConstructionApproach(unittest.TestCase):
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 7)
+
+        return None
+
+    def test_subclass_constructor_class_class_inverse(self):
+        """Tests the subclass_constructor method for edge with class-class data type with inverse relations."""
 
         # prepare input vars - WITH INVERSE
         # edge information
@@ -350,8 +360,8 @@ class TestKGConstructionApproach(unittest.TestCase):
 
         return None
 
-    def test_subclass_constructor_subclass_subclass(self):
-        """Tests the subclass_constructor method for edge with subclass-subclass data type."""
+    def test_subclass_constructor_subclass_subclass_relations(self):
+        """Tests the subclass_constructor method for edge with subclass-subclass data type with single relations."""
 
         # prepare input vars - NO INVERSE RELATIONS
         # edge information
@@ -366,6 +376,11 @@ class TestKGConstructionApproach(unittest.TestCase):
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 11)
+
+        return None
+
+    def test_subclass_constructor_subclass_subclass_inverse_relations(self):
+        """Tests the subclass_constructor method for edge with subclass-subclass data type with inverse relations."""
 
         # prepare input vars - WITH INVERSE RELATIONS
         # edge information
@@ -383,8 +398,8 @@ class TestKGConstructionApproach(unittest.TestCase):
 
         return None
 
-    def test_instance_constructor_class_class(self):
-        """Tests the instance_constructor method for edge with class-class data type."""
+    def test_instance_constructor_class_class_relations(self):
+        """Tests the instance_constructor method for edge with class-class data type with a single relation."""
 
         # prepare input vars -- NO INVERSE RELATIONS
         # edge information
@@ -399,6 +414,11 @@ class TestKGConstructionApproach(unittest.TestCase):
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 8)
+
+        return None
+
+    def test_instance_constructor_class_class_inverse_relations(self):
+        """Tests the instance_constructor method for edge with class-class data type with inverse relations."""
 
         # prepare input vars -- WITH INVERSE RELATIONS
         # edge information
@@ -416,8 +436,8 @@ class TestKGConstructionApproach(unittest.TestCase):
 
         return None
 
-    def test_instance_constructor_instance_instance(self):
-        """Tests the instance_constructor method for edge with instance-instance data type."""
+    def test_instance_constructor_instance_instance_relations(self):
+        """Tests the instance_constructor method for edge with instance-instance data type with single relations."""
 
         # prepare input vars - NO INVERSE RELATIONS
         # edge information
@@ -432,6 +452,11 @@ class TestKGConstructionApproach(unittest.TestCase):
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 8)
+
+        return None
+
+    def test_instance_constructor_instance_instance_inverse_relations(self):
+        """Tests the instance_constructor method for edge with instance-instance data type with inverse relations."""
 
         # prepare input vars - WITH INVERSE RELATIONS
         # edge information
@@ -449,8 +474,8 @@ class TestKGConstructionApproach(unittest.TestCase):
 
         return None
 
-    def test_instance_constructor_instance_class(self):
-        """Tests the instance_constructor method for edge with instance-class data type."""
+    def test_instance_constructor_instance_class_relations(self):
+        """Tests the instance_constructor method for edge with instance-class data type with relations only."""
 
         # prepare input vars - NO INVERSE RELATIONS
         # edge information
@@ -465,6 +490,11 @@ class TestKGConstructionApproach(unittest.TestCase):
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 8)
+
+        return None
+
+    def test_instance_constructor_instance_class_inverse(self):
+        """Tests the instance_constructor method for edge with instance-class data type with inverse relations."""
 
         # prepare input vars - WITH INVERSE RELATIONS
         # edge information
