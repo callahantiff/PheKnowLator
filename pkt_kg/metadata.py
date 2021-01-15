@@ -144,14 +144,17 @@ class Metadata(object):
             else: pass
             if len(x) > 0:  # add metadata for eligible entities
                 for i in x:
-                    metadata = self.node_dict[key][i]
-                    if 'Label' in metadata.keys() and metadata['Label'] != 'None':
-                        edges += [(URIRef(i), RDFS.label, Literal(metadata['Label']))]
-                    if 'Description' in metadata.keys() and metadata['Description'] != 'None':
-                        edges += [(URIRef(i), URIRef(obo + 'IAO_0000115'), Literal(metadata['Description']))]
-                    if 'Synonym' in metadata.keys() and metadata['Synonym'] != 'None':
-                        for syn in metadata['Synonym'].split('|'):
-                            edges += [(URIRef(i), URIRef(oboinowl + 'hasSynonym'), Literal(syn))]
+                    metadata_info = self.node_dict[key][i]
+                    if 'Label' in metadata_info.keys():
+                        if metadata_info['Label'] is not None and 'None' not in metadata_info['Label']:
+                            edges += [(URIRef(i), RDFS.label, Literal(metadata_info['Label']))]
+                    if 'Description' in metadata_info.keys():
+                        if metadata_info['Description'] is not None and 'None' not in metadata_info['Description']:
+                            edges += [(URIRef(i), URIRef(obo + 'IAO_0000115'), Literal(metadata_info['Description']))]
+                    if 'Synonym' in metadata_info.keys():
+                        if metadata_info['Synonym'] is not None and 'None' not in metadata_info['Synonym']:
+                            for syn in metadata_info['Synonym'].split('|'):
+                                edges += [(URIRef(i), URIRef(oboinowl + 'hasSynonym'), Literal(syn))]
                 return edges
             else: return None
         else: return None
