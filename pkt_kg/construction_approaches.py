@@ -20,11 +20,6 @@ obo = Namespace('http://purl.obolibrary.org/obo/')
 pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
 
 
-# TODO: extend functionality to improve KR for:
-#  (1) instance-based builds that includes connections between 2 instance nodes
-#  (2) the ability to combine instance and subclass-based methods
-
-
 class KGConstructionApproach(object):
     """Class stores different methods that can be used to construct knowledge graph edges.
 
