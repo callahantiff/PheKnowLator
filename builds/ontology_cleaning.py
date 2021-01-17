@@ -119,7 +119,6 @@ class OntologyCleaner(object):
                     self.bucket.blob(match_file).download_to_filename(self.temp_dir + '/' + match_file.split('/')[-1])
             except IndexError:
                 raise ValueError('{} Not in the GCS original_data Directory of the Current Build'.format(filename))
-
             return data_file
         else:
             return None
@@ -171,8 +170,14 @@ class OntologyCleaner(object):
 
         print('Obtaining Ontology Statistics')
 
-        gcs_org_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(self.original_data)
-        gcs_proc_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(self.processed_data)
+        if isinstance(self.bucket, str):
+            gcs_org_url = '{}/{}'.format(self.temp_dir, self.original_data)
+            gcs_proc_url = gcs_org_url
+        else:
+            gcs_org_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(self.original_data)
+            gcs_proc_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(self.processed_data)
+
+        # write out statistics
         if 'Starting Statistics' not in self.ontology_info[self.ont_file_location].keys():
             self.ontology_info[self.ont_file_location] = {}
             self.ontology_info[self.ont_file_location]['Original GCS URL'] = gcs_org_url + self.ont_file_location
@@ -293,8 +298,8 @@ class OntologyCleaner(object):
         for node in list(deprecated_classes) + list(obsolete_classes):
             self.ont_graph.remove((node, None, None))
 
-        self.ontology_info[key]['Deprecated'] = len(deprecated_classes) if len(deprecated_classes) > 0 else 'None'
-        self.ontology_info[key]['Obsolete'] = len(obsolete_classes) if len(obsolete_classes) > 0 else 'None'
+        self.ontology_info[key]['Deprecated'] = deprecated_classes if len(deprecated_classes) > 0 else 'None'
+        self.ontology_info[key]['Obsolete'] = obsolete_classes if len(obsolete_classes) > 0 else 'None'
 
         return None
 
@@ -314,7 +319,7 @@ class OntologyCleaner(object):
 
         print('Resolving Punning Errors')
 
-        key, bad_cls, bad_obj, bad_oth = self.ont_file_location, set(), set(), []
+        key, bad_cls, bad_obj = self.ont_file_location, set(), set()
         onts_entities = set([x[0] for x in tqdm(self.ont_graph)])
         for x in tqdm(onts_entities):
             ent_types = list(self.ont_graph.triples((x, RDF.type, None)))
@@ -344,11 +349,9 @@ class OntologyCleaner(object):
                         if len(val_nodes) == 0:
                             self.ont_graph.remove((x, None, None))
                             bad_obj.add(str(x))
-                    else: bad_oth += [str(ent_types[0]) + '-' + '/'.join([str(x[2]) for x in ent_types])]
 
         self.ontology_info[key]['PunningErrors - Classes'] = ', '.join(bad_cls) if len(bad_cls) > 0 else 'None'
         self.ontology_info[key]['PunningErrors - ObjectProperty'] = ', '.join(bad_obj) if len(bad_obj) > 0 else 'None'
-        self.ontology_info[key]['PunningErrors - Other'] = ', '.join(bad_oth) if len(bad_oth) > 0 else 'None'
 
         return None
 
@@ -405,18 +408,15 @@ class OntologyCleaner(object):
         for node in tqdm(hgnc):
             trips = list(self.ont_graph.triples((node, None, None))) + list(self.ont_graph.triples((None, None, node)))
             nd = 'hgnc_id_' + str(node).split('/')[-1].split('=')[-1]
-            if nd in g.keys():
-                ents = [URIRef(url + x) for x in g[nd] if x.startswith('entrez_id_')]
-            else:
-                ents = [URIRef(url + x) for x in self.withdrawn_genes[str(node)]]
+            if nd in g.keys(): ents = [URIRef(url + x) for x in g[nd] if x.startswith('entrez_id_')]
+            else: ents = [URIRef(url + x) for x in self.withdrawn_genes[str(node)]]
             for edge in trips:
                 if node in edge[0]:
                     if isinstance(edge[2], URIRef) or isinstance(edge[2], BNode):
                         for i in ents:
                             self.ont_graph.add((i, edge[1], edge[2]))
                             self.ont_graph.remove(edge)
-                    else:
-                        self.ont_graph.remove(edge)
+                    else: self.ont_graph.remove(edge)
                 if node in edge[2]:
                     for i in ents:
                         self.ont_graph.add((edge[0], edge[1], i))
@@ -450,24 +450,29 @@ class OntologyCleaner(object):
                 if 'Final Statistics' in x.keys(): o.write('\t\t- After Cleaning: {}\n'.format(x['Final Statistics']))
                 if 'ValueErrors' in x.keys(): o.write('\t- Value Errors: {}\n'.format(x['ValueErrors']))
                 if 'IdentifierErrors' in x.keys(): o.write('\t- Identifier Errors: {}\n'.format(x['IdentifierErrors']))
-                if 'Deprecated' in x.keys(): o.write('\t- Deprecated Classes: {}\n'.format(x['Deprecated']))
-                if 'Obsolete' in x.keys(): o.write('\t- Obsolete Classes: {}\n'.format(x['Obsolete']))
+                if 'PheKnowLator_MergedOntologies' not in key:
+                    if x['Deprecated'] != 'None':
+                        o.write('\t- Deprecated Classes:\n')
+                        for i in x['Deprecated']: o.write('\t\t- {}\n'.format(str(i)))
+                    else: o.write('\t\t\t- {}\n'.format(x['Deprecated']))
+                    if x['Obsolete'] != 'None':
+                        o.write('\t- Obsolete Classes:\n')
+                        for i in x['Obsolete']: o.write('\t\t- {}\n'.format(str(i)))
+                    else: o.write('\t\t\t- {}\n'.format(x['Obsolete']))
                 o.write('\t- Punning Error:\n\t\t- Classes:\n')
                 if x['PunningErrors - Classes'] != 'None':
-                    for i in x['PunningErrors - Classes'].split(', '): o.write('\t\t\t- {}\n'.format(i))
-                else:
-                    o.write('\t\t\t- {}\n'.format(x['PunningErrors - Classes']))
+                    for i in x['PunningErrors - Classes'].split(', '):
+                        o.write('\t\t\t- {}\n'.format(i))
+                else: o.write('\t\t\t- {}\n'.format(x['PunningErrors - Classes']))
                 o.write('\t\t- ObjectProperties:\n')
                 if x['PunningErrors - ObjectProperty'] != 'None':
                     for i in x['PunningErrors - ObjectProperty'].split(', '): o.write('\t\t\t- {}\n'.format(i))
-                else:
-                    o.write('\t\t\t- {}\n'.format(x['PunningErrors - ObjectProperty']))
+                else: o.write('\t\t\t- {}\n'.format(x['PunningErrors - ObjectProperty']))
                 if 'Normalized - Duplicates' in x.keys():
                     o.write('\t- Entity Normalization:\n')
                     if x['Normalized - Duplicates'] != 'None':
                         for i in x['Normalized - Duplicates'].split(', '): o.write('\t\t- {}\n'.format(i))
-                    else:
-                        o.write('\t\t- {}\n'.format(x['Normalized - Duplicates']))
+                    else: o.write('\t\t- {}\n'.format(x['Normalized - Duplicates']))
                     o.write('\t\t- Other Classes that May Need Normalization: {}\n'.format(x['Normalized - NonOnt']))
                     o.write('\t\t- Normalized HGNC IDs: {}\n'.format(x['Normalized - Gene IDs']))
 
@@ -487,7 +492,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('*** CLEANING ONTOLOGY DATA SOURCES ***')
+        print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
 
         for ont in self.ontology_info.keys():
             if ont != self.merged_ontology_filename:
@@ -501,7 +506,7 @@ class OntologyCleaner(object):
                 self.updates_ontology_reporter()  # get finishing statistics
                 self._logically_verifies_cleaned_ontologies()
 
-        print('\n\n*** CLEANING ONTOLOGY DATA SOURCES ***')
+        print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         self.ont_file_location = self.merged_ontology_filename
         onts = [self.temp_dir + '/' + x for x in list(self.ontology_info.keys())
                 if x != self.merged_ontology_filename]
