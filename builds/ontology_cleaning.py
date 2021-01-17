@@ -310,9 +310,6 @@ class OntologyCleaner(object):
             (3) Entities typed as an OWL:ObjectProperty and owl:AnnotationProperty --> removes owl:AnnotationProperty
               - Any owl:ObjectProperty redeclared as an owl:AnnotationProperty never used in other triples are removed
 
-        NOTE. Even though a run will yield a clean a result, reading back in the ontology using any OWL API-based
-        tools (e.g. OWL Tools) will result in a single punning error for RO_0002161.
-
         Returns:
              None.
         """
