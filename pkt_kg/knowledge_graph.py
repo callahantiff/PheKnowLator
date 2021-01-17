@@ -40,9 +40,10 @@ class KGBuilder(object):
 
     Attributes:
         construction: A string that indicates what type of construction approach to use (i.e. instance or subclass).
-        node_data: A filepath to a directory called 'node_data' containing a file for each instance node.
-        inverse_relations: A filepath to a directory called 'relations_data' containing the relations data.
-        decode_owl: A string indicating whether edges containing owl semantics should be removed.
+        node_data: A string containing "yes" or "no" indicating whether or not to add node data to the knowledge graph.
+        inverse_relations: A string containing "yes" or "no" indicating whether or not to add inverse relations to the
+            knowledge graph.
+        decode_owl: A string containing "yes" or "no" indicating whether owl semantics should be removed.
         write_location: An optional string passed to specify the primary directory to write to.
 
     Raises:
@@ -257,7 +258,7 @@ class KGBuilder(object):
         """
 
         edge_builder = KGConstructionApproach(self.edge_dict, self.res_dir)  # initialize construction approaches
-        for edge_type in [x for x in self.edge_dict.keys() if '-' in x]:
+        for edge_type in [x for x in self.edge_dict.keys() if x != 'entity_namespaces']:
             n1_type, n2_type = self.edge_dict[edge_type]['data_type'].split('-')
             uri, edge_list = self.edge_dict[edge_type]['uri'], copy.deepcopy(self.edge_dict[edge_type]['edge_list'])
             edge_results: List = []
@@ -268,24 +269,25 @@ class KGBuilder(object):
             for edge in tqdm(edge_list):
                 edge_info = {'n1': n1_type, 'n2': n2_type, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
                 meta = node_metadata_func(ent=[''.join(x) for x in list(zip(uri, edge))], e_type=[n1_type, n2_type])
-                metadata_logic = [True if self.node_data is None and meta is None
-                                  or self.node_data is not None and meta is not None else False][0]
+                metadata_logic = [True if (self.node_data is None and meta is None)
+                                  or [n1_type, n2_type] == ['class', 'class']
+                                  or (self.node_data is not None and meta is not None) else False][0]
                 if self.check_ontology_class_nodes(edge_info) and metadata_logic:  # make sure ont class nodes are in KG
                     if n1_type != 'class': self.graph = updates_graph_namespace(n1_type, self.graph, uri[0] + edge[0])
                     if n2_type != 'class': self.graph = updates_graph_namespace(n2_type, self.graph, uri[1] + edge[1])
                     if self.construct_approach == 'subclass':
                         self.edge_dict, new_edges = edge_builder.subclass_constructor(edge_info, edge_type)
                         edge_results += new_edges
-                        if self.node_data and meta: self.graph = adds_edges_to_graph(self.graph, new_edges + meta)
+                        self.graph = adds_edges_to_graph(self.graph, new_edges + meta if meta else new_edges)
                     else:
                         self.edge_dict, new_edges = edge_builder.instance_constructor(edge_info, edge_type)
                         edge_results += new_edges
-                        if self.node_data and meta: self.graph = adds_edges_to_graph(self.graph, new_edges)
+                        self.graph = adds_edges_to_graph(self.graph, new_edges + meta if meta else new_edges)
                 else: self.edge_dict[edge_type]['edge_list'].pop(self.edge_dict[edge_type]['edge_list'].index(edge))
             self.gets_edge_statistics(edge_type, invrel, edge_results)
         if len(edge_builder.subclass_error.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_missing_node_log.json'
-            print('\nSome edge lists nodes were missing from subclass_dict, see log: {}'.format(log_file))
+            print('\nSome edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
             outputs_dictionary_data(edge_builder.subclass_error, log_file)
         self.graph = ontology_annotator_func(self.full_kg.split('/')[-1], self.graph)
         print('\nSerializing Knowledge Graph')
@@ -499,6 +501,11 @@ class FullBuild(KGBuilder):
             metadata.node_metadata_processor()
             metadata.extracts_class_metadata(self.graph)
             self.node_dict = metadata.node_dict
+
+        import random
+        for edge_type in tqdm(self.edge_dict.keys()):
+            if edge_type != 'entity_namespaces' and len(self.edge_dict[edge_type]['edge_list']) > 100:
+                self.edge_dict[edge_type]['edge_list'] = random.sample(self.edge_dict[edge_type]['edge_list'], 100)
 
         # STEP 4: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
