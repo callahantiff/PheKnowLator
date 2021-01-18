@@ -489,10 +489,10 @@ def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], clas
 
     # check class uris are formatted correctly and get their ancestors
     class_uris = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris])
-    ancestor_classes = set([j for k in [list(graph.objects(x, RDFS.subClassOf)) for x in set(class_uris)] for j in k])
+    ancestors = set([j for k in [list(graph.objects(x, RDFS.subClassOf)) for x in set(class_uris)] for j in k])
 
-    if len(ancestor_classes) == 0 or not any(x for x in ancestor_classes if x not in class_list):
-        return set([str(x) for x in class_list][::-1])
+    if len(ancestors) == 0 or len(ancestors.difference(class_list)) == 0:
+        return set([str(x) for x in class_list])
     else:
-        class_list |= ancestor_classes
-        return gets_class_ancestors(graph, ancestor_classes, class_list)
+        class_list |= ancestors
+        return gets_class_ancestors(graph, ancestors, class_list)

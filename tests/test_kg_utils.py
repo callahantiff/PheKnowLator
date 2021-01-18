@@ -345,24 +345,42 @@ class TestKGUtils(unittest.TestCase):
 
         # load ontology
         graph = Graph().parse(self.good_ontology_file_location, format='xml')
-        so_class = [URIRef('http://purl.obolibrary.org/obo/SO_0000348')]
+        so_class = {URIRef('http://purl.obolibrary.org/obo/SO_0000348')}
 
         # get ancestors when a valid class is provided -- class is URIRef
-        ancestors1 = gets_class_ancestors(graph, so_class, set(so_class))
+        ancestors1 = gets_class_ancestors(graph, so_class, so_class)
         self.assertIsInstance(ancestors1, Set)
         self.assertEqual(sorted(list(ancestors1)),
                          sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
                                       'http://purl.obolibrary.org/obo/SO_0000400',
                                       'http://purl.obolibrary.org/obo/SO_0000443'})))
 
+        return None
+
+    def test_finds_class_ancestors_bad_format(self):
+        """Tests the finds_class_ancestors method when badly formatted class_uris are passed."""
+
+        # load ontology
+        graph = Graph().parse(self.good_ontology_file_location, format='xml')
+        so_class = [URIRef('http://purl.obolibrary.org/obo/SO_0000348')]
+
         # get ancestors when a valid class is provided -- class is not URIRef
-        class_uri = [str(x).split('/')[-1] for x in so_class]
-        ancestors1 = gets_class_ancestors(graph, class_uri, set(class_uri))
+        class_uri = set([str(x).split('/')[-1] for x in so_class])
+        ancestors1 = gets_class_ancestors(graph, class_uri, class_uri)
         self.assertIsInstance(ancestors1, Set)
         self.assertEqual(sorted(list(ancestors1)),
                          sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
                                       'http://purl.obolibrary.org/obo/SO_0000400',
                                       'http://purl.obolibrary.org/obo/SO_0000443'})))
+
+        return None
+
+    def test_finds_class_ancestors_none(self):
+        """Tests the finds_class_ancestors method when an empty set of class uris is passed."""
+
+        # load ontology
+        graph = Graph().parse(self.good_ontology_file_location, format='xml')
+        so_class = [URIRef('http://purl.obolibrary.org/obo/SO_0000348')]
 
         # get ancestors when no class is provided
         ancestors2 = gets_class_ancestors(graph, set())
