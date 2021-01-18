@@ -348,22 +348,25 @@ class TestKGUtils(unittest.TestCase):
         so_class = [URIRef('http://purl.obolibrary.org/obo/SO_0000348')]
 
         # get ancestors when a valid class is provided -- class is URIRef
-        ancestors1 = gets_class_ancestors(graph, so_class)
-        self.assertIsInstance(ancestors1, List)
-        self.assertEqual(ancestors1,
-                         ['http://purl.obolibrary.org/obo/SO_0000400',
-                          'http://purl.obolibrary.org/obo/SO_0000443'])
+        ancestors1 = gets_class_ancestors(graph, so_class, set(so_class))
+        self.assertIsInstance(ancestors1, Set)
+        self.assertEqual(sorted(list(ancestors1)),
+                         sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
+                                      'http://purl.obolibrary.org/obo/SO_0000400',
+                                      'http://purl.obolibrary.org/obo/SO_0000443'})))
 
         # get ancestors when a valid class is provided -- class is not URIRef
-        ancestors1 = gets_class_ancestors(graph, [str(x).split('/')[-1] for x in so_class])
-        self.assertIsInstance(ancestors1, List)
-        self.assertEqual(ancestors1,
-                         ['http://purl.obolibrary.org/obo/SO_0000400',
-                          'http://purl.obolibrary.org/obo/SO_0000443'])
+        class_uri = [str(x).split('/')[-1] for x in so_class]
+        ancestors1 = gets_class_ancestors(graph, class_uri, set(class_uri))
+        self.assertIsInstance(ancestors1, Set)
+        self.assertEqual(sorted(list(ancestors1)),
+                         sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
+                                      'http://purl.obolibrary.org/obo/SO_0000400',
+                                      'http://purl.obolibrary.org/obo/SO_0000443'})))
 
         # get ancestors when no class is provided
-        ancestors2 = gets_class_ancestors(graph, [])
-        self.assertIsInstance(ancestors2, List)
-        self.assertEqual(ancestors2, [])
+        ancestors2 = gets_class_ancestors(graph, set())
+        self.assertIsInstance(ancestors2, Set)
+        self.assertEqual(ancestors2, set())
 
         return None

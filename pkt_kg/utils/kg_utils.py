@@ -471,7 +471,7 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     return None
 
 
-def gets_class_ancestors(graph: Graph, class_uris: List[Union[URIRef, str]], class_list: Optional[List] = None) -> List:
+def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], class_list: Optional[Set] = None) -> List:
     """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input class.
 
     Args:
@@ -484,16 +484,15 @@ def gets_class_ancestors(graph: Graph, class_uris: List[Union[URIRef, str]], cla
     """
 
     # instantiate list object if none passed to function
-    class_list = [] if class_list is None else class_list
+    class_list = set() if class_list is None else class_list
+    class_list = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_list])
 
-    # check class uris are formatted correctly
-    class_uris = [x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris]
+    # check class uris are formatted correctly and get their ancestors
+    class_uris = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris])
+    ancestor_classes = set([j for k in [list(graph.objects(x, RDFS.subClassOf)) for x in set(class_uris)] for j in k])
 
-    # gets ancestors
-    ancestor_classes = [j for k in [list(graph.objects(x, RDFS.subClassOf)) for x in class_uris] for j in k]
-
-    if len(ancestor_classes) == 0:
-        return [str(x) for x in class_list][::-1]
+    if len(ancestor_classes) == 0 or not any(x for x in ancestor_classes if x not in class_list):
+        return set([str(x) for x in class_list][::-1])
     else:
-        class_list += ancestor_classes
+        class_list |= ancestor_classes
         return gets_class_ancestors(graph, ancestor_classes, class_list)
