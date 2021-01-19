@@ -35,7 +35,16 @@ How do I Learn More?
 Important Updates and Notifications
 ************************************
 
-- *12/21/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!  
+- *12/21/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!
+- *January 2021:*
+
+  - Access build data via a dedicated Google Cloud Storage bucket (see details under ``Releases``)
+
+  - New Public Endpoints:
+
+    - SPARQL Endpoint (``OWL-NETS`` ``instance``-based with inverse_relations and no metadata (e.g. labels)): `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
+
+    - Neo4J Endpoint: `http://neo4j.pheknowlator.com/ <http://neo4j.pheknowlator.com/>`__  --  *COMING SOON*
 
 Releases
 =========
