@@ -1,0 +1,97 @@
+<!-- The POM invokes an OWLTools command that will load all ontology imports 
+	and output a single file that includes the source ontology and the content 
+	of all imported ontologies. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>edu.ucdenver.ccp</groupId>
+	<artifactId>blazegraph-bulk-loader</artifactId>
+	<packaging>pom</packaging>
+	<version>1.0</version>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<sesame.version>2.7.12</sesame.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.blazegraph</groupId>
+			<artifactId>bigdata-core</artifactId>
+			<version>2.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openrdf.sesame</groupId>
+			<artifactId>sesame-runtime</artifactId>
+			<version>${sesame.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openrdf.sesame</groupId>
+			<artifactId>sesame-rio-api</artifactId>
+			<version>${sesame.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+						<id>build-classpath</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>build-classpath</goal>
+						</goals>
+						<configuration>
+							<!-- configure the plugin here -->
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.1</version>
+				<configuration>
+					<executable>java</executable>
+					<arguments>
+						<argument>-Xmx7G</argument>
+						<argument>-DentityExpansionLimit=4086000</argument>
+						<argument>-Djava.awt.headless=true</argument>
+						<argument>-DlauncherDir=${launchDir}</argument>
+						<argument>-Dlog4j.configuration=file:${log4j_properties_file}</argument>
+						<argument>-classpath</argument>
+						<classpath />
+						<argument>com.bigdata.rdf.store.DataLoader</argument>
+						<argument>-verbose</argument>
+						<argument>-defaultGraph</argument>
+						<argument>${default_graph}</argument>
+						<argument>-format</argument>
+						<argument>${format}</argument>
+						<argument>-namespace</argument>
+						<argument>${repo_name}</argument>
+						<argument>${property_file}</argument>
+						<argument>${file_to_load}</argument> <!-- can be a list of files to load or a single file or directory -->
+					</arguments>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+
+
+</project>
