@@ -4,9 +4,7 @@ Phenotype Knowledge Translator (PheKnowLator)
 
 |github_action| |mypy|  
 
-|sonar_quality| |sonar_maintainability| |code_climate_maintainability| |codacy|
-
-|sonar_coverage| |code_climate_coverage| |coveralls|
+|sonar_quality| |code_climate_maintainability| |codacy| |code_climate_coverage| |coveralls|
 
 |ABRA|
 
@@ -35,14 +33,13 @@ How do I Learn More?
 Important Updates and Notifications
 ************************************
 
-- *12/21/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!
 - *January 2021:*
 
   - Access build data via a dedicated Google Cloud Storage bucket (see details under ``Releases``)
 
   - New Public Endpoints:
 
-    - SPARQL Endpoint (``OWL-NETS`` ``instance``-based with inverse_relations and no metadata (e.g. labels)): `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
+    - SPARQL Endpoint (``OWL-NETS``  instance-based + inverse relations and no metadata): `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
 
     - Neo4J Endpoint: `http://neo4j.pheknowlator.com/ <http://neo4j.pheknowlator.com/>`__  --  *COMING SOON*
 
@@ -63,7 +60,9 @@ Prior Releases
 
   - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__
   - `Data Access <https://console.cloud.google.com/storage/browser/pheknowlator/release_v1.0.0?project=pheknowlator>`__
+
 |
+
 ----------------------------------
 
 ************************
@@ -158,6 +157,7 @@ The `KG Construction`_ Wiki page provides a detailed description of the knowledg
 * `resources/relations_data/INVERSE_RELATIONS.txt`_ ➞ *if including inverse relations*
 
 |
+
 ----------------------------------
 
 ************************
@@ -286,6 +286,7 @@ In order to enable persistent data, a volume is mounted within the ``Dockerfile`
     sudo ls /var/lib/docker/volumes/[VOLUME HASH]/_data
 
 |
+
 ---------------------------------
 
 ******************************
@@ -322,8 +323,7 @@ Citing this Work
      month        = mar,
      year         = 2019,
      doi          = {10.5281/zenodo.3401437},
-     url          = {https://doi.org/10.5281/zenodo.3401437}
-   }
+     url          = {https://doi.org/10.5281/zenodo.3401437}}
 
 
 

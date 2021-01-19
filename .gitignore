@@ -23,7 +23,6 @@ coverage.xml
 #### CI/CD Builds
 builds/temp/*
 
-
 #### API Keys/Project Passwords
 /resources/project_keys/*
 

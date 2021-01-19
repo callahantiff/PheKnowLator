@@ -83,8 +83,17 @@ jobs:
     name: Publishes pkt_kg to PyPI
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Create Source Archive
+        run: python setup.py sdist bdist_wheel
+
       - name: Publish package
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        if: github.event_name == 'push'
+#        if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__

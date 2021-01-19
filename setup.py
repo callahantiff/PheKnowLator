@@ -58,10 +58,10 @@ setup(
     include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: Apache 2.0 License',
+        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3'
     ],
-    packages=find_packages(exclude=['contrib', 'docs', 'tests*', 'builds', ]),
+    packages=find_packages(exclude=['contrib', 'docs', 'tests*', 'builds']),
     tests_require=test_deps,
 
     entry_points={
