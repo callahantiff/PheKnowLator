@@ -17,5 +17,4 @@ RUN wget https://github.com/callahantiff/PheKnowLator/raw/kg_construction_fixes/
 # install requirements
 RUN pip install -r build_requirements.txt
 
-EXPOSE 8080
-ENTRYPOINT ["gunicorn", "--bind", ":8080", "--workers", "1", "--threads", "8", "--timeout", "0", "main:app"]
+ENTRYPOINT ["python", "entrypoint.py"]

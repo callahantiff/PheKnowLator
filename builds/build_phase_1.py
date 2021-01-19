@@ -3,7 +3,7 @@
 
 # import needed libraries
 import fnmatch
-import logging
+# import logging
 import os
 import re
 import shutil
@@ -182,7 +182,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
     gcs_original_path = '/'.join(gcs_url.split('/')[4:-1])
     downloaded_data = [file.name for file in bucket.list_blobs(prefix=gcs_original_path)]
     urls, metadata = [x.strip('\n') for x in open(file_loc, 'r').readlines() if not x.startswith('#') and x != '\n'], []
-    for url in urls:
+    for url in urls[:1]:
         print('Downloading {}'.format(url))
         if url.startswith('http://purl.obolibrary.org/obo/'):
             file_path = url.split('/')[-1][:-4] + '_with_imports.owl'
@@ -207,8 +207,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
 
 def run_phase_1():
 
-    # print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
-    logging.info('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
+    print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
 
     # create temp directory to use locally for writing data GCS data to
     temp_dir = 'temp'
