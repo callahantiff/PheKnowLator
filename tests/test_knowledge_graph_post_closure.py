@@ -27,7 +27,6 @@ class TestPostClosureBuild(unittest.TestCase):
         self.dir_loc_resources = os.path.abspath(dir_loc_resources)
         os.mkdir(self.dir_loc_resources)
         os.mkdir(self.dir_loc_resources + '/knowledge_graphs')
-        os.mkdir(self.dir_loc_resources + '/knowledge_graphs/inverse_relations')
         os.mkdir(self.dir_loc_resources + '/relations_data')
         os.mkdir(self.dir_loc_resources + '/node_data')
         os.mkdir(self.dir_loc_resources + '/ontologies')
