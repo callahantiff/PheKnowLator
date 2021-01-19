@@ -39,10 +39,13 @@ class TestOwlNets(unittest.TestCase):
         # initialize class
         self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
                                 write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets2 = OwlNets(kg_construct_approach='instance', graph=self.graph,
+                                 write_location=self.write_location, filename=self.kg_filename)
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
         self.owl_nets.owl_tools = os.path.abspath(dir_loc_owltools)
+        self.owl_nets2.owl_tools = os.path.abspath(dir_loc_owltools)
 
         return None
 
@@ -188,7 +191,7 @@ class TestOwlNets(unittest.TestCase):
 
         # run method to roll back to re-map instances of classes
         self.owl_nets.updates_class_instance_identifiers()
-        self.assertEqual(len(self.owl_nets.graph), 6)
+        self.assertEqual(len(self.owl_nets.graph), 8)
         self.assertIn((URIRef('http://purl.obolibrary.org/obo/CHEBI_2504'),
                        URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
                        URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),
@@ -256,6 +259,22 @@ class TestOwlNets(unittest.TestCase):
 
         # check output length
         self.assertEqual(len(filtered_graph), 2328)
+
+        return None
+
+    def test_removes_edges_with_owl_semantics_decoded(self):
+        """Tests the removes_edges_with_owl_semantics method when owl has been decoded."""
+
+        self.owl_nets.owl_nets_dict['owl_nets']['decoded_classes'] = [1, 2, 3, 4, 5]
+
+        # run method
+        filtered_graph = self.owl_nets.removes_edges_with_owl_semantics()
+
+        # check output type
+        self.assertIsInstance(filtered_graph, Graph)
+
+        # check output length
+        self.assertEqual(len(filtered_graph), 3009)
 
         return None
 
@@ -643,7 +662,7 @@ class TestOwlNets(unittest.TestCase):
         owl_nets = OwlNets(graph=self.graph, write_location=self.write_location, filename=self.kg_filename)
 
         # test method
-        owl_nets.purifies_graph_build(owl_nets.graph)
+        owl_nets.purifies_graph_build()
         dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
         self.assertTrue(len(dict_keys), 0)
 
@@ -657,7 +676,7 @@ class TestOwlNets(unittest.TestCase):
                            write_location=self.write_location, filename=self.kg_filename)
 
         # test method
-        owl_nets.purifies_graph_build(owl_nets.graph)
+        owl_nets.purifies_graph_build()
         dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
         self.assertTrue(len(dict_keys), 3054)
 
@@ -671,20 +690,78 @@ class TestOwlNets(unittest.TestCase):
                            write_location=self.write_location, filename=self.kg_filename)
 
         # test method
-        owl_nets.purifies_graph_build(owl_nets.graph)
+        owl_nets.purifies_graph_build()
         dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
         self.assertTrue(len(dict_keys), 6616)
 
         return None
 
-    def test_run_owl_nets(self):
-        """Tests the run_owl_nets method."""
+    def test_write_out_results_regular(self):
+        """Tests the write_out_results method."""
 
+        self.owl_nets.kg_construct_approach = None
         owl_nets_graph = self.owl_nets.run_owl_nets()
-        self.assertIsInstance(owl_nets_graph, Graph)
-        self.assertEqual(len(owl_nets_graph), 2940)
+        self.assertIsInstance(owl_nets_graph, Tuple)
+        self.assertIsInstance(owl_nets_graph[0], Graph)
+        self.assertEqual(owl_nets_graph[1], None)
+        self.assertEqual(len(owl_nets_graph[0]), 2940)
 
         # make sure files are written locally
+        nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/so_with_imports_OWLNETS.nt'))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs'
+                                                                '/so_with_imports_OWLNETS_decoding_dict.pkl'))
+
+        return None
+
+    def test_write_out_results_subclass_purified(self):
+        """Tests the run_owl_nets method."""
+
+        self.owl_nets.kg_construct_approach = "subclass"
+        owl_nets_graph = self.owl_nets.run_owl_nets()
+        self.assertIsInstance(owl_nets_graph, Tuple)
+        self.assertIsInstance(owl_nets_graph[0], Graph)
+        self.assertEqual(len(owl_nets_graph[0]), 2940)
+        self.assertIsInstance(owl_nets_graph[1], Graph)
+        self.assertEqual(len(owl_nets_graph[0]), len(owl_nets_graph[1]))
+
+        # make sure files are written locally for each graph
+        # purified
+        nx_mdg_file = 'so_with_imports_SUBCLASS_purified_OWLNETS_NetworkxMultiDiGraph.gpickle'
+        nt_file = 'so_with_imports_SUBCLASS_purified_OWLNETS.nt'
+        dict_file = '/so_with_imports_SUBCLASS_purified_OWLNETS_decoding_dict.pkl'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nt_file))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs' + dict_file))
+        # regular
+        nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/so_with_imports_OWLNETS.nt'))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs'
+                                                                '/so_with_imports_OWLNETS_decoding_dict.pkl'))
+
+        return None
+
+    def test_write_out_results_instance_purified(self):
+        """Tests the run_owl_nets method."""
+
+        owl_nets_graph = self.owl_nets2.run_owl_nets()
+        self.assertIsInstance(owl_nets_graph, Tuple)
+        self.assertIsInstance(owl_nets_graph[0], Graph)
+        self.assertEqual(len(owl_nets_graph[0]), 2940)
+        self.assertIsInstance(owl_nets_graph[1], Graph)
+        self.assertTrue(len(owl_nets_graph[1]) > len(owl_nets_graph[0]))
+
+        # make sure files are written locally for each graph
+        # purified
+        nx_mdg_file = 'so_with_imports_INSTANCE_purified_OWLNETS_NetworkxMultiDiGraph.gpickle'
+        nt_file = 'so_with_imports_INSTANCE_purified_OWLNETS.nt'
+        dict_file = '/so_with_imports_INSTANCE_purified_OWLNETS_decoding_dict.pkl'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nt_file))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs' + dict_file))
+        # regular
         nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/so_with_imports_OWLNETS.nt'))
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
