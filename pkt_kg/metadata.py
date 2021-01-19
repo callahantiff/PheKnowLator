@@ -177,7 +177,7 @@ class Metadata(object):
         date_full = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
         # convert filename to permanent url
         parsed_filename = '_'.join(filename.lower().split('/')[-1].split('_')[2:])
-        url = 'https://pheknowlator.com/pheknowlator_' + parsed_filename
+        url = 'https://pheknowlator.com/pheknowlator_' + parsed_filename[:-4]
         pkt_url = 'https://github.com/callahantiff/PheKnowLator'
 
         # query ontology to obtain existing ontology annotations and remove them
