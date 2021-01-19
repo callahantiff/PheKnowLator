@@ -61,7 +61,7 @@ setup(
         'License :: OSI Approved :: Apache 2.0 License',
         'Programming Language :: Python :: 3'
     ],
-    packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
+    packages=find_packages(exclude=['contrib', 'docs', 'tests*', 'builds', ]),
     tests_require=test_deps,
 
     entry_points={
