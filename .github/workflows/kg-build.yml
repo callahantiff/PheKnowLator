@@ -1,5 +1,5 @@
 name: cloudrun-deploy
-on: push
+on: release
 #  schedule:
 #    - cron: '0 0 1 * *'  # runs midnight on the first day of each month
 env:
