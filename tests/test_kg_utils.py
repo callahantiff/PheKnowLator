@@ -1,15 +1,16 @@
 import glob
+import networkx as nx
 import os
 import os.path
 import unittest
 
 from typing import Dict, List, Set
-from rdflib import Graph, URIRef, BNode
+from rdflib import BNode, Graph, Literal, URIRef
 
 from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
-    maps_node_ids_to_integers, adds_edges_to_graph, remove_edges_from_graph, finds_node_type, \
-    converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties,\
-    gets_ontology_class_dbxrefs, gets_ontology_class_synonyms
+    maps_node_ids_to_integers, adds_edges_to_graph, remove_edges_from_graph, finds_node_type, updates_graph_namespace, \
+    converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties, \
+    gets_ontology_class_dbxrefs, gets_ontology_class_synonyms, gets_class_ancestors
 
 
 class TestKGUtils(unittest.TestCase):
@@ -197,18 +198,34 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
+    def test_updates_graph_namespace(self):
+        """tests the updates_graph_namespace method."""
+
+        # test method
+        graph = updates_graph_namespace('phenotype', Graph(), 'http://purl.obolibrary.org/obo/HP_0100443')
+        test_edge = (URIRef('http://purl.obolibrary.org/obo/HP_0100443'),
+                     URIRef('http://www.geneontology.org/formats/oboInOwl#hasOBONamespace'),
+                     Literal('phenotype'))
+        self.assertIsInstance(graph, Graph)
+        self.assertTrue(len(graph) == 1)
+        self.assertIn(test_edge, graph)
+
+        return None
+
     def test_maps_node_ids_to_integers(self):
         """Tests the maps_node_ids_to_integers method."""
 
         # set-up input variables
-        graph = Graph()
-        graph.parse(self.good_ontology_file_location)
+        graph = Graph().parse(self.good_ontology_file_location)
 
         # run method
-        maps_node_ids_to_integers(graph=graph,
-                                  write_location=self.dir_loc,
-                                  output_ints='/so_with_imports_Triples_Integers.txt',
-                                  output_ints_map='/so_with_imports_Triples_Integer_Identifier_Map.json')
+        mapped_dict = maps_node_ids_to_integers(graph=graph,
+                                                write_location=self.dir_loc,
+                                                output_ints='/so_with_imports_Triples_Integers.txt',
+                                                output_ints_map='/so_with_imports_Triples_Integer_Identifier_Map.json')
+
+        # check that a dictionary is returned
+        self.assertIsInstance(mapped_dict, Dict)
 
         # check that files were created
         self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_Triples_Integers.txt'))
@@ -225,10 +242,16 @@ class TestKGUtils(unittest.TestCase):
     def test_converts_rdflib_to_networkx(self):
         """Tests the converts_rdflib_to_networkx method."""
 
-        converts_rdflib_to_networkx(write_location=self.dir_loc, full_kg='/so_with_imports', graph=None)
-
         # check that files were created
+        converts_rdflib_to_networkx(write_location=self.dir_loc, full_kg='/so_with_imports', graph=None)
         self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle'))
+
+        # load graph and check structure
+        s = URIRef('http://purl.obolibrary.org/obo/SO_0000288')
+        o = URIRef('http://purl.obolibrary.org/obo/SO_0000287')
+        p = URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf')
+        graph = nx.read_gpickle(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle')
+        self.assertEqual(graph[s][o][p], {'predicate_key': '9cbd482627d217b38eb407d7eba48020', 'weight': 0.0})
 
         # clean up the environment
         os.remove(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle')
@@ -314,5 +337,54 @@ class TestKGUtils(unittest.TestCase):
         self.assertIsInstance(dbxref_type_dict, Dict)
         self.assertEqual(393, len(dbxref_dict))
         self.assertEqual(393, len(dbxref_type_dict))
+
+        return None
+
+    def test_finds_class_ancestors(self):
+        """Tests the finds_class_ancestors method."""
+
+        # load ontology
+        graph = Graph().parse(self.good_ontology_file_location, format='xml')
+        so_class = {URIRef('http://purl.obolibrary.org/obo/SO_0000348')}
+
+        # get ancestors when a valid class is provided -- class is URIRef
+        ancestors1 = gets_class_ancestors(graph, so_class, so_class)
+        self.assertIsInstance(ancestors1, Set)
+        self.assertEqual(sorted(list(ancestors1)),
+                         sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
+                                      'http://purl.obolibrary.org/obo/SO_0000400',
+                                      'http://purl.obolibrary.org/obo/SO_0000443'})))
+
+        return None
+
+    def test_finds_class_ancestors_bad_format(self):
+        """Tests the finds_class_ancestors method when badly formatted class_uris are passed."""
+
+        # load ontology
+        graph = Graph().parse(self.good_ontology_file_location, format='xml')
+        so_class = [URIRef('http://purl.obolibrary.org/obo/SO_0000348')]
+
+        # get ancestors when a valid class is provided -- class is not URIRef
+        class_uri = set([str(x).split('/')[-1] for x in so_class])
+        ancestors1 = gets_class_ancestors(graph, class_uri, class_uri)
+        self.assertIsInstance(ancestors1, Set)
+        self.assertEqual(sorted(list(ancestors1)),
+                         sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
+                                      'http://purl.obolibrary.org/obo/SO_0000400',
+                                      'http://purl.obolibrary.org/obo/SO_0000443'})))
+
+        return None
+
+    def test_finds_class_ancestors_none(self):
+        """Tests the finds_class_ancestors method when an empty set of class uris is passed."""
+
+        # load ontology
+        graph = Graph().parse(self.good_ontology_file_location, format='xml')
+        so_class = [URIRef('http://purl.obolibrary.org/obo/SO_0000348')]
+
+        # get ancestors when no class is provided
+        ancestors2 = gets_class_ancestors(graph, set())
+        self.assertIsInstance(ancestors2, Set)
+        self.assertEqual(ancestors2, set())
 
         return None

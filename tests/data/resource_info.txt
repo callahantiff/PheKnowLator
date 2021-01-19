@@ -1,2 +1,2 @@
 chemical-disease|:;MESH_;|class-class|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;4|0:MESH_CHEBI_MAP.txt;1:DISEASE_DOID_MAP.txt|5;!=;''|None
-gene-disease|;;|instance-class|RO_0003302|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|t|0;4|1:DISEASE_DOID_MAP.txt|10;>=;0.70|None
+gene-disease|;;|entity-class|RO_0003302|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|t|0;4|1:DISEASE_DOID_MAP.txt|10;>=;0.70|None

@@ -121,7 +121,7 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
 def main():
     print('#' * 35 + '\nBUILD PHASE 2: DATA PRE-PROCESSING\n' + '#' * 35)
 
-    temp_dir = 'builds/temp'
+    temp_dir = 'temp'
     if not os.path.exists(temp_dir): os.mkdir(temp_dir)
 
     ###############################################
@@ -130,10 +130,10 @@ def main():
     bucket = storage_client.get_bucket('pheknowlator')
     # define write path to Google Cloud Storage bucket
     release = 'release_v' + __version__
-    bucket_files = [file.name.split('/')[1] for file in bucket.list_blobs(prefix=release)]
+    bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix='{}/archived_builds'.format(release))]
     build = 'build_' + sorted([x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0])[-1]
-    gcs_original_data = '{}/{}/data/{}'.format(release, build, 'original_data/')
-    gcs_processed_data = '{}/{}/data/{}'.format(release, build, 'processed_data/')
+    gcs_original_data = '{}/archived_builds/{}/data/{}'.format(release, build, 'original_data/')
+    gcs_processed_data = '{}/archived_builds/{}/data/{}'.format(release, build, 'processed_data/')
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/{}/data/'.format(release, build)
 
     ###############################################
@@ -150,7 +150,7 @@ def main():
     # STEP 4 - GENERATE METADATA DOCUMENTATION
     metadata, processed_data = [], glob.glob(temp_dir + '/*')
     for data_file in tqdm(processed_data):
-        url = gcs_url + '/original_data/' + data_file.replace(temp_dir + '/', '')
+        url = gcs_url + 'original_data/' + data_file.replace(temp_dir + '/', '')
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
     writes_metadata(metadata, temp_dir)
 

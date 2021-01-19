@@ -716,10 +716,10 @@ class DataPreprocessing(object):
             for k, v in tqdm({**disease_dict, **mondo_dict, **hp_dict}.items()):
                 if any(x for x in v if x.startswith('MONDO')):
                     for idx in [x.replace(':', '_') for x in v if 'MONDO' in x]:
-                        out1.write(k.upper() + '\t' + idx + '\n')
+                        out1.write(k.upper().split(':')[-1] + '\t' + idx + '\n')
                 if any(x for x in v if x.startswith('HP')):
                     for idx in [x.replace(':', '_') for x in v if 'HP' in x]:
-                        out2.write(k.upper() + '\t' + idx + '\n')
+                        out2.write(k.upper().split(':')[-1] + '\t' + idx + '\n')
         self.uploads_data_to_gcs_bucket(file1)
         self.uploads_data_to_gcs_bucket(file2)
 
@@ -1481,7 +1481,9 @@ class DataPreprocessing(object):
 
     def _creates_pathway_metadata_dict(self) -> Dict:
         """Creates a dictionary to store labels, synonyms, and a description for each Reactome Pathway identifier
-        present in the input data file.
+        present in the human Reactome Pathway Database identifier data set (ReactomePathways.txt); Reactome-Gene
+        Association data (gene_association.reactome.gz), and Reactome-ChEBI data (ChEBI2Reactome_All_Levels.txt). The
+        keys of the dictionary are Reactome identifiers and the values are dictionaries for each metadata type.
 
         Returns:
             pathway_metadata_dict: A dict containing metadata that's keyed by Reactome Pathway identifier and whose
@@ -1494,11 +1496,22 @@ class DataPreprocessing(object):
 
         print('\t- Generating Metadata for Pathway Identifiers')
 
-        # get metadata then convert it to a dictionary
+        # reactome pathways
         f_name = self.temp_dir + '/' + 'ReactomePathways.txt'
         data = pandas.read_csv(f_name, header=None, delimiter='\t', low_memory=False)
         data = data.loc[data[2].apply(lambda x: x == 'Homo sapiens')]
-        nodes = set(list(data[0]))
+        # reactome gene association data
+        f_name1 = self.temp_dir + '/' + 'gene_association.reactome'
+        data1 = pandas.read_csv(f_name1, header=None, delimiter='\t', skiprows=1, low_memory=False)
+        data1 = data1.loc[data1[12].apply(lambda x: x == 'taxon:9606')]
+        data1[5].replace('REACTOME:', '', inplace=True, regex=True)
+        # reactome CHEBI data
+        f_name2 = self.temp_dir + '/' + 'ChEBI2Reactome_All_Levels.txt'
+        data2 = pandas.read_csv(f_name2, header=None, delimiter='\t', low_memory=False)
+        data2 = data2.loc[data2[5].apply(lambda x: x == 'Homo sapiens')]
+
+        # set unique node list
+        nodes = set(list(data[0]) + list(data1[5]) + list(data2[1]))
         metadata = metadata_api_mapper(list(nodes))
         metadata['ID'] = metadata['ID'].map('https://reactome.org/content/detail/{}'.format)
         metadata.set_index('ID', inplace=True)
@@ -1541,9 +1554,20 @@ class DataPreprocessing(object):
         return relation_metadata_dict
 
     def creates_non_ontology_class_metadata_dict(self) -> None:
-        """Combines the gene metadata, transcript metadata, variant metadata, pathway metadata, and relations metadata
-        dictionaries into a single large metadata dictionary. See the specific functions used below for examples of
-        the output.
+        """Combines the gene metadata, transcript metadata, variant metadata, pathway metadata, and relations
+        metadata dictionaries into a single large metadata dictionary. See example output below:
+        {
+            'nodes': {
+                'http://www.ncbi.nlm.nih.gov/gene/1': {
+                    'Label': 'A1BG',
+                    'Description': "A1BG has locus group protein-coding' and is located on chromosome 19 (19q13.43).",
+                    'Synonym': 'HYST2477alpha-1B-glycoprotein|HEL-S-163pA|ABG|A1B|GAB'} ... },
+            'relations': {
+                'http://purl.obolibrary.org/obo/RO_0002533': {
+                    'Label': 'sequence atomic unit',
+                    'Description': 'Any individual unit of a collection of like units arranged in a linear order',
+                    'Synonym': 'None'} ... }
+        }
 
         Returns:
             None.
@@ -1552,11 +1576,11 @@ class DataPreprocessing(object):
         print('Creating Master Metadata Dictionary for Non-Ontology Entities')
 
         # create single dictionary of
-        master_metadata_dictionary = {**self._creates_gene_metadata_dict(),
-                                      **self._creates_transcript_metadata_dict(),
-                                      **self._creates_variant_metadata_dict(),
-                                      **self._creates_pathway_metadata_dict(),
-                                      **self._creates_relations_metadata_dict()}
+        master_metadata_dictionary = {'nodes': {**self._creates_gene_metadata_dict(),
+                                                **self._creates_transcript_metadata_dict(),
+                                                **self._creates_variant_metadata_dict(),
+                                                **self._creates_pathway_metadata_dict()},
+                                      'relations': self._creates_relations_metadata_dict()}
 
         # save data and push to gcs bucket
         filename = 'node_metadata_dict.pkl'

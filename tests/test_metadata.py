@@ -1,6 +1,7 @@
 import glob
 import os
 import os.path
+import pickle
 import unittest
 
 from rdflib import Graph
@@ -22,11 +23,14 @@ class TestMetadata(unittest.TestCase):
         dir_loc2 = os.path.join(current_directory, 'utils/owltools')
         self.owltools_location = os.path.abspath(dir_loc2)
 
+        # create graph data
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+
         # set-up input arguments
         self.metadata = Metadata(kg_version='v2.0.0',
                                  write_location=self.dir_loc,
                                  kg_location=self.dir_loc + '/ontologies/so_with_imports.owl',
-                                 node_data=glob.glob(self.dir_loc + '/node_data/*.txt'),
+                                 node_data=glob.glob(self.dir_loc + '/node_data/*.pkl'),
                                  node_dict=dict())
 
         # load dictionary
@@ -37,84 +41,125 @@ class TestMetadata(unittest.TestCase):
     def test_node_metadata_processor(self):
         """Tests the node_metadata_processor method."""
 
+        # set-up input arguments
+        self.metadata = Metadata(kg_version='v2.0.0', write_location=self.dir_loc,
+                                 kg_location=self.dir_loc + '/ontologies/so_with_imports.owl',
+                                 node_data=glob.glob(self.dir_loc + '/node_data/*dict.pkl'),
+                                 node_dict=dict())
+        self.metadata.node_metadata_processor()  # load dictionary
+
         # make sure that the dictionary has the "schtuff"
         self.assertIsInstance(self.metadata.node_dict, Dict)
-        self.assertTrue('gene-phenotype' in self.metadata.node_dict.keys())
-        self.assertIsInstance(self.metadata.node_dict['gene-phenotype'], Dict)
-        self.assertTrue(len(self.metadata.node_dict['gene-phenotype']) == 3)
-        self.assertIn('Label', self.metadata.node_dict['gene-phenotype']['2'].keys())
-        self.assertIn('Synonym', self.metadata.node_dict['gene-phenotype']['2'].keys())
-        self.assertIn('Description', self.metadata.node_dict['gene-phenotype']['2'].keys())
+        self.assertTrue('nodes' in self.metadata.node_dict.keys())
+        self.assertTrue('relations' in self.metadata.node_dict.keys())
+
+        # check node dict
+        node_key = 'http://www.ncbi.nlm.nih.gov/gene/1'
+        self.assertIsInstance(self.metadata.node_dict['nodes'], Dict)
+        self.assertTrue(len(self.metadata.node_dict['nodes']) == 20)
+        self.assertIn('Label', self.metadata.node_dict['nodes'][node_key].keys())
+        self.assertIn('Synonym', self.metadata.node_dict['nodes'][node_key].keys())
+        self.assertIn('Description', self.metadata.node_dict['nodes'][node_key].keys())
+
+        # check relations dict
+        relations_key = 'http://purl.obolibrary.org/obo/RO_0002597'
+        self.assertIsInstance(self.metadata.node_dict['relations'], Dict)
+        self.assertTrue(len(self.metadata.node_dict['relations']) == 20)
+        self.assertIn('Label', self.metadata.node_dict['relations'][relations_key].keys())
+        self.assertIn('Synonym', self.metadata.node_dict['relations'][relations_key].keys())
+        self.assertIn('Description', self.metadata.node_dict['relations'][relations_key].keys())
 
         return None
 
-    def test_creates_node_metadata(self):
+    def test_creates_node_metadata_nodes(self):
         """Tests the creates_node_metadata method."""
 
-        # load graph
-        graph = Graph()
-        graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
-        org_graph_len = len(graph)
+        self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.metadata.extracts_class_metadata(self.graph)
 
         # test when the node has metadata
-        updated_graph_good = self.metadata.creates_node_metadata(node='2',
-                                                                 edge_type='gene-phenotype',
-                                                                 url='https://www.ncbi.nlm.nih.gov/gene/',
-                                                                 graph=graph)
-        # verify that new edges were added to the graph
-        self.assertTrue(len(updated_graph_good) > org_graph_len)
+        updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['entity', 'entity'])
+        self.assertTrue(len(updated_graph_1) == 16)
 
-        # check that the right number of new edges were added to the graph
-        graph_diff = len(updated_graph_good) - org_graph_len
-        new_edges = sum([len(x[1].split('|')) for x in self.metadata.node_dict['gene-phenotype']['2'].items()])
-        self.assertTrue(graph_diff == new_edges)
+        # check that the correct info is returned if only one is an entity
+        updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['entity', 'class'])
+        self.assertTrue(len(updated_graph_2) == 8)
+        # check that nothing is returned if the entities are classes
+        updated_graph_3 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['class', 'class'])
+        self.assertTrue(updated_graph_3 is None)
 
         # test when the node does not have metadata
-        self.assertRaises(KeyError, self.metadata.creates_node_metadata,
-                          '0',
-                          'gene-phenotype',
-                          'https://www.ncbi.nlm.nih.gov/gene/',
-                          graph)
+        updated_graph_4 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              e_type=['entity', 'entity'])
+        self.assertTrue(updated_graph_4 is None)
+
+        # test when node_data is None
+        self.metadata.node_data = None
+        updated_graph_5 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              e_type=['entity', 'entity'])
+        self.assertTrue(updated_graph_5 is None)
 
         return None
 
-    def test_adds_node_metadata(self):
-        """Tests the adds_node_metadata method."""
+    def test_creates_node_metadata_relations(self):
+        """Tests the creates_node_metadata method."""
 
-        # load graph
-        graph = Graph()
-        graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
-        org_graph_len = len(graph)
-
-        # set up edge_dictionary
-        edge_dict = {"gene-phenotype": {"data_type": "entity-class",
-                                        "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
-                                                "http://purl.obolibrary.org/obo/"],
-                                        "edge_list": [["2", "HP_0002511"],
-                                                      ["2", "HP_0000716"],
-                                                      ["2", "HP_0000100"],
-                                                      ["9", "HP_0030955"],
-                                                      ["9", "HP_0009725"],
-                                                      ["9", "HP_0100787"],
-                                                      ["9", "HP_0012125"],
-                                                      ["10", "HP_0009725"],
-                                                      ["10", "HP_0010301"],
-                                                      ["10", "HP_0045005"]]}}
+        self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.metadata.extracts_class_metadata(self.graph)
 
         # test when the node has metadata
-        updated_graph = self.metadata.adds_node_metadata(graph=graph, edge_dict=edge_dict)
+        updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002310'],
+                                                              key_type='relations')
+        self.assertTrue(len(updated_graph_1) == 2)
 
-        # verify that new edges were added to the graph
-        self.assertTrue(len(updated_graph) > org_graph_len)
+        # check that nothing is returned if the entities are classes
+        updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002597'],
+                                                              e_type=['class'], key_type='relations')
+        self.assertTrue(updated_graph_2 is None)
 
-        # check that the right number of new edges were added to the graph
-        graph_diff = len(updated_graph) - org_graph_len
+        # test when the node does not have metadata
+        updated_graph_3 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              key_type='relations')
+        self.assertTrue(updated_graph_3 is None)
 
-        new_edges = 0
-        for node in ["2", "9", "10"]:
-            new_edges += sum([len(x[1].split('|')) for x in self.metadata.node_dict['gene-phenotype'][node].items()])
+        return None
 
-        self.assertTrue(graph_diff == new_edges)
+    def test_creates_node_metadata_none(self):
+        """Tests the creates_node_metadata method when node_dict is None."""
+
+        self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.metadata.extracts_class_metadata(self.graph)
+        self.metadata.node_dict = None
+
+        # relations -- with valid input
+        updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002597'],
+                                                              key_type='relations')
+        self.assertTrue(updated_graph_1 is None)
+
+        # relations -- without valid input
+        updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/None'],
+                                                              key_type='relations')
+        self.assertTrue(updated_graph_2 is None)
+
+        # nodes -- with valid input
+        updated_graph_3 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['class', 'class'])
+        self.assertTrue(updated_graph_3 is None)
+
+        # nodes -- without valid input
+        updated_graph_4 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              e_type=['entity', 'entity'])
+        self.assertTrue(updated_graph_4 is None)
 
         return None
 
@@ -151,8 +196,7 @@ class TestMetadata(unittest.TestCase):
         filename = self.metadata.full_kg[:-4] + '_NoAnnotationAssertions.owl'
 
         # load graph
-        graph = Graph()
-        graph.parse(filename)
+        graph = Graph().parse(filename)
         no_annot_graph_len = len(graph)
 
         # add back annotation assertions
@@ -169,46 +213,54 @@ class TestMetadata(unittest.TestCase):
     def test_extracts_class_metadata(self):
         """Tests the extracts_class_metadata data."""
 
-        # load dictionary
-        self.metadata.node_metadata_processor()
-
-        # load graph
-        graph = Graph()
-        graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        org_file_size = os.path.getsize(self.metadata.node_data[0])
 
         # extract metadata
-        self.metadata.extracts_class_metadata(graph=graph)
+        self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.metadata.extracts_class_metadata(graph=self.graph)
 
         # check that it worked
-        self.assertIn('classes', self.metadata.node_dict.keys())
-        self.assertTrue(len(self.metadata.node_dict['classes']) == 2793)
-        self.assertIn('Label', self.metadata.node_dict['classes']['SO_0000373'].keys())
-        self.assertIn('Synonym', self.metadata.node_dict['classes']['SO_0000373'].keys())
-        self.assertIn('Description', self.metadata.node_dict['classes']['SO_0000373'].keys())
+        # nodes
+        node_key = 'http://purl.obolibrary.org/obo/SO_0000373'
+        self.assertTrue(len(self.metadata.node_dict['nodes']) == 2461)
+        self.assertIn('Label', self.metadata.node_dict['nodes'][node_key])
+        self.assertIn('Description', self.metadata.node_dict['nodes'][node_key])
+        self.assertIn('Synonym', self.metadata.node_dict['nodes'][node_key])
+        # relations
+        relation_key = 'http://purl.obolibrary.org/obo/so#genome_of'
+        self.assertTrue(len(self.metadata.node_dict['relations']) == 2511)
+        self.assertIn('Label', self.metadata.node_dict['relations'][relation_key])
+        self.assertIn('Description', self.metadata.node_dict['relations'][relation_key])
+        self.assertIn('Synonym', self.metadata.node_dict['relations'][relation_key])
+
+        # check that larger dict was saved
+        self.assertTrue(os.path.getsize(self.metadata.node_data[0]) >= org_file_size)
 
         return None
 
     def test_output_knowledge_graph_metadata(self):
         """Tests the output_knowledge_graph_metadata method."""
 
-        # update environment var
-        self.metadata.write_location = ''
+        self.metadata.write_location = ''  # update environment var
+        self.metadata.node_metadata_processor()  # load dictionary
+        graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')  # load graph
+        filename = self.dir_loc + '/ontologies/'
 
-        # load dictionary
-        self.metadata.node_metadata_processor()
-
-        # load graph
-        graph = Graph()
-        graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        # get node integer map
+        node_ints = maps_node_ids_to_integers(graph, filename, 'SO_Triples_Integers.txt',
+                                              'SO_Triples_Integer_Identifier_Map.json')
 
         # run function
-        self.metadata.output_knowledge_graph_metadata(graph=graph)
+        self.metadata.output_knowledge_graph_metadata(node_ints)
 
         # make sure that node data wrote out
         self.assertTrue(os.path.exists(self.dir_loc + '/ontologies/so_with_imports_NodeLabels.txt'))
 
         # remove file
         os.remove(self.dir_loc + '/ontologies/so_with_imports_NodeLabels.txt')
+        os.remove(filename + 'SO_Triples_Integers.txt')
+        os.remove(filename + 'SO_Triples_Identifiers.txt')
+        os.remove(filename + 'SO_Triples_Integer_Identifier_Map.json')
 
         return None
 
@@ -216,11 +268,10 @@ class TestMetadata(unittest.TestCase):
         """Tests the adds_ontology_annotations method."""
 
         # load graph
-        graph = Graph()
-        graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
 
         # run function
-        updated_graph = self.metadata.adds_ontology_annotations(filename='tests/data/so_tests_test_file', graph=graph)
+        updated_graph = self.metadata.adds_ontology_annotations(filename='tests/data/so_tests_file.owl', graph=graph)
 
         # check that the annotations were added
         results = updated_graph.query(
@@ -233,7 +284,15 @@ class TestMetadata(unittest.TestCase):
 
         results_list = [str(x) for y in results for x in y]
         self.assertTrue(len(results_list) == 21)
-        self.assertIn('https://pheknowlator.com/pheknowlator_test_file.owl', results_list)
-        self.assertIn('tests/data/so_tests_test_file', results_list)
+        self.assertIn('https://pheknowlator.com/pheknowlator_file.owl', results_list)
+
+        return None
+
+    def tearDown(self):
+
+        if self.metadata.node_data:
+            test_data_location = glob.glob(self.dir_loc + '/node_data/*_test.pkl')
+            if len(test_data_location) > 0:
+                os.remove(test_data_location[0])
 
         return None

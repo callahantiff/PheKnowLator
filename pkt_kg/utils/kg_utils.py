@@ -16,6 +16,8 @@ Interacts with OWL Tools API
 Interacts with Knowledge Graphs
 * adds_edges_to_graph
 * remove_edges_from_graph
+* updates_graph_namespace
+* gets_class_ancestors
 
 Writes Triple Lists
 * maps_node_ids_to_integers
@@ -26,18 +28,21 @@ File Type Conversion
 
 # import needed libraries
 import glob
+import hashlib
 import json
 import networkx  # type: ignore
 import os
 import os.path
 from rdflib import Graph, Literal, Namespace, URIRef  # type: ignore
-from rdflib.namespace import RDF, OWL  # type: ignore
+from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 # set-up environment variables
+obo = Namespace('http://purl.obolibrary.org/obo/')
+oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 schema = Namespace('http://www.w3.org/2001/XMLSchema#')
 
 
@@ -289,6 +294,23 @@ def remove_edges_from_graph(graph: Graph, edge_list: List) -> Graph:
     return graph
 
 
+def updates_graph_namespace(entity_namespace: str, graph: Graph, node: str) -> Graph:
+    """Adds a triple to a graph specifying a node's namespace. This is only used for non-ontology entities.
+
+    Args:
+        entity_namespace: A string containing an entity namespace (i.e. "pathway", "gene").
+        graph: An RDFLib Graph object.
+        node: A string containing the URI for a node in the graph.
+
+    Returns:
+        graph: An RDFLib Graph object.
+    """
+
+    graph.add((URIRef(node), URIRef(oboinowl + 'hasOBONamespace'), Literal(entity_namespace)))
+
+    return graph
+
+
 def finds_node_type(edge_info: Dict) -> Dict:
     """Takes a dictionary of edge information and parses the data type for each node in the edge. The function
     returns either None or a string containing a particular node from the edge.
@@ -324,14 +346,14 @@ def finds_node_type(edge_info: Dict) -> Dict:
     return nodes
 
 
-def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> None:
+def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:
     """Loops over the knowledge graph in order to create three different types of files:
         - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
-        subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
+          subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
         - Identifiers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
-        subject, predicate, object). Both the subject and object identifiers have not been mapped to integers.
+          subject, predicate, object). Both the subject and object identifiers have not been mapped to integers.
         - Identifier-Integer Map: a `.json` file containing a dictionary where the keys are node identifiers and
-        the values are integers.
+          the values are integers.
 
     Args:
         graph: An rdflib graph object.
@@ -340,7 +362,7 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         output_ints_map: the name and file path to write out results.
 
     Returns:
-        None.
+        node_map: A dictionary where keys are integers and values are identifiers.
 
     Raises:
         ValueError: If the length of the graph is not the same as the number of extracted triples.
@@ -351,7 +373,6 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     # build graph from input file and set counter
     out_ints = open(write_location + output_ints, 'w', encoding='utf-8')
     out_ids = open(write_location + output_ints.replace('Integers', 'Identifiers'), 'w', encoding='utf-8')
-    # write file headers
     out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     for edge in tqdm(graph):
@@ -375,7 +396,6 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
                           edge[2].encode('utf-8').decode() + '\n')
         # update counter and delete edge
         output_triples += 1
-        graph.remove(edge)
     out_ints.close(), out_ids.close()
 
     # CHECK - verify we get the number of edges that we would expect to get
@@ -384,13 +404,36 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     else:
         with open(write_location + '/' + output_ints_map, 'w') as file_name:
             json.dump(node_map, file_name)
-    del graph  # clean up environment
 
-    return None
+    return node_map
 
 
 def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:
-    """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally.
+    """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally. Each node is provided a
+    key that is the URI identifier and each edge is given a key which is an md5 hash of the triple and a weight of
+    0.0. An example of the output is shown below. The md5 hash is meant to store a unique key that represents that
+    predicate with respect to the triples it occurs with.
+
+    Source: https://networkx.org/documentation/stable/reference/classes/multidigraph.html
+
+        Example:
+            Input: (URIRef('http://purl.obolibrary.org/obo/SO_0000288'),
+                    URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
+                    URIRef('http://purl.obolibrary.org/obo/SO_0000287'))
+            Output:
+                - node data: [
+                        (URIRef('http://purl.obolibrary.org/obo/SO_0000288'),
+                        {'key': 'http://purl.obolibrary.org/obo/SO_0000288'}),
+                        (URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
+                        {'key': 'http://www.w3.org/2000/01/rdf-schema#subClassOf'}),
+                        (URIRef('http://purl.obolibrary.org/obo/SO_0000287'),
+                        {'key': 'http://purl.obolibrary.org/obo/SO_0000287'})
+                            ]
+                - edge data: [
+                        (URIRef('http://purl.obolibrary.org/obo/SO_0000288'),
+                         URIRef('http://purl.obolibrary.org/obo/SO_0000287'),
+                         {'predicate_key': '9cbd482627d217b38eb407d7eba48020', 'weight': 0.0})
+                            ]
 
     Args:
         write_location: A string pointing to a local directory for writing data.
@@ -408,19 +451,49 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
 
     # read in knowledge graph if class graph attribute is not present
     if not isinstance(graph, Graph):
-        graph = Graph()
         file_type = 'xml' if 'OWLNETS' not in full_kg else full_kg.split('.')[-1]
         ext = '.owl' if file_type == 'xml' else '.nt'
-        graph.parse(write_location + full_kg + ext, format=file_type)
+        graph = Graph().parse(write_location + full_kg + ext, format=file_type)
 
     # convert graph to networkx object
     nx_mdg = networkx.MultiDiGraph()
     for s, p, o in tqdm(graph):
-        nx_mdg.add_edge(s, o, **{'key': p})
+        pred_key = hashlib.md5('{}{}{}'.format(str(s), str(p), str(o)).encode()).hexdigest()
+        nx_mdg.add_node(s, key=str(s))
+        nx_mdg.add_node(o, key=str(o))
+        nx_mdg.add_edge(s, o, **{'key': p, 'predicate_key': pred_key, 'weight': 0.0})
 
     # pickle networkx graph
-    print('Pickling MultiDiGraph. For Large Networks Process Takes Several Minutes.')
+    print('Pickling MultiDiGraph -- For Large Networks Process Takes Several Minutes.')
     networkx.write_gpickle(nx_mdg, write_location + full_kg + '_NetworkxMultiDiGraph.gpickle')
     del nx_mdg   # clean up environment
 
     return None
+
+
+def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], class_list: Optional[Set] = None) -> Set:
+    """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input class.
+
+    Args:
+        graph: An RDFLib graph object assumed to contain ontology data.
+        class_uris: A list of at least one ontology class RDFLib URIRef object.
+        class_list: A list of URIs representing the ancestor classes found for the input class_uris.
+
+    Returns:
+        A list of ontology class ordered by the ontology hierarchy.
+    """
+
+    # instantiate list object if none passed to function
+    class_list = set() if class_list is None else class_list
+    class_list = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_list])
+
+    # check class uris are formatted correctly and get their ancestors
+    class_uris = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris])
+    ancestors = set([j for k in [list(graph.objects(x, RDFS.subClassOf)) for x in set(class_uris)] for j in k])
+
+    if len(ancestors) == 0 or len(ancestors.difference(class_list)) == 0:
+        return set([str(x) for x in class_list])
+    else:
+        class_uris = ancestors.difference(class_list)
+        class_list |= ancestors.difference(class_list)
+        return gets_class_ancestors(graph, class_uris, class_list)

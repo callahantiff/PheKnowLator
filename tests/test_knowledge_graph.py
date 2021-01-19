@@ -7,10 +7,12 @@ import pickle
 import shutil
 import unittest
 
+from mock import patch
 from rdflib import Graph, URIRef, BNode
 from rdflib.namespace import OWL, RDF
 from typing import Dict, List
 
+from pkt_kg.__version__ import __version__
 from pkt_kg.knowledge_graph import FullBuild, PartialBuild, PostClosureBuild
 from pkt_kg.metadata import Metadata
 from pkt_kg.utils import gets_object_properties, gets_ontology_classes
@@ -20,7 +22,6 @@ class TestKGBuilder(unittest.TestCase):
     """Class to test the KGBuilder class from the knowledge graph script."""
 
     def setUp(self):
-
         # initialize file location
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
@@ -38,10 +39,8 @@ class TestKGBuilder(unittest.TestCase):
 
         # copy needed data data
         # node metadata
-        shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt',
-                        self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt')
-        shutil.copyfile(self.dir_loc + '/node_data/gene-gene_GENE_METADATA.txt',
-                        self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt')
+        shutil.copyfile(self.dir_loc + '/node_data/node_metadata_dict.pkl',
+                        self.dir_loc_resources + '/node_data/node_metadata_dict.pkl')
         # ontology data
         shutil.copyfile(self.dir_loc + '/ontologies/empty_hp_with_imports.owl',
                         self.dir_loc_resources + '/ontologies/hp_with_imports.owl')
@@ -61,54 +60,56 @@ class TestKGBuilder(unittest.TestCase):
         # create edge list
         edge_dict = {"gene-phenotype": {"data_type": "entity-class",
                                         "edge_relation": "RO_0003302",
-                                        "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
+                                        "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
                                                 "http://purl.obolibrary.org/obo/"],
-                                        "edge_list": [["2", "HP_0002511"], ["2", "HP_0000716"],
-                                                      ["2", "HP_0000100"], ["9", "HP_0030955"],
-                                                      ["9", "HP_0009725"], ["9", "HP_0100787"],
-                                                      ["9", "HP_0012125"], ["10", "HP_0009725"],
-                                                      ["10", "HP_0010301"], ["10", "HP_0045005"]]},
+                                        "edge_list": [["2", "SO_0000162"], ["2", "SO_0000196"],
+                                                      ["2", "SO_0000323"], ["9", "SO_0001490"],
+                                                      ["9", "SO_0000301"], ["9", "SO_0001560"],
+                                                      ["9", "SO_0001560"], ["10", "SO_0000444"],
+                                                      ["10", "SO_0002138"], ["10", "SO_0000511"]]},
                      "gene-gene": {"data_type": "entity-entity",
                                    "edge_relation": "RO_0002435",
-                                   "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
-                                           "https://www.ncbi.nlm.nih.gov/gene/"],
-                                   "edge_list": [["3075", "1080"], ["3075", "4267"], ["4800", "10190"],
-                                                 ["4800", "80219"], ["2729", "1962"], ["2729", "5096"],
-                                                 ["8837", "6774"], ["8837", "8754"]]},
+                                   "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
+                                           "http://www.ncbi.nlm.nih.gov/gene/"],
+                                   "edge_list": [["1", "2"], ["2", "3"], ["3", "18"],
+                                                 ["17", "19"], ["4", "17"], ["5", "11"],
+                                                 ["11", "12"], ["4", "5"]]},
                      "disease-disease": {"data_type": "class-class",
                                          "edge_relation": "RO_0002435",
-                                         "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
-                                                 "https://www.ncbi.nlm.nih.gov/gene/"],
+                                         "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
+                                                 "http://www.ncbi.nlm.nih.gov/gene/"],
                                          "edge_list": [["DOID_3075", "DOID_1080"], ["DOID_3075", "DOID_4267"],
                                                        ["DOID_4800", "DOID_10190"], ["DOID_4800", "DOID_80219"],
                                                        ["DOID_2729", "DOID_1962"], ["DOID_2729", "DOID_5096"],
-                                                       ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]}
+                                                       ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]},
+                     "entity_namespaces": {"gene": "http://purl.uniprot.org/geneid/"}
                      }
 
         edge_dict_inst = {"gene-phenotype": {"data_type": "entity-class",
                                              "edge_relation": "RO_0003302",
-                                             "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
+                                             "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
                                                      "http://purl.obolibrary.org/obo/"],
-                                             "edge_list": [["2", "HP_0002511"], ["2", "HP_0000716"],
-                                                           ["2", "HP_0000100"], ["9", "HP_0030955"],
-                                                           ["9", "HP_0009725"], ["9", "HP_0100787"],
-                                                           ["9", "HP_0012125"], ["10", "HP_0009725"],
-                                                           ["10", "HP_0010301"], ["10", "HP_0045005"]]},
+                                             "edge_list": [["2", "SO_0000162"], ["2", "SO_0000196"],
+                                                           ["2", "SO_0000323"], ["9", "SO_0001490"],
+                                                           ["9", "SO_0000301"], ["9", "SO_0001560"],
+                                                           ["9", "SO_0001560"], ["10", "SO_0000444"],
+                                                           ["10", "SO_0002138"], ["10", "SO_0000511"]]},
                           "gene-gene": {"data_type": "entity-entity",
                                         "edge_relation": "RO_0002435",
-                                        "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
-                                                "https://www.ncbi.nlm.nih.gov/gene/"],
-                                        "edge_list": [["3075", "1080"], ["3075", "4267"], ["4800", "10190"],
-                                                      ["4800", "80219"], ["2729", "1962"], ["2729", "5096"],
-                                                      ["8837", "6774"], ["8837", "8754"]]},
+                                        "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
+                                                "http://www.ncbi.nlm.nih.gov/gene/"],
+                                        "edge_list": [["1", "2"], ["2", "3"], ["3", "18"],
+                                                      ["17", "19"], ["4", "17"], ["5", "11"],
+                                                      ["11", "12"], ["4", "5"]]},
                           "disease-disease": {"data_type": "class-class",
                                               "edge_relation": "RO_0002435",
-                                              "uri": ["https://www.ncbi.nlm.nih.gov/gene/",
-                                                      "https://www.ncbi.nlm.nih.gov/gene/"],
+                                              "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
+                                                      "http://www.ncbi.nlm.nih.gov/gene/"],
                                               "edge_list": [["DOID_3075", "DOID_1080"], ["DOID_3075", "DOID_4267"],
                                                             ["DOID_4800", "DOID_10190"], ["DOID_4800", "DOID_80219"],
                                                             ["DOID_2729", "DOID_1962"], ["DOID_2729", "DOID_5096"],
-                                                            ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]}
+                                                            ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]},
+                          "entity_namespaces": {"gene": "http://purl.uniprot.org/geneid/"}
                           }
 
         # save data
@@ -119,12 +120,9 @@ class TestKGBuilder(unittest.TestCase):
             json.dump(edge_dict_inst, filepath)
 
         # create subclass mapping data
-        subcls_map = {"2": ['SO_0001217'], "9": ['SO_0001217'], "10": ['SO_0001217'], "1080": ['SO_0001217'],
-                      "1962": ['SO_0001217'], "2729": ['SO_0001217'], "3075": ['SO_0001217'],
-                      "4267": ['SO_0001217'],
-                      "4800": ['SO_0001217'], "5096": ['SO_0001217'], "6774": ['SO_0001217'],
-                      "8754": ['SO_0001217'],
-                      "8837": ['SO_0001217'], "10190": ['SO_0001217'], "80219": ['SO_0001217']}
+        subcls_map = {"1": ['SO_0001217'], "2": ['SO_0001217'], "3": ['SO_0001217'], "4": ['SO_0001217'],
+                      "5": ['SO_0001217'], "11": ['SO_0001217'], "12": ['SO_0001217'], "17": ['SO_0001217'],
+                      "18": ['SO_0001217'], "5096": ['SO_0001217'], "6774": ['SO_0001217'], "19": ['SO_0001217']}
 
         # save data
         with open(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl', 'wb') as f:
@@ -134,10 +132,14 @@ class TestKGBuilder(unittest.TestCase):
         self.write_location = self.dir_loc_resources + '/knowledge_graphs'
 
         # build 3 different knowledge graphs
-        self.kg_subclass = FullBuild('subclass', 'yes', 'yes', 'yes', self.write_location)
-        self.kg_instance = PartialBuild('instance', 'yes', 'no', 'no', self.write_location)
-        self.kg_instance2 = PartialBuild('instance', 'yes', 'yes', 'yes', self.write_location)
-        self.kg_closure = PostClosureBuild('instance', 'yes', 'yes', 'no', self.write_location)
+        self.kg_subclass = FullBuild(construction='subclass', node_data='yes',
+                                     inverse_relations='yes', decode_owl='yes', write_location=self.write_location)
+        self.kg_instance = PartialBuild(construction='instance', node_data='yes',
+                                        inverse_relations='no', decode_owl='no', write_location=self.write_location)
+        self.kg_instance2 = PartialBuild(construction='instance', node_data='yes',
+                                         inverse_relations='yes', decode_owl='yes', write_location=self.write_location)
+        self.kg_closure = PostClosureBuild(construction='instance', node_data='yes',
+                                           inverse_relations='yes', decode_owl='no', write_location=self.write_location)
 
         # update class attributes for the location of owltools
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
@@ -145,12 +147,15 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_instance.owl_tools = os.path.abspath(dir_loc_owltools)
         self.kg_instance2.owl_tools = os.path.abspath(dir_loc_owltools)
 
+        # get release
+        self.current_release = 'v' + __version__
+
         return None
 
     def test_class_initialization_parameters_version(self):
         """Tests the class initialization parameters for version."""
 
-        self.assertEqual(self.kg_subclass.kg_version, 'v2.0.0')
+        self.assertEqual(self.kg_subclass.kg_version, self.current_release)
 
         return None
 
@@ -237,17 +242,14 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the class initialization parameters for node_metadata."""
 
         # remove node metadata
-        gene_phen_data = self.dir_loc_resources + '/node_data/gene-phenotype_GENE_METADATA.txt'
-        gene_gene_data = self.dir_loc_resources + '/node_data/gene-gene_GENE_METADATA.txt'
+        gene_phen_data = self.dir_loc_resources + '/node_data/node_metadata_dict.pkl'
         os.remove(gene_phen_data)
-        os.remove(gene_gene_data)
 
         # test method
         self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes', self.write_location)
 
         # add back deleted data
-        shutil.copyfile(self.dir_loc + '/node_data/gene-phenotype_GENE_METADATA.txt', gene_phen_data)
-        shutil.copyfile(self.dir_loc + '/node_data/gene-gene_GENE_METADATA.txt', gene_gene_data)
+        shutil.copyfile(self.dir_loc + '/node_data/node_metadata_dict.pkl', gene_phen_data)
 
         return None
 
@@ -279,7 +281,7 @@ class TestKGBuilder(unittest.TestCase):
 
         self.assertTrue(self.kg_subclass.build == 'full')
         self.assertTrue(self.kg_subclass.construct_approach == 'subclass')
-        self.assertTrue(self.kg_subclass.kg_version == 'v2.0.0')
+        self.assertTrue(self.kg_subclass.kg_version == self.current_release)
         path = os.path.abspath(self.dir_loc_resources + '/knowledge_graphs')
         self.assertTrue(self.kg_subclass.write_location == path)
 
@@ -342,7 +344,7 @@ class TestKGBuilder(unittest.TestCase):
         self.assertTrue(self.kg_subclass.construct_approach == 'subclass')
 
         # check filepath and write location for knowledge graph
-        write_file = '/PheKnowLator_v2.0.0_full_subclass_inverseRelations_noOWL.owl'
+        write_file = '/PheKnowLator_' + self.current_release + '_full_subclass_inverseRelations_noOWL.owl'
         self.assertEqual(self.kg_subclass.full_kg, write_file)
 
         return None
@@ -361,7 +363,7 @@ class TestKGBuilder(unittest.TestCase):
         self.assertTrue(self.kg_instance.construct_approach == 'instance')
 
         # check filepath and write location for knowledge graph
-        write_file = '/PheKnowLator_v2.0.0_partial_instance_relationsOnly_OWL.owl'
+        write_file = '/PheKnowLator_' + self.current_release + '_partial_instance_relationsOnly_OWL.owl'
         self.assertEqual(self.kg_instance.full_kg, write_file)
 
         return None
@@ -488,28 +490,32 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the creates_knowledge_graph_edges method without adding node metadata to the KG."""
 
         self.kg_subclass.reverse_relation_processor()
-
         # make sure that kg is empty
-        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        self.kg_subclass.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
-        # make sure to add node_metadata
-        self.kg_subclass.kg_metadata = 'no'
-
+        # make sure to not add node_metadata
+        self.kg_subclass.node_dict, self.kg_subclass.node_data = None, None
         # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
                             self.kg_subclass.node_data, self.kg_subclass.node_dict)
+        if self.kg_subclass.node_data:
+            metadata.node_metadata_processor()
+            metadata.extracts_class_metadata(self.kg_subclass.graph)
+        self.kg_subclass.node_dict = metadata.node_dict
 
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
+        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata,
+                                                       metadata.adds_ontology_annotations)
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 42327)
+        self.assertEqual(len(self.kg_subclass.graph), 42347)
 
         # check graph was saved
-        self.assertTrue(os.path.exists(self.kg_subclass.write_location + self.kg_subclass.full_kg))
+        f_name = self.kg_subclass.full_kg.replace('_noOWL.owl', '_OWL.owl')
+        self.assertTrue(os.path.exists(self.kg_subclass.write_location + f_name))
 
         return None
 
@@ -517,29 +523,47 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the creates_knowledge_graph_edges method and adds node metadata to the KG."""
 
         self.kg_subclass.reverse_relation_processor()
-
         # make sure that kg is empty
-        self.kg_subclass.graph.parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        self.kg_subclass.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
         # make sure to add node_metadata
-        self.kg_subclass.kg_metadata = 'yes'
-
-        # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
                             self.kg_subclass.node_data, self.kg_subclass.node_dict)
-        metadata.node_metadata_processor()
-
+        if self.kg_subclass.node_data:
+            metadata.node_metadata_processor()
+            metadata.extracts_class_metadata(self.kg_subclass.graph)
+        self.kg_subclass.node_dict = metadata.node_dict
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
-
+        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata,
+                                                       metadata.adds_ontology_annotations)
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 42477)
-
+        self.assertEqual(len(self.kg_subclass.graph), 42421)
         # check graph was saved
-        self.assertTrue(os.path.exists(self.kg_subclass.write_location + self.kg_subclass.full_kg))
+        f_name = self.kg_subclass.full_kg.replace('_noOWL.owl', '_OWL.owl')
+        self.assertTrue(os.path.exists(self.kg_subclass.write_location + f_name))
+
+        return None
+
+    @patch('builtins.print')
+    def test_gets_edge_statistics(self, mock_print):
+        """Tests the gets_edge_statistics method."""
+
+        # no inverse edges
+        self.kg_subclass.gets_edge_statistics('gene-gene', None, [x for x in range(0, 100)])
+        mock_print.assert_called_with('Unique gene: 8')
+
+        return None
+
+    @patch('builtins.print')
+    def test_gets_edge_statistics_inverse_relations(self, mock_print):
+        """Tests the gets_edge_statistics method when including inverse relations."""
+
+        # no inverse edges
+        self.kg_subclass.gets_edge_statistics('gene-gene', 'RO_0000000', [x for x in range(0, 100)])
+        mock_print.assert_called_with('Unique gene: 8')
 
         return None
 
@@ -555,14 +579,18 @@ class TestKGBuilder(unittest.TestCase):
         # initialize metadata class
         metadata = Metadata(self.kg_instance.kg_version, self.kg_instance.write_location, self.kg_instance.full_kg,
                             self.kg_instance.node_data, self.kg_instance.node_dict)
-        metadata.node_metadata_processor()
+        if self.kg_instance.node_data:
+            metadata.node_metadata_processor()
+            metadata.extracts_class_metadata(self.kg_instance.graph)
+        self.kg_instance.node_dict = metadata.node_dict
 
         # test method
-        self.kg_instance.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
+        self.kg_instance.creates_knowledge_graph_edges(metadata.creates_node_metadata,
+                                                       metadata.adds_ontology_annotations)
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance.graph) > 0)
-        self.assertEqual(len(self.kg_instance.graph), 192)
+        self.assertEqual(len(self.kg_instance.graph), 111)
 
         # check graph was saved
         self.assertTrue(os.path.exists(self.kg_instance.write_location + self.kg_instance.full_kg))
@@ -581,23 +609,28 @@ class TestKGBuilder(unittest.TestCase):
         # initialize metadata class
         metadata = Metadata(self.kg_instance2.kg_version, self.kg_instance2.write_location, self.kg_instance2.full_kg,
                             self.kg_instance2.node_data, self.kg_instance2.node_dict)
-        metadata.node_metadata_processor()
+        if self.kg_instance2.node_data:
+            metadata.node_metadata_processor()
+            metadata.extracts_class_metadata(self.kg_instance2.graph)
+        self.kg_instance2.node_dict = metadata.node_dict
 
         # test method
-        self.kg_instance2.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
+        self.kg_instance2.creates_knowledge_graph_edges(metadata.creates_node_metadata,
+                                                        metadata.adds_ontology_annotations)
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance2.graph) > 0)
-        self.assertEqual(len(self.kg_instance2.graph), 200)
+        self.assertEqual(len(self.kg_instance2.graph), 118)
 
         # check graph was saved
-        self.assertTrue(os.path.exists(self.kg_instance2.write_location + self.kg_instance2.full_kg))
+        f_name = self.kg_instance2.full_kg.replace('_noOWL.owl', '_OWL.owl')
+        self.assertTrue(os.path.exists(self.kg_instance2.write_location + f_name))
 
         return None
 
     def test_creates_knowledge_graph_edges_adding_metadata_to_kg_bad(self):
         """Tests the creates_knowledge_graph_edges method and adds node metadata to the KG, but also makes sure that a
-        log file is writen for genes that are not in the subclass_map."""
+        log file is written for genes that are not in the subclass_map."""
 
         self.kg_subclass.reverse_relation_processor()
 
@@ -606,17 +639,13 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
-        # make sure to add node_metadata
-        self.kg_subclass.kg_metadata = 'yes'
-
         # initialize metadata class
-        metadata = Metadata(self.kg_subclass.kg_version,
-                            self.kg_subclass.write_location,
-                            self.kg_subclass.full_kg,
-                            self.kg_subclass.node_data,
-                            self.kg_subclass.node_dict)
-
-        metadata.node_metadata_processor()
+        metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
+                            self.kg_subclass.node_data, self.kg_subclass.node_dict)
+        if self.kg_subclass.node_data:
+            metadata.node_metadata_processor()
+            metadata.extracts_class_metadata(self.kg_subclass.graph)
+        self.kg_subclass.node_dict = metadata.node_dict
 
         # alter gene list - adding genes not in the subclass_map dictionary
         self.kg_subclass.edge_dict['gene-gene']['edge_list'] = [["1", "1080"], ["1", "4267"], ["4800", "10190"],
@@ -624,7 +653,8 @@ class TestKGBuilder(unittest.TestCase):
                                                                 ["8837", "6774"], ["8837", "8754"]]
 
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.adds_node_metadata, metadata.adds_ontology_annotations)
+        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata,
+                                                       metadata.adds_ontology_annotations)
 
         # check that log file was written out
         log_file = '/construction_approach/subclass_map_missing_node_log.json'

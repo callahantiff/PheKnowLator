@@ -79,7 +79,6 @@ class CreatesEdgeList(object):
                                               '|'.join([str(x) for x in list(df_without_header)])).ratio()
         # determine if header should be used
         if abs(with_header_test-without_header_test) < 0.5: return 0
-        elif with_header_test >= without_header_test: return None
         else: return None
 
     def data_reader(self, file_path: str, delimiter: str = 't') -> pd.DataFrame:
@@ -120,8 +119,7 @@ class CreatesEdgeList(object):
         edge_data = pd.read_csv(file_path, header=header, delimiter=splitter, low_memory=False, skiprows=skip)
         # clean environment and return verified data
         del data, skip
-        if len(list(edge_data)) >= 2 and len(edge_data) > 10: return edge_data.fillna('None', inplace=False)
-        else: raise ValueError('ERROR: Data could not be properly read in')
+        return edge_data.fillna('None', inplace=False)
 
     @staticmethod
     def filter_fixer(criteria):
@@ -187,9 +185,8 @@ class CreatesEdgeList(object):
                         else:
                             exp = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
                     edge_data = edge_data.loc[edge_data[col].apply(lambda x: eval(exp))]
-            # verify and return data
-            if len(list(edge_data)) >= 2 and len(edge_data) >= 1: return edge_data
-            else: raise Exception('ERROR: Data could not be properly read in')
+
+            return edge_data
 
     @staticmethod
     def data_reducer(cols: str, edge_data: pd.DataFrame) -> pd.DataFrame:
@@ -318,6 +315,30 @@ class CreatesEdgeList(object):
 
             return tuple(zip(list(merged_data[maps[0][0]]), list(merged_data[maps[1][0]])))
 
+    def gets_entity_namespaces(self) -> None:
+        """Identifies namespaces for all non-ontology entities. This is achieved by adding an entity_namespace key to
+        the source_info dictionary, which contains a sub-dictionary keyed by edge entity with it's associated URL as
+        the value. For example:
+            source_info['entity_namespaces']: {'gene': 'http://www.ncbi.nlm.nih.gov/gene/',
+                                               'pathway': 'https://reactome.org/content/detail/',
+                                               'rna': 'https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=',
+                                               'variant': 'https://www.ncbi.nlm.nih.gov/snp/'}
+
+        Returns:
+            None.
+        """
+
+        self.source_info['entity_namespaces'] = {}
+        for key in [x for x in self.source_info.keys() if x != 'entity_namespaces']:
+            data_type, uri = self.source_info[key]['data_type'].split('-'), self.source_info[key]['uri']
+            if data_type != ['class', 'class']:
+                entities = [key.split('-')[data_type.index(x)] for x in data_type if x == 'entity']
+                namespaces = [uri[data_type.index(x)] for x in data_type if x == 'entity']
+                for x in zip(entities, namespaces):
+                    self.source_info['entity_namespaces'][x[0]] = x[1]
+
+        return None
+
     def creates_knowledge_graph_edges(self) -> None:
         """Generates edge lists for each edge type in an input dictionary. In order to generate the edge list,
         the function performs six steps: (1) read in data; (2) apply filtering and evidence criteria; (3) reduce data
@@ -336,12 +357,12 @@ class CreatesEdgeList(object):
         for edge_type in tqdm(self.source_info.keys()):
             print('\n\n### Processing Edge: {}'.format(edge_type))
 
-            # STEP 1: read in data
+            # STEP 1: Read Data
             print('*** Reading Edge Data ***')
-            edge_data = self.data_reader(self.data_files[edge_type],
-                                         self.source_info[edge_type]['delimiter'])
+            edge_data = self.data_reader(self.data_files[edge_type], self.source_info[edge_type][
+                'delimiter'])
 
-            # STEP 2: apply filtering and evidence criteria
+            # STEP 2: Apply Filtering and Evidence Criteria
             print('*** Applying Filtering and/or Mapping Criteria to Edge Data ***')
             edge_data = self.filter_data(edge_data,
                                          self.source_info[edge_type]['filter_criteria'],
@@ -350,28 +371,30 @@ class CreatesEdgeList(object):
             # STEP 3: reduce data to specific columns, remove duplicates, and ensure proper formatting of column data
             edge_data = self.data_reducer(self.source_info[edge_type]['column_idx'], edge_data)
 
-            # STEP 4: update node column values
+            # STEP 4: Update Node Column Values
             print('*** Reformatting Node Values ***')
             edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
 
-            # STEP 5: rename nodes
+            # STEP 5: Rename Nodes
             edge_data.rename(columns={list(edge_data)[0]: str(list(edge_data)[0]) + '-' + edge_type.split('-')[0],
                                       list(edge_data)[1]: str(list(edge_data)[1]) + '-' + edge_type.split('-')[1]},
                              inplace=True)
 
-            # STEP 6: map identifiers
+            # STEP 6: Map Identifiers
             print('*** Performing Identifier Mapping ***')
-            mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'],
-                                                    edge_data)
-
+            mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'], edge_data)
             self.source_info[edge_type]['edge_list'] = [edge for edge in mapped_data if 'None' not in edge]
 
-            # print edge statistics
+            # print Edge Statistics
             unique_edges = [list(y) for y in set([tuple(x) for x in self.source_info[edge_type]['edge_list']])]
             print('\nPROCESSED EDGE: {}'.format(edge_type))
-            print('Total Unique Edge Count: {}'.format(len(unique_edges)))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(set([x[0] for x in unique_edges]))))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(set([x[1] for x in unique_edges]))))
+            print('Total Unique Edge Count: {}'.format(len(unique_edges)))
+            print('Total Unique Edge Count + Inverses: {}'.format(len(unique_edges)*2))
+
+        # add source entity namespaces
+        self.gets_entity_namespaces()
 
         # save a copy of the final master edge list
         with open('/'.join(self.source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:

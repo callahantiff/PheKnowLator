@@ -32,12 +32,14 @@ A table is provided below showing the different triples that are added as functi
 
 Edge Type | Relations | Needed Triples  
 :--: | :--: | :--  
-Class-Class | Relations Only | **`GO_1234567`, `REL`, `DOID_1234567`**<br><br>`UUID1`, `rdf:type`, `GO_1234567`<br>`UUID1`, `rdf:type`, `owl:NamedIndividual`<br>`UUID2`, `rdf:type`, `DOID_1234567`<br>`UUID2`, `rdf:type`, `owl:NamedIndividual`<br>`GUUID1`, `REL`, `UUID2`
+Class-Class | Relations Only | **`GO_1234567`, `REL`, `DOID_1234567`**<br><br>`UUID1`, `rdf:type`, `GO_1234567`<br>`UUID1`, `rdf:type`, `owl:NamedIndividual`<br>`UUID2`, `rdf:type`, `DOID_1234567`<br>`UUID2`, `rdf:type`, `owl:NamedIndividual`<br>`UUID1`, `REL`, `UUID2`
 Class-Class | Relations + Inverse Relations | **`GO_1234567`, `REL`, `DOID_1234567`<br>`DOID_1234567`, `INV_REL`, `GO_1234567`**<br><br>`UUID1`, `rdf:type`, `GO_1234567`<br>`UUID1`, `rdf:type`, `owl:NamedIndividual`<br>`UUID2`, `rdf:type`, `DOID_1234567`<br>`UUID2`, `rdf:type`, `owl:NamedIndividual`<br>`UUID1`, `REL`, `UUID2`<br>`UUID2`, `INV_REL`, `UUID1`
 Class-Instance | Relations Only | **`GO_1234567`, `REL`, `HGNC_1234567`**<br><br>`UUID`, `rdf:type`, `GO_1234567`<br>`UUID`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_1234567`, `rdf:type`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:NamedIndividual`<br>`UUID`, `REL`, `HGNC_1234567`
 Class-Instance | Relations + Inverse Relations | **`GO_1234567`, `REL`, `HGNC_1234567`<br>`HGNC_1234567`, `INV_REL`, `GO_1234567`**<br><br>`UUID`, `rdf:type`, `GO_1234567`<br>`UUID`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_1234567`, `rdf:type`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:NamedIndividual`<br>`UUID`, `REL`, `HGNC_1234567`<br>`HGNC_1234567`, `INV_REL`, `UUID`
 Instance-Instance | Relations Only | **`HGNC_1234567`, `REL`, `HGNC_7654321`**<br><br>`HGNC_1234567`, `rdf:type`,`subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_7654321`, `rdf:type`,`subclass_dict[HGNC_7654321]`<br>`HGNC_7654321`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_1234567`, `REL`, `HGNC_7654321`
 Instance-Instance | Relations + Inverse Relations | **`HGNC_1234567`, `REL`, `HGNC_7654321`<br>`HGNC_7654321`, `INV_REL`, `HGNC_1234567`**<br><br>`HGNC_1234567`, `rdf:type`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_7654321`, `rdf:type`, `subclass_dict[HGNC_7654321]`<br>`HGNC_7654321`, `rdf:type`, `owl:NamedIndividual`<br>`HGNC_1234567`, `REL`, `HGNC_7654321`<br>`HGNC_7654321`, `INV_REL`, `HGNC_1234567`
+
+<br>
 
 *Note.* When a `UUDID` is used in the instance-based builds it is created as a md5 hash of the original `owl:Class` and added to the `pkt` namespace (i.e. `https://github.com/callahantiff/PheKnowLator/pkt/`).
 
