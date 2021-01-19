@@ -36,7 +36,6 @@ COPY resources /PheKnowLator/resources
 
 # install needed python libraries
 RUN pip install --upgrade pip setuptools
-# BILL -- CAN WE REMOVE LINE  41 if we had to add line 21 to get the container to run
 WORKDIR /PheKnowLator
 RUN pip install .
 
