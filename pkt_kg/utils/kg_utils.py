@@ -494,5 +494,6 @@ def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], clas
     if len(ancestors) == 0 or len(ancestors.difference(class_list)) == 0:
         return set([str(x) for x in class_list])
     else:
-        class_list |= ancestors
-        return gets_class_ancestors(graph, ancestors, class_list)
+        class_uris = ancestors.difference(class_list)
+        class_list |= ancestors.difference(class_list)
+        return gets_class_ancestors(graph, class_uris, class_list)
