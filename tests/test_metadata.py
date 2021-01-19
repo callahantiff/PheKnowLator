@@ -271,7 +271,7 @@ class TestMetadata(unittest.TestCase):
         graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
 
         # run function
-        updated_graph = self.metadata.adds_ontology_annotations(filename='tests/data/so_tests_test_file', graph=graph)
+        updated_graph = self.metadata.adds_ontology_annotations(filename='tests/data/so_tests_file.owl', graph=graph)
 
         # check that the annotations were added
         results = updated_graph.query(
@@ -284,8 +284,7 @@ class TestMetadata(unittest.TestCase):
 
         results_list = [str(x) for y in results for x in y]
         self.assertTrue(len(results_list) == 21)
-        self.assertIn('https://pheknowlator.com/pheknowlator_test_file.owl', results_list)
-        self.assertIn('tests/data/so_tests_test_file', results_list)
+        self.assertIn('https://pheknowlator.com/pheknowlator_file.owl', results_list)
 
         return None
 
