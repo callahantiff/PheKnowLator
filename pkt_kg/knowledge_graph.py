@@ -432,21 +432,27 @@ class PostClosureBuild(KGBuilder):
             self.node_dict = metadata.node_dict
 
         # STEP 4: DECODE OWL SEMANTICS
+        results: Tuple = tuple([self.graph, None])
         if self.decode_owl:
-            print('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
+            print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
-            self.graph = owl_nets.run_owl_nets()
-        else: converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
+            results = owl_nets.run_owl_nets()
+        else:
+            converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
 
         # STEP 5: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('\n*** Writing Knowledge Graph Edge Lists ***')
-        node_int_map = maps_node_ids_to_integers(self.graph, self.write_location,
-                                                 self.full_kg[:-4] + '_Triples_Integers.txt',
-                                                 self.full_kg[:-4] + '_Triples_Integer_Identifier_Map.json')
+        f_prefix = ('', '_' + self.construct_approach.upper() + '_purified') if len(results) == 2 else ('', '')
+        for graph in results:
+            if isinstance(graph, Graph):
+                self.graph = graph
+                triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
+                triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
+                node_int_map = maps_node_ids_to_integers(self.graph, self.write_location, triple_list_file, triple_map)
 
-        # STEP 6: EXTRACT AND WRITE NODE METADATA
-        print('\n*** Processing Knowledge Graph Metadata ***')
-        if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
+                # STEP 6: EXTRACT AND WRITE NODE METADATA
+                print('\n*** Processing Knowledge Graph Metadata ***')
+                if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
 
         # clean environment
         del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
@@ -502,11 +508,6 @@ class FullBuild(KGBuilder):
             metadata.extracts_class_metadata(self.graph)
             self.node_dict = metadata.node_dict
 
-        import random
-        for edge_type in tqdm(self.edge_dict.keys()):
-            if edge_type != 'entity_namespaces' and len(self.edge_dict[edge_type]['edge_list']) > 100:
-                self.edge_dict[edge_type]['edge_list'] = random.sample(self.edge_dict[edge_type]['edge_list'], 100)
-
         # STEP 4: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***')
         self.ont_classes = gets_ontology_classes(self.graph)
@@ -517,39 +518,26 @@ class FullBuild(KGBuilder):
         print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 5: DECODE OWL SEMANTICS
+        results: Tuple = tuple([self.graph, None])
         if self.decode_owl:
             print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
-            self.graph = owl_nets.run_owl_nets()
+            results = owl_nets.run_owl_nets()
         else: converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
 
         # STEP 6: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('\n*** Writing Knowledge Graph Edge Lists ***')
-        node_int_map = maps_node_ids_to_integers(self.graph, self.write_location,
-                                                 self.full_kg[:-4] + '_Triples_Integers.txt',
-                                                 self.full_kg[:-4] + '_Triples_Integer_Identifier_Map.json')
+        f_prefix = ('', '_' + self.construct_approach.upper() + '_purified') if len(results) == 2 else ('', '')
+        for graph in results:
+            if isinstance(graph, Graph):
+                self.graph = graph
+                triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
+                triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
+                node_int_map = maps_node_ids_to_integers(self.graph, self.write_location, triple_list_file, triple_map)
 
-        # STEP 7: EXTRACT AND WRITE NODE METADATA
-        print('\n*** Processing Knowledge Graph Metadata ***')
-        if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
-
-        ###############################################################################################################
-        ## ONLY FOR MANUSCRIPT!!!!
-        # self.full_kg = self.full_kg[-4] + '_{}_Purified.owl'.format(self.construct_approach.upper())
-        # self.construct_approach = None
-        # # STEP 5: DECODE OWL SEMANTICS -- ASSUMES WE ARE RUNNING OWL-NETS
-        # print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-        # owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
-        # self.graph = owl_nets.run_owl_nets()
-        # # STEP 6: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
-        # print('\n*** Writing Knowledge Graph Edge Lists ***')
-        # node_int_map = maps_node_ids_to_integers(self.graph, self.write_location,
-        #                                          self.full_kg[:-4] + '_Triples_Integers.txt',
-        #                                          self.full_kg[:-4] + '_Triples_Integer_Identifier_Map.json')
-        # # STEP 7: EXTRACT AND WRITE NODE METADATA
-        # print('\n*** Processing Knowledge Graph Metadata ***')
-        # if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
-        ###############################################################################################################
+                # STEP 7: EXTRACT AND WRITE NODE METADATA
+                print('\n*** Processing Knowledge Graph Metadata ***')
+                if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
 
         # clean environment
         del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
