@@ -11,7 +11,7 @@ COPY *.py *.txt /PheKnowLator/builds/
 WORKDIR /PheKnowLator/builds/
 
 # download
-RUN wget https://github.com/callahantiff/PheKnowLator/raw/kg_construction_fixes/pkt_kg/libs/owltools && \
+RUN wget https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools && \
     chmod 755 owltools
 
 # install requirements
