@@ -15,6 +15,12 @@ jobs:
       uses: actions/checkout@v2
       with:
        ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
+    - name: Install Requirements and Dependencies
+      run: pip install -r builds/build_requirements.txt
 
     # setup gcloud CLI
     - uses: google-github-actions/setup-gcloud@master
