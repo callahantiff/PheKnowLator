@@ -15,12 +15,6 @@ jobs:
       uses: actions/checkout@v2
       with:
        ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.6
-    - name: Install Requirements and Dependencies
-      run: pip install -r builds/build_requirements.txt
 
     # setup gcloud CLI
     - uses: google-github-actions/setup-gcloud@master
@@ -47,6 +41,3 @@ jobs:
         python builds/job_monitoring.py \
           --project_name "$PROJECT_ID" \
           --job_name "pkt_builder_phases_1_2_$GITHUB_SHA"
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCE_SA_KEY }}
-
