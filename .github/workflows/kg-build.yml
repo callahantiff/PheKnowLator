@@ -44,7 +44,8 @@ jobs:
           --master-image-uri "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
     - name: Monitor Phases 1-2
       run: |-
+        ${{ secrets.GCE_SA_KEY }} > "gca_credentials.json"
         python builds/job_monitoring.py \
           --project_name "$PROJECT_ID" \
           --job_name "pkt_builder_phases_1_2_$GITHUB_SHA" \
-          --credentials "${{ secrets.GCE_SA_KEY }}"
+          --credentials gca_credentials.json
