@@ -19,6 +19,8 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.6
+    - name: Install Requirements and Dependencies
+      run: pip install -r build_requirements.txt
 
     # setup gcloud CLI
     - uses: google-github-actions/setup-gcloud@master
