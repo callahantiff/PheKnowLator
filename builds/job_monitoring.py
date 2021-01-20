@@ -3,7 +3,6 @@
 
 # import needed libraries
 import click
-import datetime
 import os
 import re
 import subprocess
@@ -13,28 +12,35 @@ from datetime import datetime
 
 
 @click.command()
-@click.option('--project_name', prompt='The Google Project Identifier')
-@click.option('--job_name', prompt='The Job Name')
-def main(project_name, job_name):
-    # tracks job status (source: https://cloud.google.com/ai-platform/training/docs/monitor-training)
+@click.option('--project', prompt='The Google Project Identifier')
+@click.option('--job', prompt='The Job Name')
+@click.option('--sleep', prompt='The Time in Seconds to Sleep')
+def main(project, job, sleep):
+    # monitors google ml cloud job status (source: https://cloud.google.com/ai-platform/training/docs/monitor-training)
 
-    # get python representation of the REST API and specify project information
-    job_id = 'projects/{}/jobs/{}'.format(project_name, job_name)
+    # create project identifier
+    job_id = 'projects/{}/jobs/{}'.format(project, job)
 
-    # form the request and listen until completion
+    # set pattern to extract job state
+    state_pattern, query = r'(?<=state:\s).*(?=\\ntrainingInput)', "gcloud ai-platform jobs describe {}".format(job_id)
+
+    # query job status
     start_time, state = datetime.now(), 'QUEUED'
-    while state in ['RUNNING', 'QUEUED']:
-        time.sleep(60)
+    while state in ['RUNNING', 'QUEUED', 'PREPARING']:
+        time.sleep(int(sleep))
         current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
-        output = subprocess.check_output("gcloud ai-platform jobs describe {}".format(job_id), shell=True)
-        state = re.findall(r'state.*(?=trainingInput)', str(output))[0].strip('state: ').strip('\\n')
+        state = re.findall(state_pattern, str(subprocess.check_output(query, shell=True)))[0]
         elapsed_minutes = round((datetime.now() - start_time).total_seconds()/60, 3)
         print('Job Status: {} @ {} -- Elapsed Time (min): {}'.format(state, current_time, elapsed_minutes))
 
     # print process completion information
-    current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
-    elapsed_minutes = round((datetime.now() - start_time).total_seconds() / 60, 3)
-    print('\nJOB COMPLETE! {} -- Total Elapsed Time (min): {}'.format(current_time, elapsed_minutes))
+    final_state = re.findall(state_pattern, str(subprocess.check_output(query, shell=True)))[0]
+    if state != 'SUCCEEDED':
+        raise Exception('Job Failed: {}'.format(final_state))
+    else:
+        current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
+        elapsed_minutes = round((datetime.now() - start_time).total_seconds() / 60, 3)
+        print('\nJOB COMPLETE! {} -- Total Elapsed Time (min): {}'.format(current_time, elapsed_minutes))
 
 
 if __name__ == '__main__':
