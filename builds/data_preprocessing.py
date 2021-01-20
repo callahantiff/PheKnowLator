@@ -507,16 +507,16 @@ class DataPreprocessing(object):
         self._loads_genomic_typing_dictionary()  # creates genomic typing dictionary
         reformatted_mapped_identifiers = self.creates_master_genomic_identifier_map()
         gene_sets = [
-            ['/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt', 'ensembl_gene_id', 'entrez_id', 'gene_type_update', False, False],
-            ['/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt', 'transcript_stable_id', 'pro_id',
+            ['ENSEMBL_GENE_ENTREZ_GENE_MAP.txt', 'ensembl_gene_id', 'entrez_id', 'gene_type_update', False, False],
+            ['ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt', 'transcript_stable_id', 'pro_id',
              'transcript_type_update', False, True],
-            ['/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt', 'entrez_id', 'transcript_stable_id', 'transcript_type_update',
+            ['ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt', 'entrez_id', 'transcript_stable_id', 'transcript_type_update',
              False, False],
-            ['/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt', 'entrez_id', 'pro_id', 'gene_type_update', False, True],
-            ['/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt', 'symbol', 'transcript_stable_id', 'transcript_type_update',
+            ['ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt', 'entrez_id', 'pro_id', 'gene_type_update', False, True],
+            ['GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt', 'symbol', 'transcript_stable_id', 'transcript_type_update',
              False, False],
-            ['/STRING_PRO_ONTOLOGY_MAP.txt', 'protein_stable_id', 'pro_id', None, False, True],
-            ['/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt', 'uniprot_id', 'pro_id', None, False, True]
+            ['STRING_PRO_ONTOLOGY_MAP.txt', 'protein_stable_id', 'pro_id', None, False, True],
+            ['UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt', 'uniprot_id', 'pro_id', None, False, True]
         ]
 
         for x in gene_sets:
