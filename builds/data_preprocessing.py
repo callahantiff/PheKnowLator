@@ -78,14 +78,21 @@ class DataPreprocessing(object):
             ValueError: when trying to download a non-existent file from the GCS original_data dir of the current build.
         """
 
-        try:
+        try:  # search original bucket first
             _files = [_.name for _ in self.bucket.list_blobs(prefix=self.original_data)]
-            matched_file = fnmatch.filter(_files, '*/' + filename)[0]  # poor man's glob
-            data_file = self.temp_dir + '/' + matched_file.split('/')[-1]
+            org_file = fnmatch.filter(_files, '*/' + filename)[0]
+            data_file = self.temp_dir + '/' + org_file.split('/')[-1]
             if not os.path.exists(data_file):  # only download if file has not yet been downloaded
-                self.bucket.blob(matched_file).download_to_filename(self.temp_dir + '/' + matched_file.split('/')[-1])
+                self.bucket.blob(org_file).download_to_filename(self.temp_dir + '/' + org_file.split('/')[-1])
         except IndexError:
-            raise ValueError('Cannot find {} in the GCS original_data directory of the current build'.format(filename))
+            try:  # then search the processed bucket
+                _files = [_.name for _ in self.bucket.list_blobs(prefix=self.processed_data)]
+                proc_file = fnmatch.filter(_files, '*/' + filename)[0]
+                data_file = self.temp_dir + '/' + proc_file.split('/')[-1]
+                if not os.path.exists(data_file):  # only download if file has not yet been downloaded
+                    self.bucket.blob(proc_file).download_to_filename(self.temp_dir + '/' + proc_file.split('/')[-1])
+            except IndexError:
+                raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
 
         return data_file
 
