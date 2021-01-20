@@ -1,7 +1,7 @@
 # import phase 3 container
 FROM callahantiff/pheknowlator:latest
 
-# allow statements and log messages to immediately appear in the Knative logs
+# allow statements and log messages to immediately appear in logs
 ENV PYTHONUNBUFFERED True
 
 # copying local scripts to container
