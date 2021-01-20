@@ -42,8 +42,6 @@ jobs:
           --master-machine-type n1-highmem-4 \
           --region us-central1 \
           --master-image-uri "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
-    - name: Monitor Phases 1-2
-      run: |-
         python builds/job_monitoring.py \
           --project_name "$PROJECT_ID" \
           --job_name "pkt_builder_phases_1_2_$GITHUB_SHA"
