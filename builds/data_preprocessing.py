@@ -1336,7 +1336,7 @@ class DataPreprocessing(object):
 
         print('\t- Generating Metadata for Gene Identifiers')
 
-        f_name = self.temp_dir + '/' + 'Homo_sapiens.gene_info'
+        f_name = self.downloads_data_from_gcs_bucket('Homo_sapiens.gene_info')
         data = pandas.read_csv(f_name, header=0, delimiter='\t', low_memory=False)
         data = data.loc[data['#tax_id'].apply(lambda x: x == 9606)]
         data.fillna('None', inplace=True)
@@ -1391,9 +1391,9 @@ class DataPreprocessing(object):
 
         print('\t- Generating Metadata for Transcript Identifiers')
 
-        f_name = 'ensembl_identifier_data_cleaned.txt'
+        f_name = self.downloads_data_from_gcs_bucket('ensembl_identifier_data_cleaned.txt')
         dup_cols = ['transcript_stable_id', 'transcript_name', 'ensembl_transcript_type']
-        data = pandas.read_csv(self.temp_dir + '/' + f_name, header=0, delimiter='\t', low_memory=False)
+        data = pandas.read_csv(f_name, header=0, delimiter='\t', low_memory=False)
         data = data.loc[data['transcript_stable_id'].apply(lambda x: x != 'None')]
         data.drop(['ensembl_gene_id', 'symbol', 'protein_stable_id', 'uniprot_id', 'master_transcript_type',
                    'entrez_id', 'ensembl_gene_type', 'master_gene_type', 'symbol'], axis=1, inplace=True)
@@ -1441,7 +1441,7 @@ class DataPreprocessing(object):
 
         print('\t- Generating Metadata for Variant Identifiers')
 
-        f_name = self.temp_dir + '/' + 'variant_summary.txt'
+        f_name = self.downloads_data_from_gcs_bucket('variant_summary.txt')
         data = pandas.read_csv(f_name, header=0, delimiter='\t', low_memory=False)
         data = data.loc[data['Assembly'].apply(lambda x: x == 'GRCh38')]
         data = data.loc[data['RS# (dbSNP)'].apply(lambda x: x != -1)]
@@ -1498,16 +1498,16 @@ class DataPreprocessing(object):
         print('\t- Generating Metadata for Pathway Identifiers')
 
         # reactome pathways
-        f_name = self.temp_dir + '/' + 'ReactomePathways.txt'
+        f_name = self.downloads_data_from_gcs_bucket('ReactomePathways.txt')
         data = pandas.read_csv(f_name, header=None, delimiter='\t', low_memory=False)
         data = data.loc[data[2].apply(lambda x: x == 'Homo sapiens')]
         # reactome gene association data
-        f_name1 = self.temp_dir + '/' + 'gene_association.reactome'
+        f_name1 = self.downloads_data_from_gcs_bucket('gene_association.reactome')
         data1 = pandas.read_csv(f_name1, header=None, delimiter='\t', skiprows=1, low_memory=False)
         data1 = data1.loc[data1[12].apply(lambda x: x == 'taxon:9606')]
         data1[5].replace('REACTOME:', '', inplace=True, regex=True)
         # reactome CHEBI data
-        f_name2 = self.temp_dir + '/' + 'ChEBI2Reactome_All_Levels.txt'
+        f_name2 = self.downloads_data_from_gcs_bucket('ChEBI2Reactome_All_Levels.txt')
         data2 = pandas.read_csv(f_name2, header=None, delimiter='\t', low_memory=False)
         data2 = data2.loc[data2[5].apply(lambda x: x == 'Homo sapiens')]
 
@@ -1600,7 +1600,7 @@ class DataPreprocessing(object):
 
         print('*** PROCESSING LINKED OPEN DATA SOURCES ***')
 
-        # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
+        # # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
         # print('\nSTEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
         # self.generates_specific_genomic_identifier_maps()
         #
@@ -1628,17 +1628,17 @@ class DataPreprocessing(object):
         # # STEP 7: Extracting Relations Ontology Information
         # print('\nSTEP 7: EXTRACTING RELATION ONTOLOGY INFORMATION')
         # self.processes_relation_ontology_data()
-
-        # STEP 8: Clinvar Variant-Diseases and Phenotypes Edge Data
-        print('\nSTEP 8: CREATING CLINVAR VARIANT, DISEASE, PHENOTYPE DATA')
-        self.processes_clinvar_data()
-
-        # STEP 9: Uniprot Protein-Cofactor and Protein-Catalyst Edge Data
-        print('\nSTEP 9: CREATING COFACTOR + CATALYST EDGE DATA')
-        self.processes_cofactor_catalyst_data()
+        #
+        # # STEP 8: Clinvar Variant-Diseases and Phenotypes Edge Data
+        # print('\nSTEP 8: CREATING CLINVAR VARIANT, DISEASE, PHENOTYPE DATA')
+        # self.processes_clinvar_data()
+        #
+        # # STEP 9: Uniprot Protein-Cofactor and Protein-Catalyst Edge Data
+        # print('\nSTEP 9: CREATING COFACTOR + CATALYST EDGE DATA')
+        # self.processes_cofactor_catalyst_data()
 
         # STEP 10: Non-Ontology Metadata Dictionary
-        print('\nSTEP 10: CREATING ONO-ONTOLOGY METADATA DICTIONARY')
+        print('\nSTEP 10: CREATING OBO-ONTOLOGY METADATA DICTIONARY')
         self.creates_non_ontology_class_metadata_dict()
 
         return None
