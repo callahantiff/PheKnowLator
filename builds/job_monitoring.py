@@ -35,7 +35,7 @@ def main(project, job, sleep):
 
     # print process completion information
     final_state = re.findall(state_pattern, str(subprocess.check_output(query, shell=True)))[0]
-    if state != 'SUCCEEDED':
+    if state == 'FAILED':
         raise Exception('Job Failed: {}'.format(final_state))
     else:
         current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
