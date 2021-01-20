@@ -16,7 +16,6 @@ jobs:
       with:
        ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
 
-
     # Setup gcloud CLI
     - uses: google-github-actions/setup-gcloud@master
       with:
@@ -43,6 +42,9 @@ jobs:
           --master-machine-type n1-highmem-4 \
           --region us-central1 \
           --master-image-uri "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
+    - name: TEST
+      run: echo "TESTESTEST!!"
+
 
 ### Need to add instance start and stop commands
 
