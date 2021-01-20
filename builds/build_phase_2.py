@@ -4,7 +4,6 @@
 # import needed libraries
 import fnmatch
 import glob
-import logging
 import os
 import shutil
 import re
@@ -12,8 +11,8 @@ import re
 from datetime import datetime
 from google.cloud import storage  # type: ignore
 
-from builds.data_preprocessing import DataPreprocessing  # type: ignore
-from builds.ontology_cleaning import OntologyCleaner  # type: ignore
+from data_preprocessing import DataPreprocessing  # type: ignore
+from ontology_cleaning import OntologyCleaner  # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
