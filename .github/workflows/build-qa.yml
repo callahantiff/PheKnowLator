@@ -78,16 +78,24 @@ jobs:
         run: echo ${{ steps.docker_build.outputs.digest }}
 
   publish_pypi_library:
-#    if: github.event_name == 'push'
-    if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags')
+    if: github.event_name == 'push'
+#    if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags')
     needs: build
     name: Publishes pkt_kg to PyPI
     runs-on: ubuntu-latest
     steps:
-
-      - name: Publish package
-#        if: github.event_name == 'push'
-        if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags')
+      - uses: actions/checkout@v2
+        with:
+            fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - name: Install Requirements and Dependencies
+        run: pip install --upgrade pip setuptools
+      - name: Create Package Distribution
+        run: python setup.py sdist bdist_wheel
+      - name: Publish Package tp PyPi
         uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__
