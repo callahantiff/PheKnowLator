@@ -38,7 +38,7 @@ jobs:
         docker push "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
     - name: Run Build Phases 1-2
       run: |-
-        gcloud ai-platform jobs submit training "pkt_builder_phases_1_2:$GITHUB_SHA" \
+        gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
           --scale-tier custom \
           --master-machine-type n1-highmem-4 \
           --region us-central1 \
