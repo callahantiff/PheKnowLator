@@ -1620,14 +1620,14 @@ class DataPreprocessing(object):
         # # STEP 5: Creating Pathway and Sequence Ontology Mappings
         # print('\nSTEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
         # self.combines_pathway_and_sequence_ontology_dictionaries()
-
-        # STEP 6: Creating a Human Protein Ontology
-        print('\nSTEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
-        self.constructs_human_protein_ontology()
-
-        # STEP 7: Extracting Relations Ontology Information
-        print('\nSTEP 7: EXTRACTING RELATION ONTOLOGY INFORMATION')
-        self.processes_relation_ontology_data()
+        #
+        # # STEP 6: Creating a Human Protein Ontology
+        # print('\nSTEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
+        # self.constructs_human_protein_ontology()
+        #
+        # # STEP 7: Extracting Relations Ontology Information
+        # print('\nSTEP 7: EXTRACTING RELATION ONTOLOGY INFORMATION')
+        # self.processes_relation_ontology_data()
 
         # STEP 8: Clinvar Variant-Diseases and Phenotypes Edge Data
         print('\nSTEP 8: CREATING CLINVAR VARIANT, DISEASE, PHENOTYPE DATA')

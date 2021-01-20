@@ -39,7 +39,7 @@ jobs:
       run: |-
         gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
           --scale-tier custom \
-          --master-machine-type n1-highmem-8 \
+          --master-machine-type n1-highmem-16 \
           --region us-central1 \
           --master-image-uri "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
         python builds/job_monitoring.py --project "$PROJECT_ID"  --job "pkt_builder_phases_1_2_$GITHUB_SHA" --sleep 60
