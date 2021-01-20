@@ -92,7 +92,7 @@ jobs:
         with:
           python-version: 3.6
       - name: Install Requirements and Dependencies
-        run: pip install --upgrade pip setuptools, wheel
+        run: pip install --upgrade pip setuptools wheel
       - name: Create Package Distribution
         run: python setup.py sdist bdist_wheel
       - name: Publish Package tp PyPi
