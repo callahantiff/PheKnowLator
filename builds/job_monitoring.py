@@ -17,12 +17,12 @@ from oauth2client.client import GoogleCredentials
 @click.command()
 @click.option('--project_name', prompt='The Google Project Identifier')
 @click.option('--job_name', prompt='The Job Name')
-@click.option('--credential', prompt='A Github secret containing the Google Credential Information')
+@click.option('--credentials', prompt='A Github secret containing the Google Credential Information')
 def main(project_name, job_name, credential):
     # tracks job status (source: https://cloud.google.com/ai-platform/training/docs/monitor-training)
 
     # set environment variable
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials
 
     # get python representation of the REST API and specify project information
     cloud_ml = discovery.build('ml', 'v1')
