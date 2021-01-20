@@ -54,7 +54,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish_docker_container:
-    if: github.event_name == [push, pull_request, release]
+    if: github.event_name == 'push'
     needs: build
     name: Push Docker Image to Docker Hub
     runs-on: ubuntu-latest
