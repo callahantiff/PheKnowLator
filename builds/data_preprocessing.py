@@ -1600,7 +1600,7 @@ class DataPreprocessing(object):
 
         print('*** PROCESSING LINKED OPEN DATA SOURCES ***')
 
-        # # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
+        # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
         # print('\nSTEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
         # self.generates_specific_genomic_identifier_maps()
         #

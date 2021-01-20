@@ -20,4 +20,11 @@ RUN wget https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owl
 # install requirements
 RUN pip install -r build_requirements.txt
 
+# set OWlTools memory (set to a high value, system will only use available memory)
+ENV OWLTOOLS_MEMORY=100g
+RUN echo $OWLTOOLS_MEMORY
+
+# set python envrionment encoding
+RUN export PYTHONIOENCODING=utf-8
+
 ENTRYPOINT ["python", "entrypoint.py"]
