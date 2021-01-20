@@ -36,11 +36,13 @@ jobs:
     - name: Publish
       run: |-
         docker push "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
-#    - name: Deploy
-#      run: |-
-#        gcloud compute instances update-container "$GCE_INSTANCE" \
-#          --zone "$GCE_INSTANCE_ZONE" \
-#          --container-image "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
+    - name: Run Build Phases 1-2
+      run: |-
+        gcloud ai-platform jobs submit training "pkt-builder:$GITHUB_SHA" \
+          --scale-tier custom \
+          --master-machine-type n1-highmem-4 \
+          --region us-central1 \
+          --master-image-uri "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
 
 ### Need to add instance start and stop commands
 
