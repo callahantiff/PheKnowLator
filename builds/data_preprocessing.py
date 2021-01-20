@@ -80,8 +80,6 @@ class DataPreprocessing(object):
 
         try:
             _files = [_.name for _ in self.bucket.list_blobs(prefix=self.original_data)]
-            print(_files)
-
             matched_file = fnmatch.filter(_files, '*/' + filename)[0]  # poor man's glob
             data_file = self.temp_dir + '/' + matched_file.split('/')[-1]
             if not os.path.exists(data_file):  # only download if file has not yet been downloaded

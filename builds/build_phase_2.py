@@ -134,14 +134,11 @@ def run_phase_2():
     # find current archived build directory
     builds = [x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0]
     sorted_dates = sorted([datetime.strftime(datetime.strptime(str(x), '%d%b%Y'), '%Y-%m-%d').upper() for x in builds])
-    build = 'build_' + datetime.strftime(datetime.strptime(sorted_dates[-1], '%Y-%m-%d'), '%d%b%Y')
+    build = 'build_' + datetime.strftime(datetime.strptime(sorted_dates[-1], '%Y-%m-%d'), '%d%b%Y').upper()
     # set gcs bucket variables
     gcs_original_data = '{}/archived_builds/{}/data/{}'.format(release, build, 'original_data/')
     gcs_processed_data = '{}/archived_builds/{}/data/{}'.format(release, build, 'processed_data/')
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/archived_builds/{}/data/'.format(release, build)
-
-    print(gcs_original_data)
-    print(gcs_processed_data)
 
     #####################################################
     # STEP 2 - PREPROCESS BUILD DATA
