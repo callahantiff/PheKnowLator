@@ -124,7 +124,7 @@ def run_phase_2():
     temp_dir = 'temp'
     if not os.path.exists(temp_dir): os.mkdir(temp_dir)
 
-    ###############################################
+    #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
     storage_client = storage.Client()
     bucket = storage_client.get_bucket('pheknowlator')
@@ -140,17 +140,20 @@ def run_phase_2():
     gcs_processed_data = '{}/archived_builds/{}/data/{}'.format(release, build, 'processed_data/')
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/archived_builds/{}/data/'.format(release, build)
 
-    ###############################################
+    print(gcs_original_data)
+    print(gcs_processed_data)
+
+    #####################################################
     # STEP 2 - PREPROCESS BUILD DATA
     lod_data = DataPreprocessing(bucket, gcs_original_data, gcs_processed_data, temp_dir)
     lod_data.preprocesses_build_data()
 
-    ###############################################
+    #####################################################
     # STEP 3 - CLEAN ONTOLOGY DATA
     ont_data = OntologyCleaner(bucket, gcs_original_data, gcs_processed_data, temp_dir)
     ont_data.cleans_ontology_data()
 
-    ###############################################
+    #####################################################
     # STEP 4 - GENERATE METADATA DOCUMENTATION
     metadata, processed_data = [], glob.glob(temp_dir + '/*')
     for data_file in tqdm(processed_data):
@@ -158,7 +161,7 @@ def run_phase_2():
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
     writes_metadata(metadata, temp_dir)
 
-    ###############################################
+    #####################################################
     # STEP 5 - UPDATE INPUT DEPENDENCY DOCUMENTS
     # edge source list
     edge_src_list = 'https://raw.githubusercontent.com/callahantiff/PheKnowLator/master/resources/edge_source_list.txt'

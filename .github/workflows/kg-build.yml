@@ -22,14 +22,11 @@ jobs:
     - name: Install Requirements and Dependencies
       run: pip install -r builds/build_requirements.txt
 
-    # setup gcloud CLI
     - uses: google-github-actions/setup-gcloud@master
       with:
         version: '290.0.1'
         service_account_key: ${{ secrets.GCE_SA_KEY }}
         project_id: ${{ secrets.GCE_PROJECT }}
-
-    # configure Docker to use the gcloud command-line tool as a credential helper for authentication
     - name: Configure Docker Authentication
       run: gcloud --quiet auth configure-docker
 
@@ -37,6 +34,7 @@ jobs:
       run: docker build --tag "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA" -f builds/Dockerfile ./builds
     - name: Publish Docker Image to Google Container Registry
       run: docker push "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
+
     - name: Run Build Phases 1-2
       run: |-
         gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
