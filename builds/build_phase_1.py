@@ -189,12 +189,14 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
             if len([x for x in downloaded_data if x.endswith(file_path)]) > 0:
                 downloads_data_from_gcs_bucket(bucket, gcs_original_path, file_path, temp_directory)
             else: os.system("./owltools {} --merge-import-closure -o {}".format(url, temp_directory + '/' + file_path))
+            file_path = temp_directory + '/' + file_path
         else:
             filename, url = url.split(', ')
             file_path = temp_directory + '/' + re.sub('.zip|.gz', '', filename)
             if len([x for x in downloaded_data if x.endswith(file_path)]) > 0:
                 downloads_data_from_gcs_bucket(bucket, gcs_original_path, file_path, temp_directory)
             else: data_downloader(url, temp_directory + '/', filename)
+
         metadata += [get_file_metadata(url, file_path, gcs_url)]
         f_name = re.sub('.zip|.gz', '', file_path.replace(temp_directory + '/', ''))
         uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, f_name)
