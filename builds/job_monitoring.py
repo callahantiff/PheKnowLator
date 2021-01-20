@@ -4,6 +4,7 @@
 # import needed libraries
 import click
 import datetime
+import json
 import os
 import time
 
@@ -21,8 +22,13 @@ from oauth2client.client import GoogleCredentials
 def main(project_name, job_name, credential):
     # tracks job status (source: https://cloud.google.com/ai-platform/training/docs/monitor-training)
 
+    # save json file
+    json_key_path = 'private_key.json'
+    with open(json_key_path, 'w') as outfile:
+        json.dump(credential, outfile)
+
     # set environment variable
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = json_key_path
 
     # get python representation of the REST API and specify project information
     cloud_ml = discovery.build('ml', 'v1')
