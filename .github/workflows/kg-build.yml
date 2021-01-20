@@ -42,6 +42,8 @@ jobs:
           --master-machine-type n1-highmem-4 \
           --region us-central1 \
           --master-image-uri "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
+    - name: Wait
+      run: gcloud ai-platform operations wait "pkt_builder_phases_1_2_$GITHUB_SHA"
     - name: TEST
       run: echo "TESTESTEST!!"
 
