@@ -30,7 +30,9 @@ jobs:
         project_id: ${{ secrets.GCE_PROJECT }}
 
     # configure Docker to use the gcloud command-line tool as a credential helper for authentication
-    - run: gcloud --quiet auth configure-docker
+    - name: Configure Docker Authentication
+      run: gcloud --quiet auth configure-docker
+
     - name: Build Docker Image
       run: docker build --tag "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA" -f builds/Dockerfile ./builds
     - name: Publish Docker Image to Google Container Registry
@@ -42,6 +44,4 @@ jobs:
           --master-machine-type n1-highmem-4 \
           --region us-central1 \
           --master-image-uri "gcr.io/$PROJECT_ID/$GCE_INSTANCE-image:$GITHUB_SHA"
-        python builds/job_monitoring.py \
-          --project_name "$PROJECT_ID" \
-          --job_name "pkt_builder_phases_1_2_$GITHUB_SHA"
+        python builds/job_monitoring.py --project "$PROJECT_ID"  --job "pkt_builder_phases_1_2_$GITHUB_SHA" --sleep 60

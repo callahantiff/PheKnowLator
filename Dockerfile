@@ -1,5 +1,5 @@
 #!/usr/local/bin/docker
-# -*- version: 19.03.8, build afacb8b -*-
+# -*- version: 20.10.2 -*-
 
 ############################################
 ## MULTI-STAGE CONTAINER CONFIGURATION ##

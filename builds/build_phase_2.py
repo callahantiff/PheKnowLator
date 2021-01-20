@@ -120,8 +120,8 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
 
 
 def run_phase_2():
-    print('#' * 35 + '\nBUILD PHASE 2: DATA PRE-PROCESSING\n' + '#' * 35)
 
+    # set temp directory to use locally for writing data GCS data to
     temp_dir = 'temp'
     if not os.path.exists(temp_dir): os.mkdir(temp_dir)
 

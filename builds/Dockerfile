@@ -1,3 +1,6 @@
+#!/usr/local/bin/docker
+# -*- version: 20.10.2 -*-
+
 # import phase 3 container
 FROM callahantiff/pheknowlator:latest
 
