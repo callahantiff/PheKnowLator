@@ -147,8 +147,7 @@ class OntologyCleaner(object):
 
         return graph
 
-    @staticmethod
-    def merge_ontologies(ontology_files: List[str], write_location: str, merged_ont_kg: str) -> Graph:
+    def merge_ontologies(self, ontology_files: List[str], write_location: str, merged_ont_kg: str) -> Graph:
         """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into a
         master merged ontology file and saved locally to the provided file path via the merged_ontology attribute. The
         function assumes that the file is written to the directory specified by the write_location attribute.
@@ -173,7 +172,7 @@ class OntologyCleaner(object):
             #                        '-o', write_location + merged_ont_kg])
             command = './owltools {} {} --merge-support-ontologies -o {}'
             return_code = os.system(command.format(str(ont1), str(ont2), write_location + merged_ont_kg))
-            if return_code == 0: return merges_ontologies(ontology_files, write_location, merged_ont_kg)
+            if return_code == 0: return self.merge_ontologies(ontology_files, write_location, merged_ont_kg)
             else: raise ValueError('OWL API Merging Failed')
 
     def _logically_verifies_cleaned_ontologies(self) -> None:
