@@ -147,7 +147,8 @@ class OntologyCleaner(object):
 
         return graph
 
-    def merges_ontologies(self, ontology_files: List[str], write_location: str, merged_ont_kg: str) -> Graph:
+    @staticmethod
+    def merge_ontologies(ontology_files: List[str], write_location: str, merged_ont_kg: str) -> Graph:
         """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into a
         master merged ontology file and saved locally to the provided file path via the merged_ontology attribute. The
         function assumes that the file is written to the directory specified by the write_location attribute.
@@ -166,14 +167,14 @@ class OntologyCleaner(object):
             if write_location + merged_ont_kg in glob.glob(write_location + '/*.owl'):
                 ont1, ont2 = ontology_files.pop(), write_location + merged_ont_kg
             else: ont1, ont2 = ontology_files.pop(), ontology_files.pop()
-            try:
-                print('Merging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
-                subprocess.check_call([self.owltools_location, str(ont1), str(ont2), '--merge-support-ontologies',
-                                       '-o', write_location + merged_ont_kg])
-            except subprocess.CalledProcessError as error:
-                print(error.output)
 
-            return merges_ontologies(ontology_files, write_location, merged_ont_kg)
+            print('Merging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
+            # subprocess.check_call([self.owltools_location, str(ont1), str(ont2), '--merge-support-ontologies',
+            #                        '-o', write_location + merged_ont_kg])
+            command = './owltools {} {} --merge-support-ontologies -o {}'
+            return_code = os.system(command.format(str(ont1), str(ont2), write_location + merged_ont_kg))
+            if return_code == 0: return merges_ontologies(ontology_files, write_location, merged_ont_kg)
+            else: raise ValueError('OWL API Merging Failed')
 
     def _logically_verifies_cleaned_ontologies(self) -> None:
         """Logically verifies an ontology by running the ELK deductive logic reasoner. Before running the reasoner
@@ -554,7 +555,7 @@ class OntologyCleaner(object):
             self.downloads_data_from_gcs_bucket(x.split('/')[-1])
         ####################################################################################################
 
-        self.merges_ontologies(onts, self.temp_dir + '/', self.ont_file_location)
+        self.merge_ontologies(onts, self.temp_dir + '/', self.ont_file_location)
         print('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
