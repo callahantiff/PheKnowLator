@@ -27,4 +27,4 @@ RUN echo $OWLTOOLS_MEMORY
 # set python envrionment encoding
 RUN export PYTHONIOENCODING=utf-8
 
-ENTRYPOINT ["python", "entrypoint.py"]
+ENTRYPOINT ["python", "phases1_2_entrypoint.py"]
