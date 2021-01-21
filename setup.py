@@ -70,6 +70,7 @@ setup(
 
     # Add here the package dependencies
     install_requires=['argparse>=1.4.0',
+                      'click==7.1.2',
                       'Cython==0.29.14',
                       'networkx==2.4',
                       'numpy==1.18.1',

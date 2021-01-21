@@ -1,0 +1,41 @@
+#!/usr/local/bin/docker
+# -*- version: 20.10.2 -*-
+
+# import phase 3 container
+FROM callahantiff/pheknowlator:latest
+
+# allow statements and log messages to immediately appear in logs
+ENV PYTHONUNBUFFERED True
+
+# copying local scripts to container -- NOTE!UPDATE TO ONLY THOSE SCRIPTS THAT ARE NEEDED
+COPY build_phase_3.py run_phase_3.sh /PheKnowLator/
+
+# set wroking directory in container
+WORKDIR /PheKnowLator/builds/
+
+# download build dependencies
+RUN wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/resource_info.txt && \
+    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/ontology_source_list.txt && \
+    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/edge_source_list.txt && \
+    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/INVERSE_RELATIONS.txt && \
+    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/RELATIONS_LABELS.txt && \
+    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/node_metadata_dict.pkl && \
+    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/subclass_construction_map.pkl && \
+    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/PheKnowLator_MergedOntologies.owl
+
+# copy downloaded files to correct location
+RUN mv resource_info.txt /PheKnowLator/resources/ && \
+    mv ontology_source_list.txt /PheKnowLator/resources/ && \
+    mv edge_source_list.txt /PheKnowLator/resources/ && \
+    mv INVERSE_RELATIONS.txt /PheKnowLator/resources/relations_data/ && \
+    mv RELATIONS_LABELS.txt /PheKnowLator/resources/relations_data/ && \
+    mv node_metadata_dict.pkl /PheKnowLator/resources/node_data/ && \
+    mv subclass_construction_map.pkl /PheKnowLator/resources/construction_approach/ && \
+    mv PheKnowLator_MergedOntologies.owl /PheKnowLator/resources/knowledge_graphs/
+
+# update script permissions
+RUN chmod 755 /PheKnowLator/run_phase_3.sh
+
+# set OWlTools memory (set to a high value, system will only use available memory)
+ENV OWLTOOLS_MEMORY=100g
+RUN echo $OWLTOOLS_MEMORY
