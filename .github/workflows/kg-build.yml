@@ -82,9 +82,13 @@ jobs:
         run: |-
           gcloud compute instances create kg-builder-phase3-job1 \
             --source-instance-template=kg-builder-phase3-template \
-            --zone=us-central1-a \
-            --metadata-from-file start-up-script=startup.sh
+            --zone=us-central1-a
+          gcloud compute ssh kg-builder-phase3-job1 --command 'echo "hellow world"' --zone=us-central1-a
 #      - name: Stop Instance
 #        run: gcloud compute instances stop kg-builder-phase3-job1 --zone=us-central1-a
 #      - name: Delete Instance
 #        run: gcloud compute instances delete kg-builder-phase3-job1 --zone=us-central1-a
+#          gcloud compute instances create kg-builder-phase3-job1 \
+#            --source-instance-template=kg-builder-phase3-template \
+#            --zone=us-central1-a \
+#            --metadata-from-file start-up-script=startup.sh
