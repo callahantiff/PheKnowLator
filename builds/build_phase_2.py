@@ -142,8 +142,8 @@ def run_phase_2():
 
     #####################################################
     # STEP 2 - PREPROCESS BUILD DATA
-    lod_data = DataPreprocessing(bucket, gcs_original_data, gcs_processed_data, temp_dir)
-    lod_data.preprocesses_build_data()
+    # lod_data = DataPreprocessing(bucket, gcs_original_data, gcs_processed_data, temp_dir)
+    # lod_data.preprocesses_build_data()
 
     #####################################################
     # STEP 3 - CLEAN ONTOLOGY DATA

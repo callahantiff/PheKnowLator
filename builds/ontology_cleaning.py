@@ -75,7 +75,8 @@ class OntologyCleaner(object):
         }
         f_data = self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl'
         if not os.path.exists(f_data):
-            url = 'https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/data/processed_data'
+            print('HERE')
+            url = 'https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/data/processed_data/'
             data_downloader(url + f_data.split('/')[-1], self.temp_dir + '/')
         with open(f_data, 'rb') as out:
             self.gene_ids = pickle.load(out, encoding='bytes')
