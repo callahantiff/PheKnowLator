@@ -44,11 +44,12 @@ def get_file_metadata(url, file_location, gcs_url):
     return metadata
 
 
-def writes_metadata(metadata, temp_directory, gcs_processed_location):
+def writes_metadata(bucket, metadata, temp_directory, gcs_processed_location):
     """Writes the downloaded URL metadata information locally and to the original_data directory in Google Cloud
     Storage bucket for the current build.
 
     Args:
+        bucket: A storage bucket object specifying a Google Cloud Storage bucket.
         metadata: A nested list containing metadata information on each downloaded url.
         temp_directory: A local directory where preprocessed data is stored.
         gcs_processed_location: A string containing a path to a directory in the Google Cloud Storage Bucket for the
@@ -198,7 +199,7 @@ def run_phase_2():
     for data_file in tqdm(processed_data):
         url = gcs_url + 'original_data/' + data_file.replace(temp_dir + '/', '')
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
-    writes_metadata(metadata, temp_dir, gcs_processed_data)
+    writes_metadata(bucket, metadata, temp_dir, gcs_processed_data)
 
     #####################################################
     # STEP 5 - UPDATE INPUT DEPENDENCY DOCUMENTS
