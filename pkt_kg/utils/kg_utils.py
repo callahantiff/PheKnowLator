@@ -223,7 +223,7 @@ def merges_ontologies(ontology_files: List[str], write_location: str, merged_ont
         except subprocess.CalledProcessError as error:
             print(error.output)
 
-        return merges_ontologies(ontology_files, write_location, merged_ont_kg)
+        return merges_ontologies(ontology_files, write_location, merged_ont_kg, owltools_location)
 
 
 def ontology_file_formatter(write_location: str, full_kg: str,
