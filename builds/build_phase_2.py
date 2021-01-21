@@ -10,6 +10,7 @@ import re
 
 from datetime import datetime
 from google.cloud import storage  # type: ignore
+from tqdm import tqdm  # type: ignore
 
 from data_preprocessing import DataPreprocessing  # type: ignore
 from ontology_cleaning import OntologyCleaner  # type: ignore
@@ -88,12 +89,10 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
     bucket_path = '/'.join(gcs_url.split('/')[4:])
     gcs_processed = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=bucket_path + 'processed_data/')]
     gcs_original = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=bucket_path + 'original_data/')]
-
     # download dependency file and read in data
     data_downloader(file_url, temp_directory + '/')
     filename = file_url.split('/')[-1]
     data = open(temp_directory + '/' + filename).readlines()
-
     # update file with current gcs bucket url
     if filename != 'resource_info.txt':
         with open(temp_directory + '/' + filename, 'w') as out:
@@ -114,6 +113,40 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
 
     # push data to bucket
     lod_data.uploads_data_to_gcs_bucket(filename)
+
+    return None
+
+
+def moves_dependency_documents_for_phase3(bucket, release, temp_directory):
+    """Method creates a dependency directory in the current_builds directory in Google Cloud Storage. Once created,
+    the documents created during data preprocessing that are needed for Phase 3 of the knowledge graph build workflow
+    are uploaded.
+
+    Args:
+        bucket: A storage bucket object specifying a Google Cloud Storage bucket.
+        release: A string containing the current PheKnowLator release.
+        temp_directory: A local directory where preprocessed data is stored.
+
+    Returns:
+        None.
+    """
+
+    # creates dependency directory
+    dependency_loc = '{}/current_build/dependencies/'.format(release)
+    blob = bucket.blob(dependency_loc)
+    blob.upload_from_string('')
+
+    # list resources to upload
+    dependency_resources = [
+        'resource_info.txt', 'edge_source_list.txt', 'ontology_source_list.txt',
+        'node_metadata_dict.pkl', 'subclass_construction_map.pkl', 'INVERSE_RELATIONS.txt', 'RELATIONS_LABELS.txt',
+        'PheKnowLator_MergedOntologies.owl'
+    ]
+
+    # uploads resources
+    for doc in dependency_resources:
+        blob = bucket.blob(dependency_loc + doc)
+        blob.upload_from_filename(temp_directory + '/' + doc)
 
     return None
 
@@ -144,15 +177,20 @@ def run_phase_2():
     # STEP 2 - PREPROCESS BUILD DATA
     # lod_data = DataPreprocessing(bucket, gcs_original_data, gcs_processed_data, temp_dir)
     # lod_data.preprocesses_build_data()
-
-    #####################################################
-    # STEP 3 - CLEAN ONTOLOGY DATA
-    ont_data = OntologyCleaner(bucket, gcs_original_data, gcs_processed_data, temp_dir)
-    ont_data.cleans_ontology_data()
+    #
+    # #####################################################
+    # # STEP 3 - CLEAN ONTOLOGY DATA
+    # ont_data = OntologyCleaner(bucket, gcs_original_data, gcs_processed_data, temp_dir)
+    # ont_data.cleans_ontology_data()
 
     #####################################################
     # STEP 4 - GENERATE METADATA DOCUMENTATION
-    metadata, processed_data = [], glob.glob(temp_dir + '/*')
+    metadata, processed_data_files, processed_data = [], glob.glob(temp_dir + '/*'), []
+    if len(processed_data_files) < 13:   # download from processed
+        for _ in [f.name for f in bucket.list_blobs(prefix=gcs_processed_data)]:
+            bucket.blob(_).download_to_filename(temp_dir + '/' + _.split('/')[-1])
+            processed_data.append(temp_dir + '/' + _.split('/')[-1])
+    else: processed_data = processed_data_files
     for data_file in tqdm(processed_data):
         url = gcs_url + 'original_data/' + data_file.replace(temp_dir + '/', '')
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
@@ -169,6 +207,11 @@ def run_phase_2():
     # resource info
     resources = 'https://raw.githubusercontent.com/callahantiff/PheKnowLator/master/resources/resource_info.txt'
     updates_dependency_documents(gcs_url, resources, bucket, temp_dir)
+
+    #####################################################
+    # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS
+    # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
+    moves_dependency_documents_for_phase3(bucket, gcs_processed_data, release, temp_dir)
 
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)
