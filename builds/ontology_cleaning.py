@@ -72,7 +72,8 @@ class OntologyCleaner(object):
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=33870': ['114112'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=8103': ['10896'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=26619': ['5058'],
-            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=31424': ['101362076']
+            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=31424': ['101362076'],
+            'http://identifiers.org/hgnc/12764': ['7467']
         }
         f_data = self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl'
         if not os.path.exists(f_data):
@@ -525,7 +526,7 @@ class OntologyCleaner(object):
         Returns:
             None.
         """
-
+        #
         # print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
         #
         # for ont in self.ontology_info.keys():
@@ -542,8 +543,7 @@ class OntologyCleaner(object):
 
         print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         self.ont_file_location = self.merged_ontology_filename
-        # onts = [self.temp_dir + '/' + x for x in list(self.ontology_info.keys())
-        #         if x != self.merged_ontology_filename]
+        # onts = [self.temp_dir + '/' + x for x in list(self.ontology_info.keys()) if x != self.merged_ontology_filename]
 
         ####################################################################################################
         onts = ['temp/clo_with_imports.owl', 'temp/pw_with_imports.owl', 'temp/go_with_imports.owl',
