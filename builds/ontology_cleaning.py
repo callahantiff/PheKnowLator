@@ -497,25 +497,35 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
-
-        for ont in self.ontology_info.keys():
-            if ont != self.merged_ontology_filename:
-                print('\nProcessing Ontology: {}'.format(ont.upper()))
-                self.ont_file_location, self.ont_graph = ont, self.reads_gcs_bucket_data_to_graph(ont)
-                self.updates_ontology_reporter()  # get starting statistics
-                self.fixes_ontology_parsing_errors()
-                self.fixes_identifier_errors()
-                self.removes_deprecated_obsolete_entities()
-                self.fixes_punning_errors()
-                self.updates_ontology_reporter()  # get finishing statistics
-                self._logically_verifies_cleaned_ontologies()
+        # print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
+        #
+        # for ont in self.ontology_info.keys():
+        #     if ont != self.merged_ontology_filename:
+        #         print('\nProcessing Ontology: {}'.format(ont.upper()))
+        #         self.ont_file_location, self.ont_graph = ont, self.reads_gcs_bucket_data_to_graph(ont)
+        #         self.updates_ontology_reporter()  # get starting statistics
+        #         self.fixes_ontology_parsing_errors()
+        #         self.fixes_identifier_errors()
+        #         self.removes_deprecated_obsolete_entities()
+        #         self.fixes_punning_errors()
+        #         self.updates_ontology_reporter()  # get finishing statistics
+        #         self._logically_verifies_cleaned_ontologies()
 
         print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         self.ont_file_location = self.merged_ontology_filename
-        onts = [self.temp_dir + '/' + x for x in list(self.ontology_info.keys())
-                if x != self.merged_ontology_filename]
-        merges_ontologies(onts, self.temp_dir + '/', self.ont_file_location)
+        # onts = [self.temp_dir + '/' + x for x in list(self.ontology_info.keys())
+        #         if x != self.merged_ontology_filename]
+
+        ####################################################################################################
+        onts = ['temp/clo_with_imports.owl', 'temp/pw_with_imports.owl', 'temp/go_with_imports.owl',
+                'temp/pr_with_imports.owl', 'temp/chebi_with_imports.owl', 'temp/ro_with_imports.owl',
+                'temp/vo_with_imports.owl', 'temp/so_with_imports.owl', 'temp/mondo_with_imports.owl',
+                'temp/hp_with_imports.owl', 'temp/ext_with_imports.owl']
+        for x in onts:
+            self.downloads_data_from_gcs_bucket(x)
+        ####################################################################################################
+
+        merges_ontologies(onts, self.temp_dir + '/', self.ont_file_location, './owltools')
         print('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
