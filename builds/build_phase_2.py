@@ -44,14 +44,15 @@ def get_file_metadata(url, file_location, gcs_url):
     return metadata
 
 
-def writes_metadata(metadata, temp_directory):
+def writes_metadata(metadata, temp_directory, gcs_processed_location):
     """Writes the downloaded URL metadata information locally and to the original_data directory in Google Cloud
     Storage bucket for the current build.
 
     Args:
         metadata: A nested list containing metadata information on each downloaded url.
         temp_directory: A local directory where preprocessed data is stored.
-        metadata: A nested list containing metadata information on each downloaded url.
+        gcs_processed_location: A string containing a path to a directory in the Google Cloud Storage Bucket for the
+            current build.
 
     Returns:
         None.
@@ -65,7 +66,8 @@ def writes_metadata(metadata, temp_directory):
             for i in range(4):
                 out.write(str(row[i]) + '\n')
 
-    lod_data.uploads_data_to_gcs_bucket(filename)
+    blob = bucket.blob(gcs_processed_location + filename)
+    blob.upload_from_filename(temp_directory + '/' + filename)
 
     return None
 
@@ -112,7 +114,8 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
                     if len(d_file) > 0: out.write(prefix + ', ' + gcs_url + 'processed_data/' + d_file[0] + '\n')
 
     # push data to bucket
-    lod_data.uploads_data_to_gcs_bucket(filename)
+    blob = bucket.blob(bucket_path + 'processed_data/' + filename)
+    blob.upload_from_filename(temp_directory + '/' + filename)
 
     return None
 
@@ -144,7 +147,7 @@ def moves_dependency_documents_for_phase3(bucket, release, temp_directory):
     ]
 
     # uploads resources
-    for doc in dependency_resources:
+    for doc in tqdm(dependency_resources):
         blob = bucket.blob(dependency_loc + doc)
         blob.upload_from_filename(temp_directory + '/' + doc)
 
@@ -186,15 +189,16 @@ def run_phase_2():
     #####################################################
     # STEP 4 - GENERATE METADATA DOCUMENTATION
     metadata, processed_data_files, processed_data = [], glob.glob(temp_dir + '/*'), []
-    if len(processed_data_files) < 13:   # download from processed
-        for _ in [f.name for f in bucket.list_blobs(prefix=gcs_processed_data)]:
+    gcs_processed_files = [f.name for f in bucket.list_blobs(prefix=gcs_processed_data)][1:]
+    if len(processed_data_files) != len(gcs_processed_files):
+        for _ in tqdm(gcs_processed_files):
             bucket.blob(_).download_to_filename(temp_dir + '/' + _.split('/')[-1])
             processed_data.append(temp_dir + '/' + _.split('/')[-1])
     else: processed_data = processed_data_files
     for data_file in tqdm(processed_data):
         url = gcs_url + 'original_data/' + data_file.replace(temp_dir + '/', '')
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
-    writes_metadata(metadata, temp_dir)
+    writes_metadata(metadata, temp_dir, gcs_processed_data)
 
     #####################################################
     # STEP 5 - UPDATE INPUT DEPENDENCY DOCUMENTS
@@ -211,7 +215,7 @@ def run_phase_2():
     #####################################################
     # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
-    moves_dependency_documents_for_phase3(bucket, gcs_processed_data, release, temp_dir)
+    moves_dependency_documents_for_phase3(bucket, release, temp_dir)
 
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)
