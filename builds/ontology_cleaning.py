@@ -538,7 +538,7 @@ class OntologyCleaner(object):
                     o.write('\t- Deprecated Ontology HGNC Identifiers Needing Alignment:\n')
                     if x['Normalized - Dep'] != 'None':
                         for i in x['Normalized - Dep']: o.write('\t\t- {}\n'.format(i))
-                    else: o.write('\t\t- {}\n'.format(x['Normalized - Dep'][0]))
+                    else: o.write('\t\t- {}\n'.format(x['Normalized - Dep']))
 
         self.uploads_data_to_gcs_bucket(ontology_report_filename)
 
@@ -556,32 +556,25 @@ class OntologyCleaner(object):
             None.
         """
 
-        # print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
-        #
-        # for ont in self.ontology_info.keys():
-        #     if ont != self.merged_ontology_filename:
-        #         print('\nProcessing Ontology: {}'.format(ont.upper()))
-        #         self.ont_file_location, self.ont_graph = ont, self.reads_gcs_bucket_data_to_graph(ont)
-        #         self.updates_ontology_reporter()  # get starting statistics
-        #         self.fixes_ontology_parsing_errors()
-        #         self.fixes_identifier_errors()
-        #         self.removes_deprecated_obsolete_entities()
-        #         self.fixes_punning_errors()
-        #         self.updates_ontology_reporter()  # get finishing statistics
-        #         self._logically_verifies_cleaned_ontologies()
+        print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
+
+        for ont in self.ontology_info.keys():
+            if ont != self.merged_ontology_filename:
+                print('\nProcessing Ontology: {}'.format(ont.upper()))
+                self.ont_file_location, self.ont_graph = ont, self.reads_gcs_bucket_data_to_graph(ont)
+                self.updates_ontology_reporter()  # get starting statistics
+                self.fixes_ontology_parsing_errors()
+                self.fixes_identifier_errors()
+                self.removes_deprecated_obsolete_entities()
+                self.fixes_punning_errors()
+                self.updates_ontology_reporter()  # get finishing statistics
+                self._logically_verifies_cleaned_ontologies()
 
         print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         self.ont_file_location = self.merged_ontology_filename
-        # onts = self.checks_for_downloaded_ontology_data()
-        # self.merge_ontologies(onts, self.temp_dir + '/', self.ont_file_location)
+        individual_ontologies = self.checks_for_downloaded_ontology_data()
+        self.merge_ontologies(individual_ontologies, self.temp_dir + '/', self.ont_file_location)
         print('\nLoading Merged Ontology')
-
-        ##################################################################################
-        # remove after testing
-        self.downloads_data_from_gcs_bucket(self.ont_file_location)
-        self.ontology_info = {self.ont_file_location: self.ontology_info[self.ont_file_location]}
-        ##################################################################################
-
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
         self.fixes_identifier_errors()
@@ -594,7 +587,7 @@ class OntologyCleaner(object):
         ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
         self.uploads_data_to_gcs_bucket(self.ont_file_location)
 
-        print('\nGENERATING ONTOLOGY REPORT')
+        print('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
         self.generates_ontology_report()
 
         return None
