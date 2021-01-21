@@ -81,8 +81,8 @@ jobs:
       - name: Build Phase 3 - Job 1
         run: |-
           gcloud compute instances create kg-builder-phase3-job1 \
-            --source-instance-template kg-builder-phase3-template \
-            --zone us-central1-a \
+            --source-instance-template=kg-builder-phase3-template \
+            --zone=us-central1-a \
             --metadata-from-file start-up-script=startup.sh
       - name: Stop Instance
         run: gcloud compute instances stop kg-builder-phase3-job1
