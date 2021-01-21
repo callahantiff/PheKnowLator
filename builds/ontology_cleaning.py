@@ -127,6 +127,7 @@ class OntologyCleaner(object):
                         self.bucket.blob(proc_file).download_to_filename(self.temp_dir + '/' + proc_file.split('/')[-1])
                 except IndexError:
                     raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
+            return data_file
         else:
             return None
 
