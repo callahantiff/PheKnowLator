@@ -9,6 +9,7 @@ import logging
 import pickle
 import os
 import re
+import subprocess
 
 from google.cloud import storage  # type: ignore
 from owlready2 import get_ontology, OwlReadyOntologyParsingError  # type: ignore
@@ -145,6 +146,34 @@ class OntologyCleaner(object):
         graph = Graph().parse(dat, format='xml')
 
         return graph
+
+    def merges_ontologies(self, ontology_files: List[str], write_location: str, merged_ont_kg: str) -> Graph:
+        """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into a
+        master merged ontology file and saved locally to the provided file path via the merged_ontology attribute. The
+        function assumes that the file is written to the directory specified by the write_location attribute.
+
+        Args:
+            ontology_files: A list of ontology file paths.
+            write_location: A string pointing to a local directory for writing data.
+            merged_ont_kg: A string pointing to the location of the merged ontology file.
+
+        Returns:
+            None.
+        """
+
+        if not ontology_files: return None
+        else:
+            if write_location + merged_ont_kg in glob.glob(write_location + '/*.owl'):
+                ont1, ont2 = ontology_files.pop(), write_location + merged_ont_kg
+            else: ont1, ont2 = ontology_files.pop(), ontology_files.pop()
+            try:
+                print('Merging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
+                subprocess.check_call([self.owltools_location, str(ont1), str(ont2), '--merge-support-ontologies',
+                                       '-o', write_location + merged_ont_kg])
+            except subprocess.CalledProcessError as error:
+                print(error.output)
+
+            return merges_ontologies(ontology_files, write_location, merged_ont_kg)
 
     def _logically_verifies_cleaned_ontologies(self) -> None:
         """Logically verifies an ontology by running the ELK deductive logic reasoner. Before running the reasoner
@@ -525,7 +554,7 @@ class OntologyCleaner(object):
             self.downloads_data_from_gcs_bucket(x.split('/')[-1])
         ####################################################################################################
 
-        merges_ontologies(onts, self.temp_dir + '/', self.ont_file_location, './owltools')
+        self.merges_ontologies(onts, self.temp_dir + '/', self.ont_file_location)
         print('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
