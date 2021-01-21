@@ -452,6 +452,7 @@ class PostClosureBuild(KGBuilder):
 
                 # STEP 6: EXTRACT AND WRITE NODE METADATA
                 print('\n*** Processing Knowledge Graph Metadata ***')
+                metadata.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
 
         # clean environment
@@ -537,6 +538,7 @@ class FullBuild(KGBuilder):
 
                 # STEP 7: EXTRACT AND WRITE NODE METADATA
                 print('\n*** Processing Knowledge Graph Metadata ***')
+                metadata.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
 
         # clean environment

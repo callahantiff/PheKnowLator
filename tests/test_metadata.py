@@ -228,7 +228,7 @@ class TestMetadata(unittest.TestCase):
         self.assertIn('Synonym', self.metadata.node_dict['nodes'][node_key])
         # relations
         relation_key = 'http://purl.obolibrary.org/obo/so#genome_of'
-        self.assertTrue(len(self.metadata.node_dict['relations']) == 2511)
+        self.assertTrue(len(self.metadata.node_dict['relations']) == 72)
         self.assertIn('Label', self.metadata.node_dict['relations'][relation_key])
         self.assertIn('Description', self.metadata.node_dict['relations'][relation_key])
         self.assertIn('Synonym', self.metadata.node_dict['relations'][relation_key])

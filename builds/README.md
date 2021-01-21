@@ -1,7 +1,8 @@
 # PheKnowLator Builds  
 **Current Release:** [`v2.0.0`](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0)  
 
-This directory stores the scripts and files needed for the automatic monthly builds. Our continuous integration (CI)/Continuous deployment (CD) pipeline is managed entirely using [GitHub Actions](https://github.com/actions). Each build is processed using Dockerized [Flask](https://flask.palletsprojects.com/) applications which are served via [Gunicorn](https://gunicorn.org/) and deployed to [Google Cloud Run](https://cloud.google.com/run). Builds are triggered on the first of each month and consist of three separate asynchronous phases (each phase is briefly described below):  
+This directory stores the scripts and files needed for the automatic monthly builds. Our continuous integration (CI)
+/Continuous deployment (CD) pipeline is managed entirely using [GitHub Actions](https://github.com/actions) and [Google's AI-Platform](https://cloud.google.com/ai-platform). Builds are triggered on the first of each month and consist of three separate asynchronous phases (each phase is briefly described below):  
 1. Data Download 
 2. Data Processing and Quality Control   
 3. Knowledge Graph Construction  
