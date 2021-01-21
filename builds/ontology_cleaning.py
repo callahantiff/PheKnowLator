@@ -522,7 +522,7 @@ class OntologyCleaner(object):
                 'temp/vo_with_imports.owl', 'temp/so_with_imports.owl', 'temp/mondo_with_imports.owl',
                 'temp/hp_with_imports.owl', 'temp/ext_with_imports.owl']
         for x in onts:
-            self.downloads_data_from_gcs_bucket(x)
+            self.downloads_data_from_gcs_bucket(x.split('/')[-1])
         ####################################################################################################
 
         merges_ontologies(onts, self.temp_dir + '/', self.ont_file_location, './owltools')
