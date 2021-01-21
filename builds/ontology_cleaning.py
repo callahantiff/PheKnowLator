@@ -75,7 +75,6 @@ class OntologyCleaner(object):
         }
         f_data = self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl'
         if not os.path.exists(f_data):
-            print('HERE')
             url = 'https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/data/processed_data/'
             data_downloader(url + f_data.split('/')[-1], self.temp_dir + '/')
         with open(f_data, 'rb') as out:
@@ -113,15 +112,21 @@ class OntologyCleaner(object):
         """
 
         if isinstance(self.bucket, storage.bucket.Bucket):
-            try:
-                _files = [_.name for _ in self.bucket.list_blobs(prefix=self.original_data)]
-                match_file = fnmatch.filter(_files, '*/' + filename)[0]  # poor man's glob of bucket file directory
-                data_file = self.temp_dir + '/' + match_file.split('/')[-1]
+            try:  # search processed bucket first
+                _files = [_.name for _ in self.bucket.list_blobs(prefix=self.processed_data)]
+                org_file = fnmatch.filter(_files, '*/' + filename)[0]
+                data_file = self.temp_dir + '/' + org_file.split('/')[-1]
                 if not os.path.exists(data_file):  # only download if file has not yet been downloaded
-                    self.bucket.blob(match_file).download_to_filename(self.temp_dir + '/' + match_file.split('/')[-1])
+                    self.bucket.blob(org_file).download_to_filename(self.temp_dir + '/' + org_file.split('/')[-1])
             except IndexError:
-                raise ValueError('{} Not in the GCS original_data Directory of the Current Build'.format(filename))
-            return data_file
+                try:  # then search the original bucket
+                    _files = [_.name for _ in self.bucket.list_blobs(prefix=self.original_data)]
+                    proc_file = fnmatch.filter(_files, '*/' + filename)[0]
+                    data_file = self.temp_dir + '/' + proc_file.split('/')[-1]
+                    if not os.path.exists(data_file):  # only download if file has not yet been downloaded
+                        self.bucket.blob(proc_file).download_to_filename(self.temp_dir + '/' + proc_file.split('/')[-1])
+                except IndexError:
+                    raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
         else:
             return None
 
