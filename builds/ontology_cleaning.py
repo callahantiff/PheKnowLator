@@ -437,25 +437,43 @@ class OntologyCleaner(object):
         """
 
         print('Normalizing Existing Classes')
-
+        ents = None  # REMOVE
         non_ont = set([x for x in gets_ontology_classes(self.ont_graph) if not str(x).startswith(str(obo))])
         hgnc, url, g = set([x for x in non_ont if 'hgnc' in str(x)]), 'http://www.ncbi.nlm.nih.gov/gene/', self.gene_ids
         for node in tqdm(hgnc):
             trips = list(self.ont_graph.triples((node, None, None))) + list(self.ont_graph.triples((None, None, node)))
             nd = 'hgnc_id_' + str(node).split('/')[-1].split('=')[-1]
             if nd in g.keys(): ents = [URIRef(url + x) for x in g[nd] if x.startswith('entrez_id_')]
-            else: ents = [URIRef(url + x) for x in self.withdrawn_genes[str(node)]]
-            for edge in trips:
-                if node in edge[0]:
-                    if isinstance(edge[2], URIRef) or isinstance(edge[2], BNode):
+            else:
+                if str(node) not in self.withdrawn_genes.keys(): print(str(node))
+                else: ents = [URIRef(url + x) for x in self.withdrawn_genes[str(node)]]
+            if ents:
+                for edge in trips:
+                    if node in edge[0]:
+                        if isinstance(edge[2], URIRef) or isinstance(edge[2], BNode):
+                            for i in ents:
+                                self.ont_graph.add((i, edge[1], edge[2]))
+                                self.ont_graph.remove(edge)
+                        else: self.ont_graph.remove(edge)
+                    if node in edge[2]:
                         for i in ents:
-                            self.ont_graph.add((i, edge[1], edge[2]))
+                            self.ont_graph.add((edge[0], edge[1], i))
                             self.ont_graph.remove(edge)
-                    else: self.ont_graph.remove(edge)
-                if node in edge[2]:
-                    for i in ents:
-                        self.ont_graph.add((edge[0], edge[1], i))
-                        self.ont_graph.remove(edge)
+
+            # if nd in g.keys(): ents = [URIRef(url + x) for x in g[nd] if x.startswith('entrez_id_')]
+            # else: ents = [URIRef(url + x) for x in self.withdrawn_genes[str(node)]]
+            # if ents:
+            #     for edge in trips:
+            #         if node in edge[0]:
+            #             if isinstance(edge[2], URIRef) or isinstance(edge[2], BNode):
+            #                 for i in ents:
+            #                     self.ont_graph.add((i, edge[1], edge[2]))
+            #                     self.ont_graph.remove(edge)
+            #             else: self.ont_graph.remove(edge)
+            #         if node in edge[2]:
+            #             for i in ents:
+            #                 self.ont_graph.add((edge[0], edge[1], i))
+            #                 self.ont_graph.remove(edge)
 
         no_ont = len(non_ont) - len(hgnc)
         self.ontology_info[self.ont_file_location]['Normalized - NonOnt'] = no_ont if no_ont != 0 else 'None'
@@ -526,7 +544,7 @@ class OntologyCleaner(object):
         Returns:
             None.
         """
-        #
+
         # print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
         #
         # for ont in self.ontology_info.keys():
@@ -544,17 +562,19 @@ class OntologyCleaner(object):
         print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         self.ont_file_location = self.merged_ontology_filename
         # onts = [self.temp_dir + '/' + x for x in list(self.ontology_info.keys()) if x != self.merged_ontology_filename]
-
-        ####################################################################################################
+        #
+        # ####################################################################################################
         onts = ['temp/clo_with_imports.owl', 'temp/pw_with_imports.owl', 'temp/go_with_imports.owl',
                 'temp/pr_with_imports.owl', 'temp/chebi_with_imports.owl', 'temp/ro_with_imports.owl',
                 'temp/vo_with_imports.owl', 'temp/so_with_imports.owl', 'temp/mondo_with_imports.owl',
                 'temp/hp_with_imports.owl', 'temp/ext_with_imports.owl']
         for x in onts:
             self.downloads_data_from_gcs_bucket(x.split('/')[-1])
-        ####################################################################################################
+        # ####################################################################################################
 
         self.merge_ontologies(onts, self.temp_dir + '/', self.ont_file_location)
+        self.uploads_data_to_gcs_bucket(self.ont_file_location)  # remove later
+
         print('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
