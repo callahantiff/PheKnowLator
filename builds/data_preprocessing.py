@@ -548,7 +548,7 @@ class DataPreprocessing(object):
 
         for x in gene_sets:
             genomic_id_mapper(reformatted_mapped_identifiers,
-                              self.temp_dir + x[0], x[1], x[2], x[3], x[4], x[5])  # type: ignore
+                              self.temp_dir + '/' + x[0], x[1], x[2], x[3], x[4], x[5])  # type: ignore
             self.uploads_data_to_gcs_bucket(x[0])  # type: ignore
 
         return None
