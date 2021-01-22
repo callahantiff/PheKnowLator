@@ -76,7 +76,7 @@ jobs:
       - name: Build Phase 3 - Job 1
         run: |-
           gcloud compute instances create kg-builder-phase3-job1 --source-instance-template=kg-builder-phase3-template --zone=us-central1-a
-          gcloud compute ssh kg-builder-phase3-job1 --container="gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" \
+          gcloud compute ssh kg-builder-phase3-job1 --container="pkt-builder-phase3-image" \
             --command "/PheKnowLator/python build_phase_3.py --app subclass --rel no --owl no" --zone=us-central1-a
 #          gcloud compute instances create kg-builder-phase3-job1 --image pkt-builder-phase3-image --image-project pheknowlator --zone=us-central1-a
 #          gcloud compute ssh kg-builder-phase3-job1 \
