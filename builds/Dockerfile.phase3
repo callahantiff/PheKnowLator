@@ -31,7 +31,7 @@ RUN mv resource_info.txt /PheKnowLator/resources/ && \
     mv PheKnowLator_MergedOntologies.owl /PheKnowLator/resources/knowledge_graphs/
 
 # copying local scripts to container -- NOTE!UPDATE TO ONLY THOSE SCRIPTS THAT ARE NEEDED
-COPY build_phase_3.py instance_startup_scripts/phase3_job1.sh /PheKnowLator/
+COPY build_phase_3.py entrypoints/phase3_job1.sh /PheKnowLator/
 COPY build_requirements.txt /PheKnowLator/builds/
 
 #RUN mkdir /PheKnowLator/resources/project_keys
