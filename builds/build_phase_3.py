@@ -15,6 +15,8 @@ import subprocess
 from datetime import datetime
 from google.cloud import storage  # type: ignore
 
+from pkt_kg.__version__ import __version__
+
 # set environment variable -- this should be replaced with GitHub Secret for build
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
@@ -42,7 +44,7 @@ def uploads_data_to_gcs_bucket(bucket, bucket_location, file_loc):
 @click.option('--app', prompt='construction approach to use (i.e. instance or subclass)')
 @click.option('--rel', prompt='yes/no - adding inverse relations to knowledge graph')
 @click.option('--owl', prompt='yes/no - removing OWL Semantics from knowledge graph')
-def run_phase_3(app, rel, owl):
+def main(app, rel, owl):
 
     rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
     owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
@@ -60,7 +62,7 @@ def run_phase_3(app, rel, owl):
     build = 'build_' + datetime.strftime(datetime.strptime(sorted_dates[-1], '%Y-%m-%d'), '%d%b%Y').upper()
     # set gcs bucket variables
     gcs_archived_build = '{}/archived_builds/{}/'.format(release, build)
-    gcs_current_build = '{}/current_builds/'.format(release)
+    gcs_current_build = '{}/current_build/'.format(release)
 
     # call method
     start_time = datetime.now()
@@ -75,7 +77,7 @@ def run_phase_3(app, rel, owl):
     # update status
     return_code = 0
     filename = 'program_status_{}_{}_{}.txt'.format(app, rel_type.lower(), owl_decoding.lower())
-    with open(filename) as o:
+    with open(filename, 'w') as o:
         if return_code != 0: o.write('FAILED')
         else: o.write('SUCCEEDED')
     # push to GCS current build bucket
@@ -98,3 +100,7 @@ def run_phase_3(app, rel, owl):
     print(command.format(runtime, app, rel_type, owl_decoding) + '*' * 5)
 
     return None
+
+
+if __name__ == '__main__':
+    main()

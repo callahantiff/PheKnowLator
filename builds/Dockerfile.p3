@@ -7,9 +7,6 @@ FROM callahantiff/pheknowlator:latest
 # allow statements and log messages to immediately appear in logs
 ENV PYTHONUNBUFFERED True
 
-# copying local scripts to container -- NOTE!UPDATE TO ONLY THOSE SCRIPTS THAT ARE NEEDED
-COPY build_phase_3.py instance_startup_scripts/phase3_job1.sh /PheKnowLator/
-
 # set wroking directory in container
 WORKDIR /PheKnowLator/builds/
 
@@ -32,6 +29,16 @@ RUN mv resource_info.txt /PheKnowLator/resources/ && \
     mv node_metadata_dict.pkl /PheKnowLator/resources/node_data/ && \
     mv subclass_construction_map.pkl /PheKnowLator/resources/construction_approach/ && \
     mv PheKnowLator_MergedOntologies.owl /PheKnowLator/resources/knowledge_graphs/
+
+# copying local scripts to container -- NOTE!UPDATE TO ONLY THOSE SCRIPTS THAT ARE NEEDED
+COPY build_phase_3.py instance_startup_scripts/phase3_job1.sh /PheKnowLator/
+COPY build_requirements.txt /PheKnowLator/builds/
+
+#RUN mkdir /PheKnowLator/resources/project_keys
+#COPY pheknowlator-6cc612b4cbee.json /PheKnowLator/resources/project_keys/
+
+# install requirements
+RUN pip install -r build_requirements.txt
 
 # update script permissions
 RUN chmod 755 /PheKnowLator/phase3_job1.sh
