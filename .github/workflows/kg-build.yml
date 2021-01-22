@@ -57,9 +57,7 @@ jobs:
     - name: Configure Docker Authentication
       run: gcloud --quiet auth configure-docker
     - name: Build Docker Image
-      run: |-
-        docker build --tag "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" \
-          -f builds/Dockerfile.p3 ./builds
+      run: docker build --tag "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" -f builds/Dockerfile.p3 ./builds
     - name: Publish Docker Image to Google Container Registry
       run: docker push "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA"
 
@@ -84,7 +82,7 @@ jobs:
             --source-instance-template=kg-builder-phase3-template \
             --zone=us-central1-a
           gcloud compute ssh kg-builder-phase3-job1 \
-            --command 'docker run pkt-builder-phase3-image:"${GITHUB_SHA}" sh -c "/PheKnowLator/run_phase_3.sh subclass no no"' \
+            --command 'docker run "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" sh -c "/PheKnowLator/run_phase_3.sh subclass no no"' \
             --zone=us-central1-a
 #      - name: Stop Instance
 #        run: gcloud compute instances stop kg-builder-phase3-job1 --zone=us-central1-a
