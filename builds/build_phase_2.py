@@ -162,7 +162,6 @@ def run_phase_2():
     if not os.path.exists(temp_dir): os.mkdir(temp_dir)
     log_dir = 'logs'
     if not os.path.exists(temp_dir): os.mkdir(log_dir)
-    os.mkdir(log_dir)
 
     #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS

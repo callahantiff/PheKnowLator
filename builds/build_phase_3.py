@@ -49,6 +49,10 @@ def main(app, rel, owl):
     rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
     owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
 
+    ### FIGURE OUT LOGGING
+    ### MAP FILE UPLOAD
+    ### CHECK BUILDS
+
     # #####################################################
     # # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
     storage_client = storage.Client()
