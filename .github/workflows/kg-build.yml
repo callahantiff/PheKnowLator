@@ -73,14 +73,12 @@ jobs:
           project_id: ${{ secrets.GCE_PROJECT }}
       - name: Configure Docker Authentication
         run: gcloud --quiet auth configure-docker
-      - name: Create Start-Up Script
-        run: |-
-          echo 'docker run pkt-builder-phase3-image:"$GITHUB_SHA" sh -c "/PheKnowLator/run_phase_3.sh subclass no no"' > startup.sh
       - name: Build Phase 3 - Job 1
         run: |-
           gcloud compute instances create kg-builder-phase3-job1 \
-            --source-instance-template=kg-builder-phase3-template \
-            --zone=us-central1-a
+            --image pkt-builder-phase3-image --image-project pheknowlator --zone=us-central1-a
+          gcloud compute ssh kg-builder-phase3-job1 \
+            --command 'docker pull "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" --zone=us-central1-a
           gcloud compute ssh kg-builder-phase3-job1 \
             --command 'docker run "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" sh -c "/PheKnowLator/run_phase_3.sh subclass no no"' \
             --zone=us-central1-a
