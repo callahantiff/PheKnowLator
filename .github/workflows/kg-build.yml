@@ -75,10 +75,13 @@ jobs:
         run: gcloud --quiet auth configure-docker
       - name: Build Phase 3 - Job 1
         run: |-
-          gcloud compute instances create kg-builder-phase3-job1 --image pkt-builder-phase3-image --image-project pheknowlator --zone=us-central1-a
-          gcloud compute ssh kg-builder-phase3-job1 \
-            --command 'docker run "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" sh -c "/PheKnowLator/run_phase_3.sh subclass no no"' \
-            --zone=us-central1-a
+          gcloud compute instances create kg-builder-phase3-job1--source-instance-template=kg-builder-phase3-template --zone=us-central1-a
+          gcloud compute ssh kg-builder-phase3-job1 --container="gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" \
+            --command "/PheKnowLator/python build_phase_3.py --app subclass --rel no --owl no"
+#          gcloud compute instances create kg-builder-phase3-job1 --image pkt-builder-phase3-image --image-project pheknowlator --zone=us-central1-a
+#          gcloud compute ssh kg-builder-phase3-job1 \
+#            --command 'docker run "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" sh -c "/PheKnowLator/run_phase_3.sh subclass no no"' \
+#            --zone=us-central1-a
 #      - name: Stop Instance
 #        run: gcloud compute instances stop kg-builder-phase3-job1 --zone=us-central1-a
 #      - name: Delete Instance
