@@ -25,7 +25,7 @@ from pkt_kg.utils import *
 # set up logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler('temp/logs/phase_2_data_preprocessing_log.log')
+file_handler = logging.FileHandler('logs/phase_2_data_preprocessing_log.log')
 formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)

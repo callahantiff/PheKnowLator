@@ -29,7 +29,7 @@ oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 # set up logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler('temp/logs/phase_2_ontology_cleaning_log.log')
+file_handler = logging.FileHandler('logs/phase_2_ontology_cleaning_log.log')
 formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)

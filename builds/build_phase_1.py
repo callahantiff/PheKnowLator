@@ -19,9 +19,12 @@ from pkt_kg.utils import data_downloader
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
 # set up logging
+log_dir = 'logs'
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler('temp/logs/phase_1_log.log')
+file_handler = logging.FileHandler('logs/phase_1_log.log')
 formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)

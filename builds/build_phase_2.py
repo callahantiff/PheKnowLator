@@ -160,7 +160,8 @@ def run_phase_2():
     # set temp directory to use locally for writing data GCS data to
     temp_dir = 'temp'
     if not os.path.exists(temp_dir): os.mkdir(temp_dir)
-    log_dir = temp_dir + '/logs'
+    log_dir = 'logs'
+    if not os.path.exists(temp_dir): os.mkdir(log_dir)
     os.mkdir(log_dir)
 
     #####################################################
@@ -228,5 +229,6 @@ def run_phase_2():
 
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)
+    shutil.rmtree(log_dir)
 
     return None
