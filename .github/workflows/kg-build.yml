@@ -75,10 +75,7 @@ jobs:
         run: gcloud --quiet auth configure-docker
       - name: Build Phase 3 - Job 1
         run: |-
-          gcloud compute instances create kg-builder-phase3-job1 \
-            --image pkt-builder-phase3-image --image-project pheknowlator --zone=us-central1-a
-          gcloud compute ssh kg-builder-phase3-job1 \
-            --command 'docker pull "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA"' --zone=us-central1-a
+          gcloud compute instances create kg-builder-phase3-job1 --image pkt-builder-phase3-image --image-project pheknowlator --zone=us-central1-a
           gcloud compute ssh kg-builder-phase3-job1 \
             --command 'docker run "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" sh -c "/PheKnowLator/run_phase_3.sh subclass no no"' \
             --zone=us-central1-a
