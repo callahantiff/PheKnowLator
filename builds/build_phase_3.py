@@ -12,6 +12,7 @@ import os
 import re
 import subprocess
 
+from datetime import datetime
 from google.cloud import storage  # type: ignore
 
 # set environment variable -- this should be replaced with GitHub Secret for build
@@ -43,29 +44,43 @@ def uploads_data_to_gcs_bucket(bucket, bucket_location, file_loc):
 @click.option('--owl', prompt='yes/no - removing OWL Semantics from knowledge graph')
 def run_phase_3(app, rel, owl):
 
-    # configure pkt build args
-    command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
-              '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
-              '--app {} --rel {} --owl {}'
-    return_code = os.system(command.format(app, rel, owl))
-
-    if return_code != 0:
-        raise ValueError('ERROR: Build Failed!')
+    rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
+    owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
 
     # #####################################################
     # # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
-    # storage_client = storage.Client()
-    # bucket = storage_client.get_bucket('pheknowlator')
-    # # define write path to Google Cloud Storage bucket
-    # release = 'release_v' + __version__
-    # bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix=release + '/archived_builds/')]
-    # # find current archived build directory
-    # builds = [x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0]
-    # sorted_dates = sorted([datetime.strftime(datetime.strptime(str(x), '%d%b%Y'), '%Y-%m-%d').upper() for x in builds])
-    # build = 'build_' + datetime.strftime(datetime.strptime(sorted_dates[-1], '%Y-%m-%d'), '%d%b%Y').upper()
-    # # set gcs bucket variables
-    # gcs_archived_build = '{}/archived_builds/{}/'.format(release, build)
-    # gcs_current_build = '{}/current_builds/'.format(release)
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket('pheknowlator')
+    # define write path to Google Cloud Storage bucket
+    release = 'release_v' + __version__
+    bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix=release + '/archived_builds/')]
+    # find current archived build directory
+    builds = [x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0]
+    sorted_dates = sorted([datetime.strftime(datetime.strptime(str(x), '%d%b%Y'), '%Y-%m-%d').upper() for x in builds])
+    build = 'build_' + datetime.strftime(datetime.strptime(sorted_dates[-1], '%Y-%m-%d'), '%d%b%Y').upper()
+    # set gcs bucket variables
+    gcs_archived_build = '{}/archived_builds/{}/'.format(release, build)
+    gcs_current_build = '{}/current_builds/'.format(release)
+
+    # call method
+    start_time = datetime.now()
+    print('\n\n' + '*' * 10 + ' PKT: STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
+
+    # configure pkt build args
+    # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
+    #           '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
+    #           '--app {} --rel {} --owl {}'
+    # return_code = os.system(command.format(app, rel, owl))
+
+    # update status
+    return_code = 0
+    filename = 'program_status_{}_{}_{}.txt'.format(app, rel_type.lower(), owl_decoding.lower())
+    with open(filename) as o:
+        if return_code != 0: o.write('FAILED')
+        else: o.write('SUCCEEDED')
+    # push to GCS current build bucket
+    blob = bucket.blob(gcs_current_build + filename)
+    blob.upload_from_filename(filename)
 
     #####################################################
     # STEP 2 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
@@ -74,5 +89,12 @@ def run_phase_3(app, rel, owl):
 
     #####################################################
     # STEP 3 - COPY ARCHIVED BUILD DATA TO CURRENT BUILD
+
+    # print build statistics
+    runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
+    command = '\n\n' + '*' * 5 + ' PKT: COMPLETED BUILD PHASE 3 - JOB ({} + {} + {}): {} MINUTES '
+    rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
+    owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
+    print(command.format(runtime, app, rel_type, owl_decoding) + '*' * 5)
 
     return None
