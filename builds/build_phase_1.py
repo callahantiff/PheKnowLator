@@ -245,6 +245,6 @@ def run_phase_1():
 
     ###############################################
     # STEP 3 - UPLOAD LOG FILES
-    uploads_data_to_gcs_bucket(bucket, original_data, temp_directory + '/logs', 'phase_1_log.log')
+    uploads_data_to_gcs_bucket(bucket, original_data, 'logs', 'phase_1_log.log')
 
     return None
