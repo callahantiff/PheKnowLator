@@ -6,49 +6,20 @@ env:
   GCE_INSTANCE_ZONE: us-central1-a
 
 jobs:
-#  pkt-build-phase-1-2:
-#    name: Setup, Build, Publish, and Deploy
-#    runs-on: ubuntu-latest
-#    steps:
-#    - name: Checkout
-#      uses: actions/checkout@v2
-#      with:
-#       ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
-#    - name: Setup Python
-#      uses: actions/setup-python@v2
-#      with:
-#        python-version: 3.6
-#    - name: Install Requirements and Dependencies
-#      run: pip install -r builds/build_requirements.txt
-#    - uses: google-github-actions/setup-gcloud@master
-#      with:
-#        version: '290.0.1'
-#        service_account_key: ${{ secrets.GCE_SA_KEY }}
-#        project_id: ${{ secrets.GCE_PROJECT }}
-#    - name: Configure Docker Authentication
-#      run: gcloud --quiet auth configure-docker
-#    - name: Build Docker Image
-#      run: docker build --tag "gcr.io/$PROJECT_ID/pkt-builder-image:$GITHUB_SHA" -f builds/Dockerfile.p12 ./builds
-#    - name: Publish Docker Image to Google Container Registry
-#      run: docker push "gcr.io/$PROJECT_ID/pkt-builder-image:$GITHUB_SHA"
-#    - name: Run Build Phases 1-2
-#      run: |-
-#        gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
-#          --scale-tier custom \
-#          --master-machine-type n1-highmem-16 \
-#          --region us-central1 \
-#          --master-image-uri "gcr.io/$PROJECT_ID/pkt-builder-image:$GITHUB_SHA"
-#        python builds/job_monitoring.py --project "$PROJECT_ID"  --job "pkt_builder_phases_1_2_$GITHUB_SHA" --sleep 60
-
-  pkt-build-phase3-container:
-#    needs: pkt-build-phase-1-2
-    name: Build Phase 3 Container
+  pkt-build-phase-1-2:
+    name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2
       with:
        ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
+    - name: Install Requirements and Dependencies
+      run: pip install -r builds/build_requirements.txt
     - uses: google-github-actions/setup-gcloud@master
       with:
         version: '290.0.1'
@@ -57,29 +28,60 @@ jobs:
     - name: Configure Docker Authentication
       run: gcloud --quiet auth configure-docker
     - name: Build Docker Image
-      run: docker build --tag "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" -f builds/Dockerfile.p3 ./builds
+      run: docker build --tag "gcr.io/$PROJECT_ID/pkt-builder-image:$GITHUB_SHA" -f builds/Dockerfile.phases12 ./builds
     - name: Publish Docker Image to Google Container Registry
-      run: docker push "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA"
+      run: docker push "gcr.io/$PROJECT_ID/pkt-builder-image:$GITHUB_SHA"
+    - name: Run Build Phases 1-2
+      run: |-
+        gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
+          --scale-tier custom \
+          --master-machine-type n1-highmem-16 \
+          --region us-central1 \
+          --master-image-uri "gcr.io/$PROJECT_ID/pkt-builder-image:$GITHUB_SHA"
+        python builds/job_monitoring.py --project "$PROJECT_ID"  --job "pkt_builder_phases_1_2_$GITHUB_SHA" --sleep 60
 
-  pkt-build-phase3-job1:
-    needs: pkt-build-phase3-container
-    name: Phase 3 - Job 1 (Subclass + RelationsOnly + OWL)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: google-github-actions/setup-gcloud@master
-        with:
-          version: '290.0.1'
-          service_account_key: ${{ secrets.GCE_SA_KEY }}
-          project_id: ${{ secrets.GCE_PROJECT }}
-      - name: Configure Docker Authentication
-        run: gcloud --quiet auth configure-docker
-      - name: Build Phase 3 - Job 1
-        run: |-
-          gcloud compute instances create-with-container kg-builder-phase3-job1a \
-            --container-image "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" \
-            --custom-cpu=1 --custom-memory=250GB --custom-extensions \
-            --zone=us-central1-a --scopes=storage-rw
-
+#  pkt-build-phase3-container:
+##    needs: pkt-build-phase-1-2
+#    name: Build Phase 3 Container
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Checkout
+#      uses: actions/checkout@v2
+#      with:
+#       ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+#    - uses: google-github-actions/setup-gcloud@master
+#      with:
+#        version: '290.0.1'
+#        service_account_key: ${{ secrets.GCE_SA_KEY }}
+#        project_id: ${{ secrets.GCE_PROJECT }}
+#    - name: Configure Docker Authentication
+#      run: gcloud --quiet auth configure-docker
+#    - name: Build Docker Image
+#      run: |-
+#        docker build --tag "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" -f builds/Dockerfile.phase3
+#      ./builds
+#    - name: Publish Docker Image to Google Container Registry
+#      run: docker push "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA"
+#
+#  pkt-build-phase3-job1:
+#    needs: pkt-build-phase3-container
+#    name: Phase 3 - Job 1 (Subclass + RelationsOnly + OWL)
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: google-github-actions/setup-gcloud@master
+#        with:
+#          version: '290.0.1'
+#          service_account_key: ${{ secrets.GCE_SA_KEY }}
+#          project_id: ${{ secrets.GCE_PROJECT }}
+#      - name: Configure Docker Authentication
+#        run: gcloud --quiet auth configure-docker
+#      - name: Build Phase 3 - Job 1
+#        run: |-
+#          gcloud compute instances create-with-container kg-builder-phase3-job1 \
+#            --container-image "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" \
+#            --custom-cpu=1 --custom-memory=250GB --custom-extensions \
+#            --zone=us-central1-a --scopes=storage-rw
+#          python monitoring here
 #      - name: Stop Instance
 #        run: gcloud compute instances stop kg-builder-phase3-job1 --zone=us-central1-a
 #      - name: Delete Instance
@@ -88,7 +90,3 @@ jobs:
 #            --source-instance-template=kg-builder-phase3-template \
 #            --zone=us-central1-a \
 #            --metadata-from-file start-up-script=startup.sh
-#
-#          gcloud compute instances create kg-builder-phase3-job1 --source-instance-template=kg-builder-phase3-template --zone=us-central1-a
-#          gcloud compute ssh kg-builder-phase3-job1 --container="pkt-builder-phase3-image" \
-#            --command "/PheKnowLator/python build_phase_3.py --app subclass --rel no --owl no" --zone=us-central1-a
