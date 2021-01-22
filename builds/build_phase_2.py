@@ -61,8 +61,8 @@ def writes_metadata(bucket, metadata, temp_directory, gcs_processed_location):
 
     filename = 'preprocessed_build_metadata.txt'
     with open(temp_directory + '/' + filename, 'w') as out:
-        out.write('=' * 35 + '\n{}\n'.format(str(datetime.utcnow().strftime('%a %b %d %X UTC %Y'))) +
-                  '=' * 35 + '\n\n')
+        date_info = str(datetime.utcnow().strftime('%a %b %d %X UTC %Y'))
+        out.write('=' * 35 + '\n{}\n'.format(date_info) + '=' * 35 + '\n\n')
         for row in metadata:
             for i in range(4):
                 out.write(str(row[i]) + '\n')
@@ -160,6 +160,8 @@ def run_phase_2():
     # set temp directory to use locally for writing data GCS data to
     temp_dir = 'temp'
     if not os.path.exists(temp_dir): os.mkdir(temp_dir)
+    log_dir = temp_dir + '/logs'
+    os.mkdir(log_dir)
 
     #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
@@ -214,9 +216,15 @@ def run_phase_2():
     updates_dependency_documents(gcs_url, resources, bucket, temp_dir)
 
     #####################################################
-    # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS
+    # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS + LOGS
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
     moves_dependency_documents_for_phase3(bucket, release, temp_dir)
+
+    # upload logging
+    logs = ['phase_2_data_preprocessing_log.log', 'phase_2_ontology_cleaning_log.log']
+    for _ in logs:
+        blob = bucket.blob(gcs_processed_data + _)
+        blob.upload_from_filename(temp_directory + '/logs/' + _)
 
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)

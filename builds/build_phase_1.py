@@ -3,6 +3,7 @@
 
 # import needed libraries
 import fnmatch
+import logging
 import os
 import re
 import shutil
@@ -14,9 +15,16 @@ from google.cloud import storage  # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
-
 # set environment variable -- this should be replaced with GitHub Secret for build
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
+
+# set up logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+file_handler = logging.FileHandler('temp/logs/phase_1_log.log')
+formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 
 def creates_build_directory_structure(bucket, release, build):
@@ -33,6 +41,7 @@ def creates_build_directory_structure(bucket, release, build):
     """
 
     print('Creating Build Directory Structure')
+    logger.info('Creating Build Directory Structure')
 
     # set-up file names
     folder_list = [
@@ -80,6 +89,7 @@ def downloads_data_from_gcs_bucket(bucket, original_data, filename, temp_directo
         if not os.path.exists(data_file):  # only download if file has not yet been downloaded
             bucket.blob(matched_file).download_to_filename(temp_directory + '/' + matched_file.split('/')[-1])
     except IndexError:
+        logging.error('Cannot find {} in the GCS original_data directory of the current build'.format(filename))
         raise ValueError('Cannot find {} in the GCS original_data directory of the current build'.format(filename))
 
     return data_file
@@ -100,6 +110,7 @@ def uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, filename):
     """
 
     print('Uploading {} to GCS bucket: {}'.format(filename, original_data))
+    logger.info('Uploading {} to GCS bucket: {}'.format(filename, original_data))
 
     blob = bucket.blob(original_data + filename)
     blob.upload_from_filename(temp_directory + '/' + filename)
@@ -145,7 +156,6 @@ def writes_metadata(metadata, bucket, original_data, temp_directory):
     """
 
     filename = 'downloaded_build_metadata.txt'
-
     with open(temp_directory + '/' + filename, 'w') as out:
         out.write('=' * 35 + '\n{}\n'.format(str(datetime.utcnow().strftime('%a %b %d %X UTC %Y'))) + '=' * 35 + '\n\n')
         for row in metadata:
@@ -176,6 +186,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
     """
 
     print('Downloading Build Data')
+    logger.info('Downloading Build Data')
 
     # check what data has already been downloaded
     gcs_original_path = '/'.join(gcs_url.split('/')[4:-1])
@@ -183,6 +194,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
     urls, metadata = [x.strip('\n') for x in open(file_loc, 'r').readlines() if not x.startswith('#') and x != '\n'], []
     for url in urls:
         print('Downloading {}'.format(url))
+        logger.info('Downloading {}'.format(url))
         if url.startswith('http://purl.obolibrary.org/obo/'):
             ont_name = url.split('/')[-1][:-4] + '_with_imports.owl'
             file_path = temp_directory + '/' + ont_name
@@ -211,6 +223,8 @@ def run_phase_1():
     # create temp directory to use locally for writing data GCS data to
     temp_dir = 'temp'
     os.mkdir(temp_dir)
+    log_dir = temp_dir + '/logs'
+    os.mkdir(log_dir)
 
     ###############################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
@@ -226,5 +240,9 @@ def run_phase_1():
     # STEP 2 - DOWNLOAD BUILD DATA
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/archived_builds/{}/data/original_data/'
     downloads_build_data(bucket, gcs_original_data, gcs_url.format(release, build), temp_dir)
+
+    ###############################################
+    # STEP 3 - UPLOAD LOG FILES
+    uploads_data_to_gcs_bucket(bucket, original_data, temp_directory + '/logs', 'phase_1_log.log')
 
     return None
