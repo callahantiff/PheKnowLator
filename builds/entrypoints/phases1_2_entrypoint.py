@@ -15,11 +15,11 @@ def main():
 
     # run phase 1 of build
     print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
-    # run_phase_1()
+    run_phase_1()
 
     # run phase 2 build
     print('#' * 35 + '\nBUILD PHASE 2: DATA PRE-PROCESSING\n' + '#' * 35)
-    # run_phase_2()
+    run_phase_2()
 
     # print build statistics
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
