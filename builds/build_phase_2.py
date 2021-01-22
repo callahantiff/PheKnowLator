@@ -20,6 +20,9 @@ from pkt_kg.utils import data_downloader
 # set environment variable -- this should be replaced with GitHub Secret for build
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
+# define globals for logging
+log_dir, log_name = 'logs', 'pkt_builder_logs.log'
+
 
 def get_file_metadata(url, file_location, gcs_url):
     """Takes a file path and the original URL used to download the data and retrieves metadata on the file.
@@ -160,8 +163,6 @@ def run_phase_2():
     # set temp directory to use locally for writing data GCS data to
     temp_dir = 'temp'
     if not os.path.exists(temp_dir): os.mkdir(temp_dir)
-    log_dir = 'logs'
-    if not os.path.exists(temp_dir): os.mkdir(log_dir)
 
     #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
@@ -220,11 +221,9 @@ def run_phase_2():
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
     moves_dependency_documents_for_phase3(bucket, release, temp_dir)
 
-    # upload logging
-    logs = ['phase_2_data_preprocessing_log.log', 'phase_2_ontology_cleaning_log.log']
-    for _ in logs:
-        blob = bucket.blob(gcs_processed_data + _)
-        blob.upload_from_filename(temp_directory + '/logs/' + _)
+    # upload logging for data preprocessing and ontology cleaning
+    blob = bucket.blob(gcs_processed_data + log_name)
+    blob.upload_from_filename(log_dir + '/' + log_name)
 
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)

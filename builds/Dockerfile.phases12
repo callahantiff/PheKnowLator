@@ -8,7 +8,7 @@ FROM callahantiff/pheknowlator:latest
 ENV PYTHONUNBUFFERED True
 
 # copying local scripts to container
-COPY *.py *.txt /PheKnowLator/builds/
+COPY *.py *.txt *.ini /PheKnowLator/builds/
 COPY entrypoints/phases1_2_entrypoint.py /PheKnowLator/builds/
 
 # set wroking directory in container

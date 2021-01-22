@@ -3,7 +3,8 @@
 
 # import needed libraries
 import fnmatch
-import logging
+import glob
+import logging.config
 import os
 import re
 import shutil
@@ -18,15 +19,11 @@ from pkt_kg.utils import data_downloader
 # set environment variable -- this should be replaced with GitHub Secret for build
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
-# set up logging
-log_dir = 'logs'
+# set-up logging
+log_dir, log, log_config = 'logs', 'pkt_builder_logs.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler('logs/phase_1_log.log')
-formatter = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
 def creates_build_directory_structure(bucket, release, build):
@@ -90,8 +87,8 @@ def downloads_data_from_gcs_bucket(bucket, original_data, filename, temp_directo
         data_file = temp_directory + '/' + matched_file.split('/')[-1]
         if not os.path.exists(data_file):  # only download if file has not yet been downloaded
             bucket.blob(matched_file).download_to_filename(temp_directory + '/' + matched_file.split('/')[-1])
-    except IndexError:
-        logger.error('Cannot find {} in the GCS original_data directory of the current build'.format(filename))
+    except IndexError as e:
+        logger.error(e, exec_info=True)
         raise ValueError('Cannot find {} in the GCS original_data directory of the current build'.format(filename))
 
     return data_file
@@ -106,7 +103,7 @@ def uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, filename):
         original_data: A string specifying the location of the original_data directory for a specific build.
         temp_directory: A local directory where preprocessed data is stored.
         filename: A string containing a filename.
-
+    #
     Returns:
         None.
     """
@@ -169,7 +166,7 @@ def writes_metadata(metadata, bucket, original_data, temp_directory):
     return None
 
 
-def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_loc='data_to_download.txt'):
+def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_loc='builds/data_to_download.txt'):
     """Reads in the list of data to download for the current build, downloads each object, and pushes the downloaded
     object up to a Google Cloud Storage bucket. Once all of the data are downloaded, a metadata file object is
     generated and pushed with the downloaded data to the original_data Google Cloud Storage bucket for the current
@@ -225,8 +222,6 @@ def run_phase_1():
     # create temp directory to use locally for writing data GCS data to
     temp_dir = 'temp'
     os.mkdir(temp_dir)
-    log_dir = temp_dir + '/logs'
-    os.mkdir(log_dir)
 
     ###############################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
@@ -245,6 +240,6 @@ def run_phase_1():
 
     ###############################################
     # STEP 3 - UPLOAD LOG FILES
-    uploads_data_to_gcs_bucket(bucket, original_data, 'logs', 'phase_1_log.log')
+    uploads_data_to_gcs_bucket(bucket, gcs_original_data, log_dir, log)
 
     return None
