@@ -8,7 +8,7 @@ FROM callahantiff/pheknowlator:latest
 ENV PYTHONUNBUFFERED True
 
 # copying local scripts to container -- NOTE!UPDATE TO ONLY THOSE SCRIPTS THAT ARE NEEDED
-COPY build_phase_3.py run_phase_3.sh /PheKnowLator/
+COPY build_phase_3.py instance_startup_scripts/phase3_job1.sh /PheKnowLator/
 
 # set wroking directory in container
 WORKDIR /PheKnowLator/builds/
@@ -34,8 +34,10 @@ RUN mv resource_info.txt /PheKnowLator/resources/ && \
     mv PheKnowLator_MergedOntologies.owl /PheKnowLator/resources/knowledge_graphs/
 
 # update script permissions
-RUN chmod 755 /PheKnowLator/run_phase_3.sh
+RUN chmod 755 /PheKnowLator/phase3_job1.sh
 
 # set OWlTools memory (set to a high value, system will only use available memory)
 ENV OWLTOOLS_MEMORY=100g
 RUN echo $OWLTOOLS_MEMORY
+
+ENTRYPOINT ["/PheKnowLator/phase3_job1.sh"]
