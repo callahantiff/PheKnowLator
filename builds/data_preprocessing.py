@@ -3,6 +3,7 @@
 
 # import needed libraries
 import fnmatch
+import glob
 import itertools
 import logging
 import networkx  # type: ignore
