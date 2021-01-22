@@ -78,7 +78,7 @@ jobs:
           gcloud compute instances create-with-container kg-builder-phase3-job1 \
             --container-image "gcr.io/$PROJECT_ID/pkt-builder-phase3-image:$GITHUB_SHA" \
             --custom-cpu=1 --custom-memory=250GB --custom-extensions \
-            --zone=us-central1-a
+            --zone=us-central1-a --scopes=storage-rw
 
 #      - name: Stop Instance
 #        run: gcloud compute instances stop kg-builder-phase3-job1 --zone=us-central1-a
