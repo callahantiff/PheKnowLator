@@ -44,7 +44,6 @@ variant_summary.txt, ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/varian
 uniprot-cofactor-catalyst.tab, https://www.uniprot.org/uniprot/?query=&fil=organism%3A%22Homo%20sapiens%20(Human)%20%5B9606%5D%22&columns=id%2Creviewed%2Centry%20name%2Cdatabase(PRO)%2Cchebi(Cofactor)%2Cchebi(Catalytic%20activity)&format=tab
 
 # edge source list
-CTD_chemicals_diseases.tsv, http://ctdbase.org/reports/CTD_chemicals_diseases.tsv.gz
 CTD_chem_gene_ixns.tsv, http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz
 CTD_chem_go_enriched.tsv, http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz
 ChEBI2Reactome_All_Levels.txt, https://reactome.org/download/current/ChEBI2Reactome_All_Levels.txt
@@ -59,5 +58,4 @@ UniProt2Reactome_All_Levels.txt, https://reactome.org/download/current/UniProt2R
 9606.protein.links.v11.0.txt, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
 
 # local build data
-OWL_NETS_Property_Types.txt, https://storage.googleapis.com/pheknowlator/release_v2.0.0/curated_data/OWL_NETS_Property_Types.txt
 genomic_typing_dict.pkl, https://storage.googleapis.com/pheknowlator/release_v2.0.0/curated_data/genomic_typing_dict.pkl
