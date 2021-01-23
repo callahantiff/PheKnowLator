@@ -72,11 +72,13 @@ def monitor_gce_jobs(sleep, release='release_v' + __version__, log='pkt_builder_
         current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
         # get program state
         data_downloader(gcs_current_build_log, '.' + '/')
-        state_content = [json.loads(x) for x in open(log)]
-        messages = ' '.join([x['message'] for x in state_content])
-        if 'Traceback' in messages: state = 'FAILED'
-        elif 'FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD' in messages: state = 'COMPLETED'
-        else: state = 'RUNNING'
+        try:
+            state_content = [json.loads(x) for x in open(log)]
+            messages = ' '.join([x['message'] for x in state_content])
+            if 'Traceback' in messages: state = 'FAILED'
+            elif 'FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD' in messages: state = 'COMPLETED'
+            else: state = 'RUNNING'
+        except JSONDecodeError: state, state_content = 'RUNNING', ['LOG FILE HAS NOT BEEN GENERATED YET']
         # get timestamp
         elapsed_minutes = round((datetime.now() - start_time).total_seconds() / 60, 3)
         print('\n\nJob Status: {} @ {} -- Elapsed Time (min): {}\n'.format(state, current_time, elapsed_minutes))
@@ -98,7 +100,7 @@ def main(phase, project, job, sleep):
     start_time = datetime.now()
 
     # identify build phase and activate job monitoring
-    if phase == int(1): state = monitor_ai_platform_jobs(project, job, sleep)
+    if int(phase) == 1: state = monitor_ai_platform_jobs(project, job, sleep)
     else: state = monitor_gce_jobs(sleep)
 
     # print job run information
