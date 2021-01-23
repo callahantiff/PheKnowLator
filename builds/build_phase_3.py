@@ -3,7 +3,6 @@
 
 # import needed libraries
 import click
-import datetime
 import fnmatch
 import glob
 import logging
@@ -19,6 +18,12 @@ from pkt_kg.__version__ import __version__
 
 # set environment variable -- this should be replaced with GitHub Secret for build
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
+
+# set-up logging
+log_dir, log, log_config = 'logs', 'pkt_builder_logs.log', glob.glob('**/logging.ini', recursive=True)
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
 def uploads_data_to_gcs_bucket(bucket, bucket_location, file_loc):
@@ -46,15 +51,12 @@ def uploads_data_to_gcs_bucket(bucket, bucket_location, file_loc):
 @click.option('--owl', prompt='yes/no - removing OWL Semantics from knowledge graph')
 def main(app, rel, owl):
 
-    rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
-    owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
-
     ### FIGURE OUT LOGGING
     ### MAP FILE UPLOAD
-    ### CHECK BUILDS
+    ### TEST LOOKING FOR DIFFERENT EXCEPTIONS
 
-    # #####################################################
-    # # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
+    #####################################################
+    # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
     storage_client = storage.Client()
     bucket = storage_client.get_bucket('pheknowlator')
     # define write path to Google Cloud Storage bucket
@@ -68,40 +70,57 @@ def main(app, rel, owl):
     gcs_archived_build = '{}/archived_builds/{}/'.format(release, build)
     gcs_current_build = '{}/current_build/'.format(release)
 
-    # call method
-    start_time = datetime.now()
-    print('\n\n' + '*' * 10 + ' PKT: STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
-
-    # configure pkt build args
-    # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
-    #           '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
-    #           '--app {} --rel {} --owl {}'
-    # return_code = os.system(command.format(app, rel, owl))
-
-    # update status
-    return_code = 0
-    filename = 'program_status_{}_{}_{}.txt'.format(app, rel_type.lower(), owl_decoding.lower())
-    with open(filename, 'w') as o:
-        if return_code != 0: o.write('FAILED')
-        else: o.write('SUCCEEDED')
-    # push to GCS current build bucket
-    blob = bucket.blob(gcs_current_build + filename)
-    blob.upload_from_filename(filename)
-
-    #####################################################
-    # STEP 2 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
-
-    # find which directories to upload to from the file names --> make this a func()
-
-    #####################################################
-    # STEP 3 - COPY ARCHIVED BUILD DATA TO CURRENT BUILD
-
-    # print build statistics
-    runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
-    command = '\n\n' + '*' * 5 + ' PKT: COMPLETED BUILD PHASE 3 - JOB ({} + {} + {}): {} MINUTES '
+    ## STEP BLAH -- DO NEXT BITS OF WORK
     rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
     owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
-    print(command.format(runtime, app, rel_type, owl_decoding) + '*' * 5)
+    print(app, rel_type, owl_decoding)
+    logger.infor(gcs_archived_build)
+    logger.info('TESTING AND LOGGING CONTENT')
+    logger.info('AGAIN .. TESTING AND LOGGING CONTENT')
+    logger.info('PKT: FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ')
+
+    # upload logging for data preprocessing and ontology cleaning
+    blob = bucket.blob(gcs_current_build + log)
+    blob.upload_from_filename(log_dir + '/' + log)
+
+    # # call method
+    # start_time = datetime.now()
+    # print('\n\n' + '*' * 10 + ' PKT: STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
+    #
+    # # configure pkt build args
+    # # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
+    # #           '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
+    # #           '--app {} --rel {} --owl {}'
+    # # return_code = os.system(command.format(app, rel, owl))
+    #
+    # # update status
+    # return_code = 0
+    # filename = 'program_status_{}_{}_{}.txt'.format(app, rel_type.lower(), owl_decoding.lower())
+    # with open(filename, 'w') as o:
+    #     if return_code != 0: o.write('FAILED')
+    #     else: o.write('SUCCEEDED')
+    # # push to GCS current build bucket
+    # blob = bucket.blob(gcs_current_build + filename)
+    # blob.upload_from_filename(filename)
+    #
+    # #####################################################
+    # # STEP 2 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
+    #
+    # # find which directories to upload to from the file names --> make this a func()
+    #
+    # #####################################################
+    # # STEP 3 - COPY ARCHIVED BUILD DATA TO CURRENT BUILD
+    #
+    # # print build statistics
+    # runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
+    # command = '\n\n' + '*' * 5 + ' PKT: COMPLETED BUILD PHASE 3 - JOB ({} + {} + {}): {} MINUTES '
+    # rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
+    # owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
+    # print(command.format(runtime, app, rel_type, owl_decoding) + '*' * 5)
+    #
+    # #######################################################
+    # # STEP 4 - FINISH RUN
+    # print('\n\n' + '*' * 10 + ' PKT: FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
 
     return None
 
