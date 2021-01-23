@@ -43,9 +43,9 @@ def uploads_data_to_gcs_bucket(bucket, bucket_location, directory, file_loc):
 
 
 def main():
+    start_time = datetime.now()
 
     # start logger and configure Google Cloud Storage settings
-    start_time = datetime.now()
     print('\n\n' + '*' * 10 + ' STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
     logger.info('*' * 10 + ' STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
     storage_client = storage.Client()
