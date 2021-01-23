@@ -38,6 +38,8 @@ jobs:
           --master-machine-type n1-highmem-16 \
           --region us-central1 \
           --master-image-uri "gcr.io/$PROJECT_ID/pkt-builder-image:$GITHUB_SHA"
+    - name: Monitor Build
+      run: |-
         python builds/job_monitoring.py \
           --instance_type reg --phase 1 --project "$PROJECT_ID" --job "pkt_builder_phases_1_2_$GITHUB_SHA" --sleep 60
 
