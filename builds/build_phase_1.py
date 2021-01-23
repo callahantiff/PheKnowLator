@@ -239,8 +239,4 @@ def run_phase_1():
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/archived_builds/{}/data/original_data/'
     downloads_build_data(bucket, gcs_original_data, gcs_url.format(release, build), temp_dir)
 
-    ###############################################
-    # STEP 3 - UPLOAD LOG FILES
-    uploads_data_to_gcs_bucket(bucket, '{}/current_build/'.format(release), log_dir, log)
-
     return None
