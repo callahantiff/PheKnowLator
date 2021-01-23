@@ -66,7 +66,8 @@ def monitor_gce_jobs(phase, sleep, release='release_v' + __version__, log='pkt_b
     """
 
     gcs_current_build_log = 'https://storage.googleapis.com/pheknowlator/{}/current_build/{}'.format(release, log)
-    quit_status = 'COMPLETED BUILD PHASES 1-2' if phase == 1 else 'COMPLETED BUILD PHASE 3'
+    if phase == 1: quit_status, log_name = 'COMPLETED BUILD PHASES 1-2', 'pkt_builder_phases12_log.log'
+    else: quit_status, log_name = 'COMPLETED BUILD PHASE 3', 'pkt_builder_phase3_log.log'
 
     # query job status
     log_content, start_time, status = None, datetime.now(), 'RUNNING'

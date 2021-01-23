@@ -10,17 +10,17 @@ import pickle
 import os
 import re
 import subprocess
+import traceback
 
 from datetime import datetime
 from google.cloud import storage  # type: ignore
 
 from pkt_kg.__version__ import __version__
 
-# set environment variable -- this should be replaced with GitHub Secret for build
+# set environment variables
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
-
-# set-up logging
-log_dir, log, log_config = 'logs', 'pkt_builder_logs.log', glob.glob('**/logging.ini', recursive=True)
+# logging
+log_dir, log, log_config = 'logs', 'pkt_builder_phase3_log.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
@@ -53,10 +53,6 @@ def uploads_data_to_gcs_bucket(bucket, bucket_location, directory, file_loc):
 def main(app, rel, owl):
 
     start_time = datetime.now()
-    ### FIGURE OUT LOGGING
-    ### MAP FILE UPLOAD
-    ### TEST LOOKING FOR DIFFERENT EXCEPTIONS
-    ## make sure current build directory only has data and knowledge graphs --> move log file into processed data
 
     #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
@@ -74,9 +70,6 @@ def main(app, rel, owl):
     gcs_current_build = '{}/current_build/'.format(release)
 
     ## STEP BLAH -- DO NEXT BITS OF WORK
-    rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
-    owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
-    print(app, rel_type, owl_decoding)
     logger.info(gcs_archived_build)
     logger.info('TESTING AND LOGGING CONTENT')
     logger.info('AGAIN ... TESTING AND LOGGING CONTENT')
@@ -88,36 +81,28 @@ def main(app, rel, owl):
     # except IndexError as e:
     #     logger.error(e, exc_info=True)
 
-    # upload logging for data preprocessing and ontology cleaning
+    # upload logging to GCS bucket
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
-    # # call method
-    ## WRAP GENERAL EXCEPTION CATCHER
-    #
-    # # configure pkt build args
-    # # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
-    # #           '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
-    # #           '--app {} --rel {} --owl {}'
-    # # return_code = os.system(command.format(app, rel, owl))
-    #
-    # # update status
-    # return_code = 0
-    # filename = 'program_status_{}_{}_{}.txt'.format(app, rel_type.lower(), owl_decoding.lower())
-    # with open(filename, 'w') as o:
-    #     if return_code != 0: o.write('FAILED')
-    #     else: o.write('SUCCEEDED')
-    # # push to GCS current build bucket
-    # blob = bucket.blob(gcs_current_build + filename)
-    # blob.upload_from_filename(filename)
-    #
+    #####################################################
+    # STEP 2 - CONSTRUCT KNOWLEDGE GRAPH
+    rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
+    owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
+    print('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
+    # logger.info('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
+    # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
+    #           '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
+    #           '--app {} --rel {} --owl {}'
+    # try: os.system(command.format(app, rel, owl))
+    # except: logger.error('Uncaught Exception: {}'.format(traceback.format_exc()))
+
     # #####################################################
-    # # STEP 2 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
+    # # STEP 3 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
     #
     # # find which directories to upload to from the file names --> make this a func()
     #
     # #####################################################
-    # # STEP 3 - COPY ARCHIVED BUILD DATA TO CURRENT BUILD
-    #
+    # # STEP 4 - COPY ARCHIVED BUILD DATA TO CURRENT BUILD
     # # print build statistics
     # runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
     # command = '\n\n' + '*' * 5 + ' PKT: COMPLETED BUILD PHASE 3 - JOB ({} + {} + {}): {} MINUTES '
@@ -126,10 +111,13 @@ def main(app, rel, owl):
     # print(command.format(runtime, app, rel_type, owl_decoding) + '*' * 5)
     #
     # #######################################################
-    # # STEP 4 - FINISH RUN
+    # # STEP 5 - FINISH RUN
     # runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
     # print('\n\n' + '*' * 5 + ' COMPLETED BUILD PHASE 3: {} MINUTES '.format(runtime) + '*' * 5)
     # logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime))  # don't delete needed for build monitoring
+
+    # NEED FINAL SCRIPT FOR GITHUB ACTIONS THAT RUNS AFTER ALL KG BUILDS AND DOES:
+    # MOVE LOG FILES TO ARCHIVED BUCKET AND DELETE DEPENDENCIES
 
     return None
 

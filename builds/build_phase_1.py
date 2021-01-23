@@ -16,11 +16,10 @@ from google.cloud import storage  # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
-# set environment variable -- this should be replaced with GitHub Secret for build
+# set environment variables
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
-
-# set-up logging
-log_dir, log, log_config = 'logs', 'pkt_builder_logs.log', glob.glob('**/logging.ini', recursive=True)
+# logging
+log_dir, log, log_config = 'logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})

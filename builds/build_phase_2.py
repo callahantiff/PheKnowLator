@@ -18,14 +18,33 @@ from ontology_cleaning import OntologyCleaner  # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
-# set environment variable -- this should be replaced with GitHub Secret for build
+# set environment variables
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
-
-# set-up logging
-log_dir, log, log_config = 'logs', 'pkt_builder_logs.log', glob.glob('**/logging.ini', recursive=True)
+# logging
+log_dir, log, log_config = 'logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
+
+
+def uploads_data_to_gcs_bucket(bucket, bucket_location, directory, file_loc):
+    """Takes a file name and pushes the corresponding data referenced by the filename object from a local
+    temporary directory to a Google Cloud Storage bucket.
+
+    Args:
+        bucket: A storage bucket object specifying a Google Cloud Storage bucket.
+        bucket_location: A string containing a file path to a directory within a Google Cloud Storage Bucket.
+        directory: A string containing a local directory.
+        file_loc: A string containing the name of file to write to a Google Cloud Storage bucket.
+
+    Returns:
+        None.
+    """
+
+    blob = bucket.blob(bucket_location + file_loc)
+    blob.upload_from_filename(directory + '/' + file_loc)
+
+    return None
 
 
 def get_file_metadata(url, file_location, gcs_url):
@@ -74,8 +93,7 @@ def writes_metadata(bucket, metadata, temp_directory, gcs_processed_location):
             for i in range(4):
                 out.write(str(row[i]) + '\n')
 
-    blob = bucket.blob(gcs_processed_location + filename)
-    blob.upload_from_filename(temp_directory + '/' + filename)
+    uploads_data_to_gcs_bucket(bucket, gcs_processed_location, temp_directory, filename)
 
     return None
 
@@ -121,9 +139,7 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
                     d_file = fnmatch.filter(gcs_processed, suffix.split('/')[-1].replace('.', '*.'))
                     if len(d_file) > 0: out.write(prefix + ', ' + gcs_url + 'processed_data/' + d_file[0] + '\n')
 
-    # push data to bucket
-    blob = bucket.blob(bucket_path + 'processed_data/' + filename)
-    blob.upload_from_filename(temp_directory + '/' + filename)
+    uploads_data_to_gcs_bucket(bucket, bucket_path + 'processed_data/', temp_directory, filename)
 
     return None
 
@@ -188,11 +204,13 @@ def run_phase_2():
     # STEP 2 - PREPROCESS BUILD DATA
     lod_data = DataPreprocessing(bucket, gcs_original_data, gcs_processed_data, temp_dir)
     lod_data.preprocesses_build_data()
+    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
 
     #####################################################
     # STEP 3 - CLEAN ONTOLOGY DATA
     ont_data = OntologyCleaner(bucket, gcs_original_data, gcs_processed_data, temp_dir)
     ont_data.cleans_ontology_data()
+    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
 
     #####################################################
     # STEP 4 - GENERATE METADATA DOCUMENTATION
@@ -208,6 +226,7 @@ def run_phase_2():
         url = gcs_url + 'original_data/' + data_file.replace(temp_dir + '/', '')
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
     writes_metadata(bucket, metadata, temp_dir, gcs_processed_data)
+    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
 
     #####################################################
     # STEP 5 - UPDATE INPUT DEPENDENCY DOCUMENTS
@@ -221,12 +240,14 @@ def run_phase_2():
     # resource info
     resources = 'https://raw.githubusercontent.com/callahantiff/PheKnowLator/master/resources/resource_info.txt'
     updates_dependency_documents(gcs_url, resources, bucket, temp_dir)
+    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
 
     #####################################################
     # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS + LOGS
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
     logger.info('Uploading Input Dependency Documents to current_build Directory')
     moves_dependency_documents_for_phase3(bucket, release, temp_dir)
+    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
 
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)
