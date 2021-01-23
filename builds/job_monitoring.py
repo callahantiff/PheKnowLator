@@ -37,7 +37,7 @@ def monitor_ai_platform_jobs(project, job, sleep):
     # query job status
     start_time, state = datetime.now(), 'QUEUED'
     while state in ['RUNNING', 'QUEUED', 'PREPARING']:
-        time.sleep(int(sleep))
+        time.sleep(sleep)
         current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
         state = re.findall(state_pattern, str(subprocess.check_output(query, shell=True)))[0]
         elapsed_minutes = round((datetime.now() - start_time).total_seconds() / 60, 3)
@@ -51,30 +51,29 @@ def monitor_ai_platform_jobs(project, job, sleep):
     return state
 
 
-def monitor_gce_jobs(phase, sleep, release='release_v' + __version__, log='pkt_builder_logs.log'):
+def monitor_gce_jobs(phase, sleep, log, release='release_v' + __version__):
     """Monitors PheKnowLator build jobs for Phase 2 of the build process. Method monitors jobs by querying the
     current_build directory of the current release in the dedicated project Google Cloud Storage Bucket.
 
     Args:
         phase: An integer representing the build phase (i.e. 1 for "Phases1-2" or 3 for "Phase 3").
         sleep: An integer containing the number of seconds to wait between job status checks.
-        release: A string containing the project release version.
         log: A string containing the name of the log file to monitor.
+        release: A string containing the project release version.
 
     Returns:
         status: A string containing the job's exit status.
     """
 
     gcs_current_build_log = 'https://storage.googleapis.com/pheknowlator/{}/current_build/{}'.format(release, log)
-    if phase == 1: quit_status, log_name = 'COMPLETED BUILD PHASES 1-2', 'pkt_builder_phases12_log.log'
-    else: quit_status, log_name = 'COMPLETED BUILD PHASE 3', 'pkt_builder_phase3_log.log'
+    quit_status = 'COMPLETED BUILD PHASES 1-2' if phase == 1 else 'COMPLETED BUILD PHASE 3'
 
     # query job status
     log_content, start_time, status = None, datetime.now(), 'RUNNING'
     while status == 'RUNNING':
-        time.sleep(int(sleep))
+        time.sleep(sleep)
         current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
-        data_downloader(gcs_current_build_log, '.' + '/')  # download log and retrieve program state
+        data_downloader(gcs_current_build_log, '.' + '/')  # download log and retrieve program status
         try:
             log_content = [json.loads(x) for x in open(log)]
             messages = ' '.join([x['message'] for x in log_content])
@@ -102,9 +101,12 @@ def main(instance_type, phase, project, job, sleep):
 
     start_time = datetime.now()
 
+    # set log name -- used for monitoring "reg" or regular GCE instances
+    log_name = 'pkt_builder_phases12_log.log' if int(phase) == 1 else 'pkt_builder_phase3_log.log'
+
     # identify build phase and activate job monitoring
-    if instance_type == "ai": state = monitor_ai_platform_jobs(project=project, job=job, sleep=sleep)
-    else: state = monitor_gce_jobs(phase=int(phase), sleep=sleep)
+    if instance_type == "ai": state = monitor_ai_platform_jobs(project=project, job=job, sleep=int(sleep))
+    else: state = monitor_gce_jobs(phase=int(phase), sleep=int(sleep), log=log_name)
 
     # print job run information
     current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
