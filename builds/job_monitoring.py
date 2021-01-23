@@ -11,8 +11,8 @@ import time
 
 from datetime import datetime
 
-from PheKnowLator.pkt_kg.__version__ import __version__
-from PheKnowLator.pkt_kg.utils import data_downloader
+from pkt_kg.__version__ import __version__
+from pkt_kg.utils import data_downloader
 
 
 def monitor_ai_platform_jobs(project, job, sleep):

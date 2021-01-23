@@ -7,7 +7,7 @@ env:
 
 jobs:
   pkt-build-phase-1-2:
-    name: Setup, Build, Publish, and Deploy
+    name: Knowledge Graph Build Phases 1-2
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -19,7 +19,8 @@ jobs:
       with:
         python-version: 3.6
     - name: Install Requirements and Dependencies
-      run: pip install -r builds/build_requirements.txt
+      run: |-
+        pip install -r builds/build_requirements.txt pkt_kg
     - uses: google-github-actions/setup-gcloud@master
       with:
         version: '290.0.1'
@@ -31,7 +32,7 @@ jobs:
       run: docker build --tag "gcr.io/$PROJECT_ID/pkt-builder-image:$GITHUB_SHA" -f builds/Dockerfile.phases12 ./builds
     - name: Publish Docker Image to Google Container Registry
       run: docker push "gcr.io/$PROJECT_ID/pkt-builder-image:$GITHUB_SHA"
-    - name: Run Build Phases 1-2
+    - name: Submit Build Job to AI-Platform
       run: |-
         gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
           --scale-tier custom \
@@ -43,7 +44,7 @@ jobs:
 
 #  pkt-build-phase3-job1:
 ##    needs: pkt-build-phase-1-2
-#    name: Phase 3 - Job 1 (Subclass + RelationsOnly + OWL)
+#    name: Knowledge Graph Build Phase 3 - Job 1 (Subclass + RelationsOnly + OWL)
 #    runs-on: ubuntu-latest
 #    steps:
 #      - name: Checkout
