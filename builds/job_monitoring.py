@@ -76,7 +76,7 @@ def monitor_gce_jobs(sleep, release='release_v' + __version__, log='pkt_builder_
         try:
             state_content = [json.loads(x) for x in open(log)]
             messages = ' '.join([x['message'] for x in state_content])
-            if 'Traceback' in messages: state = 'FAILED'
+            if len([x for x in state_content if x['levelname'] == 'ERROR']) > 0: state = 'FAILED'
             elif 'FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD' in messages: state = 'COMPLETED'
             else: state = 'RUNNING'
         except JSONDecodeError: state, state_content = 'RUNNING', ['LOG FILE HAS NOT BEEN GENERATED YET']

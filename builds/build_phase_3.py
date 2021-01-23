@@ -5,7 +5,7 @@
 import click
 import fnmatch
 import glob
-import logging
+import logging.config
 import pickle
 import os
 import re
@@ -74,18 +74,22 @@ def main(app, rel, owl):
     rel_type = 'RelationsOnly' if rel == 'no' else 'InverseRelations'
     owl_decoding = 'OWL' if owl == 'no' else 'OWL DeCoding'
     print(app, rel_type, owl_decoding)
-    logger.infor(gcs_archived_build)
+    logger.info(gcs_archived_build)
     logger.info('TESTING AND LOGGING CONTENT')
-    logger.info('AGAIN .. TESTING AND LOGGING CONTENT')
-    logger.info('PKT: FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ')
+    logger.info('AGAIN ... TESTING AND LOGGING CONTENT')
+    logger.info('PKT: FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD')
+    #
+    # try:
+    #     y[0]
+    # except IndexError as e:
+    #     logger.error(e, exc_info=True)
 
     # upload logging for data preprocessing and ontology cleaning
     blob = bucket.blob(gcs_current_build + log)
     blob.upload_from_filename(log_dir + '/' + log)
 
     # # call method
-    # start_time = datetime.now()
-    # print('\n\n' + '*' * 10 + ' PKT: STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
+    ## WRAP GENERAL EXCEPTION CATCHER
     #
     # # configure pkt build args
     # # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
