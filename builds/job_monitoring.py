@@ -10,6 +10,7 @@ import subprocess
 import time
 
 from datetime import datetime
+from json import JSONDecodeError
 
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader

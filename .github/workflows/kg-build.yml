@@ -7,7 +7,7 @@ env:
 
 jobs:
 #  pkt-build-phase-1-2:
-#    name: Knowledge Graph Build Phases 1-2
+#    name: KG Build Phases 1-2
 #    runs-on: ubuntu-latest
 #    steps:
 #    - name: Checkout
@@ -43,7 +43,7 @@ jobs:
 
   pkt-build-phase3-job1:
 #    needs: pkt-build-phase-1-2
-    name: Knowledge Graph Build Phase 3 - Job 1 (Subclass + RelationsOnly + OWL)
+    name: KG Build Phase 3 - Job 1 (Subclass + RelationsOnly + OWL)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
