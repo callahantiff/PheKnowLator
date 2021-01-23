@@ -25,6 +25,7 @@ from pkt_kg.utils import data_downloader
 log_dir, log, log_config = 'logs', 'pkt_builder_logs.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
+logger.propagate = False
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
@@ -225,7 +226,7 @@ def run_phase_2():
     #####################################################
     # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS + LOGS
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
-    logger.info('Uploading Input Dependency Documents to current_build Dicrectory')
+    logger.info('Uploading Input Dependency Documents to current_build Directory')
     moves_dependency_documents_for_phase3(bucket, release, temp_dir)
 
     # clean up environment after uploading all processed data

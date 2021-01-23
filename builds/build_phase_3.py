@@ -23,16 +23,18 @@ from pkt_kg.__version__ import __version__
 log_dir, log, log_config = 'logs', 'pkt_builder_logs.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
+logger.propagate = False
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
-def uploads_data_to_gcs_bucket(bucket, bucket_location, file_loc):
+def uploads_data_to_gcs_bucket(bucket, bucket_location, directory, file_loc):
     """Takes a file name and pushes the corresponding data referenced by the filename object from a local
     temporary directory to a Google Cloud Storage bucket.
 
     Args:
         bucket: A storage bucket object specifying a Google Cloud Storage bucket.
         bucket_location: A string containing a file path to a directory within a Google Cloud Storage Bucket.
+        directory: A string containing a local directory.
         file_loc: A string containing the name of file to write to a Google Cloud Storage bucket.
 
     Returns:
@@ -40,7 +42,7 @@ def uploads_data_to_gcs_bucket(bucket, bucket_location, file_loc):
     """
 
     blob = bucket.blob(bucket_location + file_loc)
-    blob.upload_from_filename(self.temp_dir + '/' + file_loc)
+    blob.upload_from_filename(directory + '/' + file_loc)
 
     return None
 
@@ -55,7 +57,7 @@ def main(app, rel, owl):
     ### FIGURE OUT LOGGING
     ### MAP FILE UPLOAD
     ### TEST LOOKING FOR DIFFERENT EXCEPTIONS
-    ## make sure current build directory only has data and knowledge graphs
+    ## make sure current build directory only has data and knowledge graphs --> move log file into processed data
 
     #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
@@ -88,8 +90,7 @@ def main(app, rel, owl):
     #     logger.error(e, exc_info=True)
 
     # upload logging for data preprocessing and ontology cleaning
-    blob = bucket.blob(gcs_current_build + log)
-    blob.upload_from_filename(log_dir + '/' + log)
+    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     # # call method
     ## WRAP GENERAL EXCEPTION CATCHER
