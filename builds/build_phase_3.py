@@ -51,9 +51,11 @@ def uploads_data_to_gcs_bucket(bucket, bucket_location, file_loc):
 @click.option('--owl', prompt='yes/no - removing OWL Semantics from knowledge graph')
 def main(app, rel, owl):
 
+    start_time = datetime.now()
     ### FIGURE OUT LOGGING
     ### MAP FILE UPLOAD
     ### TEST LOOKING FOR DIFFERENT EXCEPTIONS
+    ## make sure current build directory only has data and knowledge graphs
 
     #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
@@ -77,7 +79,8 @@ def main(app, rel, owl):
     logger.info(gcs_archived_build)
     logger.info('TESTING AND LOGGING CONTENT')
     logger.info('AGAIN ... TESTING AND LOGGING CONTENT')
-    logger.info('PKT: FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD')
+    runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
+    logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime))  # don't delete needed for build monitoring
     #
     # try:
     #     y[0]
@@ -124,7 +127,9 @@ def main(app, rel, owl):
     #
     # #######################################################
     # # STEP 4 - FINISH RUN
-    # print('\n\n' + '*' * 10 + ' PKT: FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
+    # runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
+    # print('\n\n' + '*' * 5 + ' COMPLETED BUILD PHASE 3: {} MINUTES '.format(runtime) + '*' * 5)
+    # logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime))  # don't delete needed for build monitoring
 
     return None
 

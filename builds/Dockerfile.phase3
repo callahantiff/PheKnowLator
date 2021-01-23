@@ -31,18 +31,11 @@ RUN mv resource_info.txt /PheKnowLator/resources/ && \
     mv PheKnowLator_MergedOntologies.owl /PheKnowLator/resources/knowledge_graphs/
 
 # copying local scripts to container
-#COPY build_phase_3.py entrypoints/phase3_job1.sh /PheKnowLator/
 COPY build_phase_3.py /PheKnowLator/
 COPY build_requirements.txt logging.ini /PheKnowLator/builds/
 
-#RUN mkdir /PheKnowLator/resources/project_keys
-#COPY pheknowlator-6cc612b4cbee.json /PheKnowLator/resources/project_keys/
-
 # install requirements
 RUN pip install -r build_requirements.txt
-
-# update script permissions
-#RUN chmod 755 /PheKnowLator/phase3_job1.sh
 
 # set OWlTools memory (set to a high value, system will only use available memory)
 ENV OWLTOOLS_MEMORY=100g
@@ -58,4 +51,3 @@ ARG owl_arg
 ENV owl=$owl_arg
 
 ENTRYPOINT exec python build_phase_3.py --app $app --rel $rel --owl $owl
-#ENTRYPOINT ["/PheKnowLator/phase3_job1.sh"]
