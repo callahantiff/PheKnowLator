@@ -75,6 +75,7 @@ jobs:
         run: |-
           gcloud compute instances create-with-container kg-builder-phase3-job1 \
             --container-image "gcr.io/$PROJECT_ID/pkt-builder-phase3-job1-image:$GITHUB_SHA" \
+            --container-restart-policy=never \
             --custom-cpu=1 --custom-memory=250GB --custom-extensions --zone=us-central1-a --scopes=storage-rw
       - name: Monitor Build
         run: python builds/job_monitoring.py --instance_type reg --phase 3 --project "" --job "" --sleep 60
