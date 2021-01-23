@@ -51,58 +51,59 @@ def monitor_ai_platform_jobs(project, job, sleep):
     return state
 
 
-def monitor_gce_jobs(sleep, release='release_v' + __version__, log='pkt_builder_logs.log'):
+def monitor_gce_jobs(phase, sleep, release='release_v' + __version__, log='pkt_builder_logs.log'):
     """Monitors PheKnowLator build jobs for Phase 2 of the build process. Method monitors jobs by querying the
     current_build directory of the current release in the dedicated project Google Cloud Storage Bucket.
 
     Args:
+        phase: An integer representing the build phase (i.e. 1 for "Phases1-2" or 3 for "Phase 3").
         sleep: An integer containing the number of seconds to wait between job status checks.
         release: A string containing the project release version.
         log: A string containing the name of the log file to monitor.
 
     Returns:
-        state: A string containing the job's exit status.
+        status: A string containing the job's exit status.
     """
 
     gcs_current_build_log = 'https://storage.googleapis.com/pheknowlator/{}/current_build/{}'.format(release, log)
+    quit_status = 'COMPLETED BUILD PHASES 1-2' if phase == 1 else 'COMPLETED BUILD PHASE 3'
 
     # query job status
-    state_content, start_time, state = None, datetime.now(), 'RUNNING'
-    while state == 'RUNNING':
+    log_content, start_time, status = None, datetime.now(), 'RUNNING'
+    while status == 'RUNNING':
         time.sleep(int(sleep))
         current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
-        # get program state
-        data_downloader(gcs_current_build_log, '.' + '/')
+        data_downloader(gcs_current_build_log, '.' + '/')  # download log and retrieve program state
         try:
-            state_content = [json.loads(x) for x in open(log)]
-            messages = ' '.join([x['message'] for x in state_content])
-            if len([x for x in state_content if x['levelname'] == 'ERROR']) > 0: state = 'FAILED'
-            elif 'FINISHED PHEKNOWLATOR KNOWLEDGE GRAPH BUILD' in messages: state = 'COMPLETED'
-            else: state = 'RUNNING'
-        except JSONDecodeError: state, state_content = 'RUNNING', ['LOG FILE HAS NOT BEEN GENERATED YET']
-        # get timestamp
+            log_content = [json.loads(x) for x in open(log)]
+            messages = ' '.join([x['message'] for x in log_content])
+            if len([x for x in log_content if x['levelname'] == 'ERROR']) > 0: status = 'FAILED'
+            elif quit_status in messages: status = 'COMPLETED'
+            else: status = 'RUNNING'
+        except JSONDecodeError: status, log_content = 'RUNNING', ['QUEUED: Program has not yet Started']
         elapsed_minutes = round((datetime.now() - start_time).total_seconds() / 60, 3)
-        print('\n\nJob Status: {} @ {} -- Elapsed Time (min): {}\n'.format(state, current_time, elapsed_minutes))
+        print('\n\nJob Status: {} @ {} -- Elapsed Time (min): {}\n'.format(status, current_time, elapsed_minutes))
 
         # print log to console -- printing this to update logs via GitHub Actions console
-        for res in state_content:
-            print(res)
+        for event in log_content:
+            print(event)
 
-    return state
+    return status
 
 
 @click.command()
-@click.option('--phase', prompt='An Integer containing the Build Phase (i.e. 1 or 3).')
-@click.option('--project', prompt='The Google Project Identifier')
-@click.option('--job', prompt='The Job Name')
-@click.option('--sleep', prompt='The Time in Seconds to Sleep')
-def main(phase, project, job, sleep):
+@click.option('--instance_type', prompt='Indicate GCE Instance Type (e.g. "reg", "ai").')
+@click.option('--phase', prompt='Provide an Integer Representing the Build Phase (i.e. "1" or "3").')
+@click.option('--project', prompt='Provide the Google Project Identifier')
+@click.option('--job', prompt='Provide the Job Name')
+@click.option('--sleep', prompt='Provide the Time in Seconds to Sleep')
+def main(instance_type, phase, project, job, sleep):
 
     start_time = datetime.now()
 
     # identify build phase and activate job monitoring
-    if int(phase) == 1: state = monitor_ai_platform_jobs(project, job, sleep)
-    else: state = monitor_gce_jobs(sleep)
+    if instance_type == "ai": state = monitor_ai_platform_jobs(project=project, job=job, sleep=sleep)
+    else: state = monitor_gce_jobs(phase=int(phase), sleep=sleep)
 
     # print job run information
     current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))

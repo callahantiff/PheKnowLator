@@ -4,6 +4,7 @@
 # import needed libraries
 import fnmatch
 import glob
+import logging.config
 import os
 import shutil
 import re
@@ -20,8 +21,11 @@ from pkt_kg.utils import data_downloader
 # set environment variable -- this should be replaced with GitHub Secret for build
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
-# define globals for logging
-log_dir, log_name = 'logs', 'pkt_builder_logs.log'
+# set-up logging
+log_dir, log, log_config = 'logs', 'pkt_builder_logs.log', glob.glob('**/logging.ini', recursive=True)
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
 def get_file_metadata(url, file_location, gcs_url):
@@ -192,6 +196,7 @@ def run_phase_2():
 
     #####################################################
     # STEP 4 - GENERATE METADATA DOCUMENTATION
+    logger.info('Generating and Writing Preprocessed Data Metadata')
     metadata, processed_data_files, processed_data = [], glob.glob(temp_dir + '/*'), []
     gcs_processed_files = [f.name for f in bucket.list_blobs(prefix=gcs_processed_data)][1:]
     if len(processed_data_files) != len(gcs_processed_files):
@@ -206,6 +211,7 @@ def run_phase_2():
 
     #####################################################
     # STEP 5 - UPDATE INPUT DEPENDENCY DOCUMENTS
+    logger.info('Updating Input Dependency Documents')
     # edge source list
     edge_src_list = 'https://raw.githubusercontent.com/callahantiff/PheKnowLator/master/resources/edge_source_list.txt'
     updates_dependency_documents(gcs_url, edge_src_list, bucket, temp_dir)
@@ -219,14 +225,10 @@ def run_phase_2():
     #####################################################
     # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS + LOGS
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
+    logger.info('Uploading Input Dependency Documents to current_build Dicrectory')
     moves_dependency_documents_for_phase3(bucket, release, temp_dir)
-
-    # upload logging for data preprocessing and ontology cleaning
-    blob = bucket.blob(gcs_processed_data + log_name)
-    blob.upload_from_filename(log_dir + '/' + log_name)
 
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)
-    shutil.rmtree(log_dir)
 
     return None
