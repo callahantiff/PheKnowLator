@@ -12,6 +12,7 @@ from google.cloud import storage  # type: ignore
 
 from build_phase_1 import *  # type: ignore
 from build_phase_2 import *  # type: ignore
+from pkt_kg.__version__ import __version__
 
 
 # set-up logging
