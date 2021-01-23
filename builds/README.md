@@ -85,10 +85,22 @@ This phase is triggered by the successful completion of [Phase 2](#Phase-2:-Prep
 2. **Downloads Processed Data:** All data processed during [Phase 2](#Phase-2:-Preprocess-Downloaded-Build-Data) are downloaded in preparation of constructing the build Docker container.  
 3. **Build Docker Container:** The primary build Docker container is built and published to Docker Hub.  
 4. **Container Parameterization and Deployment:** GitHub Actions communicates with Google Cloud Run to duplicate the constructor container and parameterize it for each of the PheKnowLator builds allowing for the knowledge graphs to be constructed in parallel.  
-5. **Completes Build:** Waits for each container to complete and then uploads associated data to the correct Google Cloud Storage bucket associated with the current build.
+5. **Completes Build:** Waits for each container to complete and then uploads associated data to the correct Google Cloud Storage bucket associated with the current build. The table below maps the names of each [GitHub Action Workflow](https://github.com/callahantiff/PheKnowLator/blob/master/.github/workflows/kg-build.yml) job to each build type.
 6. **Update Public Endpoints:** After a successful build, knowledge graphs are pushed to:   
     - Blazegraph SPARQL Endpoint: [http://sparql.pheknowlator.com](http://sparql.pheknowlator.com/)  
     - Neo4J Endpoint and User Interface: [http://neo4j.pheknowlator.com]()  -- *COMING SOON*   
+
+**GitHUb Actions - Phase 3 Build Job Names**
+GitHub   Action Job | Job Name | Construction   Approach | Relations | OWL Decoding
+:--: | -- | :--: | :--: | :--:
+1 | Phase   3 - Job 1 (Subclass + RelationsOnly + OWL) | Subclass | Relations   Only | OWL
+2 | Phase   3 - Job 1 (Subclass + RelationsOnly + No OWL) | Subclass | Relations   Only | No   OWL
+3 | Phase   3 - Job 1 (Subclass +InverseRelations + OWL) | Subclass | Inverse   Relations | OWL
+4 | Phase   3 - Job 1 (Subclass + InverseRelations + No OWL) | Subclass | Inverse   Relations | No   OWL
+5 | Phase   3 - Job 1 (Instance + RelationsOnly + OWL) | Instance | Relations   Only | OWL
+6 | Phase   3 - Job 1 (Instance + RelationsOnly + No OWL) | Instance | Relations   Only | No   OWL
+7 | Phase   3 - Job 1 (Instance +InverseRelations + OWL) | Instance | Inverse   Relations | OWL
+8 | Phase   3 - Job 1 (Instance + InverseRelations + No OWL) | Instance | Inverse   Relations | No   OWL
 
 ____
 
