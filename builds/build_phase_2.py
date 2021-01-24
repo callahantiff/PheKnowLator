@@ -198,19 +198,20 @@ def run_phase_2():
     # set gcs bucket variables
     gcs_original_data = '{}/archived_builds/{}/data/{}'.format(release, build, 'original_data/')
     gcs_processed_data = '{}/archived_builds/{}/data/{}'.format(release, build, 'processed_data/')
+    gcs_current_build = '{}/current_build/'.format(release)
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/archived_builds/{}/data/'.format(release, build)
 
     #####################################################
     # STEP 2 - PREPROCESS BUILD DATA
     lod_data = DataPreprocessing(bucket, gcs_original_data, gcs_processed_data, temp_dir)
     lod_data.preprocesses_build_data()
-    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     #####################################################
     # STEP 3 - CLEAN ONTOLOGY DATA
     ont_data = OntologyCleaner(bucket, gcs_original_data, gcs_processed_data, temp_dir)
     ont_data.cleans_ontology_data()
-    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     #####################################################
     # STEP 4 - GENERATE METADATA DOCUMENTATION
@@ -226,7 +227,7 @@ def run_phase_2():
         url = gcs_url + 'original_data/' + data_file.replace(temp_dir + '/', '')
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
     writes_metadata(bucket, metadata, temp_dir, gcs_processed_data)
-    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     #####################################################
     # STEP 5 - UPDATE INPUT DEPENDENCY DOCUMENTS
@@ -240,14 +241,14 @@ def run_phase_2():
     # resource info
     resources = 'https://raw.githubusercontent.com/callahantiff/PheKnowLator/master/resources/resource_info.txt'
     updates_dependency_documents(gcs_url, resources, bucket, temp_dir)
-    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     #####################################################
     # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS + LOGS
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
     logger.info('Uploading Input Dependency Documents to current_build Directory')
     moves_dependency_documents_for_phase3(bucket, release, temp_dir)
-    uploads_data_to_gcs_bucket(bucket, gcs_processed_data, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     # clean up environment after uploading all processed data
     shutil.rmtree(temp_dir)
