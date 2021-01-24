@@ -20,6 +20,7 @@ from pkt_kg.__version__ import __version__
 # set environment variables
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 # logging
+## NAMING AND CHANGE IN JOB MONITORING
 log_dir, log, log_config = 'logs', 'pkt_builder_phase3_log.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
@@ -85,10 +86,12 @@ def uploads_build_data(bucket, gcs_location):
 def main(app, rel, owl):
 
     start_time = datetime.now()
+    build_app = 'instance_builds' if app == 'instance' else 'subclass_builds'
+    rel_type = 'relations_only' if rel == 'no' else 'inverse_relations'
+    owl_decoding = 'owl' if owl == 'no' else 'owlnets'
 
     #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
-
     storage_client = storage.Client()
     bucket = storage_client.get_bucket('pheknowlator')
     # define write path to Google Cloud Storage bucket
@@ -125,9 +128,6 @@ def main(app, rel, owl):
     #####################################################
     # STEP 3 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
     # set variable to store file destination information
-    build_app = 'instance_builds' if app == 'instance' else 'subclass_builds'
-    rel_type = 'relations_only' if rel == 'no' else 'inverse_relations'
-    owl_decoding = 'owl' if owl == 'no' else 'owlnets'
     source_location = gcs_archived_build + '{}/{}/{}'.format(build_app, rel_type, owl_decoding)
 
     # upload data to Archive Google Cloud Storage Buckets
