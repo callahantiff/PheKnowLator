@@ -52,8 +52,7 @@ jobs:
       GCE_CPU: 1
       GCE_MEMORY: 250GB
       DOCKERFILE: Dockerfile.phase3
-      JOB_NAME: kg-builder-phase3-job1
-      IMAGE_TAG: "gcr.io/$PROJECT_ID/pkt-builder-phase3-job1-image:$GITHUB_SHA"
+      JOB_NAME: pkt-builder-phase3-job1
       KG_CONSTRUCT_APPROACH: 'subclass'
       RELATIONS: 'yes'
       OWL: 'yes'
@@ -78,14 +77,14 @@ jobs:
         run: gcloud --quiet auth configure-docker
       - name: Build Docker Image
         run: |-
-          docker build --tag "$IMAGE_TAG" -f "builds/$DOCKERFILE" ./builds \
+          docker build --tag "gcr.io/$PROJECT_ID/$JOB_NAME-image:$GITHUB_SHA" -f "builds/$DOCKERFILE" ./builds \
             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$RELATIONS" --build-arg "owl_arg=$OWL"
       - name: Publish Docker Image to Google Container Registry
-        run: docker push "$IMAGE_TAG"
+        run: docker push "gcr.io/$PROJECT_ID/$JOB_NAME-image:$GITHUB_SHA"
       - name: Create Virtual Machine Instance
         run: |-
           gcloud compute instances create-with-container "$JOB_NAME" \
-            --container-image "$IMAGE_TAG" --container-restart-policy=never \
+            --container-image "gcr.io/$PROJECT_ID/$JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --zone="$ZONE" --scopes=storage-rw
       - name: Monitor Build
         run: |-
