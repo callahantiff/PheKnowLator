@@ -118,21 +118,21 @@ def main(app, rel, owl):
 
     print('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
     logger.info('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
-    command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
-              '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
-              '--app {} --rel {} --owl {}'
-    try: os.system(command.format(app, rel, owl))
-    except: logger.error('Uncaught Exception: {}'.format(traceback.format_exc()))
+    # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
+    #           '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
+    #           '--app {} --rel {} --owl {}'
+    # try: os.system(command.format(app, rel, owl))
+    # except: logger.error('Uncaught Exception: {}'.format(traceback.format_exc()))
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     #####################################################
     # STEP 3 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
     # set variable to store file destination information
-    source_location = gcs_archived_build + '{}/{}/{}'.format(build_app, rel_type, owl_decoding)
+    # source_location = gcs_archived_build + '{}/{}/{}'.format(build_app, rel_type, owl_decoding)
 
     # upload data to Archive Google Cloud Storage Buckets
-    uploads_build_data(bucket, source_location)
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
+    # uploads_build_data(bucket, source_location)
+    # uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     # copy build logs for run to archive bucket
 
