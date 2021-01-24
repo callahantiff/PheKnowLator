@@ -103,7 +103,7 @@ def main(gce_type, phase, sleep, gcs_dir, project, job):
     # set log name -- used for monitoring "reg" or regular GCE instances and gcs log location
     release = 'release_v' + __version__
     if phase == 1:
-        gcs_url_string = 'https://storage.googleapis.com/pheknowlator/{}/current_build/'
+        gcs_url_string = 'https://storage.googleapis.com/pheknowlator/{}/current_build/{}'
         gcs_log_location = gcs_url_string.format(release, 'pkt_builder_phases12_log.log')
     else:
         gcs_url_string = 'https://storage.googleapis.com/pheknowlator/{}/current_build/knowledge_graphs/{}/{}'
