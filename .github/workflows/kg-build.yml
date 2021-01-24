@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKERFILE: builds/Dockerfile.phases12
-      GCE_JOB_NAME: pkt_builder_phases_1_2
+      GCE_JOB_NAME: "pkt_builder_phases_1_2_$GITHUB_SHA"
       GCE_MACHINE_TYPE: n1-highmem-16
       GCE_REGION: us-central1
     steps:
@@ -37,7 +37,7 @@ jobs:
       run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
     - name: Submit Build Job to AI-Platform
       run: |-
-        gcloud ai-platform jobs submit training "$GCE_JOB_NAME_$GITHUB_SHA" \
+        gcloud ai-platform jobs submit training "$GCE_JOB_NAME" \
           --scale-tier custom --master-machine-type "$GCE_MACHINE_TYPE" --region "$GCE_REGION" \
           --master-image-uri "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
     - name: Monitor Build
