@@ -144,14 +144,13 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
     return None
 
 
-def moves_dependency_documents_for_phase3(bucket, release, temp_directory):
+def moves_dependency_documents_for_phase3(bucket, temp_directory):
     """Method creates a dependency directory in the current_builds directory in Google Cloud Storage. Once created,
     the documents created during data preprocessing that are needed for Phase 3 of the knowledge graph build workflow
     are uploaded.
 
     Args:
         bucket: A storage bucket object specifying a Google Cloud Storage bucket.
-        release: A string containing the current PheKnowLator release.
         temp_directory: A local directory where preprocessed data is stored.
 
     Returns:
@@ -159,7 +158,7 @@ def moves_dependency_documents_for_phase3(bucket, release, temp_directory):
     """
 
     # creates dependency directory
-    dependency_loc = '{}/current_build/dependencies/'.format(release)
+    dependency_loc = 'current_build/dependencies/'
     blob = bucket.blob(dependency_loc)
     blob.upload_from_string('')
 
@@ -186,20 +185,20 @@ def run_phase_2():
 
     #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket('pheknowlator')
+    bucket = storage.Client().get_bucket('pheknowlator')
     # define write path to Google Cloud Storage bucket
     release = 'release_v' + __version__
-    bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix=release + '/archived_builds/')]
+    bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix='archived_builds/' + release + '/')]
     # find current archived build directory
     builds = [x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0]
     sorted_dates = sorted([datetime.strftime(datetime.strptime(str(x), '%d%b%Y'), '%Y-%m-%d').upper() for x in builds])
     build = 'build_' + datetime.strftime(datetime.strptime(sorted_dates[-1], '%Y-%m-%d'), '%d%b%Y').upper()
     # set gcs bucket variables
-    gcs_original_data = '{}/archived_builds/{}/data/{}'.format(release, build, 'original_data/')
-    gcs_processed_data = '{}/archived_builds/{}/data/{}'.format(release, build, 'processed_data/')
-    gcs_current_build = '{}/current_build/'.format(release)
-    gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/archived_builds/{}/data/'.format(release, build)
+    base_folder_path = 'archived_builds/{}/{}/data/'.format(release, build)
+    gcs_original_data = base_folder_path + '{}'.format('original_data/')
+    gcs_processed_data = base_folder_path + '{}'.format('processed_data/')
+    gcs_current_build = 'current_build/'
+    gcs_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(base_folder_path)
 
     #####################################################
     # STEP 2 - PREPROCESS BUILD DATA
@@ -247,7 +246,7 @@ def run_phase_2():
     # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS + LOGS
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
     logger.info('Uploading Input Dependency Documents to current_build Directory')
-    moves_dependency_documents_for_phase3(bucket, release, temp_dir)
+    moves_dependency_documents_for_phase3(bucket, temp_dir)
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     # clean up environment after uploading all processed data

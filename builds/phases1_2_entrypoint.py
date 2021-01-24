@@ -12,7 +12,6 @@ from google.cloud import storage  # type: ignore
 
 from build_phase_1 import *  # type: ignore
 from build_phase_2 import *  # type: ignore
-from pkt_kg.__version__ import __version__
 
 
 # set environment variables
@@ -48,22 +47,21 @@ def main():
     # start logger and configure Google Cloud Storage settings
     print('\n\n' + '*' * 10 + ' STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
     logger.info('*' * 10 + ' STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket('pheknowlator')
-    gcs_current_build = '{}/current_build/'.format('release_v' + __version__)
+    bucket = storage.Client().get_bucket('pheknowlator')
+    gcs_current_build = 'current_build/'
 
     # run phase 1 of build
     print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
     logger.info('#' * 5 + 'BUILD PHASE 1: DOWNLOADING BUILD DATA' + '#' * 5)
-    try: run_phase_1()
-    except: logger.error('Uncaught Exception: {}'.format(traceback.format_exc()))
+    # try: run_phase_1()
+    # except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     # run phase 2 build
     print('#' * 35 + '\nBUILD PHASE 2: DATA PRE-PROCESSING\n' + '#' * 35)
     logger.info('#' * 5 + 'BUILD PHASE 2: DATA PRE-PROCESSING' + '#' * 5)
-    try: run_phase_2()
-    except: logger.error('Uncaught Exception: {}'.format(traceback.format_exc()))
+    # try: run_phase_2()
+    # except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     # print build statistics and upload logging for data preprocessing and ontology cleaning

@@ -21,7 +21,6 @@ from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Tuple, Union
 
 # import script containing helper functions
-from pkt_kg.__version__ import __version__
 from pkt_kg.utils import *
 
 # set environment variables
@@ -50,7 +49,7 @@ class DataPreprocessing(object):
         self.bucket: storage.bucket.Bucket = gcs_bucket
         self.original_data: str = org_data
         self.processed_data: str = processed_data
-        self.current_build = '{}/current_build/'.format('release_v' + __version__)
+        self.current_build = 'current_build/'
         # SETTING LOCAL VARIABLES
         self.temp_dir = temp_dir
         self.owltools_location = './owltools'
@@ -72,7 +71,6 @@ class DataPreprocessing(object):
 
         loc = loc if loc is not None else self.temp_dir
         gcs = gcs if gcs is not None else self.processed_data
-
         blob = self.bucket.blob(gcs + f_name)
         blob.upload_from_filename(loc + '/' + f_name)
 
@@ -106,7 +104,7 @@ class DataPreprocessing(object):
                 if not os.path.exists(data_file):  # only download if file has not yet been downloaded
                     self.bucket.blob(proc_file).download_to_filename(self.temp_dir + '/' + proc_file.split('/')[-1])
             except IndexError:
-                logger.error('Cannot find {} in the GCS directories of the current build'.format(filename))
+                logger.error('IndexError: Cannot find {} in the GCS directories of the current build'.format(filename))
                 raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
 
         return data_file
@@ -495,7 +493,7 @@ class DataPreprocessing(object):
         """
 
         print('\t- Creating Genomic Identifier Cross-Mapping Dictionary')
-        logger.info('Creating Genomic Identifier Cross-Map Dictionary')
+        logger.info('Creating Genomic Identifier Cross-Mapping Dictionary')
 
         master_dict = self._cross_maps_genomic_identifier_data()
         reformatted_mapped_identifiers, gene_type, transcript_type = {}, 'gene_type', 'transcript_type'
@@ -515,8 +513,7 @@ class DataPreprocessing(object):
                 for i in [t_types if len(t_types) > 0 else ['None']]:
                     t_type_list += ['protein-coding' if 'protein-coding' in i else 'not protein-coding']
                 identifier_info += ['transcript_type_update_' + max(set(t_type_list), key=t_type_list.count)]
-            else:
-                identifier_info = values
+            else: identifier_info = values
             reformatted_mapped_identifiers[key] = identifier_info
 
         # save results for output > 4GB requires special approach: https://stackoverflow.com/questions/42653386
@@ -536,7 +533,7 @@ class DataPreprocessing(object):
         """
 
         print('\t- Generating Genomic Identifier Cross-Mapping Sets')
-        logger.info('Generating Pairwise Genomic Cross-Maps')
+        logger.info('Generating Pairwise Genomic Cross-Map Sets')
 
         self._loads_genomic_typing_dictionary()  # creates genomic typing dictionary
         reformatted_mapped_identifiers = self.creates_master_genomic_identifier_map()
@@ -907,7 +904,6 @@ class DataPreprocessing(object):
         logger.info('Loading Reactome Annotation Data')
 
         r_name, g_name, c_name = 'ReactomePathways.txt', 'gene_association.reactome', 'ChEBI2Reactome_All_Levels.txt'
-
         # reactome pathways
         reactome_pathways = self.reads_gcs_bucket_data_to_df(filename=r_name, delm='\t', skip=0, head=None, sht=None)
         reactome_pathways = reactome_pathways.loc[reactome_pathways[2].apply(lambda x: x == 'Homo sapiens')]
@@ -944,16 +940,12 @@ class DataPreprocessing(object):
         for idx, row in tqdm(compath.iterrows(), total=compath.shape[0]):
             if row[6] == 'kegg' and 'kegg:' + row[5].strip('path:hsa') in pw_dict.keys() and row[2] == 'reactome':
                 for x in pw_dict['kegg:' + row[5].strip('path:hsa')]:
-                    if row[1] in reactome.keys():
-                        reactome[row[1]] |= {x.split('/')[-1]}
-                    else:
-                        reactome[row[1]] = {x.split('/')[-1]}
+                    if row[1] in reactome.keys(): reactome[row[1]] |= {x.split('/')[-1]}
+                    else: reactome[row[1]] = {x.split('/')[-1]}
             if (row[2] == 'kegg' and 'kegg:' + row[1].strip('path:hsa') in pw_dict.keys()) and row[6] == 'reactome':
                 for x in pw_dict['kegg:' + row[1].strip('path:hsa')]:
-                    if row[5] in reactome.keys():
-                        reactome[row[5]] |= {x.split('/')[-1]}
-                    else:
-                        reactome[row[5]] = {x.split('/')[-1]}
+                    if row[5] in reactome.keys(): reactome[row[5]] |= {x.split('/')[-1]}
+                    else: reactome[row[5]] = {x.split('/')[-1]}
 
         return reactome
 
@@ -970,12 +962,11 @@ class DataPreprocessing(object):
         """
 
         print('\t- Loading KEGG Data')
-        logger.info('\t- Loading KEGG Data')
+        logger.info('Loading KEGG Data')
 
         f_name = 'kegg_reactome.csv'
         kegg_reactome_map = self.reads_gcs_bucket_data_to_df(filename=f_name, delm=',', skip=0, head=0, sht=None)
         src, tar, tar_ids, src_ids = 'Source Resource', 'Target Resource', 'Target ID', 'Source ID'
-
         for idx, row in tqdm(kegg_reactome_map.iterrows(), total=kegg_reactome_map.shape[0]):
             if row[src] == 'reactome' and 'kegg:' + row[tar_ids].strip('path:hsa') in pw_dict.keys():
                 for x in pw_dict['kegg:' + row[tar_ids].strip('path:hsa')]:
@@ -1001,7 +992,7 @@ class DataPreprocessing(object):
         """
 
         print('\t- Querying Reactome API to Obtain Reactome-GO Biological Process Mappings')
-        logger.info('\t- Querying Reactome API to Obtain Reactome-GO Biological Process Mappings')
+        logger.info('Querying Reactome API to Obtain Reactome-GO Biological Process Mappings')
 
         for request_ids in tqdm(list(chunks(list(reactome.keys()), 20))):
             result, key = content.query_ids(ids=','.join(request_ids)), 'goBiologicalProcess'
@@ -1023,14 +1014,13 @@ class DataPreprocessing(object):
         """
 
         print('\nCreating Pathway Ontology Identifier Cross-Mapping Data')
-        logger.info('\nCreating Pathway Ontology Identifier Cross-Mapping Data')
+        logger.info('Creating Pathway Ontology Identifier Cross-Mapping Data')
 
         pw_dict = self._preprocess_pathway_mapping_data()
         reactome = self._processes_reactome_data()
         compath_reactome = self._processes_compath_pathway_data(reactome, pw_dict)
         kegg_reactome = self._processes_kegg_pathway_data(compath_reactome, pw_dict)
         reactome = self._queries_reactome_api(kegg_reactome)
-
         # write data
         filename = 'REACTOME_PW_GO_MAPPINGS.txt'
         with open(self.temp_dir + '/' + filename, 'w') as out:
@@ -1100,7 +1090,6 @@ class DataPreprocessing(object):
                     trans[row[trans_id].replace('transcript_stable_id_', '')] += [row['ensembl_transcript_type']]
                 else:
                     trans[row[trans_id].replace('transcript_stable_id_', '')] = [row['ensembl_transcript_type']]
-
         # update SO map dictionary
         for ids in tqdm(trans.keys()):
             if trans[ids][0] == 'protein_coding': trans_type = genomic_map['protein-coding_Transcript']
@@ -1156,12 +1145,10 @@ class DataPreprocessing(object):
         genomic_type_so_map = {}
         for idx, row in tqdm(mapping_data.iterrows(), total=mapping_data.shape[0]):
             genomic_type_so_map[row['source_*_type'] + '_' + row['Genomic']] = row['SO ID']
-
         # add genes, transcripts, and variants
         genomic_sequence_map = self._preprocesses_gene_types(genomic_type_so_map)
         trans_sequence_map = self._preprocesses_transcript_types(genomic_type_so_map, genomic_sequence_map)
         sequence_map = self._preprocesses_variant_types(genomic_type_so_map, trans_sequence_map)
-
         # output data
         filename = 'SO_GENE_TRANSCRIPT_VARIANT_TYPE_MAPPING.txt'
         with open(self.temp_dir + '/' + filename, 'w') as outfile:
@@ -1185,13 +1172,11 @@ class DataPreprocessing(object):
 
         sequence_map = self._creates_sequence_identifier_mappings()
         reactome_map = self._creates_pathway_identifier_mappings()
-
         # combine genomic and pathway maps + iterate over pathway lists and combine them into a single dictionary
         sequence_map.update(reactome_map)
         subclass_mapping = {}
         for key in tqdm(sequence_map.keys()):
             subclass_mapping[key] = sequence_map[key]
-
         # save file and push to gcs bucket
         filename = 'subclass_construction_map.pkl'
         pickle.dump(subclass_mapping, open(self.temp_dir + '/' + filename, 'wb'), protocol=4)
@@ -1211,7 +1196,6 @@ class DataPreprocessing(object):
         logger.info('Loading Protein Ontology Data')
 
         pr_graph = Graph().parse(self.downloads_data_from_gcs_bucket('pr_with_imports.owl'))
-
         # convert rdf graph to networkx multidigraph
         networkx_mdg: networkx.MultiDiGraph = networkx.MultiDiGraph()
         for s, p, o in tqdm(pr_graph):
@@ -1237,14 +1221,14 @@ class DataPreprocessing(object):
         # run reasoner
         command = "./owltools ./{} --reasoner {} --run-reasoner --assert-implied -o ./{}"
         return_code = os.system(command.format(input_filename, reasoner.lower(), output_filename))
-
         if return_code == 0:
             ontology_file_formatter(self.temp_dir, '/' + input_filename.split('/')[-1], self.owltools_location)
             ontology_file_formatter(self.temp_dir, '/' + output_filename.split('/')[-1], self.owltools_location)
             self.uploads_data_to_gcs_bucket(input_filename.split('/')[-1])
             self.uploads_data_to_gcs_bucket(output_filename.split('/')[-1])
         else:
-            raise ValueError('Reasoner Finished with Errors.')
+            logger.error('ERROR: Reasoner Finished with Errors - {}: {}'.format(input_filename, return_code))
+            raise Exception('ERROR: Reasoner Finished with Errors - {}: {}'.format(input_filename, return_code))
 
         return None
 
@@ -1263,11 +1247,9 @@ class DataPreprocessing(object):
         print('Constructing a Human Version of the PRotein Ontology')
         logger.info('Constructing a Human Version of the PRotein Ontology')
 
-        # download needed data
         networkx_mdg = self._processes_protein_ontology_data()
         df_list = pandas.read_html(self.downloads_data_from_gcs_bucket('human_pro_classes.html'))
         human_pro_classes = list(df_list[-1]['PRO_term'])
-
         # create a new graph using breadth first search paths
         human_pro_graph, human_networkx_mdg = Graph(), networkx.MultiDiGraph()
         for node in tqdm(human_pro_classes):
@@ -1277,13 +1259,13 @@ class DataPreprocessing(object):
             for path in forward + reverse:
                 human_pro_graph.add((path[0], path[2], path[1]))
                 human_networkx_mdg.add_edge(path[0], path[1], path[2])
-
         # check data and write it locally
         if networkx.number_connected_components(human_networkx_mdg.to_undirected()) == 1:
             human_pro_graph.serialize(destination=self.temp_dir + '/human_pro.owl', format='xml')
             f_name1, f_name2 = self.temp_dir + '/human_pro.owl', self.temp_dir + '/pr_with_imports.owl'
             self._logically_verifies_human_protein_ontology(f_name1, f_name2, 'elk')
         else:
+            logger.error('ValueError: Human PRO Contains More than a Single Connected Component')
             raise ValueError('Human PRO Contains More than a Single Connected Component')
 
         return None
@@ -1301,7 +1283,6 @@ class DataPreprocessing(object):
 
         ro_graph = Graph().parse(self.downloads_data_from_gcs_bucket('ro_with_imports.owl'))
         labs = {str(x[2]).lower(): str(x[0]) for x in ro_graph if '/RO_' in str(x[0]) and 'label' in str(x[1]).lower()}
-
         # identify relations and their inverses
         write_dir, filename1 = './resources/construction_approach/', 'INVERSE_RELATIONS.txt'
         with open(self.temp_dir + '/' + filename1, 'w') as out1:
@@ -1311,7 +1292,6 @@ class DataPreprocessing(object):
                     out1.write(str(s.split('/')[-1]) + '\t' + str(o.split('/')[-1]) + '\n')
                     out1.write(str(o.split('/')[-1]) + '\t' + str(s.split('/')[-1]) + '\n')
         self.uploads_data_to_gcs_bucket(filename1)
-
         # identify relation labels
         filename2 = 'RELATIONS_LABELS.txt'
         with open(self.temp_dir + '/' + filename2, 'w') as out1:
@@ -1336,13 +1316,11 @@ class DataPreprocessing(object):
         f_name = 'variant_summary.txt'
         clinvar_data = self.reads_gcs_bucket_data_to_df(filename=f_name, delm='\t', skip=0, head=0, sht=None)
         clinvar_data.fillna('None', inplace=True)
-
         # explode nested data
         explode_df_clinvar = explodes_data(clinvar_data.copy(), ['PhenotypeIDS'], ';')
         explode_df_clinvar = explodes_data(explode_df_clinvar.copy(), ['PhenotypeIDS'], ',')
         explode_df_clinvar['PhenotypeIDS'].replace('Orphanet:ORPHA', 'ORPHA:', inplace=True, regex=True)
         explode_df_clinvar['PhenotypeIDS'].replace('Human Phenotype Ontology:HP:', 'HP_', inplace=True, regex=True)
-
         # write data
         filename = 'CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt'
         explode_df_clinvar.to_csv(self.temp_dir + '/' + filename, header=True, sep='\t', encoding='utf-8', index=False)
@@ -1361,9 +1339,8 @@ class DataPreprocessing(object):
         print('Creating Protein-Cofactor and Protein-Catalyst Cross-Mapping Data')
         logger.info('Creating Protein-Cofactor and Protein-Catalyst Cross-Mapping Data')
 
-        data = open(self.downloads_data_from_gcs_bucket('uniprot-cofactor-catalyst.tab')).readlines()
-
         # reformat data and write data
+        data = open(self.downloads_data_from_gcs_bucket('uniprot-cofactor-catalyst.tab')).readlines()
         filename1, filename2 = 'UNIPROT_PROTEIN_COFACTOR.txt', 'UNIPROT_PROTEIN_CATALYST.txt'
         with open(self.temp_dir + '/' + filename1, 'w') as out1, open(self.temp_dir + '/' + filename2, 'w') as out2:
             for line in tqdm(data):
@@ -1402,7 +1379,6 @@ class DataPreprocessing(object):
         data = data.loc[data['#tax_id'].apply(lambda x: x == 9606)]
         data.fillna('None', inplace=True)
         data.replace('-', 'None', inplace=True, regex=False)
-
         # create metadata
         genes, lab, desc, syn = [], [], [], []
         for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
@@ -1410,24 +1386,17 @@ class DataPreprocessing(object):
             chrom, map_loc, s1, s2 = row['chromosome'], row['map_location'], row['Synonyms'], row['Other_designations']
             if gene_id != 'None':
                 genes.append('http://www.ncbi.nlm.nih.gov/gene/' + str(gene_id))
-                if sym != 'None' or sym != '':
-                    lab.append(sym)
-                else:
-                    lab.append('Entrez_ID:' + gene_id)
+                if sym != 'None' or sym != '': lab.append(sym)
+                else: lab.append('Entrez_ID:' + gene_id)
                 if 'None' not in [defn, gene_type, chrom, map_loc]:
                     desc_str = "{} has locus group '{}' and is located on chromosome {} ({})."
                     desc.append(desc_str.format(sym, gene_type, chrom, map_loc))
-                else:
-                    desc.append("{} locus group '{}'.".format(sym, gene_type))
+                else: desc.append("{} locus group '{}'.".format(sym, gene_type))
                 if s1 != 'None' and s2 != 'None':
                     syn.append('|'.join(set([x for x in (s1 + s2).split('|') if x != 'None' or x != ''])))
-                elif s1 != 'None':
-                    syn.append('|'.join(set([x for x in s1.split('|') if x != 'None' or x != ''])))
-                elif s2 != 'None':
-                    syn.append('|'.join(set([x for x in s2.split('|') if x != 'None' or x != ''])))
-                else:
-                    syn.append('None')
-
+                elif s1 != 'None': syn.append('|'.join(set([x for x in s1.split('|') if x != 'None' or x != ''])))
+                elif s2 != 'None': syn.append('|'.join(set([x for x in s2.split('|') if x != 'None' or x != ''])))
+                else: syn.append('None')
         # combine into new data frame then convert it to dictionary
         metadata = pandas.DataFrame(list(zip(genes, lab, desc, syn)), columns=['ID', 'Label', 'Description', 'Synonym'])
         metadata = metadata.astype(str)
@@ -1461,7 +1430,6 @@ class DataPreprocessing(object):
                    'entrez_id', 'ensembl_gene_type', 'master_gene_type', 'symbol'], axis=1, inplace=True)
         data.drop_duplicates(subset=dup_cols, keep='first', inplace=True)
         data.fillna('None', inplace=True)
-
         # create metadata
         rna, lab, desc, syn = [], [], [], []
         for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
@@ -1515,7 +1483,6 @@ class DataPreprocessing(object):
         data.fillna('None', inplace=True)
         data.sort_values('LastEvaluated', ascending=False, inplace=True)
         data.drop_duplicates(subset='RS# (dbSNP)', keep='first', inplace=True)
-
         # create metadata
         var, label, desc, syn = [], [], [], []
         for idx, row in tqdm(data.iterrows(), total=data.shape[0]):
@@ -1533,7 +1500,6 @@ class DataPreprocessing(object):
                                 row['ClinicalSignificance'], row['Assembly'], row['LastEvaluated'],
                                 row['ReviewStatus']).replace('None', 'UNKNOWN'))
                 syn.append('None')
-
         # combine into new data frame then convert it to dictionary
         metadata = pandas.DataFrame(list(zip(var, label, desc, syn)), columns=['ID', 'Label', 'Description', 'Synonym'])
         metadata.drop_duplicates(subset=None, keep='first', inplace=True)
@@ -1609,7 +1575,6 @@ class DataPreprocessing(object):
         cls = [x for x in gets_ontology_classes(ro_graph) if '/RO_' in str(x)] + \
               [x for x in gets_object_properties(ro_graph) if '/RO_' in str(x)]
         master_synonyms = [x for x in ro_graph if 'synonym' in str(x[1]).lower() and isinstance(x[0], URIRef)]
-
         for x in tqdm(cls):
             cls_label = list(ro_graph.objects(x, RDFS.label))
             labels = str(cls_label[0]) if len(cls_label) > 0 else 'None'
@@ -1650,7 +1615,6 @@ class DataPreprocessing(object):
                                                 **self._creates_variant_metadata_dict(),
                                                 **self._creates_pathway_metadata_dict()},
                                       'relations': self._creates_relations_metadata_dict()}
-
         # save data and push to gcs bucket
         filename = 'node_metadata_dict.pkl'
         pickle.dump(master_metadata_dictionary, open(self.temp_dir + '/' + filename, 'wb'), protocol=4)

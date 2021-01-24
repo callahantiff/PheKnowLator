@@ -11,14 +11,14 @@ ENV PYTHONUNBUFFERED True
 WORKDIR /PheKnowLator/builds/
 
 # download build dependencies
-RUN wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/resource_info.txt && \
-    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/ontology_source_list.txt && \
-    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/edge_source_list.txt && \
-    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/INVERSE_RELATIONS.txt && \
-    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/RELATIONS_LABELS.txt && \
-    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/node_metadata_dict.pkl && \
-    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/subclass_construction_map.pkl && \
-    wget https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/dependencies/PheKnowLator_MergedOntologies.owl
+RUN wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/resource_info.txt && \
+    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/ontology_source_list.txt && \
+    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/edge_source_list.txt && \
+    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/INVERSE_RELATIONS.txt && \
+    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/RELATIONS_LABELS.txt && \
+    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/node_metadata_dict.pkl && \
+    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/subclass_construction_map.pkl && \
+    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/PheKnowLator_MergedOntologies.owl
 
 # copy downloaded files to correct location
 RUN mv resource_info.txt /PheKnowLator/resources/ && \

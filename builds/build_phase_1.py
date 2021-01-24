@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import sys
+import traceback
 
 from datetime import date, datetime
 from google.cloud import storage  # type: ignore
@@ -43,16 +44,16 @@ def creates_build_directory_structure(bucket, release, build):
 
     # set-up file names
     folder_list = [
-        '{}/archived_builds/{}/data/original_data/'.format(release, build),
-        '{}/archived_builds/{}/data/processed_data/'.format(release, build),
-        '{}/archived_builds/{}/knowledge_graphs/subclass_builds/relations_only/owl/'.format(release, build),
-        '{}/archived_builds/{}/knowledge_graphs/subclass_builds/relations_only/owlnets/'.format(release, build),
-        '{}/archived_builds/{}/knowledge_graphs/subclass_builds/inverse_relations/owl/'.format(release, build),
-        '{}/archived_builds/{}/knowledge_graphs/subclass_builds/inverse_relations/owlnets/'.format(release, build),
-        '{}/archived_builds/{}/knowledge_graphs/instance_builds/relations_only/owl/'.format(release, build),
-        '{}/archived_builds/{}/knowledge_graphs/instance_builds/relations_only/owlnets/'.format(release, build),
-        '{}/archived_builds/{}/knowledge_graphs/instance_builds/inverse_relations/owl/'.format(release, build),
-        '{}/archived_builds/{}/knowledge_graphs/instance_builds/inverse_relations/owlnets/'.format(release, build)
+        'archived_builds/{}/{}/data/original_data/'.format(release, build),
+        'archived_builds/{}/{}/data/processed_data/'.format(release, build),
+        'archived_builds/{}/{}/knowledge_graphs/subclass_builds/relations_only/owl/'.format(release, build),
+        'archived_builds/{}/{}/knowledge_graphs/subclass_builds/relations_only/owlnets/'.format(release, build),
+        'archived_builds/{}/{}/knowledge_graphs/subclass_builds/inverse_relations/owl/'.format(release, build),
+        'archived_builds/{}/{}/knowledge_graphs/subclass_builds/inverse_relations/owlnets/'.format(release, build),
+        'archived_builds/{}/{}/knowledge_graphs/instance_builds/relations_only/owl/'.format(release, build),
+        'archived_builds/{}/{}/knowledge_graphs/instance_builds/relations_only/owlnets/'.format(release, build),
+        'archived_builds/{}/{}/knowledge_graphs/instance_builds/inverse_relations/owl/'.format(release, build),
+        'archived_builds/{}/{}/knowledge_graphs/instance_builds/inverse_relations/owlnets/'.format(release, build)
     ]
 
     # add directories to Google Cloud Storage bucket
@@ -60,7 +61,7 @@ def creates_build_directory_structure(bucket, release, build):
         blob = bucket.blob(folder)
         blob.upload_from_string('')
 
-    return '{}/archived_builds/{}/data/original_data/'.format(release, build)
+    return 'archived_builds/{}/{}/data/original_data/'.format(release, build)
 
 
 def downloads_data_from_gcs_bucket(bucket, original_data, filename, temp_directory):
@@ -86,8 +87,8 @@ def downloads_data_from_gcs_bucket(bucket, original_data, filename, temp_directo
         data_file = temp_directory + '/' + matched_file.split('/')[-1]
         if not os.path.exists(data_file):  # only download if file has not yet been downloaded
             bucket.blob(matched_file).download_to_filename(temp_directory + '/' + matched_file.split('/')[-1])
-    except IndexError as e:
-        logger.error(e, exec_info=True)
+    except IndexError:
+        logger.error('IndexError: Cannot find {} in the GCS original_data directory'.format(filename))
         raise ValueError('Cannot find {} in the GCS original_data directory of the current build'.format(filename))
 
     return data_file
@@ -198,7 +199,11 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
             file_path = temp_directory + '/' + ont_name
             if len([x for x in downloaded_data if x.endswith(ont_name)]) > 0:
                 downloads_data_from_gcs_bucket(bucket, gcs_original_path, ont_name, temp_directory)
-            else: os.system("./owltools {} --merge-import-closure -o {}".format(url, file_path))
+            else:
+                return_code = os.system("./owltools {} --merge-import-closure -o {}".format(url, file_path))
+                if return_code != 0:
+                    logger.error('ERROR: Unable to successfully download {}: {}'.format(url, return_code))
+                    raise Exception('ERROR: Unable to successfully download {}'.format(url))
         else:
             filename, url = url.split(', ')
             file_path = temp_directory + '/' + re.sub('.zip|.gz', '', filename)
@@ -224,17 +229,13 @@ def run_phase_1():
 
     ###############################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket('pheknowlator')
-    release = 'release_v' + __version__
+    bucket = storage.Client().get_bucket('pheknowlator')
     build = 'build_' + datetime.strftime(datetime.strptime(str(date.today()), '%Y-%m-%d'), '%d%b%Y').upper()
-
-    # create gcs bucket directories
-    gcs_original_data = creates_build_directory_structure(bucket, release, build)
+    gcs_original_data = creates_build_directory_structure(bucket, 'release_v' + __version__, build)
 
     ###############################################
     # STEP 2 - DOWNLOAD BUILD DATA
-    gcs_url = 'https://storage.googleapis.com/pheknowlator/{}/archived_builds/{}/data/original_data/'
-    downloads_build_data(bucket, gcs_original_data, gcs_url.format(release, build), temp_dir)
+    gcs_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(gcs_original_data)
+    downloads_build_data(bucket, gcs_original_data, gcs_url, temp_dir)
 
     return None

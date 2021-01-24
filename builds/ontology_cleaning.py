@@ -19,7 +19,6 @@ from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Union
 
 # import script containing helper functions
-from pkt_kg.__version__ import __version__
 from pkt_kg.utils import *
 
 # set environment variables
@@ -52,8 +51,8 @@ class OntologyCleaner(object):
         self.bucket: Union[storage.bucket.Bucket, str] = gcs_bucket
         self.original_data: str = org_data
         self.processed_data: str = proc_data
-        self.current_build = '{}/current_build/'.format('release_v' + __version__)
-        # SETTING LOCAL VARIABLES
+        self.current_build: str = 'current_build/'
+        # LOCAL VARIABLES
         self.owltools_location = './owltools'
         self.temp_dir = temp
         self.merged_ontology_filename: str = 'PheKnowLator_MergedOntologies.owl'
@@ -68,7 +67,6 @@ class OntologyCleaner(object):
         self.ont_graph: Graph = Graph()
         self.ontology_classes: List = []
         # GENE IDENTIFIER DATA
-        # keep list of withdrawn hgnc gene ids in HPO that need updating
         self.withdrawn_map = {  # keep list of withdrawn hgnc gene ids in HPO that need updating
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=21508': ['653067', '653220'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=23418': ['653450'],
@@ -82,11 +80,10 @@ class OntologyCleaner(object):
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=26619': ['5058'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=31424': ['101362076'],
             'http://identifiers.org/hgnc/12764': ['7467'],
-            'http://identifiers.org/hgnc/1881': ['10167']
-        }
+            'http://identifiers.org/hgnc/1881': ['10167']}
         f_data = self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl'
         if not os.path.exists(f_data):
-            url = 'https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/data/processed_data/'
+            url = 'https://storage.googleapis.com/pheknowlator/{}'.format(self.processed_data)
             data_downloader(url + f_data.split('/')[-1], self.temp_dir + '/')
         with open(f_data, 'rb') as out:
             self.gene_ids = pickle.load(out, encoding='bytes')
@@ -106,7 +103,6 @@ class OntologyCleaner(object):
 
         loc = loc if loc is not None else self.temp_dir
         gcs = gcs if gcs is not None else self.processed_data
-
         if isinstance(self.bucket, storage.bucket.Bucket):
             blob = self.bucket.blob(gcs + f_name)
             blob.upload_from_filename(loc + '/' + f_name)
@@ -142,7 +138,7 @@ class OntologyCleaner(object):
                     if not os.path.exists(data_file):  # only download if file has not yet been downloaded
                         self.bucket.blob(proc_file).download_to_filename(self.temp_dir + '/' + proc_file.split('/')[-1])
                 except IndexError:
-                    logger.error('Cannot find {} in the GCS directories of the current build'.format(filename))
+                    logger.error('IndexError: {} not in the GCS directory of the current build'.format(filename))
                     raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
             return data_file
         else:
@@ -174,7 +170,6 @@ class OntologyCleaner(object):
         """
 
         onts = [self.temp_dir + '/' + x for x in list(self.ontology_info.keys()) if x != self.merged_ontology_filename]
-
         if len(onts) == 0 and isinstance(self.bucket, storage.bucket.Bucket):
             # look in bucket for ontology files
             _files = [_.name for _ in self.bucket.list_blobs(prefix=self.processed_data)]
@@ -226,13 +221,14 @@ class OntologyCleaner(object):
         # save graph in order to run reasoner
         filename = self.temp_dir + '/' + self.ont_file_location
         self.ont_graph.serialize(destination=filename, format='xml')
-
         command = "./owltools {} --reasoner {} --run-reasoner --assert-implied -o {}"
         return_code = os.system(command.format(filename, 'elk', filename))
         if return_code == 0:
             ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
             self.uploads_data_to_gcs_bucket(self.ont_file_location)
-        else: raise ValueError('Reasoner Finished with Errors.')
+        else:
+            logger.error('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
+            raise Exception('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
 
         return None
 
@@ -283,7 +279,7 @@ class OntologyCleaner(object):
 
         return errors
 
-    def fixes_ontology_parsing_errors(self):
+    def fixes_ontology_parsing_errors(self) -> None:
         """Fixes parsing errors detected when attempting to load the ontology. Currently, this method only fixes
         value errors (i.e. string-typed entities mis-typed as ints) because these are the only types of errors
         relevant to the set of ontologies utilized in the v2.0.0 PheKnowLator release. It can be easily extended in the
@@ -357,15 +353,14 @@ class OntologyCleaner(object):
 
         ont, key, schma = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location, schema.boolean
         # get deprecated entity information
-        dep_cls = [x[0] for x in tqdm(list(self.ont_graph.triples((None, OWL.deprecated,
-                                                                   Literal('true', datatype=schma)))))]
-        dep_triples = [x for x in tqdm(self.ont_graph)
+        dep_cls = [x[0] for x in list(self.ont_graph.triples((None, OWL.deprecated, Literal('true', datatype=schma))))]
+        dep_triples = [x for x in self.ont_graph
                        if 'deprecated' in ', '.join([str(x[0]).lower(), str(x[1]).lower(), str(x[2]).lower()])
                        and len(list(self.ont_graph.triples((x[0], RDF.type, OWL.Class)))) == 1]
         deprecated_classes = set(dep_cls + [x[0] for x in dep_triples])
         # get obsolete entity information
-        obs_cls = [x[0] for x in tqdm(list(self.ont_graph.triples((None, RDFS.subClassOf, oboinowl.ObsoleteClass))))]
-        obs_triples = [x for x in tqdm(self.ont_graph)
+        obs_cls = [x[0] for x in list(self.ont_graph.triples((None, RDFS.subClassOf, oboinowl.ObsoleteClass)))]
+        obs_triples = [x for x in self.ont_graph
                        if 'obsolete' in ', '.join([str(x[0]).lower(), str(x[1]).lower(), str(x[2]).lower()])
                        and len(list(self.ont_graph.triples((x[0], RDF.type, OWL.Class)))) == 1 and '#' not in str(x[0])]
         obsolete_classes = set(obs_cls + [x[0] for x in obs_triples])
@@ -478,7 +473,7 @@ class OntologyCleaner(object):
         print('Normalizing Existing Classes')
         logger.info('Normalizing Existing Classes')
 
-        ents, missing = None, []  # REMOVE
+        ents, missing = None, []
         non_ont = set([x for x in gets_ontology_classes(self.ont_graph) if not str(x).startswith(str(obo))])
         hgnc, url, g = set([x for x in non_ont if 'hgnc' in str(x)]), 'http://www.ncbi.nlm.nih.gov/gene/', self.gene_ids
         for node in tqdm(hgnc):
@@ -582,7 +577,6 @@ class OntologyCleaner(object):
 
         print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
         logger.info('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
-
         for ont in self.ontology_info.keys():
             if ont != self.merged_ontology_filename:
                 print('\nProcessing Ontology: {}'.format(ont.upper()))
