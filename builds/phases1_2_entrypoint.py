@@ -5,6 +5,7 @@
 import glob
 import logging.config
 import os
+import shutil
 import traceback
 
 from datetime import datetime
@@ -16,7 +17,8 @@ from build_phase_2 import *  # type: ignore
 
 # set environment variables
 log_dir, log, log_config = 'logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
-if not os.path.exists(log_dir): os.mkdir(log_dir)
+if os.path.exists(log_dir): shutil.rmtree(log_dir)
+os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 

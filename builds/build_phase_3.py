@@ -7,6 +7,7 @@ import glob
 import logging.config
 import os
 import re
+import shutil
 import subprocess
 import traceback
 
@@ -20,7 +21,8 @@ from pkt_kg.utils import *
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 # logging
 log_dir, log, log_config = 'logs', 'pkt_builder_phase3_log.log', glob.glob('**/logging.ini', recursive=True)
-if not os.path.exists(log_dir): os.mkdir(log_dir)
+if os.path.exists(log_dir): shutil.rmtree(log_dir)
+os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
@@ -156,7 +158,7 @@ def main(app, rel, owl):
     base_url = 'https://storage.googleapis.com/pheknowlator/{}'
     # copy phases 1-2 log from current to archive build directory
     log_1 = [x for x in [_.name for _ in bucket.list_blobs(prefix='current_build/')] if x.endswith('phases12_log.log')]
-    data_downloader(base_url.format(log_1[0]), log_dir, log_1[0].split('/')[-1])
+    data_downloader(base_url.format(log_1[0]), log_dir + '/', log_1[0].split('/')[-1])
     uploads_data_to_gcs_bucket(bucket, gcs_archive_loc, log_dir, log_1[0].split('/')[-1])
     # copy phase 3 log from current to archive build directory
     uploads_data_to_gcs_bucket(bucket, gcs_archive_loc, log_dir, log)
