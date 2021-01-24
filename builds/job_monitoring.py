@@ -73,7 +73,7 @@ def monitor_gce_jobs(phase, sleep, gcs_log_location):
         current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
         data_downloader(gcs_log_location, '.' + '/')  # download log and retrieve program status
         try:
-            log_content = [json.loads(x) for x in open(log)]
+            log_content = [json.loads(x) for x in open(gcs_log_location.split('/')[-1])]
             messages = ' '.join([x['message'] for x in log_content])
             if len([x for x in log_content if x['levelname'] == 'ERROR']) > 0: status = 'FAILED'
             elif quit_status in messages: status = 'COMPLETED'
