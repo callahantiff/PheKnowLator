@@ -78,7 +78,7 @@ def monitor_gce_jobs(phase, sleep, gcs_log_location):
             if len([x for x in log_content if x['levelname'] == 'ERROR']) > 0: status = 'FAILED'
             elif quit_status in messages: status = 'COMPLETED'
             else: status = 'RUNNING'
-        except JSONDecodeError: status, log_content = 'FAILED', ['ERROR: SOMETHING WENT WRONG LOG IS EMPTY!']
+        except JSONDecodeError: status, log_content = 'RUNNING', ['QUEUED: Instance is not yet running!']
         elapsed_minutes = round((datetime.now() - start_time).total_seconds() / 60, 3)
         print('\n\nJob Status: {} @ {} -- Elapsed Time (min): {}\n'.format(status, current_time, elapsed_minutes))
 
