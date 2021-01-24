@@ -19,6 +19,7 @@ from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Union
 
 # import script containing helper functions
+from pkt_kg.__version__ import __version__
 from pkt_kg.utils import *
 
 # set environment variables
@@ -51,6 +52,7 @@ class OntologyCleaner(object):
         self.bucket: Union[storage.bucket.Bucket, str] = gcs_bucket
         self.original_data: str = org_data
         self.processed_data: str = proc_data
+        self.current_build = '{}/current_build/'.format('release_v' + __version__)
         # SETTING LOCAL VARIABLES
         self.owltools_location = './owltools'
         self.temp_dir = temp
@@ -89,20 +91,25 @@ class OntologyCleaner(object):
         with open(f_data, 'rb') as out:
             self.gene_ids = pickle.load(out, encoding='bytes')
 
-    def uploads_data_to_gcs_bucket(self, file_loc: str) -> None:
+    def uploads_data_to_gcs_bucket(self, f_name: str, loc: str = None, gcs: str = None) -> None:
         """Takes a file name and pushes the corresponding data referenced by the filename object from a local
         temporary directory to a Google Cloud Storage bucket.
 
         Args:
-            file_loc: A string containing the name of file to write to a Google Cloud Storage bucket.
+            f_name: A string containing the name of file to write to a Google Cloud Storage bucket.
+            loc: A string containing the path of a local directory.
+            gcs: A string containing the path of directory on Google Cloud Storage.
 
         Returns:
             None.
         """
 
+        loc = loc if loc is not None else self.temp_dir
+        gcs = gcs if gcs is not None else self.processed_data
+
         if isinstance(self.bucket, storage.bucket.Bucket):
-            blob = self.bucket.blob(self.processed_data + file_loc)
-            blob.upload_from_filename(self.temp_dir + '/' + file_loc)
+            blob = self.bucket.blob(gcs + f_name)
+            blob.upload_from_filename(loc + '/' + f_name)
 
         return None
 
@@ -587,12 +594,14 @@ class OntologyCleaner(object):
                 self.fixes_punning_errors()
                 self.updates_ontology_reporter()  # get finishing statistics
                 self._logically_verifies_cleaned_ontologies()
+                self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         logger.info('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         self.ont_file_location = self.merged_ontology_filename
         individual_ontologies = self.checks_for_downloaded_ontology_data()
         self.merge_ontologies(individual_ontologies, self.temp_dir + '/', self.ont_file_location)
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
         print('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
@@ -601,13 +610,16 @@ class OntologyCleaner(object):
         self.normalizes_existing_classes()
         self.fixes_punning_errors()
         self.updates_ontology_reporter()  # get finishing statistics
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
         # serializes final ontology graph and uploads graph data and ontology report to gcs
         self.ont_graph.serialize(destination=self.temp_dir + '/' + self.ont_file_location, format='xml')
         ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
         self.uploads_data_to_gcs_bucket(self.ont_file_location)
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         print('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
         logger.info('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
         self.generates_ontology_report()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         return None

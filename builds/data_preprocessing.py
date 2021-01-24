@@ -21,6 +21,7 @@ from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Tuple, Union
 
 # import script containing helper functions
+from pkt_kg.__version__ import __version__
 from pkt_kg.utils import *
 
 # set environment variables
@@ -49,25 +50,31 @@ class DataPreprocessing(object):
         self.bucket: storage.bucket.Bucket = gcs_bucket
         self.original_data: str = org_data
         self.processed_data: str = processed_data
+        self.current_build = '{}/current_build/'.format('release_v' + __version__)
         # SETTING LOCAL VARIABLES
         self.temp_dir = temp_dir
         self.owltools_location = './owltools'
         # OTHER CLASS VARIABLES
         self.genomic_type_mapper: Dict = {}
 
-    def uploads_data_to_gcs_bucket(self, filename: str) -> None:
+    def uploads_data_to_gcs_bucket(self, f_name: str, loc: str = None, gcs: str = None) -> None:
         """Takes a file name and pushes the corresponding data referenced by the filename object from a local
         temporary directory to a Google Cloud Storage bucket.
 
         Args:
-            filename: A string containing the name of file to write to a Google Cloud Storage bucket.
+            f_name: A string containing the name of file to write to a Google Cloud Storage bucket.
+            loc: A string containing the path of a local directory.
+            gcs: A string containing the path of directory on Google Cloud Storage.
 
         Returns:
             None.
         """
 
-        blob = self.bucket.blob(self.processed_data + filename)
-        blob.upload_from_filename(self.temp_dir + '/' + filename)
+        loc = loc if loc is not None else self.temp_dir
+        gcs = gcs if gcs is not None else self.processed_data
+
+        blob = self.bucket.blob(gcs + f_name)
+        blob.upload_from_filename(loc + '/' + f_name)
 
         return None
 
@@ -1665,51 +1672,61 @@ class DataPreprocessing(object):
         print('\nSTEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
         logger.info('STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
         self.generates_specific_genomic_identifier_maps()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         # STEP 2: MeSH-ChEBI Identifier Mapping
         print('\nSTEP 2: MESH-CHEBI IDENTIFIER MAPPING')
         logger.info('STEP 2: MESH-CHEBI IDENTIFIER MAPPING')
         self.creates_chebi_to_mesh_identifier_mappings()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         # STEP 3: Disease and Phenotype Identifier Mapping
         print('\nSTEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
         logger.info('STEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
         self.creates_disease_identifier_mappings()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         # STEP 4: Human Protein Atlas/GTEx Tissue/Cells Edge Data
         print('\nSTEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
         logger.info('STEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
         self._hpa_gtex_ontology_alignment()
         self.processes_hpa_gtex_data()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         # STEP 5: Creating Pathway and Sequence Ontology Mappings
         print('\nSTEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
         logger.info('STEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
         self.combines_pathway_and_sequence_ontology_dictionaries()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         # STEP 6: Creating a Human Protein Ontology
         print('\nSTEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
         logger.info('STEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
         self.constructs_human_protein_ontology()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         # STEP 7: Extracting Relations Ontology Information
         print('\nSTEP 7: EXTRACTING RELATION ONTOLOGY INFORMATION')
         logger.info('STEP 7: EXTRACTING RELATION ONTOLOGY INFORMATION')
         self.processes_relation_ontology_data()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         # STEP 8: Clinvar Variant-Diseases and Phenotypes Edge Data
         print('\nSTEP 8: CREATING CLINVAR VARIANT, DISEASE, PHENOTYPE DATA')
         logger.info('STEP 8: CREATING CLINVAR VARIANT, DISEASE, PHENOTYPE DATA')
         self.processes_clinvar_data()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         # STEP 9: Uniprot Protein-Cofactor and Protein-Catalyst Edge Data
         print('\nSTEP 9: CREATING COFACTOR + CATALYST EDGE DATA')
         logger.info('STEP 9: CREATING COFACTOR + CATALYST EDGE DATA')
         self.processes_cofactor_catalyst_data()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         # STEP 10: Non-Ontology Metadata Dictionary
         print('\nSTEP 10: CREATING OBO-ONTOLOGY METADATA DICTIONARY')
         logger.info('STEP 10: CREATING OBO-ONTOLOGY METADATA DICTIONARY')
         self.creates_non_ontology_class_metadata_dict()
+        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
 
         return None
