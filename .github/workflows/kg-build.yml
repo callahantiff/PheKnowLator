@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKERFILE: builds/Dockerfile.phases12
-      GCE_JOB_NAME: "pkt_builder_phases_1_2_$GITHUB_SHA"
+      GCE_JOB_NAME: pkt_builder_phases_1_2_"$GITHUB_SHA"
       GCE_MACHINE_TYPE: n1-highmem-16
       GCE_REGION: us-central1
     steps:
