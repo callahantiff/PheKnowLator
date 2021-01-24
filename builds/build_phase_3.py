@@ -3,7 +3,6 @@
 
 # import needed libraries
 import click
-import fnmatch
 import glob
 import logging.config
 import os
@@ -97,7 +96,7 @@ def main(app, rel, owl):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket('pheknowlator')
     release = 'release_v' + __version__
-    bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix=release + '/archived_builds/')]
+    bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix='archived_builds/' + release + '/')]
     builds = [x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0]
     sorted_dates = sorted([datetime.strftime(datetime.strptime(str(x), '%d%b%Y'), '%Y-%m-%d').upper() for x in builds])
     build = 'build_' + datetime.strftime(datetime.strptime(sorted_dates[-1], '%Y-%m-%d'), '%d%b%Y').upper()
@@ -156,9 +155,9 @@ def main(app, rel, owl):
     logger.info('Upload Logs for Build Phases 1-3')
     base_url = 'https://storage.googleapis.com/pheknowlator/{}'
     # copy phases 1-2 log from current to archive build directory
-    log_file = fnmatch.filter([_.name for _ in bucket.list_blobs(prefix='current_build/')], '*/*_log.log')[0]
-    data_downloader(base_url.format(log_file), log_dir, log_file.split('/')[-1])
-    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc, log_dir, log_file.split('/')[-1])
+    log_1 = [x for x in [_.name for _ in bucket.list_blobs(prefix='current_build/')] if x.endswith('phases12_log.log')]
+    data_downloader(base_url.format(log_1[0]), log_dir, log_1[0].split('/')[-1])
+    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc, log_dir, log_1[0].split('/')[-1])
     # copy phase 3 log from current to archive build directory
     uploads_data_to_gcs_bucket(bucket, gcs_archive_loc, log_dir, log)
 
