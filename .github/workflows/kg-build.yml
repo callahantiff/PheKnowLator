@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKERFILE: builds/Dockerfile.phases12
-      GCE_JOB_NAME: pkt_builder_phases_1_2_"$GITHUB_SHA"
+      GCE_JOB_NAME: pkt_builder_phases_1_2_
       GCE_MACHINE_TYPE: n1-highmem-16
       GCE_REGION: us-central1
     steps:
@@ -27,8 +27,8 @@ jobs:
     - uses: google-github-actions/setup-gcloud@master
       with:
         version: '290.0.1'
-        service_account_key: ${{ secrets.GCE_SA_KEY }}
-        project_id: ${{ secrets.GCE_PROJECT }}
+        service_account_key: ${ GCS_SERVICE_ACCOUNT }
+        project_id: ${ PROJECT_ID }
     - name: Configure Docker Authentication
       run: gcloud --quiet auth configure-docker
     - name: Build Docker Image
@@ -37,7 +37,7 @@ jobs:
       run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
     - name: Submit Build Job to AI-Platform
       run: |-
-        gcloud ai-platform jobs submit training "$GCE_JOB_NAME" \
+        gcloud ai-platform jobs submit training ${ GCE_JOB_NAME }${ GITHUB_SHA } \
           --scale-tier custom --master-machine-type "$GCE_MACHINE_TYPE" --region "$GCE_REGION" \
           --master-image-uri "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
     - name: Monitor Build
@@ -71,8 +71,8 @@ jobs:
       - uses: google-github-actions/setup-gcloud@master
         with:
           version: '290.0.1'
-          service_account_key: ${{ secrets.GCE_SA_KEY }}
-          project_id: ${{ secrets.GCE_PROJECT }}
+          service_account_key: ${ GCS_SERVICE_ACCOUNT }
+          project_id: ${ PROJECT_ID }
       - name: Configure Docker Authentication
         run: gcloud --quiet auth configure-docker
       - name: Build Docker Image
