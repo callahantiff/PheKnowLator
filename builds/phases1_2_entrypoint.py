@@ -54,14 +54,14 @@ def main():
 
     # run phase 1 of build
     print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
-    logger.info('BUILD PHASE 1: DOWNLOADING BUILD DATA')
+    logger.info('#' * 5 + 'BUILD PHASE 1: DOWNLOADING BUILD DATA' + '#' * 5)
     # try: run_phase_1()
     # except: logger.error('Uncaught Exception: {}'.format(traceback.format_exc()))
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     # run phase 2 build
     print('#' * 35 + '\nBUILD PHASE 2: DATA PRE-PROCESSING\n' + '#' * 35)
-    logger.info('BUILD PHASE 2: DATA PRE-PROCESSING')
+    logger.info('#' * 5 + 'BUILD PHASE 2: DATA PRE-PROCESSING' + '#' * 5)
     # try: run_phase_2()
     # except: logger.error('Uncaught Exception: {}'.format(traceback.format_exc()))
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)

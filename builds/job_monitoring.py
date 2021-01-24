@@ -51,21 +51,19 @@ def monitor_ai_platform_jobs(project, job, sleep):
     return state
 
 
-def monitor_gce_jobs(phase, sleep, log, release='release_v' + __version__):
+def monitor_gce_jobs(phase, sleep, gcs_log_location):
     """Monitors PheKnowLator build jobs for Phase 2 of the build process. Method monitors jobs by querying the
     current_build directory of the current release in the dedicated project Google Cloud Storage Bucket.
 
     Args:
         phase: An integer representing the build phase (i.e. 1 for "Phases1-2" or 3 for "Phase 3").
         sleep: An integer containing the number of seconds to wait between job status checks.
-        log: A string containing the name of the log file to monitor.
-        release: A string containing the project release version.
+        gcs_log_location: A string containing a Google Cloud Storage file path and the name of the log file to monitor.
 
     Returns:
         status: A string containing the job's exit status.
     """
 
-    gcs_current_build_log = 'https://storage.googleapis.com/pheknowlator/{}/current_build/{}'.format(release, log)
     quit_status = 'COMPLETED BUILD PHASES 1-2' if phase == 1 else 'COMPLETED BUILD PHASE 3'
 
     # query job status
@@ -73,14 +71,14 @@ def monitor_gce_jobs(phase, sleep, log, release='release_v' + __version__):
     while status == 'RUNNING':
         time.sleep(sleep)
         current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))
-        data_downloader(gcs_current_build_log, '.' + '/')  # download log and retrieve program status
+        data_downloader(gcs_log_location, '.' + '/')  # download log and retrieve program status
         try:
             log_content = [json.loads(x) for x in open(log)]
             messages = ' '.join([x['message'] for x in log_content])
             if len([x for x in log_content if x['levelname'] == 'ERROR']) > 0: status = 'FAILED'
             elif quit_status in messages: status = 'COMPLETED'
             else: status = 'RUNNING'
-        except JSONDecodeError: status, log_content = 'RUNNING', ['QUEUED: Program has not yet Started']
+        except JSONDecodeError: status, log_content = 'FAILED', ['ERROR: SOMETHING WENT WRONG LOG IS EMPTY!']
         elapsed_minutes = round((datetime.now() - start_time).total_seconds() / 60, 3)
         print('\n\nJob Status: {} @ {} -- Elapsed Time (min): {}\n'.format(status, current_time, elapsed_minutes))
 
@@ -92,21 +90,28 @@ def monitor_gce_jobs(phase, sleep, log, release='release_v' + __version__):
 
 
 @click.command()
-@click.option('--instance_type', prompt='Indicate GCE Instance Type (e.g. "reg", "ai").')
-@click.option('--phase', prompt='Provide an Integer Representing the Build Phase (i.e. "1" or "3").')
-@click.option('--project', prompt='Provide the Google Project Identifier')
-@click.option('--job', prompt='Provide the Job Name')
-@click.option('--sleep', prompt='Provide the Time in Seconds to Sleep')
-def main(instance_type, phase, project, job, sleep):
+@click.option('--gce_type', prompt='Indicate GCE Instance Type (e.g. "reg", "ai").', default='reg')
+@click.option('--phase', prompt='Integer Representing the Build Phase (i.e. "1" or "3").', required=True)
+@click.option('--gcs_dir', prompt="Write directory within GCS current_build directory.", required=False)
+@click.option('--project', prompt='Google Project Identifier', required=False, default=None)
+@click.option('--job', prompt='Google Job Name', required=False, default=None)
+@click.option('--sleep', prompt='Time in Seconds to Sleep when Monitoring', default=60)
+def main(gce_type, phase, gcs_dir, project, job, sleep):
 
     start_time = datetime.now()
 
-    # set log name -- used for monitoring "reg" or regular GCE instances
-    log_name = 'pkt_builder_phases12_log.log' if int(phase) == 1 else 'pkt_builder_phase3_log.log'
+    # set log name -- used for monitoring "reg" or regular GCE instances and gcs log location
+    release = 'release_v' + __version__
+    if int(phase) == 1:
+        gcs_url_string = 'https://storage.googleapis.com/pheknowlator/{}/current_build/'
+        gcs_log_location = gcs_url_string.format(release, 'pkt_builder_phases12_log.log')
+    else:
+        gcs_url_string = 'https://storage.googleapis.com/pheknowlator/{}/current_build/knowledge_graphs/{}/{}'
+        gcs_log_location = gcs_url_string.format(release, gcs_dir, 'pkt_builder_phase3_log.log')
 
     # identify build phase and activate job monitoring
-    if instance_type == "ai": state = monitor_ai_platform_jobs(project=project, job=job, sleep=int(sleep))
-    else: state = monitor_gce_jobs(phase=int(phase), sleep=int(sleep), log=log_name)
+    if gce_type == "ai": state = monitor_ai_platform_jobs(project=project, job=job, sleep=int(sleep))
+    else: state = monitor_gce_jobs(phase=int(phase), sleep=int(sleep), gcs_log_location=gcs_log_location)
 
     # print job run information
     current_time = str(datetime.now().strftime('%b %d %Y %I:%M%p'))

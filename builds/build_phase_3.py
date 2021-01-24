@@ -20,7 +20,6 @@ from pkt_kg.__version__ import __version__
 # set environment variables
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 # logging
-## NAMING AND CHANGE IN JOB MONITORING
 log_dir, log, log_config = 'logs', 'pkt_builder_phase3_log.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
@@ -104,14 +103,12 @@ def main(app, rel, owl):
     # set gcs bucket variables
     gcs_archived_build = '{}/archived_builds/{}/'.format(release, build)
     gcs_current_build = '{}/current_build/'.format(release)
+    gcs_log_location = gcs_current_build + 'knowledge_graphs/{}/{}/{}/'.format(build_app, rel_type, owl_decoding)
 
     # try:
     #     y[0]
     # except IndexError as e:
     #     logger.error(e, exc_info=True)
-
-    # upload logging to GCS bucket
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     #####################################################
     # STEP 2 - CONSTRUCT KNOWLEDGE GRAPH
@@ -123,24 +120,24 @@ def main(app, rel, owl):
     #           '--app {} --rel {} --owl {}'
     # try: os.system(command.format(app, rel, owl))
     # except: logger.error('Uncaught Exception: {}'.format(traceback.format_exc()))
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     #####################################################
     # STEP 3 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
     # set variable to store file destination information
-    # source_location = gcs_archived_build + '{}/{}/{}'.format(build_app, rel_type, owl_decoding)
 
     # upload data to Archive Google Cloud Storage Buckets
     # uploads_build_data(bucket, source_location)
     # uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
-    # copy build logs for run to archive bucket
+    # copy build logs for run to archive bucket --> phases 1-2 in gcs_current_build and phase 3 in gcs_log_location
 
     #######################################################
     # STEP 4 - LOG EXIT STATUS TO FINISH RUN
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
     print('\n\n' + '*' * 5 + ' COMPLETED BUILD PHASE 3: {} MINUTES '.format(runtime) + '*' * 5)
     logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime))  # don't delete needed for build monitoring
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     return None
 
