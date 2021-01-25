@@ -14,7 +14,7 @@ import traceback
 from datetime import date, datetime
 from google.cloud import storage  # type: ignore
 
-from builds.build_utilities import uploads_data_to_gcs_bucket, downloads_data_from_gcs_bucket  # type: ignore
+from builds.build_utilities import *  # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 # owl tools location
 owltools_location = './builds/owltools'
+# owltools_location = './pkt_kg/libs/owltools'
 
 
 def creates_build_directory_structure(bucket, release, build):
@@ -148,7 +149,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
             ont_name = url.split('/')[-1][:-4] + '_with_imports.owl'
             file_path = temp_directory + '/' + ont_name
             if len([x for x in downloaded_data if x.endswith(ont_name)]) > 0:
-                downloads_data_from_gcs_bucket(bucket, gcs_original_path, 'none', ont_name, temp_directory)
+                downloads_data_from_gcs_bucket(bucket, gcs_original_path, None, ont_name, temp_directory)
             else:
                 command_string = '{} {} --merge-import-closure -o {}'
                 return_code = os.system(command_string.format(owltools_location, url, file_path))
@@ -159,7 +160,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
             filename, url = url.split(', ')
             file_path = temp_directory + '/' + re.sub('.zip|.gz', '', filename)
             if len([x for x in downloaded_data if x.endswith(file_path)]) > 0:
-                downloads_data_from_gcs_bucket(bucket, gcs_original_path, 'none', file_path, temp_directory)
+                downloads_data_from_gcs_bucket(bucket, gcs_original_path, None, file_path, temp_directory)
             else: data_downloader(url, temp_directory + '/', filename)
 
         metadata += [get_file_metadata(url, file_path, gcs_url)]
