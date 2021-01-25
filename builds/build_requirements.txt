@@ -1,6 +1,7 @@
 click==7.1.2
 DateTime~=4.2
 google==1.9.3
+google-api-core==1.24.1
 google-api-python-client~=1.7.9
 google-cloud-storage==1.28.0
 lxml==4.5.2
