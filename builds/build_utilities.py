@@ -49,19 +49,25 @@ def downloads_data_from_gcs_bucket(bucket, original_data, processed_data, filena
     """
 
     if isinstance(bucket, storage.bucket.Bucket):
-        try:
-            data_file, gcs_dir = '', [processed_data, original_data] if processed_data is not None else [original_data]
-            for x in gcs_dir:
-                _files = [_.name for _ in bucket.list_blobs(prefix=x)]
-                gcs_file = fnmatch.filter(_files, '*/' + filename)
-                if len(gcs_file) > 0:
-                    data_file = temp_directory + '/' + gcs_file[0].split('/')[-1]
-                    if not os.path.exists(data_file):  # only download if file has not yet been downloaded
-                        bucket.blob(gcs_file[0]).download_to_filename(temp_directory + '/' + gcs_file[0].split('/')[-1])
-                else: raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
+        try:  # search processed bucket first
+            if processed_data is not None:
+                _files = [_.name for _ in bucket.list_blobs(prefix=processed_data)]
+                proc_file = fnmatch.filter(_files, '*/' + filename)[0]
+                data_file = temp_directory + '/' + proc_file.split('/')[-1]
+                if not os.path.exists(data_file):  # only download if file has not yet been downloaded
+                    bucket.blob(proc_file).download_to_filename(temp_directory + '/' + proc_file.split('/')[-1])
+            else: raise IndexError('processed_data is None, Exception Trigger in Order to Search original_data')
         except IndexError:
-            raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
-        else: return data_file
+            try:  # then search the original bucket
+                _files = [_.name for _ in bucket.list_blobs(prefix=original_data)]
+                org_file = fnmatch.filter(_files, '*/' + filename)[0]
+                data_file = temp_directory + '/' + org_file.split('/')[-1]
+                if not os.path.exists(data_file):  # only download if file has not yet been downloaded
+                    bucket.blob(org_file).download_to_filename(temp_directory + '/' + org_file.split('/')[-1])
+            except IndexError:
+                logger.error('Cannot find {} in the GCS directories of the current build'.format(filename))
+                raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
+        return data_file
     else: return None
 
 
