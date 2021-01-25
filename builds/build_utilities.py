@@ -3,6 +3,7 @@
 
 # import needed libraries
 import fnmatch
+import os
 
 from google.cloud import storage  # type: ignore
 
@@ -48,23 +49,37 @@ def downloads_data_from_gcs_bucket(bucket, original_data, processed_data, filena
     """
 
     if isinstance(bucket, storage.bucket.Bucket):
-        try:  # search processed bucket first
-            _files = [_.name for _ in bucket.list_blobs(prefix=processed_data)]
-            org_file = fnmatch.filter(_files, '*/' + filename)[0]
-            data_file = temp_directory + '/' + org_file.split('/')[-1]
-            if not os.path.exists(data_file):  # only download if file has not yet been downloaded
-                bucket.blob(org_file).download_to_filename(temp_directory + '/' + org_file.split('/')[-1])
+        try:
+            data_file, gcs_dir = '', [processed_data, original_data] if processed_data is not None else [original_data]
+            for x in gcs_dir:
+                _files = [_.name for _ in bucket.list_blobs(prefix=x)]
+                gcs_file = fnmatch.filter(_files, '*/' + filename)
+                if len(gcs_file) > 0:
+                    data_file = temp_directory + '/' + gcs_file[0].split('/')[-1]
+                    if not os.path.exists(data_file):  # only download if file has not yet been downloaded
+                        bucket.blob(gcs_file[0]).download_to_filename(temp_directory + '/' + gcs_file[0].split('/')[-1])
+                else: pass
         except IndexError:
-            try:  # then search the original bucket
-                _files = [_.name for _ in bucket.list_blobs(prefix=original_data)]
-                proc_file = fnmatch.filter(_files, '*/' + filename)[0]
-                data_file = temp_directory + '/' + proc_file.split('/')[-1]
-                if not os.path.exists(data_file):  # only download if file has not yet been downloaded
-                    bucket.blob(proc_file).download_to_filename(temp_directory + '/' + proc_file.split('/')[-1])
-            except IndexError:
-                raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
+            raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
         return data_file
     else: return None
+
+
+def deletes_single_file(bucket, file_path):
+    """Method deletes a single file form a Google Cloud Storage Bucket.
+
+    Args:
+        bucket:
+        file_path:
+
+    Returns:
+        None.
+    """
+
+    blob = bucket.blob(file_path)
+    blob.delete()
+
+    return None
 
 
 def deletes_bucket_files(bucket, gcs_directory):
