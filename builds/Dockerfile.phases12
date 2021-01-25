@@ -9,7 +9,6 @@ ENV PYTHONUNBUFFERED True
 
 # copying local scripts to container
 COPY *.py *.txt *.ini /PheKnowLator/builds/
-COPY __init__.py /PheKnowLator/
 
 # set working directory in container
 WORKDIR /PheKnowLator/builds/
@@ -18,8 +17,11 @@ WORKDIR /PheKnowLator/builds/
 RUN wget https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools && \
     chmod 755 owltools
 
-# install requirements
+# set working directory and python path
 WORKDIR /PheKnowLator/
+RUN export PYTHONPATH='.'
+
+#install requirements
 RUN pip install -r builds/build_requirements.txt pkt_kg
 
 # set OWlTools memory (set to a high value, system will only use available memory)

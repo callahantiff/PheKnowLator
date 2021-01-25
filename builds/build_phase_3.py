@@ -15,7 +15,7 @@ import traceback
 from datetime import datetime
 from google.cloud import storage  # type: ignore
 
-from build_utilities import *    # type: ignore
+from builds.build_utilities import *    # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import *
 

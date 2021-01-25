@@ -8,7 +8,7 @@ FROM callahantiff/pheknowlator:latest
 ENV PYTHONUNBUFFERED True
 
 # set wroking directory in container
-WORKDIR /PheKnowLator/builds/
+WORKDIR /PheKnowLator/
 
 # download build dependencies
 RUN wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/resource_info.txt && \
@@ -36,14 +36,17 @@ COPY build_requirements.txt logging.ini /PheKnowLator/builds/
 COPY logging.ini /PheKnowLator/pkt_kg
 
 # install requirements
-RUN pip install -r build_requirements.txt
+RUN pip install -r builds/build_requirements.txt
 
 # set OWlTools memory (set to a high value, system will only use available memory)
 ENV OWLTOOLS_MEMORY=100g
 RUN echo $OWLTOOLS_MEMORY
 
-# run script
+# set working directory and python path
 WORKDIR /PheKnowLator/
+RUN export PYTHONPATH='.'
+
+# run script
 ARG app_arg
 ENV app=$app_arg
 ARG rel_arg
