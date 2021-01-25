@@ -9,6 +9,7 @@ ENV PYTHONUNBUFFERED True
 
 # copying local scripts to container
 COPY *.py *.txt *.ini /PheKnowLator/builds/
+COPY __init__.py /PheKnowLator/
 
 # set working directory in container
 WORKDIR /PheKnowLator/builds/

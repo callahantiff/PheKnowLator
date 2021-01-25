@@ -147,10 +147,13 @@ class OntologyCleaner(object):
             else: ont1, ont2 = ontology_files.pop(), ontology_files.pop()
             print('Merging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
             logger.info('Merging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
-            command = './owltools {} {} --merge-support-ontologies -o {}'
-            return_code = os.system(command.format(str(ont1), str(ont2), write_location + merged_ont_kg))
+            command = '{} {} {} --merge-support-ontologies -o {}'
+            return_code = os.system(command.format(self.owltools_location, str(ont1), str(ont2),
+                                                   write_location + merged_ont_kg))
             if return_code == 0: return self.merge_ontologies(ontology_files, write_location, merged_ont_kg)
-            else: raise ValueError('OWL API Merging Failed')
+            else:
+                logger.error('ERROR: OWL API Merging Failed: {}'.format(return_code))
+                raise Exception('ERROR: OWL API Merging Failed: {}'.format(return_code))
 
     def _logically_verifies_cleaned_ontologies(self) -> None:
         """Logically verifies an ontology by running the ELK deductive logic reasoner. Before running the reasoner
