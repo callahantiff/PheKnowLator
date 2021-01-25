@@ -44,7 +44,7 @@ RUN echo $OWLTOOLS_MEMORY
 
 # set working directory and python path
 WORKDIR /PheKnowLator/
-RUN export PYTHONPATH='.'
+ENV PYTHONPATH='.'
 
 # run script
 ARG app_arg

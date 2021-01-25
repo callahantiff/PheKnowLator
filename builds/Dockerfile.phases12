@@ -17,11 +17,8 @@ WORKDIR /PheKnowLator/builds/
 RUN wget https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools && \
     chmod 755 owltools
 
-# set working directory and python path
+# set working directory and install requirements
 WORKDIR /PheKnowLator/
-RUN export PYTHONPATH='.'
-
-#install requirements
 RUN pip install -r builds/build_requirements.txt pkt_kg
 
 # set OWlTools memory (set to a high value, system will only use available memory)
@@ -30,5 +27,6 @@ RUN echo $OWLTOOLS_MEMORY
 
 # set python envrionment encoding
 RUN export PYTHONIOENCODING=utf-8
+ENV PYTHONPATH='.'
 
 ENTRYPOINT ["python", "builds/phases1_2_entrypoint.py"]
