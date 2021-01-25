@@ -127,7 +127,7 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
 
 def run_phase_2():
 
-    # set temp directory to use locally for writing data GCS data to
+    # set temp directory to use locally for writing data to
     temp_dir = 'builds/temp'
     if not os.path.exists(temp_dir): os.mkdir(temp_dir)
 
