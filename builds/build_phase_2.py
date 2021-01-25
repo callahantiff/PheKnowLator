@@ -13,16 +13,16 @@ from datetime import datetime
 from google.cloud import storage  # type: ignore
 from tqdm import tqdm  # type: ignore
 
-from build_utilities import uploads_data_to_gcs_bucket, deletes_bucket_files, copies_data_between_gcs_bucket_directories
-from data_preprocessing import DataPreprocessing
-from ontology_cleaning import OntologyCleaner
+from builds.build_utilities import *
+from builds.data_preprocessing import DataPreprocessing
+from builds.ontology_cleaning import OntologyCleaner
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
 # set environment variables
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 # logging
-log_dir, log, log_config = 'logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
+log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
@@ -128,7 +128,7 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
 def run_phase_2():
 
     # set temp directory to use locally for writing data GCS data to
-    temp_dir = 'temp'
+    temp_dir = 'builds/temp'
     if not os.path.exists(temp_dir): os.mkdir(temp_dir)
 
     #####################################################

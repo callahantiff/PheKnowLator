@@ -19,7 +19,7 @@ from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Union
 
 # import script containing helper functions
-from build_utilities import downloads_data_from_gcs_bucket, uploads_data_to_gcs_bucket
+from builds.build_utilities import downloads_data_from_gcs_bucket, uploads_data_to_gcs_bucket
 from pkt_kg.utils import *
 
 # set environment variables
@@ -28,7 +28,7 @@ schema = Namespace('http://www.w3.org/2001/XMLSchema#')
 obo = Namespace('http://purl.obolibrary.org/obo/')
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 # logging
-log_dir, log, log_config = 'logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
+log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})

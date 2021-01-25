@@ -11,12 +11,12 @@ import traceback
 from datetime import datetime
 from google.cloud import storage  # type: ignore
 
-from build_phase_1 import *  # type: ignore
-from build_phase_2 import *  # type: ignore
+from builds.build_phase_1 import *  # type: ignore
+from builds.build_phase_2 import *  # type: ignore
 
 
 # set environment variables
-log_dir, log, log_config = 'logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
+log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
 if os.path.exists(log_dir): shutil.rmtree(log_dir)
 os.mkdir(log_dir)
 logger = logging.getLogger(__name__)

@@ -14,14 +14,14 @@ import traceback
 from datetime import date, datetime
 from google.cloud import storage  # type: ignore
 
-from build_utilities import uploads_data_to_gcs_bucket, downloads_data_from_gcs_bucket  # type: ignore
+from builds.build_utilities import uploads_data_to_gcs_bucket, downloads_data_from_gcs_bucket  # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
 # set environment variables
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 # logging
-log_dir, log, log_config = 'logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
+log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
@@ -114,7 +114,7 @@ def writes_metadata(metadata, bucket, original_data, temp_directory):
     return None
 
 
-def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_loc='data_to_download.txt'):
+def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_loc='builds/data_to_download.txt'):
     """Reads in the list of data to download for the current build, downloads each object, and pushes the downloaded
     object up to a Google Cloud Storage bucket. Once all of the data are downloaded, a metadata file object is
     generated and pushed with the downloaded data to the original_data Google Cloud Storage bucket for the current
@@ -172,7 +172,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
 def run_phase_1():
 
     # create temp directory to use locally for writing data GCS data to
-    temp_dir = 'temp'
+    temp_dir = 'builds/temp'
     os.mkdir(temp_dir)
 
     ###############################################
