@@ -17,7 +17,7 @@ def uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, filename):
         original_data: A string specifying the location of the original_data directory for a specific build.
         temp_directory: A local directory where preprocessed data is stored.
         filename: A string containing a filename.
-    #
+
     Returns:
         None.
     """
@@ -69,8 +69,8 @@ def deletes_single_file(bucket, file_path):
     """Method deletes a single file form a Google Cloud Storage Bucket.
 
     Args:
-        bucket:
-        file_path:
+        bucket: A storage Bucket object specifying a Google Cloud Storage bucket.
+        file_path: A string containing a Google Cloud Storage Bucket path to a specific file.
 
     Returns:
         None.
