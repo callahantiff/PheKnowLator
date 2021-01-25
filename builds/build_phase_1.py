@@ -141,7 +141,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
     gcs_original_path = '/'.join(gcs_url.split('/')[4:-1])
     downloaded_data = [file.name for file in bucket.list_blobs(prefix=gcs_original_path)]
     urls, metadata = [x.strip('\n') for x in open(file_loc, 'r').readlines() if not x.startswith('#') and x != '\n'], []
-    for url in urls[:1]:
+    for url in urls:
         print('Downloading {}'.format(url))
         logger.info('Downloading {}'.format(url))
         if url.startswith('http://purl.obolibrary.org/obo/'):
