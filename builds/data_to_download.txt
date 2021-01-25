@@ -58,4 +58,4 @@ UniProt2Reactome_All_Levels.txt, https://reactome.org/download/current/UniProt2R
 9606.protein.links.v11.0.txt, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
 
 # local build data
-genomic_typing_dict.pkl, https://storage.googleapis.com/pheknowlator/release_v2.0.0/curated_data/genomic_typing_dict.pkl
+genomic_typing_dict.pkl, https://storage.googleapis.com/pheknowlator/curated_data/genomic_typing_dict.pkl
