@@ -9,10 +9,12 @@ import shutil
 import traceback
 
 from datetime import datetime
+from google.api_core.exceptions import NotFound  # type: ignore
 from google.cloud import storage  # type: ignore
 
 from builds.build_phase_1 import *  # type: ignore
 from builds.build_phase_2 import *  # type: ignore
+from builds.build_utilities import deletes_single_file, uploads_data_to_gcs_bucket  # type: ignore
 
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
@@ -24,34 +26,19 @@ logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
-def uploads_data_to_gcs_bucket(bucket, bucket_location, directory, file_loc):
-    """Takes a file name and pushes the corresponding data referenced by the filename object from a local
-    temporary directory to a Google Cloud Storage bucket.
-
-    Args:
-        bucket: A storage bucket object specifying a Google Cloud Storage bucket.
-        bucket_location: A string containing a file path to a directory within a Google Cloud Storage Bucket.
-        directory: A string containing a local directory.
-        file_loc: A string containing the name of file to write to a Google Cloud Storage bucket.
-
-    Returns:
-        None.
-    """
-
-    blob = bucket.blob(bucket_location + file_loc)
-    blob.upload_from_filename(directory + '/' + file_loc)
-
-    return None
-
-
 def main():
+
     start_time = datetime.now()
+
+    # initialize Google Cloud Storage Bucket object and delete prior logs (if present) from current_build directory
+    bucket = storage.Client().get_bucket('pheknowlator')
+    gcs_current_build = 'current_build/'
+    try: deletes_single_file(bucket, gcs_current_build + '{}'.format(log))
+    except NotFound: pass
 
     # start logger and configure Google Cloud Storage settings
     print('\n\n' + '*' * 10 + ' STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
     logger.info('*' * 10 + ' STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
-    bucket = storage.Client().get_bucket('pheknowlator')
-    gcs_current_build = 'current_build/'
 
     # run phase 1 of build
     print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
