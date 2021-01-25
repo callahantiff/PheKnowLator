@@ -67,9 +67,9 @@ def uploads_build_data(bucket, gcs_location):
 @click.option('--owl', prompt='yes/no - removing OWL Semantics from knowledge graph')
 def main(app, rel, owl):
 
-    start_time = datetime.now()
     print('#' * 35 + '\nBUILD PHASE 3: DATA PRE-PROCESSING\n' + '#' * 35)
     logger.info('#' * 5 + 'BUILD PHASE 3: DATA PRE-PROCESSING' + '#' * 5)
+    start_time = datetime.now()
 
     #############################################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
@@ -77,8 +77,8 @@ def main(app, rel, owl):
     logger.info('STEP 1: INITIALIZE GOOGLE STORAGE BUCKET AND REFORMAT INPUT ARGUMENTS')
 
     # set bucket information and find current archived build directory
-    bucket = storage.Client().get_bucket('pheknowlator')
     release = 'release_v' + __version__
+    bucket = storage.Client().get_bucket('pheknowlator')
     bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix='archived_builds/' + release + '/')]
     builds = [x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0]
     sorted_dates = sorted([datetime.strftime(datetime.strptime(str(x), '%d%b%Y'), '%Y-%m-%d').upper() for x in builds])
