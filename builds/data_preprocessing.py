@@ -21,7 +21,7 @@ from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Tuple, Union
 
 # import script containing helper functions
-from builds.build_utilities import downloads_data_from_gcs_bucket, uploads_data_to_gcs_bucket
+from builds.build_utilities import *
 from pkt_kg.utils import *
 
 # set environment variables
@@ -54,6 +54,7 @@ class DataPreprocessing(object):
         # SETTING LOCAL VARIABLES
         self.temp_dir = temp_dir
         self.owltools_location = './builds/owltools'
+        # self.owltools_location = './pkt_kg/libs/owltools'
         # OTHER CLASS VARIABLES
         self.genomic_type_mapper: Dict = {}
 
