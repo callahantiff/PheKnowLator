@@ -25,6 +25,8 @@ log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.g
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
+# owl tools location
+owltools_location = './builds/owltools'
 
 
 def creates_build_directory_structure(bucket, release, build):
@@ -139,7 +141,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
     gcs_original_path = '/'.join(gcs_url.split('/')[4:-1])
     downloaded_data = [file.name for file in bucket.list_blobs(prefix=gcs_original_path)]
     urls, metadata = [x.strip('\n') for x in open(file_loc, 'r').readlines() if not x.startswith('#') and x != '\n'], []
-    for url in urls:
+    for url in urls[:1]:
         print('Downloading {}'.format(url))
         logger.info('Downloading {}'.format(url))
         if url.startswith('http://purl.obolibrary.org/obo/'):
@@ -148,7 +150,8 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
             if len([x for x in downloaded_data if x.endswith(ont_name)]) > 0:
                 downloads_data_from_gcs_bucket(bucket, gcs_original_path, 'none', ont_name, temp_directory)
             else:
-                return_code = os.system("./owltools {} --merge-import-closure -o {}".format(url, file_path))
+                command_string = '{} {} --merge-import-closure -o {}'
+                return_code = os.system(command_string.format(owltools_location, url, file_path))
                 if return_code != 0:
                     logger.error('ERROR: Unable to successfully download {}: {}'.format(url, return_code))
                     raise Exception('ERROR: Unable to successfully download {}'.format(url))

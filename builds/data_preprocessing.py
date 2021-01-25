@@ -53,7 +53,7 @@ class DataPreprocessing(object):
         self.current_build = 'current_build/'
         # SETTING LOCAL VARIABLES
         self.temp_dir = temp_dir
-        self.owltools_location = './owltools'
+        self.owltools_location = './builds/owltools'
         # OTHER CLASS VARIABLES
         self.genomic_type_mapper: Dict = {}
 

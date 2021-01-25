@@ -14,6 +14,7 @@ from google.cloud import storage  # type: ignore
 from builds.build_phase_1 import *  # type: ignore
 from builds.build_phase_2 import *  # type: ignore
 
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 
 # set environment variables
 log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)

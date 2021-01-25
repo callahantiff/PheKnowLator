@@ -54,7 +54,7 @@ class OntologyCleaner(object):
         self.processed_data: str = proc_data
         self.current_build: str = 'current_build/'
         # LOCAL VARIABLES
-        self.owltools_location = './owltools'
+        self.owltools_location = './builds/owltools'
         self.temp_dir = temp
         self.merged_ontology_filename: str = 'PheKnowLator_MergedOntologies.owl'
         # ONTOLOGY INFORMATION DICTIONARY
