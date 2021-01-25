@@ -35,7 +35,7 @@ jobs:
     - name: Publish Docker Image to Google Container Registry
       run: docker push "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
     - name: Clean-Up Google Cloud Storage Environment
-      run: gsutil rm -f gs://pheknowlator/current_build/*.log
+      run: gsutil rm -f gs://pheknowlator/current_build/*.log 2> /dev/null || true
     - name: Submit Build Job to AI-Platform
       run: |-
         gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
