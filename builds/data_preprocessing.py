@@ -5,7 +5,7 @@
 import fnmatch
 import glob
 import itertools
-import logging
+import logging.config
 import networkx  # type: ignore
 import numpy  # type: ignore
 import os

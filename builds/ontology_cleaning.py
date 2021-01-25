@@ -5,7 +5,7 @@
 import datetime
 import fnmatch
 import glob
-import logging
+import logging.config
 import pickle
 import os
 import re
