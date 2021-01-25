@@ -59,6 +59,7 @@ def main():
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
     print('\n\n' + '*' * 10 + ' COMPLETED BUILD PHASES 1-2: {} MINUTES '.format(runtime) + '*' * 10)
     logger.info('COMPLETED BUILD PHASES 1-2: {} MINUTES'.format(runtime))  # don't delete needed for build monitoring
+    logger.info('EXIT BUILD PHASES 1-2')  # don't delete needed for build monitoring
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
 

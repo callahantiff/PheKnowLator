@@ -143,6 +143,7 @@ def main(app, rel, owl):
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
     print('\n\n' + '*' * 5 + ' COMPLETED BUILD PHASE 3: {} MINUTES '.format(runtime) + '*' * 5)
     logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime))  # don't delete needed for build monitoring
+    logger.info('EXIT BUILD PHASE 3')  # don't delete needed for build monitoring
 
     # copy build logs
     print('Copying Logs from the current_build Directory to the archived_builds Directory')

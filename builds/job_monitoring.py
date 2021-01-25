@@ -63,7 +63,7 @@ def monitor_gce_jobs(phase, sleep, gcs_log_location):
         status: A string containing the job's exit status.
     """
 
-    quit_status = 'COMPLETED BUILD PHASES 1-2' if phase == 1 else 'COMPLETED BUILD PHASE 3'
+    quit_status = 'EXIT BUILD PHASES 1-2' if phase == 1 else 'EXIT BUILD PHASE 3'
 
     # query job status
     log_content, start_time, status = None, datetime.now(), 'RUNNING'
@@ -75,7 +75,7 @@ def monitor_gce_jobs(phase, sleep, gcs_log_location):
             log_content = [json.loads(x) for x in open(gcs_log_location.split('/')[-1])]
             messages = ' '.join([x['message'] for x in log_content])
             if len([x for x in log_content if x['levelname'] == 'ERROR']) > 0: status = 'FAILED'
-            elif quit_status in messages: status = 'COMPLETED'
+            elif quit_status == messages: status = 'COMPLETED'
             else: status = 'RUNNING'
         except JSONDecodeError: status, log_content = 'RUNNING', ['QUEUED: Instance is Queued or being Prepared']
         elapsed_minutes = round((datetime.now() - start_time).total_seconds() / 60, 3)
