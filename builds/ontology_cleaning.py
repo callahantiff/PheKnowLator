@@ -19,6 +19,7 @@ from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Union
 
 # import script containing helper functions
+from build_utilities import downloads_data_from_gcs_bucket, uploads_data_to_gcs_bucket
 from pkt_kg.utils import *
 
 # set environment variables
@@ -88,74 +89,18 @@ class OntologyCleaner(object):
         with open(f_data, 'rb') as out:
             self.gene_ids = pickle.load(out, encoding='bytes')
 
-    def uploads_data_to_gcs_bucket(self, f_name: str, loc: str = None, gcs: str = None) -> None:
-        """Takes a file name and pushes the corresponding data referenced by the filename object from a local
-        temporary directory to a Google Cloud Storage bucket.
-
-        Args:
-            f_name: A string containing the name of file to write to a Google Cloud Storage bucket.
-            loc: A string containing the path of a local directory.
-            gcs: A string containing the path of directory on Google Cloud Storage.
-
-        Returns:
-            None.
-        """
-
-        loc = loc if loc is not None else self.temp_dir
-        gcs = gcs if gcs is not None else self.processed_data
-        if isinstance(self.bucket, storage.bucket.Bucket):
-            blob = self.bucket.blob(gcs + f_name)
-            blob.upload_from_filename(loc + '/' + f_name)
-
-        return None
-
-    def downloads_data_from_gcs_bucket(self, filename: str) -> Optional[str]:
-        """Takes a filename and and downloads the corresponding data to a local temporary directory, if it has not
-        already been downloaded.
-
-        Args:
-            filename: A string containing the name of file to write to a Google Cloud Storage bucket.
-
-        Returns:
-            data_file: A string containing the local filepath for a file downloaded from a GSC bucket.
-
-        Raises:
-            ValueError: when trying to download a non-existent file from the GCS original_data dir of the current build.
-        """
-
-        if isinstance(self.bucket, storage.bucket.Bucket):
-            try:  # search processed bucket first
-                _files = [_.name for _ in self.bucket.list_blobs(prefix=self.processed_data)]
-                org_file = fnmatch.filter(_files, '*/' + filename)[0]
-                data_file = self.temp_dir + '/' + org_file.split('/')[-1]
-                if not os.path.exists(data_file):  # only download if file has not yet been downloaded
-                    self.bucket.blob(org_file).download_to_filename(self.temp_dir + '/' + org_file.split('/')[-1])
-            except IndexError:
-                try:  # then search the original bucket
-                    _files = [_.name for _ in self.bucket.list_blobs(prefix=self.original_data)]
-                    proc_file = fnmatch.filter(_files, '*/' + filename)[0]
-                    data_file = self.temp_dir + '/' + proc_file.split('/')[-1]
-                    if not os.path.exists(data_file):  # only download if file has not yet been downloaded
-                        self.bucket.blob(proc_file).download_to_filename(self.temp_dir + '/' + proc_file.split('/')[-1])
-                except IndexError:
-                    logger.error('IndexError: {} not in the GCS directory of the current build'.format(filename))
-                    raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
-            return data_file
-        else:
-            return None
-
-    def reads_gcs_bucket_data_to_graph(self, file_location: str) -> Graph:
+    def reads_gcs_bucket_data_to_graph(self, f_name: str) -> Graph:
         """Reads data corresponding to the input file_location variable into a Pandas DataFrame.
 
         Args:
-            file_location: A string containing the name of file that exists in a Google Cloud Storage bucket.
+            f_name: A string containing the name of file that exists in a Google Cloud Storage bucket.
 
         Returns:
              graph: An RDFLib graph object containing data read from a Google Cloud Storage bucket.
         """
 
-        dat = self.downloads_data_from_gcs_bucket(file_location)
-        graph = Graph().parse(dat, format='xml')
+        x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
+        graph = Graph().parse(x, format='xml')
 
         return graph
 
@@ -176,7 +121,7 @@ class OntologyCleaner(object):
             ont_list = [x.split('/')[-1] for x in fnmatch.filter(_files, '*/*_with_imports.owl')]
             # download the files to local temp directory
             for ont in ont_list:
-                self.downloads_data_from_gcs_bucket(ont)
+                downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, ont, self.temp_dir)
         else: ont_list = onts
 
         return ont_list
@@ -225,7 +170,7 @@ class OntologyCleaner(object):
         return_code = os.system(command.format(filename, 'elk', filename))
         if return_code == 0:
             ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
-            self.uploads_data_to_gcs_bucket(self.ont_file_location)
+            uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
         else:
             logger.error('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
             raise Exception('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
@@ -559,7 +504,7 @@ class OntologyCleaner(object):
                         for i in x['Normalized - Dep']: o.write('\t\t- {}\n'.format(i))
                     else: o.write('\t\t- {}\n'.format(x['Normalized - Dep']))
 
-        self.uploads_data_to_gcs_bucket(ontology_report_filename)
+        uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, ontology_report_filename)
 
         return None
 
@@ -588,14 +533,14 @@ class OntologyCleaner(object):
                 self.fixes_punning_errors()
                 self.updates_ontology_reporter()  # get finishing statistics
                 self._logically_verifies_cleaned_ontologies()
-                self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
+                if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
 
         print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         logger.info('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         self.ont_file_location = self.merged_ontology_filename
         individual_ontologies = self.checks_for_downloaded_ontology_data()
         self.merge_ontologies(individual_ontologies, self.temp_dir + '/', self.ont_file_location)
-        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
         print('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
@@ -604,16 +549,16 @@ class OntologyCleaner(object):
         self.normalizes_existing_classes()
         self.fixes_punning_errors()
         self.updates_ontology_reporter()  # get finishing statistics
-        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
         # serializes final ontology graph and uploads graph data and ontology report to gcs
         self.ont_graph.serialize(destination=self.temp_dir + '/' + self.ont_file_location, format='xml')
         ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
-        self.uploads_data_to_gcs_bucket(self.ont_file_location)
-        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
+        uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
 
         print('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
         logger.info('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
         self.generates_ontology_report()
-        self.uploads_data_to_gcs_bucket(log, log_dir, self.current_build)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
 
         return None

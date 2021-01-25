@@ -13,8 +13,9 @@ from datetime import datetime
 from google.cloud import storage  # type: ignore
 from tqdm import tqdm  # type: ignore
 
-from data_preprocessing import DataPreprocessing  # type: ignore
-from ontology_cleaning import OntologyCleaner  # type: ignore
+from build_utilities import uploads_data_to_gcs_bucket, deletes_bucket_files, copies_data_between_gcs_bucket_directories
+from data_preprocessing import DataPreprocessing
+from ontology_cleaning import OntologyCleaner
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
@@ -25,26 +26,6 @@ log_dir, log, log_config = 'logs', 'pkt_builder_phases12_log.log', glob.glob('**
 if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
-
-
-def uploads_data_to_gcs_bucket(bucket, bucket_location, directory, file_loc):
-    """Takes a file name and pushes the corresponding data referenced by the filename object from a local
-    temporary directory to a Google Cloud Storage bucket.
-
-    Args:
-        bucket: A storage bucket object specifying a Google Cloud Storage bucket.
-        bucket_location: A string containing a file path to a directory within a Google Cloud Storage Bucket.
-        directory: A string containing a local directory.
-        file_loc: A string containing the name of file to write to a Google Cloud Storage bucket.
-
-    Returns:
-        None.
-    """
-
-    blob = bucket.blob(bucket_location + file_loc)
-    blob.upload_from_filename(directory + '/' + file_loc)
-
-    return None
 
 
 def get_file_metadata(url, file_location, gcs_url):
@@ -144,39 +125,6 @@ def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
     return None
 
 
-def moves_dependency_documents_for_phase3(bucket, temp_directory):
-    """Method creates a dependency directory in the current_builds directory in Google Cloud Storage. Once created,
-    the documents created during data preprocessing that are needed for Phase 3 of the knowledge graph build workflow
-    are uploaded.
-
-    Args:
-        bucket: A storage bucket object specifying a Google Cloud Storage bucket.
-        temp_directory: A local directory where preprocessed data is stored.
-
-    Returns:
-        None.
-    """
-
-    # creates dependency directory
-    dependency_loc = 'current_build/dependencies/'
-    blob = bucket.blob(dependency_loc)
-    blob.upload_from_string('')
-
-    # list resources to upload
-    dependency_resources = [
-        'resource_info.txt', 'edge_source_list.txt', 'ontology_source_list.txt',
-        'node_metadata_dict.pkl', 'subclass_construction_map.pkl', 'INVERSE_RELATIONS.txt', 'RELATIONS_LABELS.txt',
-        'PheKnowLator_MergedOntologies.owl'
-    ]
-
-    # uploads resources
-    for doc in tqdm(dependency_resources):
-        blob = bucket.blob(dependency_loc + doc)
-        blob.upload_from_filename(temp_directory + '/' + doc)
-
-    return None
-
-
 def run_phase_2():
 
     # set temp directory to use locally for writing data GCS data to
@@ -185,14 +133,16 @@ def run_phase_2():
 
     #####################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
-    bucket = storage.Client().get_bucket('pheknowlator')
     # define write path to Google Cloud Storage bucket
+    bucket = storage.Client().get_bucket('pheknowlator')
     release = 'release_v' + __version__
     bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix='archived_builds/' + release + '/')]
+
     # find current archived build directory
     builds = [x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0]
     sorted_dates = sorted([datetime.strftime(datetime.strptime(str(x), '%d%b%Y'), '%Y-%m-%d').upper() for x in builds])
     build = 'build_' + datetime.strftime(datetime.strptime(sorted_dates[-1], '%Y-%m-%d'), '%d%b%Y').upper()
+
     # set gcs bucket variables
     base_folder_path = 'archived_builds/{}/{}/data/'.format(release, build)
     gcs_original_data = base_folder_path + '{}'.format('original_data/')
@@ -243,10 +193,27 @@ def run_phase_2():
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     #####################################################
-    # STEP 6 - UPLOAD PHASE 3 DEPENDENCY DOCUMENTS + LOGS
+    # STEP 6 - PREPARE FOR PHASE 3
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
     logger.info('Uploading Input Dependency Documents to current_build Directory')
-    moves_dependency_documents_for_phase3(bucket, temp_dir)
+    dep_dat = ['resource_info.txt', 'edge_source_list.txt', 'ontology_source_list.txt', 'node_metadata_dict.pkl',
+               'subclass_construction_map.pkl', 'INVERSE_RELATIONS.txt', 'RELATIONS_LABELS.txt',
+               'PheKnowLator_MergedOntologies.owl']
+    copies_data_between_gcs_bucket_directories(bucket, gcs_processed_data, gcs_current_build + 'dependencies/', dep_dat)
+    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
+
+    # update current_build data directory -- delete existing data
+    print('Clearing current_build/data Directory')
+    logger.info('Clearing current_build/data Directory')
+    deletes_bucket_files(bucket, gcs_current_build + 'data/')
+    bucket.blob(gcs_current_build + 'data/').upload_from_string('')  # re-creates the data bucket
+
+    # copy data from the archived_builds directory to the current_data directory
+    source_directory, destination_directory = base_folder_path, gcs_current_build + 'data/'
+    source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_directory)]
+    print('Copying Data FROM: {} TO: {}'.format(source_directory, destination_directory))
+    logger.info('Copying Data FROM: {} TO: {}'.format(source_directory, destination_directory))
+    copies_data_between_gcs_bucket_directories(bucket, source_directory, destination_directory, source_data)
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     # clean up environment after uploading all processed data

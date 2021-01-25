@@ -3,6 +3,7 @@
 
 # import needed libraries
 import click
+import fnmatch
 import glob
 import logging.config
 import os
@@ -14,6 +15,7 @@ import traceback
 from datetime import datetime
 from google.cloud import storage  # type: ignore
 
+from build_utilities import *    # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import *
 
@@ -25,26 +27,6 @@ if os.path.exists(log_dir): shutil.rmtree(log_dir)
 os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
-
-
-def uploads_data_to_gcs_bucket(bucket, bucket_location, directory, file_loc):
-    """Takes a file name and pushes the corresponding data referenced by the filename object from a local
-    temporary directory to a Google Cloud Storage bucket.
-
-    Args:
-        bucket: A storage bucket object specifying a Google Cloud Storage bucket.
-        bucket_location: A string containing a file path to a directory within a Google Cloud Storage Bucket.
-        directory: A string containing a local directory.
-        file_loc: A string containing the name of file to write to a Google Cloud Storage bucket.
-
-    Returns:
-        None.
-    """
-
-    blob = bucket.blob(bucket_location + file_loc)
-    blob.upload_from_filename(directory + '/' + file_loc)
-
-    return None
 
 
 def uploads_build_data(bucket, gcs_location):
@@ -89,14 +71,13 @@ def main(app, rel, owl):
     print('#' * 35 + '\nBUILD PHASE 3: DATA PRE-PROCESSING\n' + '#' * 35)
     logger.info('#' * 5 + 'BUILD PHASE 3: DATA PRE-PROCESSING' + '#' * 5)
 
-    #####################################################
+    #############################################################################
     # STEP 1 - INITIALIZE GOOGLE STORAGE BUCKET OBJECTS
     print('\nSTEP 1: INITIALIZE GOOGLE STORAGE BUCKET AND REFORMAT INPUT ARGUMENTS')
     logger.info('STEP 1: INITIALIZE GOOGLE STORAGE BUCKET AND REFORMAT INPUT ARGUMENTS')
 
     # set bucket information and find current archived build directory
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket('pheknowlator')
+    bucket = storage.Client().get_bucket('pheknowlator')
     release = 'release_v' + __version__
     bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix='archived_builds/' + release + '/')]
     builds = [x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0]
@@ -111,9 +92,15 @@ def main(app, rel, owl):
     gcs_archive_loc = arch_string.format(release, build, build_app, rel_type, owl_decoding)
     gcs_current_loc = 'current_build/knowledge_graphs/{}/{}/{}/'.format(build_app, rel_type, owl_decoding)
 
+    # clean out directory before writing new data
+    print('Removing Existing Data from Build Directory on Google Cloud Storage')
+    logging.info('Removing Existing Data from Build Directory on Google Cloud Storage')
+    deletes_bucket_files(bucket, gcs_current_loc)
+    bucket.blob(gcs_current_loc).upload_from_string('')
+
     uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket
 
-    #####################################################
+    #############################################################################
     # STEP 2 - CONSTRUCT KNOWLEDGE GRAPH
     print('\nSTEP 2: CONSTRUCT KNOWLEDGE GRAPH')
     print('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
@@ -131,21 +118,26 @@ def main(app, rel, owl):
 
     uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket
 
-    #####################################################
+    #############################################################################
     # STEP 3 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
     print('\nSTEP 3: UPLOAD KNOWLEDGE GRAPH DATA TO GOOGLE CLOUD STORAGE')
     logger.info('STEP 3: UPLOAD KNOWLEDGE GRAPH DATA TO GOOGLE CLOUD STORAGE')
 
     # upload data from Docker to archived_builds Google Cloud Storage Bucket
-    # uploads_build_data(bucket, gcs_archive_loc)
-    # uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket
-    #
-    # # upload data from Docker to current_build Google Cloud Storage Bucket
+    print('Uploading Knowledge Graph Data to the current_build Directory')
+    logger.info('Uploading Knowledge Graph Data to the current_build Directory')
     # uploads_build_data(bucket, gcs_current_loc)
-    # uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket
 
-    #######################################################
-    # STEP 4 - LOG EXIT STATUS TO FINISH RUN
+    # upload data from Docker to archived_builds Google Cloud Storage Bucket
+    print('Copying Knowledge Graph Data from the current_build Directory to the archived_builds Directory')
+    logger.info('Copying Knowledge Graph Data from the current_build Directory to the archived_builds Directory')
+    # source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_current_loc)]
+    # copies_data_between_gcs_bucket_directories(bucket, gcs_current_loc, gcs_archive_loc, source_data)
+    uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket
+
+    #############################################################################
+    # STEP 4 - CLEAN UP BUILD ENVIRONMENT + LOG EXIT STATUS TO FINISH RUN
     print('\nSTEP 4: BUILD CLEAN-UP')
     logger.info('STEP 4: BUILD CLEAN-UP')
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
@@ -153,15 +145,11 @@ def main(app, rel, owl):
     logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime))  # don't delete needed for build monitoring
 
     # copy build logs
-    print('Upload Logs for Build Phases 1-3')
-    logger.info('Upload Logs for Build Phases 1-3')
-    base_url = 'https://storage.googleapis.com/pheknowlator/{}'
-    # copy phases 1-2 log from current to archive build directory
+    print('Copying Logs from the current_build Directory to the archived_builds Directory')
+    logger.info('Copying Logs from the current_build Directory to the archived_builds Directory')
     log_1 = [x for x in [_.name for _ in bucket.list_blobs(prefix='current_build/')] if x.endswith('phases12_log.log')]
-    data_downloader(base_url.format(log_1[0]), log_dir + '/', log_1[0].split('/')[-1])
-    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc, log_dir, log_1[0].split('/')[-1])
-    # copy phase 3 log from current to archive build directory
-    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc, log_dir, log)
+    copies_data_between_gcs_bucket_directories(bucket, 'current_build/', gcs_archive_loc, [log_1[0].split('/')[-1]])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_current_loc, gcs_archive_loc, [log])
 
     # exit build
     uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket

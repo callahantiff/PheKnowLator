@@ -14,6 +14,7 @@ import traceback
 from datetime import date, datetime
 from google.cloud import storage  # type: ignore
 
+from build_utilities import uploads_data_to_gcs_bucket, downloads_data_from_gcs_bucket  # type: ignore
 from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
@@ -62,59 +63,6 @@ def creates_build_directory_structure(bucket, release, build):
         blob.upload_from_string('')
 
     return 'archived_builds/{}/{}/data/original_data/'.format(release, build)
-
-
-def downloads_data_from_gcs_bucket(bucket, original_data, filename, temp_directory):
-    """Takes a filename and and downloads the corresponding data to a local temporary directory, if it has not
-    already been downloaded.
-
-    Args:
-        bucket: A storage Bucket object specifying a Google Cloud Storage bucket.
-        original_data: A string containing a path to the original data directory in a Google Cloud Storage bucket.
-        filename: A string containing the name of file to write to a Google Cloud Storage bucket.
-        temp_directory: A local directory where preprocessed data is stored.
-
-    Returns:
-        data_file: A string containing the local filepath for a file downloaded from a GSC bucket.
-
-    Raises:
-        ValueError: when trying to download a non-existent file from the GCS original_data dir of the current build.
-    """
-
-    try:
-        _files = [_.name for _ in bucket.list_blobs(prefix=original_data)]
-        matched_file = fnmatch.filter(_files, '*/' + filename)[0]  # poor man's glob
-        data_file = temp_directory + '/' + matched_file.split('/')[-1]
-        if not os.path.exists(data_file):  # only download if file has not yet been downloaded
-            bucket.blob(matched_file).download_to_filename(temp_directory + '/' + matched_file.split('/')[-1])
-    except IndexError:
-        logger.error('IndexError: Cannot find {} in the GCS original_data directory'.format(filename))
-        raise ValueError('Cannot find {} in the GCS original_data directory of the current build'.format(filename))
-
-    return data_file
-
-
-def uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, filename):
-    """Takes a file name and pushes the data referenced by the filename object and stored locally in that object to
-    a Google Cloud Storage bucket.
-
-    Args:
-        bucket: A storage Bucket object specifying a Google Cloud Storage bucket.
-        original_data: A string specifying the location of the original_data directory for a specific build.
-        temp_directory: A local directory where preprocessed data is stored.
-        filename: A string containing a filename.
-    #
-    Returns:
-        None.
-    """
-
-    print('Uploading {} to GCS bucket: {}'.format(filename, original_data))
-    logger.info('Uploading {} to GCS bucket: {}'.format(filename, original_data))
-
-    blob = bucket.blob(original_data + filename)
-    blob.upload_from_filename(temp_directory + '/' + filename)
-
-    return None
 
 
 def get_file_metadata(url, file_location, gcs_url):
@@ -198,7 +146,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
             ont_name = url.split('/')[-1][:-4] + '_with_imports.owl'
             file_path = temp_directory + '/' + ont_name
             if len([x for x in downloaded_data if x.endswith(ont_name)]) > 0:
-                downloads_data_from_gcs_bucket(bucket, gcs_original_path, ont_name, temp_directory)
+                downloads_data_from_gcs_bucket(bucket, gcs_original_path, 'none', ont_name, temp_directory)
             else:
                 return_code = os.system("./owltools {} --merge-import-closure -o {}".format(url, file_path))
                 if return_code != 0:
@@ -208,7 +156,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
             filename, url = url.split(', ')
             file_path = temp_directory + '/' + re.sub('.zip|.gz', '', filename)
             if len([x for x in downloaded_data if x.endswith(file_path)]) > 0:
-                downloads_data_from_gcs_bucket(bucket, gcs_original_path, file_path, temp_directory)
+                downloads_data_from_gcs_bucket(bucket, gcs_original_path, 'none', file_path, temp_directory)
             else: data_downloader(url, temp_directory + '/', filename)
 
         metadata += [get_file_metadata(url, file_path, gcs_url)]
