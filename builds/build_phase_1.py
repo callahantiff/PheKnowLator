@@ -19,7 +19,6 @@ from pkt_kg.__version__ import __version__
 from pkt_kg.utils import data_downloader
 
 # set environment variables
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 # logging
 log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
 if not os.path.exists(log_dir): os.mkdir(log_dir)
@@ -166,6 +165,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
         metadata += [get_file_metadata(url, file_path, gcs_url)]
         f_name = re.sub('.zip|.gz', '', file_path.replace(temp_directory + '/', ''))
         uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, f_name)
+        uploads_data_to_gcs_bucket(bucket, 'current_build/', log_dir, log)
 
     # writes metadata locally and pushes it to a Google Cloud Storage bucket
     writes_metadata(metadata, bucket, original_data, temp_directory)
@@ -184,6 +184,7 @@ def run_phase_1():
     bucket = storage.Client().get_bucket('pheknowlator')
     build = 'build_' + datetime.strftime(datetime.strptime(str(date.today()), '%Y-%m-%d'), '%d%b%Y').upper()
     gcs_original_data = creates_build_directory_structure(bucket, 'release_v' + __version__, build)
+    uploads_data_to_gcs_bucket(bucket, 'current_build/', log_dir, log)
 
     ###############################################
     # STEP 2 - DOWNLOAD BUILD DATA

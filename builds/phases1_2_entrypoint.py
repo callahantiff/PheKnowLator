@@ -39,6 +39,7 @@ def main():
     # start logger and configure Google Cloud Storage settings
     print('\n\n' + '*' * 10 + ' STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
     logger.info('*' * 10 + ' STARTING PHEKNOWLATOR KNOWLEDGE GRAPH BUILD ' + '*' * 10)
+    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
     # run phase 1 of build
     print('#' * 35 + '\nBUILD PHASE 1: DOWNLOADING BUILD DATA\n' + '#' * 35)
