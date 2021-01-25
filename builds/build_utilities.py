@@ -58,10 +58,10 @@ def downloads_data_from_gcs_bucket(bucket, original_data, processed_data, filena
                     data_file = temp_directory + '/' + gcs_file[0].split('/')[-1]
                     if not os.path.exists(data_file):  # only download if file has not yet been downloaded
                         bucket.blob(gcs_file[0]).download_to_filename(temp_directory + '/' + gcs_file[0].split('/')[-1])
-                else: pass
+                else: raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
         except IndexError:
             raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
-        return data_file
+        else: return data_file
     else: return None
 
 
