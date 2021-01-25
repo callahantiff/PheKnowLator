@@ -64,6 +64,7 @@ def monitor_gce_jobs(phase, sleep, gcs_log_location):
     """
 
     quit_status = 'EXIT BUILD PHASES 1-2' if phase == 1 else 'EXIT BUILD PHASE 3'
+    master_log_content = []
 
     # query job status
     log_content, start_time, status = None, datetime.now(), 'RUNNING'
@@ -83,7 +84,9 @@ def monitor_gce_jobs(phase, sleep, gcs_log_location):
 
         # print log to console -- printing this to update logs via GitHub Actions console
         for event in log_content:
-            print(event)
+            if event not in master_log_content:
+                print(event)
+        master_log_content += log_content  # ensures we are only printing new content to the GitHub Actions console
 
     return status
 
@@ -105,7 +108,7 @@ def main(gce_type, phase, sleep, gcs_dir, project, job):
         gcs_log_location = gcs_url_string.format('pkt_builder_phases12_log.log')
     else:
         gcs_url_string = 'https://storage.googleapis.com/pheknowlator/current_build/knowledge_graphs/{}/{}'
-        gcs_log_location = gcs_url_string.format(gcs_dir, 'pkt_builder_phase3_log.log')
+        gcs_log_location = gcs_url_string.format(gcs_dir, 'pkt_build_log.log')
 
     # identify build phase and activate job monitoring
     if gce_type == "ai": state = monitor_ai_platform_jobs(project=project, job=job, sleep=sleep)
