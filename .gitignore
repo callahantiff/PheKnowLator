@@ -20,6 +20,10 @@ coverage.xml
 \.vscode/
 /tests/archive/
 
+#### Logs
+logs/*.log
+**/logs/*.log
+
 #### CI/CD Builds
 builds/temp/*
 /builds/GitHub Action Workflow Build Jobs.xlsx
