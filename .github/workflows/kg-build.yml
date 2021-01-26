@@ -82,8 +82,7 @@ jobs:
       - name: Build Docker Image
         run: |-
           docker build --tag "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds \
-            --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg
-          "owl_arg=$DECODE_OWL"
+            --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
       - name: Publish Docker Image to Google Container Registry
         run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
       - name: Clean-Up Google Cloud Storage Environment

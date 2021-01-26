@@ -108,7 +108,6 @@ def main(app, rel, owl):
     print('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
     logger.info('STEP 2: CONSTRUCT KNOWLEDGE GRAPH')
     logger.info('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
-
     # start background process to upload logs while the pkt main knowledge graph function runs
     ray.init()
     background_task = PKTLogUploader.remote('pheknowlator', gcs_current_loc, log_dir, 90)
