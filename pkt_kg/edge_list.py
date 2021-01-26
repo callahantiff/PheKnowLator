@@ -3,13 +3,22 @@
 
 # import needed libraries
 import csv
+import glob
 import json
+import logging.config
+import os
 import pandas as pd  # type: ignore
 import re
 
 from difflib import SequenceMatcher
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, TextIO, Tuple, Union
+
+# logging
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 # TODO:
 #  (1) using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
@@ -261,16 +270,13 @@ class CreatesEdgeList(object):
         # check if node needs to be mapped to an outside data source
         if str(node) in re.sub('(?:(?!:)\\D)*', '', mapping_data).split(':'):  # MAPPING TO OUTSIDE DATA SOURCE
             node2map = list(edge_data)[node]
-            try:
-                map_data = self.data_reader(mapping_data.split(';')[node].split(':')[1]).astype(str)
-            except IndexError:
-                map_data = self.data_reader(mapping_data.split(';')[0].split(':')[1]).astype(str)
+            try: map_data = self.data_reader(mapping_data.split(';')[node].split(':')[1]).astype(str)
+            except IndexError: map_data = self.data_reader(mapping_data.split(';')[0].split(':')[1]).astype(str)
             # process mapping data
             map_col = list(map_data)[0]
             col_to_map = str(node2map) + '_' + str(map_col) + '_mapped'
             map_data.rename(columns={list(map_data)[1]: str(col_to_map)}, inplace=True)
-            try:
-                merged_data = pd.merge(edge_data, map_data, left_on=node2map, right_on=map_col, how='inner')
+            try: merged_data = pd.merge(edge_data, map_data, left_on=node2map, right_on=map_col, how='inner')
             except ValueError:
                 # update map_data merge col to match edge_data merge col type
                 edge_data[node2map], map_data[map_col] = edge_data[node2map].astype(str), map_data[map_col].astype(str)
@@ -354,16 +360,20 @@ class CreatesEdgeList(object):
                                                'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...]}}
         """
 
+        logger.info('*' * 10 + 'PKT STEP: GENERATING KNOWLEDGE GRAPH MASTER EDGE LIST' + '*' * 10)
+
         for edge_type in tqdm(self.source_info.keys()):
             print('\n\n### Processing Edge: {}'.format(edge_type))
+            logger.info('### Processing Edge: {}'.format(edge_type))
 
             # STEP 1: Read Data
             print('*** Reading Edge Data ***')
-            edge_data = self.data_reader(self.data_files[edge_type], self.source_info[edge_type][
-                'delimiter'])
+            logger.info('*** Reading Edge Data ***')
+            edge_data = self.data_reader(self.data_files[edge_type], self.source_info[edge_type]['delimiter'])
 
             # STEP 2: Apply Filtering and Evidence Criteria
             print('*** Applying Filtering and/or Mapping Criteria to Edge Data ***')
+            logger.info('*** Applying Filtering and/or Mapping Criteria to Edge Data ***')
             edge_data = self.filter_data(edge_data,
                                          self.source_info[edge_type]['filter_criteria'],
                                          self.source_info[edge_type]['evidence_criteria'])
@@ -373,6 +383,7 @@ class CreatesEdgeList(object):
 
             # STEP 4: Update Node Column Values
             print('*** Reformatting Node Values ***')
+            logger.info('*** Reformatting Node Values ***')
             edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
 
             # STEP 5: Rename Nodes
@@ -382,6 +393,7 @@ class CreatesEdgeList(object):
 
             # STEP 6: Map Identifiers
             print('*** Performing Identifier Mapping ***')
+            logger.info('*** Performing Identifier Mapping ***')
             mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'], edge_data)
             self.source_info[edge_type]['edge_list'] = [edge for edge in mapped_data if 'None' not in edge]
 
@@ -392,6 +404,7 @@ class CreatesEdgeList(object):
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(set([x[1] for x in unique_edges]))))
             print('Total Unique Edge Count: {}'.format(len(unique_edges)))
             print('Total Unique Edge Count + Inverses: {}'.format(len(unique_edges)*2))
+            logger.info('Finished Processing Edge')
 
         # add source entity namespaces
         self.gets_entity_namespaces()

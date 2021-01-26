@@ -5,6 +5,7 @@
 # import needed libraries
 import datetime
 import glob
+import logging.config
 import os.path
 import re
 import shutil
@@ -19,6 +20,11 @@ from pkt_kg.utils import gets_ontology_statistics, data_downloader
 
 # HANDLE ENVIRONMENT WARNINGS
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# logging
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 # TODO: need to validate user input data to make sure that it matches the template that the program expects.
 
@@ -46,11 +52,17 @@ class DataSource(object):
     __metaclass__ = ABCMeta
 
     def __init__(self, data_path: str, resource_data: Optional[str] = None) -> None:
-
+        logger.info('*' * 10 + 'PKT STEP: DOWNLOADING KNOWLEDGE GRAPH DATA' + '*' * 10)
         # DATA SOURCE FILE
-        if not isinstance(data_path, str): raise TypeError('data_path must be type str.')
-        elif not os.path.exists(data_path): raise OSError('{} does not exist!'.format(data_path))
-        elif os.stat(data_path).st_size == 0: raise TypeError('Input: {} is empty'.format(data_path))
+        if not isinstance(data_path, str):
+            logger.error('TypeError: data_path must be type str.')
+            raise TypeError('data_path must be type str.')
+        elif not os.path.exists(data_path):
+            logger.error('OSError: {} does not exist!'.format(data_path))
+            raise OSError('{} does not exist!'.format(data_path))
+        elif os.stat(data_path).st_size == 0:
+            logger.error('TypeError: {} is empty'.format(data_path))
+            raise TypeError('Input: {} is empty'.format(data_path))
         else:
             self.data_path: str = data_path
             self.data_type: str = data_path.split('/')[-1].split('.')[0]
@@ -58,9 +70,15 @@ class DataSource(object):
         # RESOURCE INFO FILE
         resource_data_search = glob.glob('**/*resource**info*.txt', recursive=True)[0]
         self.resource_data: Optional[str] = resource_data_search if None else resource_data
-        if not isinstance(self.resource_data, str): raise TypeError('resource_data must be type str.')
-        elif not os.path.exists(self.resource_data): raise OSError('{} does not exist!'.format(self.resource_data))
-        elif os.stat(self.resource_data).st_size == 0: raise TypeError('Input: {} is empty'.format(self.resource_data))
+        if not isinstance(self.resource_data, str):
+            logger.error('TypeError: resource_data must be type str.')
+            raise TypeError('resource_data must be type str.')
+        elif not os.path.exists(self.resource_data):
+            logger.error('OSError: {} does not exist!'.format(self.resource_data))
+            raise OSError('{} does not exist!'.format(self.resource_data))
+        elif os.stat(self.resource_data).st_size == 0:
+            logger.error('TypeError: {} is empty'.format(self.resource_data))
+            raise TypeError('Input: {} is empty'.format(self.resource_data))
         else:
             resource_data_file: TextIO = open(self.resource_data)
             self.resource_info: List = resource_data_file.read().splitlines()
@@ -180,6 +198,7 @@ class DataSource(object):
         """
 
         print('\n*** Generating Metadata ***\n')
+        logger.info('*** Generating Metadata ***')
         self.metadata.append(['#' + str(datetime.datetime.utcnow().strftime('%a %b %d %X UTC %Y')) + ' \n'])
 
         for i in tqdm(self.data_files.keys()):
@@ -230,6 +249,7 @@ class OntData(DataSource):
         """
 
         if os.stat(self.data_path).st_size == 0:
+            logger.error('TypeError: input file: {} is empty'.format(self.data_path))
             raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
             with open(self.data_path, 'r') as file_name:
@@ -259,12 +279,14 @@ class OntData(DataSource):
         self.parses_resource_file()  # check data before download
         file_loc = '/'.join(self.data_path.split('/')[:-1]) + '/ontologies/'
         print('\n ***Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
+        logger.info('***Downloading Data: {0} to "{1}" ***'.format(self.data_type, file_loc))
 
         for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]
             file_prefix = source.split('/')[-1].split('.')[0]
             write_loc = file_loc + file_prefix
             print('\nDownloading: {}'.format(str(file_prefix)))
+            logger.info('Downloading: {}'.format(str(file_prefix)))
             # don't re-download ontologies
             if any(x for x in os.listdir(file_loc) if re.sub('_with.*.owl', '', x) == file_prefix):
                 self.data_files[i] = glob.glob(file_loc + '*' + file_prefix + '*')[0]
@@ -275,7 +297,8 @@ class OntData(DataSource):
                                                '-o', str(write_loc) + '_with_imports.owl'])
                         self.data_files[i] = str(write_loc) + '_with_imports.owl'
                     except subprocess.CalledProcessError as error:
-                        print(error.output)
+                        logger.error('Error: {}'.format(error.output))
+                        raise Exception('{}'.format(error.output))
                 else:
                     data_downloader(source, file_loc, str(file_prefix) + '_with_imports.owl')
                     self.data_files[i] = file_loc + str(file_prefix) + '_with_imports.owl'
@@ -305,6 +328,7 @@ class LinkedData(DataSource):
         """
 
         if os.stat(self.data_path).st_size == 0:
+            logger.error('TypeError: input file: {} is empty'.format(self.data_path))
             raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
         else:
             with open(self.data_path, 'r') as file_name:
@@ -326,18 +350,21 @@ class LinkedData(DataSource):
         self.parses_resource_file()  # check data before download
         file_loc = '/'.join(self.data_path.split('/')[:-1]) + '/edge_data/'
         print('\n*** Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
+        logger.info('*** Downloading Data: {0} to "{1}" ***'.format(self.data_type, file_loc))
 
         for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]
             file_name = re.sub('.gz|.zip|\\?.*', '', source.split('/')[-1])
             write_path = file_loc
             print('\nEdge: {edge}'.format(edge=i))
+            logger.info('Edge: {edge}'.format(edge=i))
             # if file has already been downloaded, rename it
             if any(x for x in os.listdir(write_path) if '_'.join(x.split('_')[1:]) == file_name):
                 self.data_files[i] = write_path + i + '_' + file_name
                 try:
                     shutil.copy(glob.glob(write_path + '*' + file_name)[0], write_path + i + '_' + file_name)
                 except shutil.SameFileError:
+                    logger.error('{}'.format(shutil.SameFileError))
                     pass
             else:
                 self.data_files[i] = write_path + i + '_' + file_name

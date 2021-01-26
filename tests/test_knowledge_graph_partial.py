@@ -1,5 +1,6 @@
 import glob
 import json
+import logging
 import os
 import os.path
 import pandas
@@ -29,6 +30,11 @@ class TestPartialBuild(unittest.TestCase):
         os.mkdir(self.dir_loc_resources + '/node_data')
         os.mkdir(self.dir_loc_resources + '/ontologies')
         os.mkdir(self.dir_loc_resources + '/construction_approach')
+
+        # handle logging
+        self.logs = os.path.abspath(current_directory + '/builds/logs')
+        logging.disable(logging.CRITICAL)
+        if len(glob.glob(self.logs + '/*.log')) > 0: os.remove(glob.glob(self.logs + '/*.log')[0])
 
         # copy needed data data
         # node metadata

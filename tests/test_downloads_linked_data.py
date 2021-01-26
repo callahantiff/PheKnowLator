@@ -3,6 +3,7 @@
 
 import os.path
 import glob
+import logging
 
 from unittest import TestCase
 
@@ -18,6 +19,11 @@ class TestLinkedData(TestCase):
         dir_loc = os.path.join(current_directory, 'data')
         self.dir_loc = os.path.abspath(dir_loc)
         self.data = LinkedData(self.dir_loc + '/edge_source_list.txt', self.dir_loc + '/resource_info.txt')
+
+        # handle logging
+        self.logs = os.path.abspath(current_directory + '/builds/logs')
+        logging.disable(logging.CRITICAL)
+        if len(glob.glob(self.logs + '/*.log')) > 0: os.remove(glob.glob(self.logs + '/*.log')[0])
 
         return None
 

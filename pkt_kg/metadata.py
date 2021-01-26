@@ -4,6 +4,7 @@
 # import needed libraries
 import glob
 import json
+import logging.config
 import os
 import os.path
 import pandas  # type: ignore
@@ -22,6 +23,11 @@ from pkt_kg.utils import *
 # set environmental variables
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 obo = Namespace('http://purl.obolibrary.org/obo/')
+# logging
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
 class Metadata(object):
@@ -68,7 +74,7 @@ class Metadata(object):
 
         if self.node_data:
             print('Loading and Processing Node Metadata')
-
+            logger.info('Loading and Processing Node Metadata')
             with open(self.node_data[0], 'rb') as out:
                 self.node_dict = pickle.load(out, encoding="utf8")
 
@@ -90,6 +96,7 @@ class Metadata(object):
         """
 
         print('\nExtracting Class and Relation Metadata')
+        logger.info('Extracting Class and Relation Metadata')
 
         if self.node_dict:
             domains = [
@@ -178,7 +185,8 @@ class Metadata(object):
             graph: An rdflib graph object with edited ontology annotations.
         """
 
-        print('\n*** Adding Ontology Annotations ***')
+        print('\nAdding Ontology Annotations')
+        logger.info('Adding Ontology Annotations')
 
         # set annotation variables
         authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
@@ -228,6 +236,7 @@ class Metadata(object):
 
         if self.node_dict:
             print('\nWriting Class Metadata')
+            logger.info('Writing Class Metadata')
             filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:
                 out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'entity_uri' + '\t' + 'label' + '\t' +

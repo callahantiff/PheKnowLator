@@ -4,6 +4,7 @@
 # import needed libraries
 import glob
 import hashlib
+import logging.config
 import os
 import os.path
 import pickle
@@ -18,6 +19,11 @@ from pkt_kg.utils import finds_node_type
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
 pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
+# logging
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
 class KGConstructionApproach(object):
@@ -46,23 +52,31 @@ class KGConstructionApproach(object):
     """
 
     def __init__(self, edge_dict: Dict, write_location: str) -> None:
-
         self.subclass_dict: Dict = dict()
         self.subclass_error: Dict = dict()
 
         # EDGE_DICT
-        if not isinstance(edge_dict, Dict): raise TypeError('edge_dict must be a dictionary.')
-        elif len(edge_dict) == 0: raise TypeError('edge_dict is empty.')
+        if not isinstance(edge_dict, Dict):
+            logger.error('TypeError: edge_dict must be a dictionary.')
+            raise TypeError('edge_dict must be a dictionary.')
+        elif len(edge_dict) == 0:
+            logger.error('TypeError: edge_dict is empty.')
+            raise TypeError('edge_dict is empty.')
         else: self.edge_dict = edge_dict
 
         # WRITE LOCATION
-        if write_location is None: raise ValueError('write_location must contain a valid filepath, not None')
+        if write_location is None:
+            logger.error('ValueError: write_location must contain a valid filepath, not None.')
+            raise ValueError('write_location must contain a valid filepath, not None')
         else: self.write_location = write_location
 
         # LOADING SUBCLASS DICTIONARY
         file_name = self.write_location + '/construction_*/*.pkl'
-        if len(glob.glob(file_name)) == 0: raise OSError('{} does not exist!'.format('subclass_construction_map.pkl'))
+        if len(glob.glob(file_name)) == 0:
+            logger.error('OSError: {} does not exist!'.format('subclass_construction_map.pkl'))
+            raise OSError('{} does not exist!'.format('subclass_construction_map.pkl'))
         elif os.stat(glob.glob(file_name)[0]).st_size == 0:
+            logger.error('TypeError: The input file: {} is empty'.format(glob.glob(file_name)[0]))
             raise TypeError('The input file: {} is empty'.format(glob.glob(file_name)[0]))
         else:
             with open(glob.glob(file_name)[0], 'rb') as filepath:  # type: IO[Any]
