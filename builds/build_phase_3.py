@@ -113,6 +113,8 @@ def main(app, rel, owl):
     ray.init()
     background_task = PKTLogUploader.remote('pheknowlator', gcs_current_loc, log_dir, 5)
     logger.info('RAN THE CONSTRUCT KNOWLEDGE GRAPH CODE')
+    import time
+    time.sleep(10)
     # # run the pkt_kg main method
     # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
     #           '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
