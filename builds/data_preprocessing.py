@@ -1163,12 +1163,12 @@ class DataPreprocessing(object):
 
         return networkx_mdg
 
-    def _logically_verifies_human_protein_ontology(self, input_filename, output_filename, reasoner) -> None:
+    def _logically_verifies_human_protein_ontology(self, in_filename, out_filename, reasoner) -> None:
         """Logically verifies constructed Human Protein Ontology by running a deductive logic reasoner.
 
         Args:
-            input_filename: A string containing the name of the file to run the reasoner on.
-            output_filename: A string containing the filename to write the reasoner results to.
+            in_filename: A string containing the name of the file to run the reasoner on.
+            out_filename: A string containing the filename to write the reasoner results to.
             reasoner: A string containing the name of the deductive reasoner to use.
 
         Returns:
@@ -1179,16 +1179,16 @@ class DataPreprocessing(object):
         logger.info('Logically Verifying Constructed Human Protein Ontology')
 
         # run reasoner
-        command = "./owltools ./{} --reasoner {} --run-reasoner --assert-implied -o ./{}"
-        return_code = os.system(command.format(input_filename, reasoner.lower(), output_filename))
+        command = "{} ./{} --reasoner {} --run-reasoner --assert-implied -o ./{}"
+        return_code = os.system(command.format(self.owltools_location, in_filename, reasoner.lower(), out_filename))
         if return_code == 0:
-            ontology_file_formatter(self.temp_dir, '/' + input_filename.split('/')[-1], self.owltools_location)
-            ontology_file_formatter(self.temp_dir, '/' + output_filename.split('/')[-1], self.owltools_location)
-            uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, input_filename.split('/')[-1])
-            uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, output_filename.split('/')[-1])
+            ontology_file_formatter(self.temp_dir, '/' + in_filename.split('/')[-1], self.owltools_location)
+            ontology_file_formatter(self.temp_dir, '/' + out_filename.split('/')[-1], self.owltools_location)
+            uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, in_filename.split('/')[-1])
+            uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, out_filename.split('/')[-1])
         else:
-            logger.error('ERROR: Reasoner Finished with Errors - {}: {}'.format(input_filename, return_code))
-            raise Exception('ERROR: Reasoner Finished with Errors - {}: {}'.format(input_filename, return_code))
+            logger.error('ERROR: Reasoner Finished with Errors - {}: {}'.format(in_filename, return_code))
+            raise Exception('ERROR: Reasoner Finished with Errors - {}: {}'.format(in_filename, return_code))
 
         return None
 
@@ -1248,7 +1248,7 @@ class DataPreprocessing(object):
         ro_graph = Graph().parse(x)
         labs = {str(x[2]).lower(): str(x[0]) for x in ro_graph if '/RO_' in str(x[0]) and 'label' in str(x[1]).lower()}
         # identify relations and their inverses
-        write_dir, filename1 = './resources/construction_approach/', 'INVERSE_RELATIONS.txt'
+        filename1 = 'INVERSE_RELATIONS.txt'
         with open(self.temp_dir + '/' + filename1, 'w') as out1:
             out1.write('Relation' + '\t' + 'Inverse_Relation' + '\n')
             for s, p, o in ro_graph:
@@ -1325,8 +1325,8 @@ class DataPreprocessing(object):
         return None
 
     def _creates_gene_metadata_dict(self) -> Dict:
-        """Creates a dictionary to store labels, synonyms, and a description for each Entrez gene identifier present
-        in the input data file.
+        """Creates a dictionary to store labels, synonyms, and a description for each Entrez gene identifier present in
+        the input data file.
 
         Returns:
             gene_metadata_dict: A dict containing metadata that's keyed by Entrez gene identifier and whose values are
@@ -1606,36 +1606,36 @@ class DataPreprocessing(object):
 
         print('*** PROCESSING LINKED OPEN DATA SOURCES ***')
 
-        # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
-        print('\nSTEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
-        logger.info('STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
-        self.generates_specific_genomic_identifier_maps()
-        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
-
-        # STEP 2: MeSH-ChEBI Identifier Mapping
-        print('\nSTEP 2: MESH-CHEBI IDENTIFIER MAPPING')
-        logger.info('STEP 2: MESH-CHEBI IDENTIFIER MAPPING')
-        self.creates_chebi_to_mesh_identifier_mappings()
-        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
-
-        # STEP 3: Disease and Phenotype Identifier Mapping
-        print('\nSTEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
-        logger.info('STEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
-        self.creates_disease_identifier_mappings()
-        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
-
-        # STEP 4: Human Protein Atlas/GTEx Tissue/Cells Edge Data
-        print('\nSTEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
-        logger.info('STEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
-        self._hpa_gtex_ontology_alignment()
-        self.processes_hpa_gtex_data()
-        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
-
-        # STEP 5: Creating Pathway and Sequence Ontology Mappings
-        print('\nSTEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
-        logger.info('STEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
-        self.combines_pathway_and_sequence_ontology_dictionaries()
-        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        # # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
+        # print('\nSTEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
+        # logger.info('STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
+        # self.generates_specific_genomic_identifier_maps()
+        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        #
+        # # STEP 2: MeSH-ChEBI Identifier Mapping
+        # print('\nSTEP 2: MESH-CHEBI IDENTIFIER MAPPING')
+        # logger.info('STEP 2: MESH-CHEBI IDENTIFIER MAPPING')
+        # self.creates_chebi_to_mesh_identifier_mappings()
+        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        #
+        # # STEP 3: Disease and Phenotype Identifier Mapping
+        # print('\nSTEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
+        # logger.info('STEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
+        # self.creates_disease_identifier_mappings()
+        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        #
+        # # STEP 4: Human Protein Atlas/GTEx Tissue/Cells Edge Data
+        # print('\nSTEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
+        # logger.info('STEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
+        # self._hpa_gtex_ontology_alignment()
+        # self.processes_hpa_gtex_data()
+        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        #
+        # # STEP 5: Creating Pathway and Sequence Ontology Mappings
+        # print('\nSTEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
+        # logger.info('STEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
+        # self.combines_pathway_and_sequence_ontology_dictionaries()
+        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
 
         # STEP 6: Creating a Human Protein Ontology
         print('\nSTEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
