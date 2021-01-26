@@ -7,6 +7,7 @@ import fnmatch
 import glob
 import logging.config
 import os
+import ray
 import re
 import shutil
 import subprocess
@@ -15,14 +16,15 @@ import traceback
 from datetime import datetime
 from google.cloud import storage  # type: ignore
 
-from builds.build_utilities import *    # type: ignore
-from pkt_kg.__version__ import __version__
-from pkt_kg.utils import *
+from builds.build_utilities import *  # type: ignore
+from builds.phase3_log_uploader import PKTLogUploader  # type: ignore
+from pkt_kg.__version__ import __version__  # type: ignore
+from pkt_kg.utils import *  # type: ignore
 
 # set environment variables
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'resources/project_keys/pheknowlator-6cc612b4cbee.json'
 # logging
-log_dir, log, log_config = 'logs', 'pkt_builder_phase3_log.log', glob.glob('**/logging.ini', recursive=True)
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
 if os.path.exists(log_dir): shutil.rmtree(log_dir)
 os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
@@ -106,6 +108,12 @@ def main(app, rel, owl):
     print('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
     logger.info('STEP 2: CONSTRUCT KNOWLEDGE GRAPH')
     logger.info('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
+
+    # start background process to upload logs while the pkt main knowledge graph function runs
+    ray.init()
+    background_task = PKTLogUploader.remote('pheknowlator', gcs_current_loc, log_dir, 5)
+    logger.info('RAN THE CONSTRUCT KNOWLEDGE GRAPH CODE')
+    # # run the pkt_kg main method
     # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
     #           '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
     #           '--app {} --rel {} --owl {}'
@@ -115,6 +123,8 @@ def main(app, rel, owl):
     #         logger.error('ERROR: Program Finished with Errors: {}'.format(return_code))
     #         raise Exception('ERROR: Program Finished with Errors: {}'.format(return_code))
     # except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
+    background_task.__ray_terminate__.remote()  # kills the process with an `exit(0)`
+    ray.shutdown()
 
     uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket
 
