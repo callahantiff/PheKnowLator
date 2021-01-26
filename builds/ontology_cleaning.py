@@ -170,8 +170,8 @@ class OntologyCleaner(object):
         # save graph in order to run reasoner
         filename = self.temp_dir + '/' + self.ont_file_location
         self.ont_graph.serialize(destination=filename, format='xml')
-        command = "./owltools {} --reasoner {} --run-reasoner --assert-implied -o {}"
-        return_code = os.system(command.format(filename, 'elk', filename))
+        command = "{} {} --reasoner {} --run-reasoner --assert-implied -o {}"
+        return_code = os.system(command.format(self.owltools_location, filename, 'elk', filename))
         if return_code == 0:
             ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
             uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)

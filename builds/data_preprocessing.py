@@ -1606,36 +1606,36 @@ class DataPreprocessing(object):
 
         print('*** PROCESSING LINKED OPEN DATA SOURCES ***')
 
-        # # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
-        # print('\nSTEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
-        # logger.info('STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
-        # self.generates_specific_genomic_identifier_maps()
-        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
-        #
-        # # STEP 2: MeSH-ChEBI Identifier Mapping
-        # print('\nSTEP 2: MESH-CHEBI IDENTIFIER MAPPING')
-        # logger.info('STEP 2: MESH-CHEBI IDENTIFIER MAPPING')
-        # self.creates_chebi_to_mesh_identifier_mappings()
-        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
-        #
-        # # STEP 3: Disease and Phenotype Identifier Mapping
-        # print('\nSTEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
-        # logger.info('STEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
-        # self.creates_disease_identifier_mappings()
-        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
-        #
-        # # STEP 4: Human Protein Atlas/GTEx Tissue/Cells Edge Data
-        # print('\nSTEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
-        # logger.info('STEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
-        # self._hpa_gtex_ontology_alignment()
-        # self.processes_hpa_gtex_data()
-        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
-        #
-        # # STEP 5: Creating Pathway and Sequence Ontology Mappings
-        # print('\nSTEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
-        # logger.info('STEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
-        # self.combines_pathway_and_sequence_ontology_dictionaries()
-        # uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
+        print('\nSTEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
+        logger.info('STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
+        self.generates_specific_genomic_identifier_maps()
+        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+
+        # STEP 2: MeSH-ChEBI Identifier Mapping
+        print('\nSTEP 2: MESH-CHEBI IDENTIFIER MAPPING')
+        logger.info('STEP 2: MESH-CHEBI IDENTIFIER MAPPING')
+        self.creates_chebi_to_mesh_identifier_mappings()
+        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+
+        # STEP 3: Disease and Phenotype Identifier Mapping
+        print('\nSTEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
+        logger.info('STEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
+        self.creates_disease_identifier_mappings()
+        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+
+        # STEP 4: Human Protein Atlas/GTEx Tissue/Cells Edge Data
+        print('\nSTEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
+        logger.info('STEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
+        self._hpa_gtex_ontology_alignment()
+        self.processes_hpa_gtex_data()
+        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+
+        # STEP 5: Creating Pathway and Sequence Ontology Mappings
+        print('\nSTEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
+        logger.info('STEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
+        self.combines_pathway_and_sequence_ontology_dictionaries()
+        uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
 
         # STEP 6: Creating a Human Protein Ontology
         print('\nSTEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
