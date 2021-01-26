@@ -76,6 +76,7 @@ setup(
                       'numpy==1.18.1',
                       'openpyxl==3.0.3',
                       'pandas==1.0.5',
+                      'python-json-logger==2.0.1',
                       'rdflib==4.2.2',
                       'reactome2py>=0.0.8',
                       'requests==2.22.0',
