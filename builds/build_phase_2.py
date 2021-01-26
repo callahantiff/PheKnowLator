@@ -215,7 +215,4 @@ def run_phase_2():
     copies_data_between_gcs_bucket_directories(bucket, source_directory, destination_directory, source_data)
     uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
 
-    # clean up environment after uploading all processed data
-    shutil.rmtree(temp_dir)
-
     return None
