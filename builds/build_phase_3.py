@@ -111,20 +111,18 @@ def main(app, rel, owl):
 
     # start background process to upload logs while the pkt main knowledge graph function runs
     ray.init()
-    background_task = PKTLogUploader.remote('pheknowlator', gcs_current_loc, log_dir, 5)
+    background_task = PKTLogUploader.remote('pheknowlator', gcs_current_loc, log_dir, 90)
     logger.info('RAN THE CONSTRUCT KNOWLEDGE GRAPH CODE')
-    import time
-    time.sleep(10)
-    # # run the pkt_kg main method
-    # command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
-    #           '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
-    #           '--app {} --rel {} --owl {}'
-    # try:
-    #     return_code = os.system(command.format(app, rel, owl))
-    #     if return_code != 0:
-    #         logger.error('ERROR: Program Finished with Errors: {}'.format(return_code))
-    #         raise Exception('ERROR: Program Finished with Errors: {}'.format(return_code))
-    # except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
+    # run the pkt_kg main method
+    command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
+              '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
+              '--app {} --rel {} --owl {}'
+    try:
+        return_code = os.system(command.format(app, rel, owl))
+        if return_code != 0:
+            logger.error('ERROR: Program Finished with Errors: {}'.format(return_code))
+            raise Exception('ERROR: Program Finished with Errors: {}'.format(return_code))
+    except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
     background_task.__ray_terminate__.remote()  # kills the process with an `exit(0)`
     ray.shutdown()
 
@@ -138,14 +136,14 @@ def main(app, rel, owl):
     # upload data from Docker to archived_builds Google Cloud Storage Bucket
     print('Uploading Knowledge Graph Data to the current_build Directory')
     logger.info('Uploading Knowledge Graph Data to the current_build Directory')
-    # uploads_build_data(bucket, gcs_current_loc)
+    uploads_build_data(bucket, gcs_current_loc)
     uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket
 
     # upload data from Docker to archived_builds Google Cloud Storage Bucket
     print('Copying Knowledge Graph Data from the current_build Directory to the archived_builds Directory')
     logger.info('Copying Knowledge Graph Data from the current_build Directory to the archived_builds Directory')
-    # source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_current_loc)]
-    # copies_data_between_gcs_bucket_directories(bucket, gcs_current_loc, gcs_archive_loc, source_data)
+    source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_current_loc)]
+    copies_data_between_gcs_bucket_directories(bucket, gcs_current_loc, gcs_archive_loc, source_data)
     uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
