@@ -17,7 +17,7 @@ from datetime import datetime
 from google.cloud import storage  # type: ignore
 
 from builds.build_utilities import *  # type: ignore
-from builds.phase3_log_uploader import PKTLogUploader  # type: ignore
+from builds.phase3_log_daemon import PKTLogUploader  # type: ignore
 from pkt_kg.__version__ import __version__  # type: ignore
 from pkt_kg.utils import *  # type: ignore
 
