@@ -492,6 +492,21 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
+    @patch('builtins.print')
+    def test_derives_graph_statistics(self, mock_print):
+        """Tests the derives_graph_statistics method."""
+
+        # generate stats from existing ontology
+        graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        res_str = 'Graph Stats: 42237 triples, 42181 nodes, 2793 classes, 0 individuals, 50 object properties, ' \
+            '39 annotation properties'
+
+        # test method
+        self.kg_subclass.derives_graph_statistics(graph)
+        mock_print.assert_called_with(res_str)
+
+        return None
+
     def test_creates_knowledge_graph_edges_not_adding_metadata_to_kg(self):
         """Tests the creates_knowledge_graph_edges method without adding node metadata to the KG."""
 
