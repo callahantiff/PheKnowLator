@@ -55,6 +55,8 @@ jobs:
       GCE_ZONE: us-central1-a
       GCE_CPU: 1
       GCE_MEMORY: 250GB
+      GCE_BOOT_DISC_TYPE: pd-standard
+      GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
       GCE_JOB_NAME: pkt-builder-phase3-job1
       GCS_LOCATION: 'subclass_builds/relations_only/owl'
@@ -91,6 +93,7 @@ jobs:
         run: |-
           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
             --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
+            --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
       - name: Monitor Build
         run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
