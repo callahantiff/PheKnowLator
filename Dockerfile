@@ -37,11 +37,9 @@ COPY README.rst /PheKnowLator
 COPY resources /PheKnowLator/resources
 
 # download and copy needed data
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/edge_source_list.txt && mv
-edge_source_list.txt resources/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/edge_source_list.txt && mv edge_source_list.txt resources/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/ontology_source_list.txt && mv ontology_source_list.txt resources/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/resource_info.txt && mv
-resource_info.txt resources/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/resource_info.txt && mv resource_info.txt resources/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/subclass_construction_map.pkl && mv subclass_construction_map.pkl resources/construction_approach/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/PheKnowLator_MergedOntologies.owl && mv PheKnowLator_MergedOntologies.owl resources/knowledge_graphs/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/node_metadata_dict.pkl && mv node_metadata_dict.pkl resources/node_data/
