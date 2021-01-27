@@ -520,7 +520,9 @@ class PostClosureBuild(KGBuilder):
             logger.info('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
             results = owl_nets.run_owl_nets()
-        else: converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
+        else:
+            logger.info('*** Converting  Knowledge Graph to Networkx MultiDiGraph ***')
+            converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
         # print statistics on the updated graph
         self.derives_graph_statistics(self.graph)
         gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
@@ -537,6 +539,7 @@ class PostClosureBuild(KGBuilder):
                 self.derives_graph_statistics(self.graph)
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
+                logger.info('Create Entity-Integer Map')
                 node_int_map = maps_node_ids_to_integers(self.graph, self.write_location, triple_list_file, triple_map)
 
                 # STEP 6: EXTRACT AND WRITE NODE METADATA
@@ -627,7 +630,9 @@ class FullBuild(KGBuilder):
             logger.info('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
             results = owl_nets.run_owl_nets()
-        else: converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
+        else:
+            logger.info('*** Converting  Knowledge Graph to Networkx MultiDiGraph ***')
+            converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
 
         # STEP 6: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('\n*** Writing Knowledge Graph Edge Lists ***')
@@ -639,6 +644,7 @@ class FullBuild(KGBuilder):
                 self.derives_graph_statistics(self.graph)
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
+                logger.info('Create Entity-Integer Map')
                 node_int_map = maps_node_ids_to_integers(self.graph, self.write_location, triple_list_file, triple_map)
 
                 # STEP 7: EXTRACT AND WRITE NODE METADATA
