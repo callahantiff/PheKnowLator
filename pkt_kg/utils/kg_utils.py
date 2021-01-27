@@ -346,6 +346,34 @@ def finds_node_type(edge_info: Dict) -> Dict:
     return nodes
 
 
+def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], class_list: Optional[Set] = None) -> Set:
+    """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input class.
+
+    Args:
+        graph: An RDFLib graph object assumed to contain ontology data.
+        class_uris: A list of at least one ontology class RDFLib URIRef object.
+        class_list: A list of URIs representing the ancestor classes found for the input class_uris.
+
+    Returns:
+        A list of ontology class ordered by the ontology hierarchy.
+    """
+
+    # instantiate list object if none passed to function
+    class_list = set() if class_list is None else class_list
+    class_list = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_list])
+
+    # check class uris are formatted correctly and get their ancestors
+    class_uris = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris])
+    ancestors = set([j for k in [list(graph.objects(x, RDFS.subClassOf)) for x in set(class_uris)] for j in k])
+
+    if len(ancestors) == 0 or len(ancestors.difference(class_list)) == 0:
+        return set([str(x) for x in class_list])
+    else:
+        class_uris = ancestors.difference(class_list)
+        class_list |= ancestors.difference(class_list)
+        return gets_class_ancestors(graph, class_uris, class_list)
+
+
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:
     """Loops over the knowledge graph in order to create three different types of files:
         - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
@@ -469,31 +497,3 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     del nx_mdg   # clean up environment
 
     return None
-
-
-def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], class_list: Optional[Set] = None) -> Set:
-    """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input class.
-
-    Args:
-        graph: An RDFLib graph object assumed to contain ontology data.
-        class_uris: A list of at least one ontology class RDFLib URIRef object.
-        class_list: A list of URIs representing the ancestor classes found for the input class_uris.
-
-    Returns:
-        A list of ontology class ordered by the ontology hierarchy.
-    """
-
-    # instantiate list object if none passed to function
-    class_list = set() if class_list is None else class_list
-    class_list = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_list])
-
-    # check class uris are formatted correctly and get their ancestors
-    class_uris = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris])
-    ancestors = set([j for k in [list(graph.objects(x, RDFS.subClassOf)) for x in set(class_uris)] for j in k])
-
-    if len(ancestors) == 0 or len(ancestors.difference(class_list)) == 0:
-        return set([str(x) for x in class_list])
-    else:
-        class_uris = ancestors.difference(class_list)
-        class_list |= ancestors.difference(class_list)
-        return gets_class_ancestors(graph, class_uris, class_list)
