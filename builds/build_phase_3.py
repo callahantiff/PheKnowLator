@@ -45,16 +45,19 @@ def uploads_build_data(bucket, gcs_location):
     """
 
     # create variables to store source directory locations
-    resources_loc = 'resources'
-    kg_loc = resources_loc + '/knowledge_graphs/'
-    metadata_loc = resources_loc + '/node_data/'
-    construct_app = resources_loc + '/construction_/'
+    resources_loc = 'resources/'
+    kg_loc = resources_loc + 'knowledge_graphs/'
+    metadata_loc = resources_loc + 'node_data/'
+    construct_app = resources_loc + 'construction_approach/'
 
     # move knowledge graph data
     for kg_file in [x for x in glob.glob(kg_loc + '*') if 'README.md' not in x]:
-        uploads_data_to_gcs_bucket(bucket, gcs_location, kg_loc, kg_file)
+        uploads_data_to_gcs_bucket(bucket, gcs_location, kg_loc, kg_file.split('/')[-1])
     # move master edge list
-    uploads_data_to_gcs_bucket(bucket, gcs_location, resources_location, 'Master_Edge_List_Dict.json')
+    uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc, 'Master_Edge_List_Dict.json')
+    # move metadata files
+    uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc + 'edge_data/', 'edge_source_metadata.txt')
+    uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc + 'ontologies/', 'ontology_source_metadata.txt')
     # node metadata dict
     uploads_data_to_gcs_bucket(bucket, gcs_location, metadata_loc, 'node_metadata_dict.pkl')
     # construction approach logs
@@ -114,7 +117,7 @@ def main(app, rel, owl):
     logger.info('RAN THE CONSTRUCT KNOWLEDGE GRAPH CODE')
     # run the pkt_kg main method
     command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
-              '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full' \
+              '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full ' \
               '--app {} --rel {} --owl {}'
     try:
         return_code = os.system(command.format(app, rel, owl))
