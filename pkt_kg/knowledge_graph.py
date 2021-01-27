@@ -269,6 +269,11 @@ class KGBuilder(object):
         print('Unique Non-OWL Edges: {}'.format(len(edges) * 2 if invrel else len(edges)))
         print('Unique {}: {}'.format(n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']]))))
         print('Unique {}: {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
+        # log statistics
+        res_string = '{} Edge Statistics: {} OWL Edges, {} Non-OWL Edges, {} {} Nodes and {} {} Nodes'
+        logger.info(res_string.format(edge_type.upper(), len(set(results)), len(edges) * 2 if invrel else len(edges),
+                                      n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']])),
+                                      n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
 
         return None
 

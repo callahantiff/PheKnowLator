@@ -108,14 +108,6 @@ class CreatesEdgeList(object):
         with open(file_path, 'r') as input_data_r:  # type: IO[Any]
             data = input_data_r.read().splitlines()
         input_data_r.close()
-        # try:
-        #     with open(file_path, 'r') as input_data_r:  # type: IO[Any]
-        #         data = input_data_r.read().splitlines()
-        #     input_data_r.close()
-        # except ValueError:
-        #     with open(file_path, 'rb') as input_data_rb:  # type: IO[Any]
-        #         data = input_data_rb.read().decode('utf-8').splitlines()  # decode bytes to strings
-        #     input_data_rb.close()
 
         # clean up data to only keep valid rows (rows that are not empty space or metadata)
         splitter = '\t' if 't' in delimiter else r"\s+" if '' in delimiter else delimiter
@@ -399,12 +391,14 @@ class CreatesEdgeList(object):
 
             # print Edge Statistics
             unique_edges = [list(y) for y in set([tuple(x) for x in self.source_info[edge_type]['edge_list']])]
+            unique_subjects, unique_objects = set([x[0] for x in unique_edges]), set([x[1] for x in unique_edges])
             print('\nPROCESSED EDGE: {}'.format(edge_type))
-            print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(set([x[0] for x in unique_edges]))))
-            print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(set([x[1] for x in unique_edges]))))
+            print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(unique_subjects)))
+            print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(unique_objects)))
             print('Total Unique Edge Count: {}'.format(len(unique_edges)))
-            print('Total Unique Edge Count + Inverses: {}'.format(len(unique_edges)*2))
-            logger.info('Finished Processing Edge')
+            res_string = 'Finished Edge: {} - ({} = {} unique nodes, {} = {} unique nodes) and {} unique edges'
+            logger.info(res_string.format(edge_type, edge_type.split('-')[0], len(unique_subjects),
+                        edge_type.split('-')[1], len(unique_objects), len(unique_edges)))
 
         # add source entity namespaces
         self.gets_entity_namespaces()

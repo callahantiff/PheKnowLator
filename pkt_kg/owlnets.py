@@ -517,11 +517,20 @@ class OwlNets(object):
         print('=' * 75 + '\nDecoded {} owl-encoded classes. Note the following:'.format(len(cleaned_nodes)))
         print('{} cardinality elements'.format(len(list(self.owl_nets_dict['owl_nets']['cardinality'].keys()))))
         print('ignored {} misc elements'.format(len(list(self.owl_nets_dict['owl_nets']['misc'].keys()))))
-        print('{} owl:complementOf removed'.format(len(list(self.owl_nets_dict['owl_nets']['complementOf'].keys()))))
+        print('removed {} owl:complementOf'.format(len(list(self.owl_nets_dict['owl_nets']['complementOf'].keys()))))
         print('{} negation elements\n'.format(len(list(self.owl_nets_dict['owl_nets']['negation'].keys()))) + '=' * 75)
         del self.nx_mdg  # clean up environment
         self.graph = decoded_graph  # pass decoded classes through triple cleaner
         cleaned_decoded_graph = self.removes_edges_with_owl_semantics()
+
+        # update logging
+        res_string = 'Decoded {} classes; partially decoded {} cardinality elements; ignored {} misc elements; ' \
+                     'removed {} owl:complementOf and {} negation elements'
+        logger.info(res_string.format(
+            len(cleaned_nodes), len(list(self.owl_nets_dict['owl_nets']['cardinality'].keys())),
+            len(list(self.owl_nets_dict['owl_nets']['misc'].keys())),
+            len(list(self.owl_nets_dict['owl_nets']['complementOf'].keys())),
+            len(list(self.owl_nets_dict['owl_nets']['negation'].keys()))))
 
         return cleaned_decoded_graph
 
