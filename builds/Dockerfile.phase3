@@ -10,25 +10,21 @@ ENV PYTHONUNBUFFERED True
 # set wroking directory in container
 WORKDIR /PheKnowLator/
 
-# download build dependencies
-RUN wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/resource_info.txt && \
-    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/ontology_source_list.txt && \
-    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/edge_source_list.txt && \
-    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/INVERSE_RELATIONS.txt && \
-    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/RELATIONS_LABELS.txt && \
-    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/node_metadata_dict.pkl && \
-    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/subclass_construction_map.pkl && \
-    wget https://storage.googleapis.com/pheknowlator/current_build/dependencies/PheKnowLator_MergedOntologies.owl
-
-# copy downloaded files to correct location
-RUN mv resource_info.txt /PheKnowLator/resources/ && \
-    mv ontology_source_list.txt /PheKnowLator/resources/ && \
-    mv edge_source_list.txt /PheKnowLator/resources/ && \
-    mv INVERSE_RELATIONS.txt /PheKnowLator/resources/relations_data/ && \
-    mv RELATIONS_LABELS.txt /PheKnowLator/resources/relations_data/ && \
-    mv node_metadata_dict.pkl /PheKnowLator/resources/node_data/ && \
-    mv subclass_construction_map.pkl /PheKnowLator/resources/construction_approach/ && \
-    mv PheKnowLator_MergedOntologies.owl /PheKnowLator/resources/knowledge_graphs/
+# download build dependencies and move them to the correct location
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/subclass_construction_map.pkl && mv subclass_construction_map.pkl resources/construction_approach/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/PheKnowLator_MergedOntologies.owl && mv PheKnowLator_MergedOntologies.owl resources/knowledge_graphs/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/node_metadata_dict.pkl && mv node_metadata_dict.pkl resources/node_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/DISEASE_MONDO_MAP.txt && mv DISEASE_MONDO_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt && mv ENSEMBL_GENE_ENTREZ_GENE_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt && mv ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt && mv GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt && mv HPA_GTEx_TISSUE_CELL_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/MESH_CHEBI_MAP.txt && mv MESH_CHEBI_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/PHENOTYPE_HPO_MAP.txt && mv PHENOTYPE_HPO_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/STRING_PRO_ONTOLOGY_MAP.txt && mv STRING_PRO_ONTOLOGY_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt && mv UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/INVERSE_RELATIONS.txt && mv INVERSE_RELATIONS.txt resources/relations_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/RELATIONS_LABELS.txt && mv RELATIONS_LABELS.txt resources/relations_data/
 
 # copying local scripts to container
 COPY build_phase_3.py /PheKnowLator/
