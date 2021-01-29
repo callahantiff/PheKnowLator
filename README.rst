@@ -1,6 +1,5 @@
-##############################################
-Phenotype Knowledge Translator (PheKnowLator) 
-##############################################
+|logo| 
+
 
 |github_action| |mypy|  
 
@@ -327,6 +326,10 @@ Citing this Work
 
 
 
+
+.. |logo| image:: https://user-images.githubusercontent.com/8030363/106306246-01df9100-621b-11eb-81c3-d1f2c2e124a6.png
+   :target: https://github.com/callahantiff/PheKnowLator  
+   
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory
 
