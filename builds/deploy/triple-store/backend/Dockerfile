@@ -19,8 +19,8 @@ WORKDIR /pkt-data
 
 # download & load the pheknowlator n-triples
 RUN wget https://storage.googleapis.com/pheknowlator/current_build/knowledge_graphs/instance_builds/inverse_relations/owlnets/PheKnowLator_v2.0.0_full_instance_inverseRelations_noOWL_OWLNETS.nt
-RUN /run-loader.sh -z /home/developer/blazegraph/conf/log4j.properties -g file://pheknowlator -f ntriples -r kb -p /home/developer/blazegraph/conf/RWStore.properties -m mvn -l /pkt-data/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
-RUN rm /pkt-data/PheKnowLator_Subclass_InverseRelations_NotClosed_NoOWL_OWLNETS.nt
+RUN /run-loader.sh -z /home/developer/blazegraph/conf/log4j.properties -g file://pheknowlator -f ntriples -r kb -p /home/developer/blazegraph/conf/RWStore.properties -m mvn -l /pkt-data/PheKnowLator_v2.0.0_full_instance_inverseRelations_noOWL_OWLNETS.nt
+RUN rm /pkt-data/PheKnowLator_v2.0.0_full_instance_inverseRelations_noOWL_OWLNETS.nt
 
 # add file needed to ensure endpoint is read-only
 COPY override-web.xml /home/developer/
