@@ -619,6 +619,9 @@ class OwlNets(object):
         constructor and all restrictions; (5) removes non-OBO namespace classes; and (6) purifies decoded graph to
         input construction approach (i.e. None, subclass-based or instance-based).
 
+        NOTE: Need to update workflow to remove instance UUIDs differently if never adding more complex relations to
+        the KG (i.e. those with OWL constructors).
+
         Returns:
             not_purified_graph: An rdflib.Graph object that has been updated to only include triples owl decoded
                 triples.

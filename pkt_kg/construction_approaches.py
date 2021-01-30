@@ -119,7 +119,8 @@ class KGConstructionApproach(object):
                                   inverse_relation: Optional[URIRef]) -> Tuple:
         """Core subclass-based edge construction method. Constructs a single edge between to ontology classes as well as
         verifies if the user wants an inverse edge created and if so, then this edge is also added to the knowledge
-        graph.
+        graph. Note that a Bnode is used for subclass construction versus the UUID hash + pkt namespace that is used
+        for instance-based construction.
 
         Note. We explicitly type each node and each relation/inverse relation. This may seem redundant, but it is
         needed in order to ensure consistency between the data after applying the OWL API to reformat the data.
@@ -211,9 +212,9 @@ class KGConstructionApproach(object):
     @staticmethod
     def instance_edge_constructor(node1: Union[BNode, URIRef], node2: Union[BNode, URIRef], relation: URIRef,
                                   inverse_relation: Optional[URIRef]) -> Tuple:
-        """Core instance-based edge construction method. Constructs a single edge between to ontology classes as well as
-        verifies if the user wants an inverse edge created and if so, then this edge is also added to the knowledge
-        graph.
+        """Core instance-based edge construction method. Constructs a single edge between two ontology classes as
+        well as verifies if the user wants an inverse edge created and if so, then this edge is also added to the
+        knowledge graph.
 
         Note. We explicitly type each node and each relation/inverse relation. This may seem redundant,
         but it is needed in order to ensure consistency between the data after applying the OWL API to reformat the
@@ -278,8 +279,7 @@ class KGConstructionApproach(object):
             sha_uid = URIRef(pkt + 'N' + hashlib.md5(res['cls1'].encode()).hexdigest())
             x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
             mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
-            # get non-class node mappings to ontology classes
-            if mapped_node:
+            if mapped_node:  # get non-class node mappings to ontology classes
                 edges = [(sha_uid, RDF.type, URIRef(res['cls1'])),
                          (sha_uid, RDF.type, OWL.NamedIndividual),
                          (URIRef(res['cls1']), RDF.type, OWL.Class),
