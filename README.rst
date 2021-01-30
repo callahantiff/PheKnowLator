@@ -1,12 +1,9 @@
-##############################################
-Phenotype Knowledge Translator (PheKnowLator) 
-##############################################
+|logo|
 
-|github_action| |mypy|  
 
-|sonar_quality| |sonar_maintainability| |code_climate_maintainability| |codacy|
+|github_action| |mypy|
 
-|sonar_coverage| |code_climate_coverage| |coveralls|
+|sonar_quality| |code_climate_maintainability| |codacy| |code_climate_coverage| |coveralls|
 
 |ABRA|
 
@@ -19,7 +16,7 @@ PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is the first fully c
 What Does This Repository Provide?
 ===================================
 1. **A Knowledge Graph Sharing Hub:** Prebuilt knowledge graphs and associated metadata. Each knowledge graph is provided as triple edge lists (``.nt``, ``.txt``), OWL API-formatted ``RDF/XML`` and NetworkX graph-pickled MultiDiGraphs. We also make text files available that contain node and relation metadata. Finally, starting with build `V2.0.0 <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__, we make available different types of graph embeddings for each knowledge graph build.
-2. **A Knowledge Graph Building Framework:** A fully automated ``Python 3`` library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Our framework provides detailed Jupyter Notebooks to greatly simplify the process of constructing knowledge graphs.  
+2. **A Knowledge Graph Building Framework:** A fully automated ``Python 3`` library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Our framework provides detailed Jupyter Notebooks to greatly simplify the process of constructing knowledge graphs.
 
 How do I Learn More?
 ===================================
@@ -35,16 +32,15 @@ How do I Learn More?
 Important Updates and Notifications
 ************************************
 
-- *12/21/2020:*  We are hard at work on release ``v2.0.0`` and will announce here when the release is ready for public consumption!
 - *January 2021:*
 
   - Access build data via a dedicated Google Cloud Storage bucket (see details under ``Releases``)
 
   - New Public Endpoints:
 
-    - SPARQL Endpoint (``OWL-NETS`` ``instance``-based with inverse_relations and no metadata (e.g. labels)): `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
+    - SPARQL Endpoint (``OWL-NETS``  instance-based + inverse relations and no metadata): `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
 
-    - Neo4J Endpoint: `http://neo4j.pheknowlator.com/ <http://neo4j.pheknowlator.com/>`__  --  *COMING SOON*
+    - Neo4J Endpoint: *COMING SOON*
 
 Releases
 =========
@@ -63,7 +59,9 @@ Prior Releases
 
   - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__
   - `Data Access <https://console.cloud.google.com/storage/browser/pheknowlator/release_v1.0.0?project=pheknowlator>`__
+
 |
+
 ----------------------------------
 
 ************************
@@ -88,10 +86,10 @@ You can also clone the repository directly from GitHub by running:
 
 |
 
-**Note.** Sometimes ``OWLTools``, which comes with the cloned/forked repository (``./pkt_kg/libs/owltools``) loses "executable" permission. To avoid any potential issues, I recommend running the following in the terminal from the PheKnowLator directory: 
+**Note.** Sometimes ``OWLTools``, which comes with the cloned/forked repository (``./pkt_kg/libs/owltools``) loses "executable" permission. To avoid any potential issues, I recommend running the following in the terminal from the PheKnowLator directory:
 
 .. code:: shell
-    
+
     chmod +x pkt_kg/libs/owltools
 
 |
@@ -152,12 +150,13 @@ The `KG Construction`_ Wiki page provides a detailed description of the knowledg
 
 * `resources/construction_approach/subclass_construction_map.pkl`_
 * `resources/Master_Edge_List_Dict.json`_ ➞ *automatically created after edge list construction*
-* `resources/node_data/node_metadata_dict.pkl <https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md>`__ ➞ *if adding metadata for new edges to the knowledge graph*  
+* `resources/node_data/node_metadata_dict.pkl <https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md>`__ ➞ *if adding metadata for new edges to the knowledge graph*
 * `resources/knowledge_graphs/PheKnowLator_MergedOntologies*.owl`_ ➞ *see* `ontology README`_ *for information*
 * `resources/relations_data/RELATIONS_LABELS.txt`_
 * `resources/relations_data/INVERSE_RELATIONS.txt`_ ➞ *if including inverse relations*
 
 |
+
 ----------------------------------
 
 ************************
@@ -228,7 +227,7 @@ The example below provides the details needed to run ``pkt_kg`` using ``./Main.p
 
 ``main.ipynb``
 ---------------
-The ``./main.ipynb`` Jupyter notebook provides detailed instructions for how to run the ``pkt_kg`` algorithm and build a knowledge graph from scratch.  
+The ``./main.ipynb`` Jupyter notebook provides detailed instructions for how to run the ``pkt_kg`` algorithm and build a knowledge graph from scratch.
 
 |
 
@@ -237,13 +236,13 @@ Docker Container
 ``pkt_kg`` can be run using a Docker instance. In order to utilize the Dockerized version of the code, please make sure that you have downloaded the newest version of `Docker <https://docs.docker.com/get-docker/>`__. There are two ways to utilize Docker with this repository:
 
 - Obtain Pre-Built Container from `DockerHub <https://hub.docker.com/repository/docker/callahantiff/pheknowlator>`__
-- Build the Container (see details below) 
+- Build the Container (see details below)
 
 Obtaining a Container
 ----------------------
-*Obtain Pre-Built Containiner:* A pre-built containers can be obtained directly from `DockerHub <https://hub.docker.com/repository/docker/callahantiff/pheknowlator/general>`__.  
+*Obtain Pre-Built Containiner:* A pre-built containers can be obtained directly from `DockerHub <https://hub.docker.com/repository/docker/callahantiff/pheknowlator/general>`__.
 
-*Build Container:* To build the ``pkt_kg`` download a stable release of this repository (or fork/clone it repository). Once downloaded, you will have everything needed to build the conatiner, including the ```./Dockerfile` and ``./dockerignore``. The code shown below builds the container. Make sure to relace ``[VERSION]`` with the current ``pkt_kg`` version before running the code.  
+*Build Container:* To build the ``pkt_kg`` download a stable release of this repository (or fork/clone it repository). Once downloaded, you will have everything needed to build the conatiner, including the ```./Dockerfile` and ``./dockerignore``. The code shown below builds the container. Make sure to relace ``[VERSION]`` with the current ``pkt_kg`` version before running the code.
 
 .. code:: bash
 
@@ -252,8 +251,8 @@ Obtaining a Container
 
 Notes:
 ^^^^^^
-- Update ``PheKnowLator/resources/resource_info.txt``, ``PheKnowLator/resources/edge_source_list.txt``, and ``PheKnowLator/resources/ontology_source_list.txt``  
-- Verify ``PheKnowLatpr/.dockerignore`` is accurate (i.e. updating the sources listed under the ``## DATA NEEDED TO BUILD KNOWLEDGE GRAPH ##`` comment, to make sure they match the file paths for all datasets used to map identifiers listed in the ``PheKnowLator/resources/resource_info.txt`` document)  
+- Update ``PheKnowLator/resources/resource_info.txt``, ``PheKnowLator/resources/edge_source_list.txt``, and ``PheKnowLator/resources/ontology_source_list.txt``
+- Verify ``PheKnowLatpr/.dockerignore`` is accurate (i.e. updating the sources listed under the ``## DATA NEEDED TO BUILD KNOWLEDGE GRAPH ##`` comment, to make sure they match the file paths for all datasets used to map identifiers listed in the ``PheKnowLator/resources/resource_info.txt`` document)
 
 Running a Container
 --------------------
@@ -265,7 +264,7 @@ The following code can be used to run ``pkt_kg`` from outside of the container (
 
 Notes:
 ^^^^^^
-- The example shown above builds a full version of the knowledge graph using the subclass construction approach with node metadata, inverse relations, and decoding of OWL classes. See the **Running the pkt Library** section for more information on the parameters that can be passed to ``pkt_kg`` 
+- The example shown above builds a full version of the knowledge graph using the subclass construction approach with node metadata, inverse relations, and decoding of OWL classes. See the **Running the pkt Library** section for more information on the parameters that can be passed to ``pkt_kg``
 - The Docker container cannot write to an encrypted filesystem, however, so please make sure ``/local/path/to/PheKnowLator/resources/knowledge_graphs`` references a directory that is not encrypted
 
 Finding Data Inside a Container
@@ -286,6 +285,7 @@ In order to enable persistent data, a volume is mounted within the ``Dockerfile`
     sudo ls /var/lib/docker/volumes/[VOLUME HASH]/_data
 
 |
+
 ---------------------------------
 
 ******************************
@@ -322,10 +322,13 @@ Citing this Work
      month        = mar,
      year         = 2019,
      doi          = {10.5281/zenodo.3401437},
-     url          = {https://doi.org/10.5281/zenodo.3401437}
-   }
+     url          = {https://doi.org/10.5281/zenodo.3401437}}
 
 
+
+
+.. |logo| image:: https://user-images.githubusercontent.com/8030363/106306246-01df9100-621b-11eb-81c3-d1f2c2e124a6.png
+   :target: https://github.com/callahantiff/PheKnowLator
 
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory
