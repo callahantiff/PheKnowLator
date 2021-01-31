@@ -1,7 +1,7 @@
 |logo| 
 
 
-|github_action| |mypy|  
+|github_action| |pip|  
 
 |sonar_quality| |code_climate_maintainability| |codacy| |code_climate_coverage| |coveralls|
 
@@ -11,12 +11,12 @@
 What is PheKnowLator?
 ***********************
 
-PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is the first fully customizable KG construction framework enabling users to build complex knowledge graphs that are Semantic Web compliant and amenable to automatic Web Ontology Language (OWL) reasoning, conform to contemporary property graph standards, and are importable by today’s popular graph toolkits. PheKnowLator offers multiple build types, can automatically include inverse edges, provides OWL-decoded transformations to support automated deductive reasoning, and outputs knowledge graphs in several formats. By providing flexibility in the way knowledge graphs are modeled, PheKnowLator enables the use of cutting edge graph-based learning and sophisticated network inference algorithms.
+PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is the first fully customizable knowledge graph (KG) construction framework enabling users to build complex KGs that are Semantic Web compliant and amenable to automatic Web Ontology Language (OWL) reasoning, generate contemporary property graphs, and are importable by today’s popular graph toolkits. Please see the project `Wiki <https://github.com/callahantiff/PheKnowLator/wiki>`__ for additional information.
 
 What Does This Repository Provide?
 ===================================
-1. **A Knowledge Graph Sharing Hub:** Prebuilt knowledge graphs and associated metadata. Each knowledge graph is provided as triple edge lists (``.nt``, ``.txt``), OWL API-formatted ``RDF/XML`` and NetworkX graph-pickled MultiDiGraphs. We also make text files available that contain node and relation metadata. Finally, starting with build `V2.0.0 <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__, we make available different types of graph embeddings for each knowledge graph build.
-2. **A Knowledge Graph Building Framework:** A fully automated ``Python 3`` library explicitly designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. Our framework provides detailed Jupyter Notebooks to greatly simplify the process of constructing knowledge graphs.
+1. **A Knowledge Graph Sharing Hub:** Prebuilt KGs and associated metadata. Each KG is provided as triple edge lists, OWL API-formatted ``RDF/XML`` and NetworkX graph-pickled MultiDiGraphs. We also make text files available containing node and relation metadata.
+2. **A Knowledge Graph Building Framework:** An automated ``Python 3`` library designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. The framework also includes Jupyter Notebooks to greatly simplify the generation of required input dependencies.
 
 How do I Learn More?
 ===================================
@@ -48,7 +48,7 @@ All data and output for each release are free to download from our dedicated Goo
 
 Current Release
 ----------------
-- ``v2.0.0``
+- ``v2``
 
   - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__
   - `Data Access <https://console.cloud.google.com/storage/browser/pheknowlator/release_v2.0.0?project=pheknowlator>`__
@@ -70,7 +70,8 @@ Getting Started
 
 Install Library
 ================
-This program requires Python version 3.6. To install the library from PyPI, run:
+
+This program requires Python version 3.6. To install the library from `PyPI <https://pypi.org/project/pkt-kg/>`_, run:
 
 .. code:: shell
 
@@ -99,7 +100,7 @@ Set-Up Environment
 The ``pkt_kg`` library requires a specific project directory structure.
 
 - If you plan to run the code from a cloned version of this repository, then no additional steps are needed.
-- If you are planning to utilize the library without cloning the library, please make sure that your project directory includes the following sub-directories:
+- If you are planning to utilize the library without cloning the library, please make sure that your project directory matches the following:
 
 .. code:: shell
 
@@ -125,7 +126,7 @@ Dependencies
 -------------
 Several input documents must be created before the ``pkt_kg`` library can be utilized. Each of the input documents are listed below by knowledge graph build step:
 
-*Download Data*
+*DOWNLOAD DATA*
 ^^^^^^^^^^^^^^^^
 This code requires three documents within the ``resources`` directory to run successfully. For more information on these documents, see `Document Dependencies`_:
 
@@ -144,9 +145,9 @@ of the steps used to build the `v2.0.0 knowledge graph <https://github.com/calla
 
 *Note.* To ensure reproducibility, after downloading data, a metadata file is output for the ontologies (`ontology_source_metadata.txt`_) and edge data sources (`edge_source_metadata.txt`_).
 
-*Construct Knowledge Graph*
+*CONSTRUCT KNOWLEDGE GRAPH*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process (please see the knowledge graph `README`_ for more information). Please make sure you have created the documents listed below prior to constructing a knowledge graph. Click on each document for additional information.
+The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process (please see the knowledge graph `README`_ for more information). Please make sure the documents listed below are presented in the specified location prior to constructing a knowledge graph. Click on each document for additional information. Note, that cloning this library will include a version of these documents that points to the current build. If you use this versoin then there is no need to download anything prior to running the program.
 
 * `resources/construction_approach/subclass_construction_map.pkl`_
 * `resources/Master_Edge_List_Dict.json`_ ➞ *automatically created after edge list construction*
@@ -242,7 +243,7 @@ Obtaining a Container
 ----------------------
 *Obtain Pre-Built Containiner:* A pre-built containers can be obtained directly from `DockerHub <https://hub.docker.com/repository/docker/callahantiff/pheknowlator/general>`__.
 
-*Build Container:* To build the ``pkt_kg`` download a stable release of this repository (or fork/clone it repository). Once downloaded, you will have everything needed to build the conatiner, including the ```./Dockerfile` and ``./dockerignore``. The code shown below builds the container. Make sure to relace ``[VERSION]`` with the current ``pkt_kg`` version before running the code.
+*Build Container:* To build the ``pkt_kg`` download a stable release of this repository (or fork/clone it repository). Once downloaded, you will have everything needed to build the conatiner, including the ``./Dockerfile`` and ``./dockerignore``. The code shown below builds the container. Make sure to relace ``[VERSION]`` with the current ``pkt_kg`` version before running the code.
 
 .. code:: bash
 
@@ -252,7 +253,7 @@ Obtaining a Container
 Notes:
 ^^^^^^
 - Update ``PheKnowLator/resources/resource_info.txt``, ``PheKnowLator/resources/edge_source_list.txt``, and ``PheKnowLator/resources/ontology_source_list.txt``
-- Verify ``PheKnowLatpr/.dockerignore`` is accurate (i.e. updating the sources listed under the ``## DATA NEEDED TO BUILD KNOWLEDGE GRAPH ##`` comment, to make sure they match the file paths for all datasets used to map identifiers listed in the ``PheKnowLator/resources/resource_info.txt`` document)
+- Building the container "as-is" off of DockerHub will include a download of the data used in the latest releases. No need to update any scripts or pre-download any data.
 
 Running a Container
 --------------------
@@ -314,22 +315,25 @@ This project is licensed under Apache License 2.0 - see the `LICENSE.md`_ file f
 Citing this Work
 =================
 
-..
+**ISMB Conference Pre-print:**  
+
+Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. `A Framework for Automated Construction of Heterogeneous Large-Scale Biomedical Knowledge Graphs <https://www.biorxiv.org/content/10.1101/2020.04.30.071407v1.abstract>`_. bioRxiv. 2020 Jan 1.
+
+
+**Zenodo**
+
+.. code:: bash
 
    @misc{callahan_tj_2019_3401437,
-     author       = {Callahan, TJ},
-     title        = {PheKnowLator},
-     month        = mar,
-     year         = 2019,
-     doi          = {10.5281/zenodo.3401437},
+     author       = {Callahan, TJ},  
+     title        = {PheKnowLator},  
+     year         = 2019,      
+     doi          = {10.5281/zenodo.3401437},  
      url          = {https://doi.org/10.5281/zenodo.3401437}}
 
 
 .. |logo| image:: https://user-images.githubusercontent.com/8030363/106306246-01df9100-621b-11eb-81c3-d1f2c2e124a6.png
    :target: https://github.com/callahantiff/PheKnowLator
-
-.. |logo| image:: https://user-images.githubusercontent.com/8030363/106306246-01df9100-621b-11eb-81c3-d1f2c2e124a6.png
-   :target: https://github.com/callahantiff/PheKnowLator  
    
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory
@@ -358,9 +362,9 @@ Citing this Work
     :target: https://coveralls.io/github/callahantiff/PheKnowLator?branch=master
     :alt: Coveralls Coverage
 
-.. |pip| image:: https://badge.fury.io/py/pkt_kg.svg
-    :target: https://badge.fury.io/py/pkt_kg
-    :alt: Pypi project
+.. |pip| image:: https://pypip.in/v/pkt-kg/badge.png
+    :target: https://pypi.org/project/pkt-kg/
+    :alt: PyPI project
 
 .. |downloads| image:: https://pepy.tech/badge/pkt_kg
     :target: https://pepy.tech/badge/pkt_kg
