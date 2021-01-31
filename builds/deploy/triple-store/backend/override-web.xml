@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--file is added to ensure that end point is read-only-->
+<!--source: https://sourceforge.net/p/bigdata/mailman/message/35119798/-->
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaeehttp://java.sun.com/xml/ns/javaee/web-app_3_1.xsd"
+    version="3.1">
+  <context-param>
+   <description>When true, the REST API will not permit mutation operations.</description>
+   <param-name>readOnly</param-name>
+   <param-value>true</param-value>
+  </context-param>
+</web-app>
