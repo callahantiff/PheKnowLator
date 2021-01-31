@@ -1,7 +1,7 @@
-|logo|
+|logo| 
 
 
-|github_action| |mypy|
+|github_action| |mypy|  
 
 |sonar_quality| |code_climate_maintainability| |codacy| |code_climate_coverage| |coveralls|
 
@@ -325,11 +325,12 @@ Citing this Work
      url          = {https://doi.org/10.5281/zenodo.3401437}}
 
 
-
-
 .. |logo| image:: https://user-images.githubusercontent.com/8030363/106306246-01df9100-621b-11eb-81c3-d1f2c2e124a6.png
    :target: https://github.com/callahantiff/PheKnowLator
 
+.. |logo| image:: https://user-images.githubusercontent.com/8030363/106306246-01df9100-621b-11eb-81c3-d1f2c2e124a6.png
+   :target: https://github.com/callahantiff/PheKnowLator  
+   
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory
 

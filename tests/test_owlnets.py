@@ -1,4 +1,5 @@
 import glob
+import logging
 import networkx
 import os
 import shutil
@@ -26,6 +27,11 @@ class TestOwlNets(unittest.TestCase):
         os.mkdir(self.dir_loc_resources)
         os.mkdir(self.dir_loc_resources + '/knowledge_graphs')
         os.mkdir(self.dir_loc_resources + '/owl_decoding')
+
+        # handle logging
+        self.logs = os.path.abspath(current_directory + '/builds/logs')
+        logging.disable(logging.CRITICAL)
+        if len(glob.glob(self.logs + '/*.log')) > 0: os.remove(glob.glob(self.logs + '/*.log')[0])
 
         # copy data
         # ontology data

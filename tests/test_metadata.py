@@ -1,4 +1,5 @@
 import glob
+import logging
 import os
 import os.path
 import pickle
@@ -18,6 +19,11 @@ class TestMetadata(unittest.TestCase):
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
         self.dir_loc = os.path.abspath(dir_loc)
+
+        # handle logging
+        self.logs = os.path.abspath(current_directory + '/builds/logs')
+        logging.disable(logging.CRITICAL)
+        if len(glob.glob(self.logs + '/*.log')) > 0: os.remove(glob.glob(self.logs + '/*.log')[0])
 
         # pointer to owltools
         dir_loc2 = os.path.join(current_directory, 'utils/owltools')
@@ -228,7 +234,7 @@ class TestMetadata(unittest.TestCase):
         self.assertIn('Synonym', self.metadata.node_dict['nodes'][node_key])
         # relations
         relation_key = 'http://purl.obolibrary.org/obo/so#genome_of'
-        self.assertTrue(len(self.metadata.node_dict['relations']) == 2511)
+        self.assertTrue(len(self.metadata.node_dict['relations']) == 72)
         self.assertIn('Label', self.metadata.node_dict['relations'][relation_key])
         self.assertIn('Description', self.metadata.node_dict['relations'][relation_key])
         self.assertIn('Synonym', self.metadata.node_dict['relations'][relation_key])

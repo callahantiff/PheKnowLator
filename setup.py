@@ -58,10 +58,10 @@ setup(
     include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: Apache 2.0 License',
+        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3'
     ],
-    packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
+    packages=find_packages(exclude=['contrib', 'docs', 'tests*', 'builds']),
     tests_require=test_deps,
 
     entry_points={
@@ -70,11 +70,13 @@ setup(
 
     # Add here the package dependencies
     install_requires=['argparse>=1.4.0',
+                      'click==7.1.2',
                       'Cython==0.29.14',
                       'networkx==2.4',
                       'numpy==1.18.1',
                       'openpyxl==3.0.3',
                       'pandas==1.0.5',
+                      'python-json-logger==2.0.1',
                       'rdflib==4.2.2',
                       'reactome2py>=0.0.8',
                       'requests==2.22.0',

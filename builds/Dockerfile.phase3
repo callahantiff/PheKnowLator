@@ -1,45 +1,16 @@
 #!/usr/local/bin/docker
 # -*- version: 20.10.2 -*-
 
-############################################
-## MULTI-STAGE CONTAINER CONFIGURATION ##
-FROM python:3.6.2
-RUN apt-get update && apt-get install -y \
-    apt-transport-https \
-    software-properties-common \
-    unzip \
-    curl
-RUN wget -O- https://apt.corretto.aws/corretto.key | apt-key add - && \
-    add-apt-repository 'deb https://apt.corretto.aws stable main' && \
-    apt-get update && \
-    apt-get install -y java-1.8.0-amazon-corretto-jdk
+# import phase 3 container
+FROM callahantiff/pheknowlator:latest
 
+# allow statements and log messages to immediately appear in logs
+ENV PYTHONUNBUFFERED True
 
-############################################
-## PHEKNOWLATOR (PKT_KG) PROJECT SETTINGS ##
-# create needed project directories
-WORKDIR /PheKnowLator
-RUN mkdir -p /PheKnowLator
-RUN mkdir -p /PheKnowLator/resources
-RUN mkdir -p /PheKnowLator/resources/construction_approach
-RUN mkdir -p /PheKnowLator/resources/edge_data
-RUN mkdir -p /PheKnowLator/resources/knowledge_graphs
-RUN mkdir -p /PheKnowLator/resources/node_data
-RUN mkdir -p /PheKnowLator/resources/ontologies
-RUN mkdir -p /PheKnowLator/resources/processed_data
-RUN mkdir -p /PheKnowLator/resources/relations_data
+# set wroking directory in container
+WORKDIR /PheKnowLator/
 
-# copy scripts/files needed to run pkt_kg
-COPY pkt_kg /PheKnowLator/pkt_kg
-COPY Main.py /PheKnowLator
-COPY setup.py /PheKnowLator
-COPY README.rst /PheKnowLator
-COPY resources /PheKnowLator/resources
-
-# download and copy needed data
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/edge_source_list.txt && mv edge_source_list.txt resources/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/ontology_source_list.txt && mv ontology_source_list.txt resources/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/resource_info.txt && mv resource_info.txt resources/
+# download build dependencies and move them to the correct location
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/subclass_construction_map.pkl && mv subclass_construction_map.pkl resources/construction_approach/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/PheKnowLator_MergedOntologies.owl && mv PheKnowLator_MergedOntologies.owl resources/knowledge_graphs/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/node_metadata_dict.pkl && mv node_metadata_dict.pkl resources/node_data/
@@ -55,33 +26,28 @@ RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/proce
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/INVERSE_RELATIONS.txt && mv INVERSE_RELATIONS.txt resources/relations_data/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/RELATIONS_LABELS.txt && mv RELATIONS_LABELS.txt resources/relations_data/
 
-# install needed python libraries
-RUN pip install --upgrade pip setuptools
-WORKDIR /PheKnowLator
-RUN pip install .
+# copying local scripts to container
+COPY build_phase_3.py /PheKnowLator/
+COPY phase3_log_daemon.py build_utilities.py build_requirements.txt logging.ini /PheKnowLator/builds/
+COPY logging.ini /PheKnowLator/pkt_kg
 
-
-############################################
-## GLOBAL ENVRIONMENT SETTINGS ##
-# copy files needed to run docker container
-COPY entrypoint.sh /PheKnowLator
-
-# update permissions for all files
-RUN chmod -R 755 /PheKnowLator
+# install requirements
+RUN pip install -r builds/build_requirements.txt
 
 # set OWlTools memory (set to a high value, system will only use available memory)
-ENV OWLTOOLS_MEMORY=500g
+ENV OWLTOOLS_MEMORY=100g
 RUN echo $OWLTOOLS_MEMORY
 
-# set python envrionment encoding
-RUN export PYTHONIOENCODING=utf-8
+# set working directory and python path
+WORKDIR /PheKnowLator/
+ENV PYTHONPATH='.'
 
-# create a volume to enable persistent data
-VOLUME ["/PheKnowLator/resources"]
+# run script
+ARG app_arg
+ENV app=$app_arg
+ARG rel_arg
+ENV rel=$rel_arg
+ARG owl_arg
+ENV owl=$owl_arg
 
-
-############################################
-## CONTAINER ACCESS ##
-# call bash script which contains entrypoint parameters
-ENTRYPOINT ["/PheKnowLator/entrypoint.sh"]
-CMD ["-h"]
+ENTRYPOINT exec python build_phase_3.py --app $app --rel $rel --owl $owl

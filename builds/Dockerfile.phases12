@@ -1,0 +1,32 @@
+#!/usr/local/bin/docker
+# -*- version: 20.10.2 -*-
+
+# import phase 3 container
+FROM callahantiff/pheknowlator:latest
+
+# allow statements and log messages to immediately appear in logs
+ENV PYTHONUNBUFFERED True
+
+# copying local scripts to container
+COPY *.py *.txt *.ini /PheKnowLator/builds/
+
+# set working directory in container
+WORKDIR /PheKnowLator/builds/
+
+# download
+RUN wget https://github.com/callahantiff/PheKnowLator/raw/master/pkt_kg/libs/owltools && \
+    chmod 755 owltools
+
+# set working directory and install requirements
+WORKDIR /PheKnowLator/
+RUN pip install -r builds/build_requirements.txt pkt_kg
+
+# set OWlTools memory (set to a high value, system will only use available memory)
+ENV OWLTOOLS_MEMORY=100g
+RUN echo $OWLTOOLS_MEMORY
+
+# set python envrionment encoding
+RUN export PYTHONIOENCODING=utf-8
+ENV PYTHONPATH='.'
+
+ENTRYPOINT ["python", "builds/phases1_2_entrypoint.py"]

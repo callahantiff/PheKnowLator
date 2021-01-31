@@ -3,6 +3,7 @@
 
 import os.path
 import glob
+import logging
 
 from unittest import TestCase
 
@@ -13,7 +14,6 @@ class TestOntData(TestCase):
     """Class to test functions used when downloading ontology data sources."""
 
     def setUp(self):
-
         # initialize OntData instance
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
@@ -23,6 +23,11 @@ class TestOntData(TestCase):
         # pointer to owltools
         dir_loc2 = os.path.join(current_directory, 'utils/owltools')
         self.owltools_location = os.path.abspath(dir_loc2)
+
+        # handle logging
+        self.logs = os.path.abspath(current_directory + '/builds/logs')
+        logging.disable(logging.CRITICAL)
+        if len(glob.glob(self.logs + '/*.log')) > 0: os.remove(glob.glob(self.logs + '/*.log')[0])
 
         return None
 

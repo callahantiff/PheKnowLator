@@ -8,9 +8,9 @@
 __pycache__
 __pycache__/
 **/__pycache__/*
-build/**
+pkt_kg.egg*
+build/*
 dist/*
-pkt_kg.egg-info/*
 
 #### Testing
 .single_run
@@ -20,10 +20,13 @@ coverage.xml
 \.vscode/
 /tests/archive/
 
+#### Logs
+logs/*.log
+**/logs/*.log
+
 #### CI/CD Builds
 builds/temp/*
-builds/GitHub Action Workflow Build Jobs.xlsx
-
+/builds/GitHub Action Workflow Build Jobs.xlsx
 
 #### API Keys/Project Passwords
 /resources/project_keys/*

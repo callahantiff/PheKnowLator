@@ -1,3 +1,5 @@
+import glob
+import logging
 import os.path
 import pandas
 import re
@@ -12,11 +14,16 @@ class TestCreatesEdgeList(unittest.TestCase):
     """Class to test functions used when processing edge data sources."""
 
     def setUp(self):
-
+        logging.disable(logging.CRITICAL)
         # initialize file location
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
         self.dir_loc = os.path.abspath(dir_loc)
+
+        # handle logging
+        self.logs = os.path.abspath(current_directory + '/builds/logs')
+        logging.disable(logging.CRITICAL)
+        if len(glob.glob(self.logs + '/*.log')) > 0: os.remove(glob.glob(self.logs + '/*.log')[0])
 
         # create dictionary to store data
         file_loc1 = self.dir_loc + '/edge_data/chemical-disease_CTD_chemicals_diseases.tsv'

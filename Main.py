@@ -21,10 +21,9 @@ def main():
     parser.add_argument('-a', '--app', help='construction approach to use (i.e. instance or subclass)', required=True)
     parser.add_argument('-t', '--res', help='name/path to text file containing resource_info', required=True)
     parser.add_argument('-b', '--kg', help='build type: "partial", "full", or "post-closure"', required=True)
-    parser.add_argument('-n', '--nde', help='yes/no - non-ontology node metadata directory location', required=True)
     parser.add_argument('-r', '--rel', help='yes/no - adding inverse relations to knowledge graph', required=True)
     parser.add_argument('-s', '--owl', help='yes/no - removing OWL Semantics from knowledge graph', required=True)
-    parser.add_argument('-m', '--kgm', help='yes/no - adding node metadata to knowledge graph', required=True)
+    parser.add_argument('-m', '--nde', help='yes/no - adding node metadata to knowledge graph', required=True)
     parser.add_argument('-o', '--out', help='name/path to directory where to write knowledge graph', required=True)
 
     args = parser.parse_args()
@@ -40,30 +39,30 @@ def main():
     # see the 'Data_Preparation.ipynb' and 'Ontology_Cleaning.ipynb' file for examples and guidelines
 
     # STEP 3: DOWNLOAD ONTOLOGIES
-    print('\n' + '=' * 33 + '\nDOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
+    print('\n' + '=' * 33 + '\nPKT: DOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
     start = time.time()
     ont = OntData(data_path=args.onts, resource_data=args.res)
     # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='resources/resource_info.txt')
     ont.downloads_data_from_url()
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\nTOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
+    print('\nPKT: TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
 
     # STEP 4: DOWNLOAD EDGE DATA SOURCES
-    print('\n' + '=' * 33 + '\nDOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
+    print('\n' + '=' * 33 + '\nPKT: DOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
     start = time.time()
     ent = LinkedData(data_path=args.edg, resource_data=args.res)
     # ent = LinkedData(data_path='resources/edge_source_list.txt', resource_data='resources/resource_info.txt')
     ent.downloads_data_from_url()
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\nTOTAL SECONDS TO DOWNLOAD NON-ONTOLOGY DATA: {} @ {}'.format(end - start, timestamp))
+    print('\nPKT: TOTAL SECONDS TO DOWNLOAD NON-ONTOLOGY DATA: {} @ {}'.format(end - start, timestamp))
 
     #####################
     # CREATE EDGE LISTS #
     #####################
 
-    print('\n' + '=' * 33 + '\nPROCESSING EDGE DATA\n' + '=' * 33 + '\n')
+    print('\n' + '=' * 33 + '\nPKT: PROCESSING EDGE DATA\n' + '=' * 33 + '\n')
     start = time.time()
     combined_edges = dict(ent.data_files, **ont.data_files)
     master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
@@ -71,13 +70,13 @@ def main():
     master_edges.creates_knowledge_graph_edges()
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\nTOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
+    print('\nPKT: TOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
 
     #########################
     # BUILD KNOWLEDGE GRAPH #
     #########################
 
-    print('\n' + '=' * 33 + '\nBUILDING KNOWLEDGE GRAPH\n' + '=' * 33 + '\n')
+    print('\n' + '=' * 33 + '\nPKT: BUILDING KNOWLEDGE GRAPH\n' + '=' * 33 + '\n')
     start = time.time()
 
     if args.kg == 'partial':
@@ -102,7 +101,7 @@ def main():
 
     end = time.time()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print('\nTOTAL SECONDS TO CONSTRUCT A KG: {} @ {}'.format(end - start, timestamp))
+    print('\nPKT: TOTAL SECONDS TO CONSTRUCT A KG: {} @ {}'.format(end - start, timestamp))
 
 
 if __name__ == '__main__':

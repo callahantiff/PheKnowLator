@@ -41,7 +41,7 @@ Instance-Instance | Relations + Inverse Relations | **`HGNC_1234567`, `REL`, `HG
 
 <br>
 
-*Note.* When a `UUDID` is used in the instance-based builds it is created as a md5 hash of the original `owl:Class` and added to the `pkt` namespace (i.e. `https://github.com/callahantiff/PheKnowLator/pkt/`).
+*Note.* When a `UUDID` is used in the instance-based builds it is created as a md5 hash of the original `owl:Class` and added to the `pkt` namespace (i.e. `https://github.com/callahantiff/PheKnowLator/pkt/`). This is so we have a way to track non-ontology class nodes that are added to the ontology and easily remove the `UUID` when running `OWL-NETS`.
 
 <br><br>
 
@@ -70,6 +70,8 @@ Class-Instance | Relations Only | **`GO_1234567`, `REL`, `HGNC_1234567`**<br><br
 Class-Instance | Relations + Inverse Relations | **`GO_1234567`, `REL`, `HGNC_1234567`<br>`HGNC_1234567`, `INV_REL`, `GO_1234567`**<br><br>`HGNC_1234567`, `rdfs:subClassOf`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:Class`<br>`GO_12334567`, `rdfs:subClassOf`, `UUID1`<br>`UUID1`, `rdf:type`, `owl:Restriction`<br>`UUID1`, `owl:someValuesFrom`, `HGNC_1234567`<br>`UUID1`, `owl:onProperty`, `REL`<br>`HGNC_1234567`, `rdfs:subClassOf`, `UUID2`<br>`UUID2`, `rdf:type`, `owl:Restriction`<br>`UUID2`, `owl:someValuesFrom`, `GO_12334567`<br>`UUID2`, `owl:onProperty`, `INV_REL`
 Instance-Instance | Relations Only | **`HGNC_1234567`, `REL`, `HGNC_7654321`**<br><br>`HGNC_1234567`, `rdfs:subClassOf`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:Class`<br>`HGNC_7654321`, `rdfs:subClassOf`, `subclass_dict[HGNC_7654321]`<br>`HGNC_7654321`, `rdf:type`, `owl:Class`<br>`HGNC_1234567`, `rdfs:subClassOf`, `UUID`<br>`UUID`, `rdf:type`, `owl:Restriction`<br>`UUID`, `owl:someValuesFrom`, `HGNC_7654321`<br>`UUID`, `owl:onProperty`, `REL`
 Instance-Instance | Relations + Inverse Relations | **`HGNC_1234567`, `REL`, `HGNC_7654321`<br>`HGNC_7654321`, `INV_REL`, `HGNC_1234567`**<br><br>`HGNC_1234567`, `rdfs:subClassOf`, `subclass_dict[HGNC_1234567]`<br>`HGNC_1234567`, `rdf:type`, `owl:Class`<br>`HGNC_7654321`, `rdfs:subClassOf`, `subclass_dict[HGNC_7654321]`<br>`HGNC_7654321`, `rdf:type`, `owl:Class`<br>`HGNC_1234567`, `rdfs:subClassOf`, `UUID1`<br>`UUID1`, `rdf:type`, `owl:Restriction`<br>`UUID1`, `owl:someValuesFrom`, `HGNC_7654321`<br>`UUID1`, `owl:onProperty`, `REL`<br>`HGNC_7654321`, `rdfs:subClassOf`, `UUID2`<br>`UUID2`, `rdf:type`, `owl:Restriction`<br>`UUID2`, `owl:someValuesFrom`, `HGNC_1234567`<br>`UUID2`, `owl:onProperty`, `INV_REL`
+
+*Note.* When `UUID` is used within the subclass-based construction approach it is actually a `BNode` and it is not placed within the `pkt` namespace. We don't use the same approach as for the instance-based construction becasue all non-ontology classes added to the knowledge graph are added as `owl.SubClassOf` an existing ontology class.
 
 <br>
 

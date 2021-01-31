@@ -4,6 +4,7 @@
 # import needed libraries
 import glob
 import hashlib
+import logging.config
 import os
 import os.path
 import pickle
@@ -18,6 +19,11 @@ from pkt_kg.utils import finds_node_type
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
 pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
+# logging
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
 class KGConstructionApproach(object):
@@ -46,23 +52,31 @@ class KGConstructionApproach(object):
     """
 
     def __init__(self, edge_dict: Dict, write_location: str) -> None:
-
         self.subclass_dict: Dict = dict()
         self.subclass_error: Dict = dict()
 
         # EDGE_DICT
-        if not isinstance(edge_dict, Dict): raise TypeError('edge_dict must be a dictionary.')
-        elif len(edge_dict) == 0: raise TypeError('edge_dict is empty.')
+        if not isinstance(edge_dict, Dict):
+            logger.error('TypeError: edge_dict must be a dictionary.')
+            raise TypeError('edge_dict must be a dictionary.')
+        elif len(edge_dict) == 0:
+            logger.error('TypeError: edge_dict is empty.')
+            raise TypeError('edge_dict is empty.')
         else: self.edge_dict = edge_dict
 
         # WRITE LOCATION
-        if write_location is None: raise ValueError('write_location must contain a valid filepath, not None')
+        if write_location is None:
+            logger.error('ValueError: write_location must contain a valid filepath, not None.')
+            raise ValueError('write_location must contain a valid filepath, not None')
         else: self.write_location = write_location
 
         # LOADING SUBCLASS DICTIONARY
         file_name = self.write_location + '/construction_*/*.pkl'
-        if len(glob.glob(file_name)) == 0: raise OSError('{} does not exist!'.format('subclass_construction_map.pkl'))
+        if len(glob.glob(file_name)) == 0:
+            logger.error('OSError: {} does not exist!'.format('subclass_construction_map.pkl'))
+            raise OSError('{} does not exist!'.format('subclass_construction_map.pkl'))
         elif os.stat(glob.glob(file_name)[0]).st_size == 0:
+            logger.error('TypeError: The input file: {} is empty'.format(glob.glob(file_name)[0]))
             raise TypeError('The input file: {} is empty'.format(glob.glob(file_name)[0]))
         else:
             with open(glob.glob(file_name)[0], 'rb') as filepath:  # type: IO[Any]
@@ -105,7 +119,8 @@ class KGConstructionApproach(object):
                                   inverse_relation: Optional[URIRef]) -> Tuple:
         """Core subclass-based edge construction method. Constructs a single edge between to ontology classes as well as
         verifies if the user wants an inverse edge created and if so, then this edge is also added to the knowledge
-        graph.
+        graph. Note that a Bnode is used for subclass construction versus the UUID hash + pkt namespace that is used
+        for instance-based construction.
 
         Note. We explicitly type each node and each relation/inverse relation. This may seem redundant, but it is
         needed in order to ensure consistency between the data after applying the OWL API to reformat the data.
@@ -197,9 +212,9 @@ class KGConstructionApproach(object):
     @staticmethod
     def instance_edge_constructor(node1: Union[BNode, URIRef], node2: Union[BNode, URIRef], relation: URIRef,
                                   inverse_relation: Optional[URIRef]) -> Tuple:
-        """Core instance-based edge construction method. Constructs a single edge between to ontology classes as well as
-        verifies if the user wants an inverse edge created and if so, then this edge is also added to the knowledge
-        graph.
+        """Core instance-based edge construction method. Constructs a single edge between two ontology classes as
+        well as verifies if the user wants an inverse edge created and if so, then this edge is also added to the
+        knowledge graph.
 
         Note. We explicitly type each node and each relation/inverse relation. This may seem redundant,
         but it is needed in order to ensure consistency between the data after applying the OWL API to reformat the
@@ -264,8 +279,7 @@ class KGConstructionApproach(object):
             sha_uid = URIRef(pkt + 'N' + hashlib.md5(res['cls1'].encode()).hexdigest())
             x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
             mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
-            # get non-class node mappings to ontology classes
-            if mapped_node:
+            if mapped_node:  # get non-class node mappings to ontology classes
                 edges = [(sha_uid, RDF.type, URIRef(res['cls1'])),
                          (sha_uid, RDF.type, OWL.NamedIndividual),
                          (URIRef(res['cls1']), RDF.type, OWL.Class),

@@ -1,5 +1,6 @@
 import glob
 import json
+import logging
 import os
 import os.path
 import pandas
@@ -36,6 +37,11 @@ class TestKGBuilder(unittest.TestCase):
         os.mkdir(self.dir_loc_resources + '/node_data')
         os.mkdir(self.dir_loc_resources + '/ontologies')
         os.mkdir(self.dir_loc_resources + '/construction_approach')
+
+        # handle logging
+        self.logs = os.path.abspath(current_directory + '/builds/logs')
+        logging.disable(logging.CRITICAL)
+        if len(glob.glob(self.logs + '/*.log')) > 0: os.remove(glob.glob(self.logs + '/*.log')[0])
 
         # copy needed data data
         # node metadata
@@ -483,6 +489,21 @@ class TestKGBuilder(unittest.TestCase):
         rel2_check = self.kg_subclass.checks_for_inverse_relations('RO_0002435', edge_list2)
 
         self.assertEqual(rel2_check, 'RO_0002435')
+
+        return None
+
+    @patch('builtins.print')
+    def test_derives_graph_statistics(self, mock_print):
+        """Tests the derives_graph_statistics method."""
+
+        # generate stats from existing ontology
+        graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        res_str = 'Graph Stats: 42237 triples, 42181 nodes, 2793 classes, 0 individuals, 50 object properties, ' \
+            '39 annotation properties'
+
+        # test method
+        self.kg_subclass.derives_graph_statistics(graph)
+        mock_print.assert_called_with(res_str)
 
         return None
 

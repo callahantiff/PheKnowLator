@@ -4,6 +4,7 @@
 # import needed libraries
 import glob
 import json
+import logging.config
 import os
 import os.path
 import pandas  # type: ignore
@@ -22,6 +23,11 @@ from pkt_kg.utils import *
 # set environmental variables
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 obo = Namespace('http://purl.obolibrary.org/obo/')
+# logging
+log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
 class Metadata(object):
@@ -68,7 +74,7 @@ class Metadata(object):
 
         if self.node_data:
             print('Loading and Processing Node Metadata')
-
+            logger.info('Loading and Processing Node Metadata')
             with open(self.node_data[0], 'rb') as out:
                 self.node_dict = pickle.load(out, encoding="utf8")
 
@@ -89,7 +95,8 @@ class Metadata(object):
             None.
         """
 
-        print('\nExtracting Class Metadata')
+        print('\nExtracting Class and Relation Metadata')
+        logger.info('Extracting Class and Relation Metadata')
 
         if self.node_dict:
             domains = [
@@ -98,11 +105,11 @@ class Metadata(object):
                            and (OWL.Class in i[2] or OWL.NamedIndividual in i[2])
                            and ('#' not in str(i[0]) or '#' not in str(i[2]))]),
                 ('relations', [i[0] for i in list(graph.triples((None, RDF.type, None)))
-                               if isinstance(i[0], URIRef) and i[2] != OWL.AnnotationProperty])
+                               if isinstance(i[0], URIRef) and i[2] == OWL.ObjectProperty])
             ]
-            for x in domains:
-                key, temp_dict = 'nodes' if x[0] == 'nodes' else 'relations', dict()
-                for i in tqdm(x[1]):
+            for key, entities in domains:
+                temp_dict = dict()
+                for i in tqdm(entities):
                     labels = [x for x in list(graph.triples((i, RDFS.label, None)))]
                     descriptions = [x for x in list(graph.triples((i, obo.IAO_0000115, None)))]
                     synonyms = [x for x in list(graph.triples((i, None, None))) if 'synonym' in str(x[1]).lower()]
@@ -114,6 +121,14 @@ class Metadata(object):
                             'Synonym': '|'.join([str(c[2]) for c in synonyms]) if len(synonyms) > 0 else None
                         }
                 self.node_dict[key] = {**self.node_dict[key], **temp_dict}
+
+            # add rdfs:subclassof and rdf:type
+            self.node_dict['relations'] = {
+                **self.node_dict['relations'],
+                **{'http://www.w3.org/2000/01/rdf-schema#subClassOf': {
+                    'Label': 'subClassOf', 'Description': 'The subject is a subclass of a class.', 'Synonym': 'None'},
+                    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': {
+                        'Label': 'type', 'Description': 'The subject is an instance of a class.', 'Synonym': 'None'}}}
 
             if self.node_data:
                 with open(self.node_data[0], 'wb') as out:
@@ -170,7 +185,8 @@ class Metadata(object):
             graph: An rdflib graph object with edited ontology annotations.
         """
 
-        print('\n*** Adding Ontology Annotations ***')
+        print('\nAdding Ontology Annotations')
+        logger.info('Adding Ontology Annotations')
 
         # set annotation variables
         authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
@@ -220,18 +236,19 @@ class Metadata(object):
 
         if self.node_dict:
             print('\nWriting Class Metadata')
+            logger.info('Writing Class Metadata')
             filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:
-                out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'node_id' + '\t' + 'label' + '\t' +
+                out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'entity_uri' + '\t' + 'label' + '\t' +
                           'description/definition' + '\t' + 'synonym' + '\n')
                 for nid, nint in tqdm(node_integer_map.items()):
-                    if nid not in self.node_dict['nodes'].keys() or nid not in self.node_dict['relations'].keys():
-                        etyp, lab, dsc, syn = 'NA', 'NA', 'NA', 'NA'
+                    if nid in self.node_dict['nodes'].keys():
+                        etyp, meta = 'NODES', self.node_dict['nodes'][nid]
+                    elif nid in self.node_dict['relations'].keys():
+                        etyp, meta = 'RELATIONS', self.node_dict['relations'][nid]
                     else:
-                        if nid in self.node_dict['nodes'].keys():
-                            etyp, meta = 'NODES', self.node_dict['nodes'][nid]
-                        if nid in self.node_dict['relations'].keys():
-                            etyp, meta = 'RELATIONS', self.node_dict['relations'][nid]
+                        meta, etyp, lab, dsc, syn = None, 'NA', 'NA', 'NA', 'NA'
+                    if meta is not None:
                         lab = meta['Label'] if meta['Label'] is not None else 'None'
                         dsc = meta['Description'] if meta['Description'] is not None else 'None'
                         syn = meta['Synonym'] if meta['Synonym'] is not None else 'None'

@@ -5,9 +5,11 @@
 import datetime
 import fnmatch
 import glob
+import logging.config
 import pickle
 import os
 import re
+import subprocess
 
 from google.cloud import storage  # type: ignore
 from owlready2 import get_ontology, OwlReadyOntologyParsingError  # type: ignore
@@ -17,12 +19,19 @@ from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Union
 
 # import script containing helper functions
+from builds.build_utilities import downloads_data_from_gcs_bucket, uploads_data_to_gcs_bucket
 from pkt_kg.utils import *
 
-# set global namespace
+# set environment variables
+# global namespace
 schema = Namespace('http://www.w3.org/2001/XMLSchema#')
 obo = Namespace('http://purl.obolibrary.org/obo/')
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
+# logging
+log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
+if not os.path.exists(log_dir): os.mkdir(log_dir)
+logger = logging.getLogger(__name__)
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
 class OntologyCleaner(object):
@@ -43,8 +52,10 @@ class OntologyCleaner(object):
         self.bucket: Union[storage.bucket.Bucket, str] = gcs_bucket
         self.original_data: str = org_data
         self.processed_data: str = proc_data
-        # SETTING LOCAL VARIABLES
-        self.owltools_location = './pkt_kg/libs/owltools'
+        self.current_build: str = 'current_build/'
+        # LOCAL VARIABLES
+        self.owltools_location = './builds/owltools'
+        # self.owltools_location = './pkt_kg/libs/owltools'
         self.temp_dir = temp
         self.merged_ontology_filename: str = 'PheKnowLator_MergedOntologies.owl'
         # ONTOLOGY INFORMATION DICTIONARY
@@ -58,8 +69,7 @@ class OntologyCleaner(object):
         self.ont_graph: Graph = Graph()
         self.ontology_classes: List = []
         # GENE IDENTIFIER DATA
-        # keep list of withdrawn hgnc gene ids in HPO that need updating
-        self.withdrawn_genes = {  # keep list of withdrawn hgnc gene ids in HPO that need updating
+        self.withdrawn_map = {  # keep list of withdrawn hgnc gene ids in HPO that need updating
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=21508': ['653067', '653220'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=23418': ['653450'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=18372': ['653067', '653220'],
@@ -70,73 +80,81 @@ class OntologyCleaner(object):
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=33870': ['114112'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=8103': ['10896'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=26619': ['5058'],
-            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=31424': ['101362076']
-        }
+            'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=31424': ['101362076'],
+            'http://identifiers.org/hgnc/12764': ['7467'],
+            'http://identifiers.org/hgnc/1881': ['10167']}
         f_data = self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl'
         if not os.path.exists(f_data):
-            url = 'https://storage.googleapis.com/pheknowlator/release_v2.0.0/current_build/data/processed_data'
+            url = 'https://storage.googleapis.com/pheknowlator/{}data/processed_data/'.format(self.current_build)
             data_downloader(url + f_data.split('/')[-1], self.temp_dir + '/')
         with open(f_data, 'rb') as out:
             self.gene_ids = pickle.load(out, encoding='bytes')
 
-    def uploads_data_to_gcs_bucket(self, file_loc: str) -> None:
-        """Takes a file name and pushes the corresponding data referenced by the filename object from a local
-        temporary directory to a Google Cloud Storage bucket.
-
-        Args:
-            file_loc: A string containing the name of file to write to a Google Cloud Storage bucket.
-
-        Returns:
-            None.
-        """
-
-        if isinstance(self.bucket, storage.bucket.Bucket):
-            blob = self.bucket.blob(self.processed_data + file_loc)
-            blob.upload_from_filename(self.temp_dir + '/' + file_loc)
-
-        return None
-
-    def downloads_data_from_gcs_bucket(self, filename: str) -> Optional[str]:
-        """Takes a filename and and downloads the corresponding data to a local temporary directory, if it has not
-        already been downloaded.
-
-        Args:
-            filename: A string containing the name of file to write to a Google Cloud Storage bucket.
-
-        Returns:
-            data_file: A string containing the local filepath for a file downloaded from a GSC bucket.
-
-        Raises:
-            ValueError: when trying to download a non-existent file from the GCS original_data dir of the current build.
-        """
-
-        if isinstance(self.bucket, storage.bucket.Bucket):
-            try:
-                _files = [_.name for _ in self.bucket.list_blobs(prefix=self.original_data)]
-                match_file = fnmatch.filter(_files, '*/' + filename)[0]  # poor man's glob of bucket file directory
-                data_file = self.temp_dir + '/' + match_file.split('/')[-1]
-                if not os.path.exists(data_file):  # only download if file has not yet been downloaded
-                    self.bucket.blob(match_file).download_to_filename(self.temp_dir + '/' + match_file.split('/')[-1])
-            except IndexError:
-                raise ValueError('{} Not in the GCS original_data Directory of the Current Build'.format(filename))
-            return data_file
-        else:
-            return None
-
-    def reads_gcs_bucket_data_to_graph(self, file_location: str) -> Graph:
+    def reads_gcs_bucket_data_to_graph(self, f_name: str) -> Graph:
         """Reads data corresponding to the input file_location variable into a Pandas DataFrame.
 
         Args:
-            file_location: A string containing the name of file that exists in a Google Cloud Storage bucket.
+            f_name: A string containing the name of file that exists in a Google Cloud Storage bucket.
 
         Returns:
              graph: An RDFLib graph object containing data read from a Google Cloud Storage bucket.
         """
 
-        dat = self.downloads_data_from_gcs_bucket(file_location)
-        graph = Graph().parse(dat, format='xml')
+        x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
+        graph = Graph().parse(x, format='xml')
 
         return graph
+
+    def checks_for_downloaded_ontology_data(self) -> List:
+        """Checks to see if the processed ontology files are in the current temp directory. If not, they are downloaded
+        from the processed_data bucket for the current build. The local path to each downloaded ontology file is added
+        to a list which is returned. This method is meant to be a helper method to assist with the automatic build
+        process should something interrupt the build between the individual and merged ontology processing steps.
+
+        Returns:
+            ont_list: A list of strings where each string is
+        """
+
+        onts = [self.temp_dir + '/' + x for x in list(self.ontology_info.keys()) if x != self.merged_ontology_filename]
+        if len(onts) == 0 and isinstance(self.bucket, storage.bucket.Bucket):
+            # look in bucket for ontology files
+            _files = [_.name for _ in self.bucket.list_blobs(prefix=self.processed_data)]
+            ont_list = [x.split('/')[-1] for x in fnmatch.filter(_files, '*/*_with_imports.owl')]
+            # download the files to local temp directory
+            for ont in ont_list:
+                downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, ont, self.temp_dir)
+        else: ont_list = onts
+
+        return ont_list
+
+    def merge_ontologies(self, ontology_files: List[str], write_location: str, merged_ont_kg: str) -> Graph:
+        """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into a
+        master merged ontology file and saved locally to the provided file path via the merged_ontology attribute. The
+        function assumes that the file is written to the directory specified by the write_location attribute.
+
+        Args:
+            ontology_files: A list of ontology file paths.
+            write_location: A string pointing to a local directory for writing data.
+            merged_ont_kg: A string pointing to the location of the merged ontology file.
+
+        Returns:
+            None.
+        """
+
+        if not ontology_files: return None
+        else:
+            if write_location + merged_ont_kg in glob.glob(write_location + '/*.owl'):
+                ont1, ont2 = ontology_files.pop(), write_location + merged_ont_kg
+            else: ont1, ont2 = ontology_files.pop(), ontology_files.pop()
+            print('Merging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
+            logger.info('Merging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
+            command = '{} {} {} --merge-support-ontologies -o {}'
+            return_code = os.system(command.format(self.owltools_location, str(ont1), str(ont2),
+                                                   write_location + merged_ont_kg))
+            if return_code == 0: return self.merge_ontologies(ontology_files, write_location, merged_ont_kg)
+            else:
+                logger.error('ERROR: OWL API Merging Failed: {}'.format(return_code))
+                raise Exception('ERROR: OWL API Merging Failed: {}'.format(return_code))
 
     def _logically_verifies_cleaned_ontologies(self) -> None:
         """Logically verifies an ontology by running the ELK deductive logic reasoner. Before running the reasoner
@@ -147,17 +165,19 @@ class OntologyCleaner(object):
         """
 
         print('Logically Verifying Ontology')
+        logger.info('PKT: Logically Verifying Ontology')
 
         # save graph in order to run reasoner
         filename = self.temp_dir + '/' + self.ont_file_location
         self.ont_graph.serialize(destination=filename, format='xml')
-
-        command = "./pkt_kg/libs/owltools {} --reasoner {} --run-reasoner --assert-implied -o {}"
-        return_code = os.system(command.format(filename, 'elk', filename))
+        command = "{} {} --reasoner {} --run-reasoner --assert-implied -o {}"
+        return_code = os.system(command.format(self.owltools_location, filename, 'elk', filename))
         if return_code == 0:
             ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
-            self.uploads_data_to_gcs_bucket(self.ont_file_location)
-        else: raise ValueError('Reasoner Finished with Errors.')
+            uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
+        else:
+            logger.error('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
+            raise Exception('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
 
         return None
 
@@ -169,6 +189,7 @@ class OntologyCleaner(object):
         """
 
         print('Obtaining Ontology Statistics')
+        logger.info('Obtaining Ontology Statistics')
 
         if isinstance(self.bucket, str):
             gcs_org_url = '{}/{}'.format(self.temp_dir, self.original_data)
@@ -200,18 +221,14 @@ class OntologyCleaner(object):
         """
 
         errors = {}
-        try:
-            _ = get_ontology(self.temp_dir + '/' + self.ont_file_location).load()  # type: ignore
-        except OwlReadyOntologyParsingError as o:
-            errors['OwlReadyOntologyParsingError'] = str(o)  # type: ignore
-        except KeyError as k:
-            errors['KeyError'] = str(k)
-        except TypeError as p:
-            errors['PunningError'] = str(p)
+        try: _ = get_ontology(self.temp_dir + '/' + self.ont_file_location).load()  # type: ignore
+        except OwlReadyOntologyParsingError as o: errors['OwlReadyOntologyParsingError'] = str(o)  # type: ignore
+        except KeyError as k: errors['KeyError'] = str(k)
+        except TypeError as p: errors['PunningError'] = str(p)
 
         return errors
 
-    def fixes_ontology_parsing_errors(self):
+    def fixes_ontology_parsing_errors(self) -> None:
         """Fixes parsing errors detected when attempting to load the ontology. Currently, this method only fixes
         value errors (i.e. string-typed entities mis-typed as ints) because these are the only types of errors
         relevant to the set of ontologies utilized in the v2.0.0 PheKnowLator release. It can be easily extended in the
@@ -222,6 +239,7 @@ class OntologyCleaner(object):
         """
 
         print('Finding Parsing Errors')
+        logger.info('Finding Parsing Errors')
 
         errors, error_key, key = self._finds_ontology_errors(), 'OwlReadyOntologyParsingError', self.ont_file_location
         if error_key in errors.keys():
@@ -248,6 +266,7 @@ class OntologyCleaner(object):
         """
 
         print('Fixing Identifier Errors')
+        logger.info('Fixing Identifier Errors')
 
         known_errors = ['PRO', 'PR']  # known errors
         kg_classes, bad_cls, key = gets_ontology_classes(self.ont_graph), set(), self.ont_file_location
@@ -279,22 +298,22 @@ class OntologyCleaner(object):
         """
 
         print('Removing Deprecated and Obsolete Classes')
+        logger.info('Removing Deprecated and Obsolete Classes')
 
         ont, key, schma = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location, schema.boolean
-
-        dep_cls = [x[0] for x in tqdm(list(self.ont_graph.triples((None, OWL.deprecated,
-                                                                   Literal('true', datatype=schma)))))]
-        dep_triples = [x for x in tqdm(self.ont_graph)
+        # get deprecated entity information
+        dep_cls = [x[0] for x in list(self.ont_graph.triples((None, OWL.deprecated, Literal('true', datatype=schma))))]
+        dep_triples = [x for x in self.ont_graph
                        if 'deprecated' in ', '.join([str(x[0]).lower(), str(x[1]).lower(), str(x[2]).lower()])
                        and len(list(self.ont_graph.triples((x[0], RDF.type, OWL.Class)))) == 1]
         deprecated_classes = set(dep_cls + [x[0] for x in dep_triples])
-
-        obs_cls = [x[0] for x in tqdm(list(self.ont_graph.triples((None, RDFS.subClassOf, oboinowl.ObsoleteClass))))]
-        obs_triples = [x for x in tqdm(self.ont_graph)
+        # get obsolete entity information
+        obs_cls = [x[0] for x in list(self.ont_graph.triples((None, RDFS.subClassOf, oboinowl.ObsoleteClass)))]
+        obs_triples = [x for x in self.ont_graph
                        if 'obsolete' in ', '.join([str(x[0]).lower(), str(x[1]).lower(), str(x[2]).lower()])
                        and len(list(self.ont_graph.triples((x[0], RDF.type, OWL.Class)))) == 1 and '#' not in str(x[0])]
         obsolete_classes = set(obs_cls + [x[0] for x in obs_triples])
-
+        # remove deprecated and obsolete information
         for node in list(deprecated_classes) + list(obsolete_classes):
             self.ont_graph.remove((node, None, None))
 
@@ -315,6 +334,7 @@ class OntologyCleaner(object):
         """
 
         print('Resolving Punning Errors')
+        logger.info('Resolving Punning Errors')
 
         key, bad_cls, bad_obj = self.ont_file_location, set(), set()
         onts_entities = set([x[0] for x in tqdm(self.ont_graph)])
@@ -369,6 +389,7 @@ class OntologyCleaner(object):
         """
 
         print('Normalizing Duplicate Concepts')
+        logger.info('Normalizing Duplicate Concepts')
 
         self.ont_graph.add((obo.OGG_0000000002, RDFS.subClassOf, obo.SO_0000704))  # fix gene class inconsistencies
         self.ont_graph.add((obo.PR_000000001, RDFS.subClassOf, obo.SO_0000104))  # fix protein class inconsistencies
@@ -399,28 +420,38 @@ class OntologyCleaner(object):
         """
 
         print('Normalizing Existing Classes')
+        logger.info('Normalizing Existing Classes')
 
+        ents, missing = None, []
         non_ont = set([x for x in gets_ontology_classes(self.ont_graph) if not str(x).startswith(str(obo))])
         hgnc, url, g = set([x for x in non_ont if 'hgnc' in str(x)]), 'http://www.ncbi.nlm.nih.gov/gene/', self.gene_ids
         for node in tqdm(hgnc):
             trips = list(self.ont_graph.triples((node, None, None))) + list(self.ont_graph.triples((None, None, node)))
             nd = 'hgnc_id_' + str(node).split('/')[-1].split('=')[-1]
+            gene_dat = [str(x[2]) for x in trips if x[1] == RDFS.label]
             if nd in g.keys(): ents = [URIRef(url + x) for x in g[nd] if x.startswith('entrez_id_')]
-            else: ents = [URIRef(url + x) for x in self.withdrawn_genes[str(node)]]
-            for edge in trips:
-                if node in edge[0]:
-                    if isinstance(edge[2], URIRef) or isinstance(edge[2], BNode):
+            elif str(node) not in self.withdrawn_map.keys() and len(gene_dat) > 0:
+                if 'symbol_' + gene_dat[0] in g.keys() and 'entrez_id' in g['symbol_' + gene_dat[0]]:
+                    ents = [URIRef(url + x) for x in g['symbol_' + gene_dat[0]] if 'entrez_id' in x][0]
+                else: missing += [str(node)]
+            elif str(node) in self.withdrawn_map.keys(): ents = [URIRef(url + x) for x in self.withdrawn_map[str(node)]]
+            else: missing += [str(node)]
+            if ents:
+                for edge in trips:
+                    if node in edge[0]:
+                        if isinstance(edge[2], URIRef) or isinstance(edge[2], BNode):
+                            for i in ents:
+                                self.ont_graph.add((i, edge[1], edge[2]))
+                                self.ont_graph.remove(edge)
+                        else: self.ont_graph.remove(edge)
+                    if node in edge[2]:
                         for i in ents:
-                            self.ont_graph.add((i, edge[1], edge[2]))
+                            self.ont_graph.add((edge[0], edge[1], i))
                             self.ont_graph.remove(edge)
-                    else: self.ont_graph.remove(edge)
-                if node in edge[2]:
-                    for i in ents:
-                        self.ont_graph.add((edge[0], edge[1], i))
-                        self.ont_graph.remove(edge)
 
         no_ont = len(non_ont) - len(hgnc)
         self.ontology_info[self.ont_file_location]['Normalized - NonOnt'] = no_ont if no_ont != 0 else 'None'
+        self.ontology_info[self.ont_file_location]['Normalized - Dep'] = missing if len(missing) > 0 != 0 else 'None'
         self.ontology_info[self.ont_file_location]['Normalized - Gene IDs'] = len(hgnc) if len(hgnc) > 0 else 'None'
 
         return None
@@ -472,8 +503,12 @@ class OntologyCleaner(object):
                     else: o.write('\t\t- {}\n'.format(x['Normalized - Duplicates']))
                     o.write('\t\t- Other Classes that May Need Normalization: {}\n'.format(x['Normalized - NonOnt']))
                     o.write('\t\t- Normalized HGNC IDs: {}\n'.format(x['Normalized - Gene IDs']))
+                    o.write('\t- Deprecated Ontology HGNC Identifiers Needing Alignment:\n')
+                    if x['Normalized - Dep'] != 'None':
+                        for i in x['Normalized - Dep']: o.write('\t\t- {}\n'.format(i))
+                    else: o.write('\t\t- {}\n'.format(x['Normalized - Dep']))
 
-        self.uploads_data_to_gcs_bucket(ontology_report_filename)
+        uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, ontology_report_filename)
 
         return None
 
@@ -490,7 +525,7 @@ class OntologyCleaner(object):
         """
 
         print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
-
+        logger.info('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
         for ont in self.ontology_info.keys():
             if ont != self.merged_ontology_filename:
                 print('\nProcessing Ontology: {}'.format(ont.upper()))
@@ -502,12 +537,14 @@ class OntologyCleaner(object):
                 self.fixes_punning_errors()
                 self.updates_ontology_reporter()  # get finishing statistics
                 self._logically_verifies_cleaned_ontologies()
+                if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
 
         print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
+        logger.info('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         self.ont_file_location = self.merged_ontology_filename
-        onts = [self.temp_dir + '/' + x for x in list(self.ontology_info.keys())
-                if x != self.merged_ontology_filename]
-        merges_ontologies(onts, self.temp_dir + '/', self.ont_file_location)
+        individual_ontologies = self.checks_for_downloaded_ontology_data()
+        self.merge_ontologies(individual_ontologies, self.temp_dir + '/', self.ont_file_location)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
         print('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
@@ -516,12 +553,16 @@ class OntologyCleaner(object):
         self.normalizes_existing_classes()
         self.fixes_punning_errors()
         self.updates_ontology_reporter()  # get finishing statistics
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
         # serializes final ontology graph and uploads graph data and ontology report to gcs
         self.ont_graph.serialize(destination=self.temp_dir + '/' + self.ont_file_location, format='xml')
         ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
-        self.uploads_data_to_gcs_bucket(self.ont_file_location)
+        uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
 
-        print('\nGENERATING ONTOLOGY REPORT')
+        print('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
+        logger.info('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
         self.generates_ontology_report()
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
 
         return None
