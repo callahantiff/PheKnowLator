@@ -155,8 +155,7 @@ class OwlNets(object):
 
     def removes_edges_with_owl_semantics(self) -> Graph:
         """Creates a filtered knowledge graph, such that only nodes that are owl:Class/owl:Individual connected via a
-        owl:ObjectProperty and not an owl:AnnotationProperty. For
-        example:
+        owl:ObjectProperty and not an owl:AnnotationProperty. For example:
 
             REMOVE - edges needed to support owl semantics (not biologically meaningful):
                 subject: http://purl.obolibrary.org/obo/CLO_0037294
