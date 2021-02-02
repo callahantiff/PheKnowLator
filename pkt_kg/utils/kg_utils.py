@@ -390,7 +390,7 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         output_ints_map: the name and file path to write out results.
 
     Returns:
-        node_map: A dictionary where keys are integers and values are identifiers.
+        entity_map: A dictionary where keys are integers and values are identifiers.
 
     Raises:
         ValueError: If the length of the graph is not the same as the number of extracted triples.
@@ -431,9 +431,9 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         raise ValueError('ERROR: The number of triples is incorrect!')
     else:
         with open(write_location + '/' + output_ints_map, 'w') as file_name:
-            json.dump(node_map, file_name)
+            json.dump(entity_map, file_name)
 
-    return node_map
+    return entity_map
 
 
 def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:
