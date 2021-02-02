@@ -290,7 +290,7 @@ class KGBuilder(object):
 
         # gets statistics
         triples = len(graph)
-        nodes = len(set([x[0::2] for x in graph]))
+        nodes = len(set([x for y in [x[0::2] for x in graph] for x in y]))
         classes = len(set([x for x in graph.triples((None, RDF.type, OWL.Class))]))
         individuals = len(set([x for x in graph.triples((None, RDF.type, OWL.NamedIndividual))]))
         object_props = len(set([x for x in graph.triples((None, RDF.type, OWL.ObjectProperty))]))
