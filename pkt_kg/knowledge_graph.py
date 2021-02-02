@@ -290,15 +290,16 @@ class KGBuilder(object):
 
         # gets statistics
         triples = len(graph)
-        nodes = len(set([x for y in [x[0::2] for x in graph] for x in y]))
+        nodes = len(set([str(x) for x in set(list(graph.subjects(None, None)) + list(graph.objects(None, None)))]))
+        rels = len(set([str(x) for x in set(list(graph.predicates(None, None)))]))
         classes = len(set([x for x in graph.triples((None, RDF.type, OWL.Class))]))
-        individuals = len(set([x for x in graph.triples((None, RDF.type, OWL.NamedIndividual))]))
+        individs = len(set([x for x in graph.triples((None, RDF.type, OWL.NamedIndividual))]))
         object_props = len(set([x for x in graph.triples((None, RDF.type, OWL.ObjectProperty))]))
         annotation_props = len(set([x for x in graph.triples((None, RDF.type, OWL.AnnotationProperty))]))
 
-        x = ' {} triples, {} nodes, {} classes, {} individuals, {} object properties, {} annotation properties'
-        print('Graph Stats:' + x.format(triples, nodes, classes, individuals, object_props, annotation_props))
-        logger.info('Graph Stats:' + x.format(triples, nodes, classes, individuals, object_props, annotation_props))
+        x = ' {} triples, {} nodes, {} relations, {} classes, {} individuals, {} object props, {} annotation props'
+        print('Graph Stats:' + x.format(triples, nodes, rels, classes, individs, object_props, annotation_props))
+        logger.info('Graph Stats:' + x.format(triples, nodes, classes, rels, individs, object_props, annotation_props))
 
         return None
 

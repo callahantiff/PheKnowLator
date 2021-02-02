@@ -498,8 +498,8 @@ class TestKGBuilder(unittest.TestCase):
 
         # generate stats from existing ontology
         graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
-        res_str = 'Graph Stats: 42237 triples, 20277 nodes, 2793 classes, 0 individuals, 50 object properties, ' \
-            '39 annotation properties'
+        res_str = 'Graph Stats: 42237 triples, 20277 nodes, 39 relations, 2793 classes, 0 individuals, 50 object ' \
+                  'props, 39 annotation props'
 
         # test method
         self.kg_subclass.derives_graph_statistics(graph)
