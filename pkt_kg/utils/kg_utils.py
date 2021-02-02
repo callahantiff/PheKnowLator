@@ -396,7 +396,7 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         ValueError: If the length of the graph is not the same as the number of extracted triples.
     """
 
-    node_map, output_triples, node_counter = {}, 0, 0  # type: ignore
+    entity_map, output_triples, entity_counter = {}, 0, 0  # type: ignore
     graph_len = len(graph)
     # build graph from input file and set counter
     out_ints = open(write_location + output_ints, 'w', encoding='utf-8')
@@ -404,18 +404,18 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     for edge in tqdm(graph):
-        if str(edge[0]) not in node_map:
-            node_counter += 1
-            node_map[str(edge[0])] = node_counter
-        if str(edge[1]) not in node_map:
-            node_counter += 1
-            node_map[str(edge[1])] = node_counter
-        if str(edge[2]) not in node_map:
-            node_counter += 1
-            node_map[str(edge[2])] = node_counter
+        if str(edge[0]) not in entity_map:
+            entity_counter += 1
+            entity_map[str(edge[0])] = entity_counter
+        if str(edge[1]) not in entity_map:
+            entity_counter += 1
+            entity_map[str(edge[1])] = entity_counter
+        if str(edge[2]) not in entity_map:
+            entity_counter += 1
+            entity_map[str(edge[2])] = entity_counter
         # convert edge labels to ints
         subj, pred, obj = str(edge[0]), str(edge[1]), str(edge[2])
-        out_ints.write('%d' % node_map[subj] + '\t' + '%d' % node_map[pred] + '\t' + '%d' % node_map[obj] + '\n')
+        out_ints.write('%d' % entity_map[subj] + '\t' + '%d' % entity_map[pred] + '\t' + '%d' % entity_map[obj] + '\n')
         try:
             out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
         except UnicodeEncodeError:
