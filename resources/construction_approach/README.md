@@ -24,17 +24,19 @@ EXAMPLE: Adding the edge: `Morphine` ➞ `isSubstanceThatTreats` ➞ `Migraine`
 - `isSubstanceThatTreats`(`Morphine`, `x1`)
 - `Type`(`x1`, `Migraine`)
 
-In this example, `Morphine` is a non-ontology data node from [MesH](https://www.ncbi.nlm.nih.gov/mesh?Db=mesh&Cmd=DetailsSearch&Term=%22Morphine%22%5BMeSH+Terms%5D) and `Migraine` is a [Human Phenotype Ontology](https://hpo.jax.org/) term. This would result in the following triples, assuming that both `Morphine` and `Migraine` are existing ontology concepts:  
+In this example, `Morphine` is a non-ontology data node from [ChEBI](https://www.ebi.ac.uk/chebi) and `Migraine` is a [Human Phenotype Ontology](https://hpo.jax.org/) term. This would result in the following triples, assuming that both `Morphine` and `Migraine` are existing ontology concepts:  
 
 ```
-UUID1 = MD5(`Morphine` + `isSubstanceThatTreats` + `Migraine`)
-UUID2 = MD5(`Morphine` + `isSubstanceThatTreats` + `Migraine` + 'owl:Restriction')
+UUID1 = MD5(Morphine + isSubstanceThatTreats + Migraine + "subject")
+UUID2 = MD5(Morphine + isSubstanceThatTreats + Migraine + "object")
 
-UUID1, rdfs:subClassOf, Morphine
-UUID1, rdfs:subClassOf, UUID2
-UUID2, rdf:type, owl:Restriction
-UUID2, owl:someValuesFrom, Migraine
-UUID2, owl:onProperty, isSubstanceThatTreats
+UUID1, rdf:type, Morphine
+UUID1, rdf:type, owl:NamedIndividual
+
+UUID2, rdf:type, Migraine
+UUID2, rdf:type, owl:NamedIndividual
+
+UUID1, isSubstanceThatTreats, UUID2
 ``` 
 
 A table is provided below showing the different triples that are added as function of edge type (i.e. `class`-`class` vs. `class`-`instance` vs. `instance`-`instance`) and relation strategy (i.e. relations only or relations + inverse relations). 
@@ -68,18 +70,17 @@ EXAMPLE: Adding the edge: `TGFB1` ➞ `participatesIn` ➞ `Influenza Virus Indu
 Where `TGFB1` is a [Protein Ontology](https://proconsortium.org/) term and `Influenza Virus Induced Apoptosis` is a non-ontology data node from [Reactome](https://reactome.org/). In this example, `Influenza A Pathway` is an existing [Pathway Ontology](http://rgd.mcw.edu/rgdweb/ontology/search.html) class. This would result in the following triples, assuming that `TGFB1` is an existing ontology concept:  
 
 ```
-UUID1 = MD5(`TGFB1` + `participatesIn` + `Influenza Virus Induced Apoptosis` + "subject")
-UUID2 = MD5(`TGFB1` + `participatesIn` + `Influenza Virus Induced Apoptosis` + "object")
+UUID1 = MD5(TGFB1 + participatesIn + Influenza Virus Induced Apoptosis)
+UUID2 = MD5(TGFB1 + participatesIn + Influenza Virus Induced Apoptosis + owl:Restriction)
 
-UUID1, rdf:type, TGFB1
-UUID1, rdf:type, owl:NamedIndividual
-
-Influenza Virus Induced Apoptosis, rdfs:subClassOf, Influenza A pathway
+Influenza Virus Induced Apoptosis, rdfs:subClassOf, Influenza A Pathway
 Influenza Virus Induced Apoptosis, rdf:type, owl:Class
-UUID2, rdf:type, Influenza Virus Induced Apoptosis
-UUID2, rdf:type, owl:NamedIndividual
 
-UUID1, participatesIn, UUID2
+UUID1, rdfs:subClassOf, TGFB1
+UUID1, rdfs:subClassOf, UUID2
+UUID2, rdf:type, owl:Restriction
+UUID2, owl:someValuesFrom, Influenza Virus Induced Apoptosis
+UUID2, owl:onProperty, participatesIn
 ```  
 
 A table is provided below showing the different triples that are added as function of edge type (i.e. `class`-`class` vs. `class`-`instance` vs. `instance`-`instance`) and relation strategy (i.e. relations only or relations + inverse relations).  
