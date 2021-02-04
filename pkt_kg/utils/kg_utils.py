@@ -18,6 +18,7 @@ Interacts with Knowledge Graphs
 * remove_edges_from_graph
 * updates_graph_namespace
 * gets_class_ancestors
+* connected_graph
 
 Writes Triple Lists
 * maps_node_ids_to_integers
@@ -33,6 +34,7 @@ import json
 import networkx  # type: ignore
 import os
 import os.path
+import random
 from rdflib import Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 import subprocess
@@ -372,6 +374,38 @@ def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], clas
         class_uris = ancestors.difference(class_list)
         class_list |= ancestors.difference(class_list)
         return gets_class_ancestors(graph, class_uris, class_list)
+
+
+def connected_graph(graph: Graph) -> bool:
+    """Determines whether an input graph is connected. Code below is adapted from RDFLib. In the future this should
+    be optimized as it runs VERY slowly now.
+
+    Source (lines: 1250-1285): https://github.com/RDFLib/rdflib/blob/master/rdflib/graph.py
+
+    Args:
+        graph: An RDFLib Graph object.
+
+    Returns:
+        True if the graph is connected.
+        False if the graph is not connected.
+    """
+
+    all_nodes = list(set(list(graph.subjects()) + list(graph.objects())))
+    discovered, visiting = [], [all_nodes[random.randrange(len(all_nodes))]]
+    pbar = tqdm(total=len(all_nodes))
+
+    while visiting:
+        pbar.update(1)
+        x = visiting.pop()
+        if x not in discovered: discovered.append(x)
+        for new_x in graph.objects(subject=x):
+            if new_x not in discovered and new_x not in visiting: visiting.append(new_x)
+        for new_x in graph.subjects(object=x):
+            if new_x not in discovered and new_x not in visiting: visiting.append(new_x)
+
+    # optimisation by only considering length, since no new objects can be introduced anywhere
+    if len(all_nodes) == len(discovered): return True
+    else: return False
 
 
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:

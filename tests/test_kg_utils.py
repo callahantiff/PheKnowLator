@@ -5,12 +5,10 @@ import os.path
 import unittest
 
 from typing import Dict, List, Set
-from rdflib import BNode, Graph, Literal, URIRef
+from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
+from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 
-from pkt_kg.utils import gets_ontology_statistics, merges_ontologies, ontology_file_formatter, \
-    maps_node_ids_to_integers, adds_edges_to_graph, remove_edges_from_graph, finds_node_type, updates_graph_namespace, \
-    converts_rdflib_to_networkx, gets_ontology_classes, gets_deprecated_ontology_classes, gets_object_properties, \
-    gets_ontology_class_dbxrefs, gets_ontology_class_synonyms, gets_class_ancestors
+from pkt_kg.utils import *
 
 
 class TestKGUtils(unittest.TestCase):
@@ -380,11 +378,42 @@ class TestKGUtils(unittest.TestCase):
 
         # load ontology
         graph = Graph().parse(self.good_ontology_file_location, format='xml')
-        so_class = [URIRef('http://purl.obolibrary.org/obo/SO_0000348')]
 
         # get ancestors when no class is provided
         ancestors2 = gets_class_ancestors(graph, set())
         self.assertIsInstance(ancestors2, Set)
         self.assertEqual(ancestors2, set())
+
+        return None
+
+    def test_connected_graph_true(self):
+        """Method tests the connected_graph method when the graph is connected."""
+
+        # create graph
+        graph = Graph()
+        triples = [(URIRef('http://purl.obolibrary.org/obo/SO_0000348'), RDF.type, OWL.Class),
+                   (URIRef('http://purl.obolibrary.org/obo/SO_0000348'), RDFS.label, Literal('nucleic_acid'))]
+        for i in triples:
+            graph.add(i)
+
+        # test method
+        connected = connected_graph(graph)
+        self.assertTrue(connected)
+
+        return None
+
+    def test_connected_graph_false(self):
+        """Method tests the connected_graph method when the graph is not connected."""
+
+        # create graph
+        graph = Graph()
+        triples = [(URIRef('http://purl.obolibrary.org/obo/SO_0000348'), RDF.type, OWL.Class),
+                   (URIRef('http://purl.obolibrary.org/obo/SO_0000349'), RDFS.label, Literal('nucleic_acid'))]
+        for i in triples:
+            graph.add(i)
+
+        # test method
+        connected = connected_graph(graph)
+        self.assertFalse(connected)
 
         return None
