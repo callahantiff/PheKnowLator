@@ -20,13 +20,22 @@ _____
 
 In this approach, each new edge is added as an `instance` of an existing class (via `rdf:Type`) in the knowledge graph.  
   
-EXAMPLE: Adding the edge: Morphine ➞ `isSubstanceThatTreats` ➞ Migraine
+EXAMPLE: Adding the edge: `Morphine` ➞ `isSubstanceThatTreats` ➞ `Migraine`
+- `isSubstanceThatTreats`(`Morphine`, `x1`)
+- `Type`(`x1`, `Migraine`)
 
-Would require adding:
-- `isSubstanceThatTreats`(Morphine, `x1`)
-- `Type`(`x1`, Migraine)
+In this example, `Morphine` is a non-ontology data node from [MesH](https://www.ncbi.nlm.nih.gov/mesh?Db=mesh&Cmd=DetailsSearch&Term=%22Morphine%22%5BMeSH+Terms%5D) and `Migraine` is a [Human Phenotype Ontology](https://hpo.jax.org/) term. This would result in the following triples, assuming that both `Morphine` and `Migraine` are existing ontology concepts:  
 
-In this example, Morphine is a non-ontology data node and Migraine is an HPO ontology term. 
+```
+UUID1 = MD5(`Morphine` + `isSubstanceThatTreats` + `Migraine`)
+UUID2 = MD5(`Morphine` + `isSubstanceThatTreats` + `Migraine` + 'owl:Restriction')
+
+UUID1, rdfs:subClassOf, Morphine
+UUID1, rdfs:subClassOf, UUID2
+UUID2, rdf:type, owl:Restriction
+UUID2, owl:someValuesFrom, Migraine
+UUID2, owl:onProperty, isSubstanceThatTreats
+``` 
 
 A table is provided below showing the different triples that are added as function of edge type (i.e. `class`-`class` vs. `class`-`instance` vs. `instance`-`instance`) and relation strategy (i.e. relations only or relations + inverse relations). 
 
@@ -51,14 +60,27 @@ _____
 
 In this approach, each new edge is added as a subclass of an existing ontology class (via `rdfs:subClassOf`) in the knowledge graph.
 
-EXAMPLE: Adding the edge: TGFB1 ➞ `participatesIn` ➞ Influenza Virus Induced Apoptosis
+EXAMPLE: Adding the edge: `TGFB1` ➞ `participatesIn` ➞ `Influenza Virus Induced Apoptosis`
+- `participatesIn`(`TGFB1`, `Influenza Virus Induced Apoptosis`)
+- `subClassOf`(`Influenza Virus Induced Apoptosis`, `Influenza A Pathway`)   
+- `Type`(`Influenza Virus Induced Apoptosis`, `owl:Class`)  
 
-Would require adding:
-- `participatesIn`(TGFB1, Influenza Virus Induced Apoptosis)
-- `subClassOf`(Influenza Virus Induced Apoptosis, Influenza A pathway)   
-- `Type`(Influenza Virus Induced Apoptosis, `owl:Class`)  
+Where `TGFB1` is a [Protein Ontology](https://proconsortium.org/) term and `Influenza Virus Induced Apoptosis` is a non-ontology data node from [Reactome](https://reactome.org/). In this example, `Influenza A Pathway` is an existing [Pathway Ontology](http://rgd.mcw.edu/rgdweb/ontology/search.html) class. This would result in the following triples, assuming that `TGFB1` is an existing ontology concept:  
 
-Where TGFB1 is an PR ontology term and Influenza Virus Induced Apoptosis is a non-ontology data node. In this example, Influenza A pathway is an existing ontology class.  
+```
+UUID1 = MD5(`TGFB1` + `participatesIn` + `Influenza Virus Induced Apoptosis` + "subject")
+UUID2 = MD5(`TGFB1` + `participatesIn` + `Influenza Virus Induced Apoptosis` + "object")
+
+UUID1, rdf:type, TGFB1
+UUID1, rdf:type, owl:NamedIndividual
+
+Influenza Virus Induced Apoptosis, rdfs:subClassOf, Influenza A pathway
+Influenza Virus Induced Apoptosis, rdf:type, owl:Class
+UUID2, rdf:type, Influenza Virus Induced Apoptosis
+UUID2, rdf:type, owl:NamedIndividual
+
+UUID1, participatesIn, UUID2
+```  
 
 A table is provided below showing the different triples that are added as function of edge type (i.e. `class`-`class` vs. `class`-`instance` vs. `instance`-`instance`) and relation strategy (i.e. relations only or relations + inverse relations).  
 
@@ -78,6 +100,8 @@ Instance-Instance | Relations + Inverse Relations | **`HGNC_1234567`, `REL`, `HG
 ***
 
 🛑 *<b>ASSUMPTIONS</b>* 🛑  
+**Data:** [`subclass_construction_map.pkl`](https://storage.googleapis.com/pheknowlator/current_build/dependencies/subclass_construction_map.pkl)  
+
 **The algorithm makes the following assumptions:**
 - Make sure that you have created the non-ontology node data to ontology class mapping dictionary (described below) to the `./resources/construction_approach/*.pkl` directory.    
 
