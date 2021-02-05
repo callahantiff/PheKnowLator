@@ -376,36 +376,30 @@ def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], clas
         return gets_class_ancestors(graph, class_uris, class_list)
 
 
-def connected_graph(graph: Graph) -> bool:
-    """Determines whether an input graph is connected. Code below is adapted from RDFLib. In the future this should
-    be optimized as it runs VERY slowly now.
-
-    Source (lines: 1250-1285): https://github.com/RDFLib/rdflib/blob/master/rdflib/graph.py
+def connected_components(graph: Graph) -> bool:
+    """Creates a dictionary where the keys are integers representing a component number and the values are sets
+    containing the nodes for a given component. This method works by first converting the RDFLib graph into a
+    NetworkX multi-directed graph, which is converted to a undirected graph prior to calculating the connected
+    components.
 
     Args:
         graph: An RDFLib Graph object.
 
     Returns:
-        True if the graph is connected.
-        False if the graph is not connected.
+        component_dict: A dictionary where the keys are integers representing a component number and the values are sets
+            containing the nodes for a given component.
     """
 
-    all_nodes = list(set(list(graph.subjects()) + list(graph.objects())))
-    discovered, visiting = [], [all_nodes[random.randrange(len(all_nodes))]]
-    pbar = tqdm(total=len(all_nodes))
+    nx_mdg = networkx.MultiDiGraph()
+    for s, p, o in tqdm(graph):
+        nx_mdg.add_edge(s, o, **{'key': p})
 
-    while visiting:
-        pbar.update(1)
-        x = visiting.pop()
-        if x not in discovered: discovered.append(x)
-        for new_x in graph.objects(subject=x):
-            if new_x not in discovered and new_x not in visiting: visiting.append(new_x)
-        for new_x in graph.subjects(object=x):
-            if new_x not in discovered and new_x not in visiting: visiting.append(new_x)
+    # get connected components
+    print('Calculating Connected Components')
+    components = list(networkx.connected_components(nx_mdg.to_undirected()))
+    component_dict = {x: components[x] for x in range(len(components))}
 
-    # optimisation by only considering length, since no new objects can be introduced anywhere
-    if len(all_nodes) == len(discovered): return True
-    else: return False
+    return component_dict
 
 
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:

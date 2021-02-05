@@ -386,7 +386,7 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
-    def test_connected_graph_true(self):
+    def test_connected_components_true(self):
         """Method tests the connected_graph method when the graph is connected."""
 
         # create graph
@@ -397,12 +397,13 @@ class TestKGUtils(unittest.TestCase):
             graph.add(i)
 
         # test method
-        connected = connected_graph(graph)
-        self.assertTrue(connected)
+        connected = connected_components(graph)
+        self.assertIsInstance(connected, Dict)
+        self.assertTrue(len(connected) == 1)
 
         return None
 
-    def test_connected_graph_false(self):
+    def test_connected_components_false(self):
         """Method tests the connected_graph method when the graph is not connected."""
 
         # create graph
@@ -413,7 +414,8 @@ class TestKGUtils(unittest.TestCase):
             graph.add(i)
 
         # test method
-        connected = connected_graph(graph)
-        self.assertFalse(connected)
+        connected = connected_components(graph)
+        self.assertIsInstance(connected, Dict)
+        self.assertTrue(len(connected) == 2)
 
         return None
