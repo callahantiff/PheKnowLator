@@ -398,7 +398,7 @@ class TestKGUtils(unittest.TestCase):
 
         # test method
         connected = connected_components(graph)
-        self.assertIsInstance(connected, Dict)
+        self.assertIsInstance(connected, List)
         self.assertTrue(len(connected) == 1)
 
         return None
@@ -415,7 +415,7 @@ class TestKGUtils(unittest.TestCase):
 
         # test method
         connected = connected_components(graph)
-        self.assertIsInstance(connected, Dict)
+        self.assertIsInstance(connected, List)
         self.assertTrue(len(connected) == 2)
 
         return None

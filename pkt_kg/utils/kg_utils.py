@@ -376,7 +376,7 @@ def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], clas
         return gets_class_ancestors(graph, class_uris, class_list)
 
 
-def connected_components(graph: Graph) -> Dict:
+def connected_components(graph: Graph) -> List:
     """Creates a dictionary where the keys are integers representing a component number and the values are sets
     containing the nodes for a given component. This method works by first converting the RDFLib graph into a
     NetworkX multi-directed graph, which is converted to a undirected graph prior to calculating the connected
@@ -397,7 +397,7 @@ def connected_components(graph: Graph) -> Dict:
     # get connected components
     print('Calculating Connected Components')
     components = list(networkx.connected_components(nx_mdg.to_undirected()))
-    component_dict = {x: components[x] for x in range(len(components))}
+    component_dict = sorted(components, key=len, reverse=True)
 
     return component_dict
 
