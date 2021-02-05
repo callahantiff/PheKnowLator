@@ -22,10 +22,10 @@ def uploads_data_to_gcs_bucket(bucket, original_data, temp_directory, filename):
         None.
     """
 
-    print('Uploading {} to GCS bucket: {}'.format(filename, original_data))
-
-    blob = bucket.blob(original_data + filename)
-    blob.upload_from_filename(temp_directory + '/' + filename)
+    if isinstance(bucket, storage.bucket.Bucket):
+        print('Uploading {} to GCS bucket: {}'.format(filename, original_data))
+        blob = bucket.blob(original_data + filename)
+        blob.upload_from_filename(temp_directory + '/' + filename)
 
     return None
 
