@@ -376,7 +376,7 @@ def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], clas
         return gets_class_ancestors(graph, class_uris, class_list)
 
 
-def connected_components(graph: Graph) -> bool:
+def connected_components(graph: Graph) -> Dict:
     """Creates a dictionary where the keys are integers representing a component number and the values are sets
     containing the nodes for a given component. This method works by first converting the RDFLib graph into a
     NetworkX multi-directed graph, which is converted to a undirected graph prior to calculating the connected
