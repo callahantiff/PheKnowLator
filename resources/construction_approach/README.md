@@ -24,7 +24,7 @@ EXAMPLE: Adding the edge: `Morphine` ➞ `isSubstanceThatTreats` ➞ `Migraine`
 - `isSubstanceThatTreats`(`Morphine`, `x1`)
 - `Type`(`x1`, `Migraine`)
 
-In this example, `Morphine` is a non-ontology data node from [ChEBI](https://www.ebi.ac.uk/chebi) and `Migraine` is a [Human Phenotype Ontology](https://hpo.jax.org/) term. This would result in the following triples, assuming that both `Morphine` and `Migraine` are existing ontology concepts:  
+In this example, `Morphine` is an ontology data node from [ChEBI](https://www.ebi.ac.uk/chebi) and `Migraine` is a [Human Phenotype Ontology](https://hpo.jax.org/) term. This would result in the following triples, assuming that both `Morphine` and `Migraine` are existing ontology concepts:  
 
 ```
 UUID1 = MD5(Morphine + isSubstanceThatTreats + Migraine + "subject")
