@@ -1195,7 +1195,9 @@ class DataPreprocessing(object):
     def constructs_human_protein_ontology(self) -> None:
         """Creates a human version of the PRotein Ontology (PRO) by traversing the ontology to obtain forward and
         reverse breadth first search. If the resulting human PRO contains a single connected component it's written
-        locally.
+        locally. After building the human subset, we verify the number of connected components and get 1. However, after
+        reformatting the graph using OWLTools you will see that there are 3 connected components: component 1
+        (n=1051673); component 2 (n=12); and component 3 (n=2).
 
         Returns:
             None.
@@ -1220,15 +1222,17 @@ class DataPreprocessing(object):
             # add edges from forward and reverse breadth first search paths
             for path in forward + reverse:
                 human_pro_graph.add((path[0], path[2], path[1]))
-                human_networkx_mdg.add_edge(path[0], path[1], path[2])
+                human_networkx_mdg.add_edge(path[0], path[1], **{'key': path[2]})
+
         # check data and write it locally
-        if networkx.number_connected_components(human_networkx_mdg.to_undirected()) == 1:
-            human_pro_graph.serialize(destination=self.temp_dir + '/human_pro.owl', format='xml')
-            f_name1, f_name2 = self.temp_dir + '/human_pro.owl', self.temp_dir + '/pr_with_imports.owl'
-            self._logically_verifies_human_protein_ontology(f_name1, f_name2, 'elk')
-        else:
-            logger.error('ValueError: Human PRO Contains More than a Single Connected Component')
-            raise ValueError('Human PRO Contains More than a Single Connected Component')
+        components = list(networkx.connected_components(human_networkx_mdg.to_undirected()))
+        component_dict = sorted(components, key=len, reverse=True)
+        if len(component_dict) > 1:  # if more than 1 connected component remove all but largest
+            for node in [x for y in component_dict[1:] for x in list(y)]:
+                human_pro_graph.remove((node, None, None))
+        human_pro_graph.serialize(destination=self.temp_dir + '/human_pro.owl', format='xml')
+        f_name1, f_name2 = self.temp_dir + '/human_pro.owl', self.temp_dir + '/pr_with_imports.owl'
+        self._logically_verifies_human_protein_ontology(f_name1, f_name2, 'elk')
 
         return None
 
