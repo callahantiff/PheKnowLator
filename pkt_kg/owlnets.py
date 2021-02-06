@@ -8,6 +8,7 @@ import networkx  # type: ignore
 import os
 import os.path
 import pickle
+import re
 
 from collections import Counter
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
@@ -67,6 +68,13 @@ class OwlNets(object):
         self.filename = filename
         self.nx_mdg: networkx.MultiDiGraph = networkx.MultiDiGraph()
 
+        # EXCLUSION ONTOLOGY PREFIXES
+        # top-level and relation-specific ontologies - can appear only as predicates
+        self.top_level_ontologies: List = ['BFO', 'COB', 'GFO', 'OA', 'ISO', 'SUMO']
+        self.relations_ontologies: List = ['RO']
+        # support ontologies - can never appear in OWL-NETS triples
+        self.support_ontologies: List = ['IAO', 'CIO', 'CRO', 'DUO', 'ICO', 'SWO', 'dc/terms', 'EDAM', 'biolink']
+
         # VERIFY INPUT GRAPH
         if not isinstance(graph, Graph) and not isinstance(graph, str):
             logger.error('TypeError: Graph must be an RDFLib Graph Object or a str.')
@@ -119,39 +127,39 @@ class OwlNets(object):
 
         return None
 
-    def updates_class_instance_identifiers(self) -> None:
-        """Iterates over all class instances in a knowledge graph that was constructed using the instance-based
-        construction approach and converts pkt_BNodes back to the original ontology class identifier. A new edge for
-        each triple, containing an instance of a class is updated with the original ontology identifier, is added to
-        the graph.
-
-        Assumptions: (1) all instances of a class identifier contain the pkt namespace
-                     (2) all relations used when adding new edges to a graph are part of the OBO namespace
-
-        Returns:
-             None.
-        """
-
-        print('Re-mapping Instances of Classes to Class Identifiers')
-        logger.info('Re-mapping Instances of Classes to Class Identifiers')
-
-        # get all class individuals in pheknowlator namespace and save as dict with value as original ontology class
-        pkts = [x[0] for x in list(self.graph.triples((None, RDF.type, OWL.NamedIndividual))) if 'pkt' in str(x[0])]
-        pkt_ns_dict = {i: [x[2] for x in list(self.graph.triples((i, RDF.type, None)))
-                           if 'obo' in str(x[2])][0] for i in tqdm(pkts)}
-
-        # update triples containing BNodes with original ontology class
-        remove_edges: Set = set()
-        for node in tqdm(pkts):
-            inst_triples = list(self.graph.triples((node, None, None))) + list(self.graph.triples((None, None, node)))
-            for edge in inst_triples:
-                sub = pkt_ns_dict[edge[0]] if edge[0] in pkt_ns_dict.keys() else edge[0]
-                obj = pkt_ns_dict[edge[2]] if edge[2] in pkt_ns_dict.keys() else edge[2]
-                self.graph.add((sub, edge[1], obj))
-            remove_edges |= set(inst_triples)
-        self.graph = remove_edges_from_graph(self.graph, list(remove_edges))
-
-        return None
+    # def updates_class_instance_identifiers(self) -> None:
+    #     """Iterates over all class instances in a knowledge graph that was constructed using the instance-based
+    #     construction approach and converts pkt_BNodes back to the original ontology class identifier. A new edge for
+    #     each triple, containing an instance of a class is updated with the original ontology identifier, is added to
+    #     the graph.
+    #
+    #     Assumptions: (1) all instances of a class identifier contain the pkt namespace
+    #                  (2) all relations used when adding new edges to a graph are part of the OBO namespace
+    #
+    #     Returns:
+    #          None.
+    #     """
+    #
+    #     print('Re-mapping Instances of Classes to Class Identifiers')
+    #     logger.info('Re-mapping Instances of Classes to Class Identifiers')
+    #
+    #     # get all class individuals in pheknowlator namespace and save as dict with value as original ontology class
+    #     pkts = [x[0] for x in list(self.graph.triples((None, RDF.type, OWL.NamedIndividual))) if 'pkt' in str(x[0])]
+    #     pkt_ns_dict = {i: [x[2] for x in list(self.graph.triples((i, RDF.type, None)))
+    #                        if 'obo' in str(x[2])][0] for i in tqdm(pkts)}
+    #
+    #     # update triples containing BNodes with original ontology class
+    #     remove_edges: Set = set()
+    #     for node in tqdm(pkts):
+    #         inst_triples = list(self.graph.triples((node, None, None))) + list(self.graph.triples((None, None, node)))
+    #         for edge in inst_triples:
+    #             sub = pkt_ns_dict[edge[0]] if edge[0] in pkt_ns_dict.keys() else edge[0]
+    #             obj = pkt_ns_dict[edge[2]] if edge[2] in pkt_ns_dict.keys() else edge[2]
+    #             self.graph.add((sub, edge[1], obj))
+    #         remove_edges |= set(inst_triples)
+    #     self.graph = remove_edges_from_graph(self.graph, list(remove_edges))
+    #
+    #     return None
 
     def removes_edges_with_owl_semantics(self) -> Graph:
         """Creates a filtered knowledge graph, such that only nodes that are owl:Class/owl:Individual connected via a
@@ -173,27 +181,36 @@ class OwlNets(object):
 
         print('Filtering Triples')
         logger.info('Filtering Triples')
-
         keep_predicates, filtered_triples = set(), set()
+        exclude = self.top_level_ontologies + self.relations_ontologies + self.support_ontologies
         for x in tqdm(self.graph):
             if isinstance(x[0], URIRef) and isinstance(x[1], URIRef) and isinstance(x[2], URIRef):
-                if len(self.owl_nets_dict['owl_nets']['decoded_classes']) == 0:
-                    s = [i for i in list(self.graph.triples((x[0], RDF.type, None)))
-                         if (OWL.Class in i[2] or OWL.NamedIndividual in i[2]) and '#' not in str(x[0])]
-                    o = [i for i in list(self.graph.triples((x[2], RDF.type, None)))
-                         if (OWL.Class in i[2] or OWL.NamedIndividual in i[2]) and '#' not in str(x[2])]
-                    p = [i for i in list(self.graph.triples((x[1], RDF.type, None))) if i[2] != OWL.AnnotationProperty]
-                    if len(s) > 0 and len(o) > 0 and len(p) > 0:
-                        if OWL.ObjectProperty in p[0][2]: keep_predicates.add(x)
+                # handle top-level, relation, and support ontologies (top/rel can only be rel; remove support)
+                subj = not any(i for i in exclude if i.lower() in str(x[0]).lower())
+                obj = not any(i for i in exclude if i.lower() in str(x[2]).lower())
+                rel = not any(i for i in self.support_ontologies if i.lower() in str(x[1]).lower())
+                if subj and obj and rel:
+                    if len(self.owl_nets_dict['owl_nets']['decoded_classes']) == 0:
+                        s = [i for i in list(self.graph.triples((x[0], RDF.type, None)))
+                             if (OWL.Class in i[2] or OWL.NamedIndividual in i[2]) and '#' not in str(x[0])]
+                        o = [i for i in list(self.graph.triples((x[2], RDF.type, None)))
+                             if (OWL.Class in i[2] or OWL.NamedIndividual in i[2]) and '#' not in str(x[2])]
+                        p = [i for i in list(self.graph.triples((x[1], RDF.type, None)))
+                             if i[2] != OWL.AnnotationProperty]
+                        if len(s) > 0 and len(o) > 0 and len(p) > 0:
+                            if OWL.ObjectProperty in p[0][2]: keep_predicates.add(x)
+                            else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
+                        if len(s) > 0 and len(o) > 0 and len(p) == 0:
+                            if RDFS.subClassOf in x[1]: keep_predicates.add(x)
+                            elif RDF.type in x[1]: keep_predicates.add(x)
+                            else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
+                    else:
+                        if OWL not in x[0] and OWL not in x[2]: keep_predicates.add(x)
                         else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
-                    if len(s) > 0 and len(o) > 0 and len(p) == 0:
-                        if RDFS.subClassOf in x[1]: keep_predicates.add(x)
-                        elif RDF.type in x[1]: keep_predicates.add(x)
-                        else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
-                else:
-                    if OWL not in x[0] and OWL not in x[2]: keep_predicates.add(x)
-                    else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
+                else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
             else: filtered_triples |= {(str(x[0]), str(x[1]), str(x[2]))}
+
+        # fine tune filtered triples to remove top-level
 
         filtered_graph = adds_edges_to_graph(Graph(), list(keep_predicates))  # create a new graph from filtered edges
         self.owl_nets_dict['filtered_triples'] |= filtered_triples
