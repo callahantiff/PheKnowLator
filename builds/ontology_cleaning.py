@@ -39,11 +39,14 @@ class OntologyCleaner(object):
     Jupyter Notebook. See notebook (https://github.com/callahantiff/PheKnowLator/blob/master/Ontology_Cleaning.ipynb)
     for more detailed descriptions of each error check performed and how they are resolved.
 
+    Note. Currently there is some hard-coding which converts all HGNC identifiers to Entrez.
+
     Attributes:
         gcs_bucket: A storage Bucket object specifying a Google Cloud Storage bucket.
         org_data: A string specifying the location of the original_data directory for a specific build.
         proc_data: A string specifying the location of the original_data directory for a specific build.
-        temp: A string specifying a temporary directory to use while processing data locally.
+        temp: A string specifying a temporary directory to use while processing data locally. If locally and not
+            passing a GCS bucket, this location should be 1 direct up from the directory storing the ontologies.
     """
 
     def __init__(self, gcs_bucket: Union[storage.bucket.Bucket, str], org_data: str, proc_data: str, temp: str) -> None:
@@ -101,7 +104,8 @@ class OntologyCleaner(object):
         """
 
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
-        graph = Graph().parse(x, format='xml')
+        if x is not None: graph = Graph().parse(x, format='xml')
+        else: graph = Graph().parse(self.temp_dir + '/' + f_name, format='xml')
 
         return graph
 
@@ -170,11 +174,12 @@ class OntologyCleaner(object):
         # save graph in order to run reasoner
         filename = self.temp_dir + '/' + self.ont_file_location
         self.ont_graph.serialize(destination=filename, format='xml')
-        command = "{} {} --reasoner {} --run-reasoner --assert-implied -o {}"
-        return_code = os.system(command.format(self.owltools_location, filename, 'elk', filename))
+        command = "{} {} --reasoner elk --run-reasoner --assert-implied -o {}"
+        return_code = os.system(command.format(self.owltools_location, filename, filename))
         if return_code == 0:
             ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
-            uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
+            if isinstance(self.bucket, storage.bucket.Bucket):
+                uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
         else:
             logger.error('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
             raise Exception('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
@@ -204,12 +209,13 @@ class OntologyCleaner(object):
             self.ontology_info[self.ont_file_location]['Original GCS URL'] = gcs_org_url + self.ont_file_location
             self.ontology_info[self.ont_file_location]['Processed GCS URL'] = gcs_proc_url + self.ont_file_location
             key = 'Starting Statistics'
-        else:
-            key = 'Final Statistics'
+        else: key = 'Final Statistics'
+
         classes, obj_props = len(gets_ontology_classes(self.ont_graph)), len(gets_object_properties(self.ont_graph))
         triples, indv = len(self.ont_graph), len(list(self.ont_graph.triples((None, RDF.type, OWL.NamedIndividual))))
-        stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals'.format(classes, obj_props, triples, indv)
-        self.ontology_info[self.ont_file_location][key] = stats
+        conn_comps = len(connected_components(self.ont_graph))
+        stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals; {} Connected Components'
+        self.ontology_info[self.ont_file_location][key] = stats.format(classes, obj_props, triples, indv, conn_comps)
 
         return None
 
@@ -247,7 +253,7 @@ class OntologyCleaner(object):
             raw_data = open(self.temp_dir + '/' + key).readlines()  # read raw data
             bad_content = re.findall(r'(?<=>).*(?=<)', raw_data[line_num])[0]
             bad_triple = [x for x in self.ont_graph if bad_content in str(x[0]) or bad_content in str(x[2])]
-            for e in bad_triple:  # repair bad triple -- assuming for now the errors are miss-typed string errors
+            for e in bad_triple:  # repair bad triple -- assuming for now the errors are mis-typed string errors
                 self.ont_graph.add((e[0], e[1], Literal(str(e[2]), datatype=schema.string)))
                 self.ont_graph.remove(e)
 
@@ -276,13 +282,11 @@ class OntologyCleaner(object):
         self.ontology_info[key]['IdentifierErrors'] = 'Possible ' + '-'.join(errors) if len(errors) > 0 else 'None'
         for edge in self.ont_graph:
             if 'http://purl.obolibrary.org/obo/{}_'.format(known_errors[0]) in str(edge[0]):
-                updated_subj = str(edge[0]).replace(known_errors[0], known_errors[1])
-                self.ont_graph.add((URIRef(updated_subj), edge[1], edge[2]))
+                self.ont_graph.add((URIRef(str(edge[0]).replace(known_errors[0], known_errors[1])), edge[1], edge[2]))
                 self.ont_graph.remove(edge)
                 bad_cls.add(str(edge[0]))
             if 'http://purl.obolibrary.org/obo/{}_'.format(known_errors[0]) in str(edge[2]):
-                updated_obj = str(edge[2]).replace(known_errors[0], known_errors[1])
-                self.ont_graph.add((URIRef(updated_obj), edge[1], edge[2]))
+                self.ont_graph.add((edge[0], edge[1], URIRef(str(edge[2]).replace(known_errors[0], known_errors[1]))))
                 self.ont_graph.remove(edge)
                 bad_cls.add(str(edge[2]))
 
@@ -301,24 +305,14 @@ class OntologyCleaner(object):
         logger.info('Removing Deprecated and Obsolete Classes')
 
         ont, key, schma = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location, schema.boolean
-        # get deprecated entity information
-        dep_cls = [x[0] for x in list(self.ont_graph.triples((None, OWL.deprecated, Literal('true', datatype=schma))))]
-        dep_triples = [x for x in self.ont_graph
-                       if 'deprecated' in ', '.join([str(x[0]).lower(), str(x[1]).lower(), str(x[2]).lower()])
-                       and len(list(self.ont_graph.triples((x[0], RDF.type, OWL.Class)))) == 1]
-        deprecated_classes = set(dep_cls + [x[0] for x in dep_triples])
-        # get obsolete entity information
-        obs_cls = [x[0] for x in list(self.ont_graph.triples((None, RDFS.subClassOf, oboinowl.ObsoleteClass)))]
-        obs_triples = [x for x in self.ont_graph
-                       if 'obsolete' in ', '.join([str(x[0]).lower(), str(x[1]).lower(), str(x[2]).lower()])
-                       and len(list(self.ont_graph.triples((x[0], RDF.type, OWL.Class)))) == 1 and '#' not in str(x[0])]
-        obsolete_classes = set(obs_cls + [x[0] for x in obs_triples])
+        dep_cls = {x[0] for x in list(self.ont_graph.triples((None, OWL.deprecated, Literal('true', datatype=schma))))}
+        obs_cls = {x[0] for x in list(self.ont_graph.triples((None, RDFS.subClassOf, oboinowl.ObsoleteClass)))}
         # remove deprecated and obsolete information
-        for node in list(deprecated_classes) + list(obsolete_classes):
+        for node in list(dep_cls) + list(obs_cls):
             self.ont_graph.remove((node, None, None))
 
-        self.ontology_info[key]['Deprecated'] = deprecated_classes if len(deprecated_classes) > 0 else 'None'
-        self.ontology_info[key]['Obsolete'] = obsolete_classes if len(obsolete_classes) > 0 else 'None'
+        self.ontology_info[key]['Deprecated'] = dep_cls if len(dep_cls) > 0 else 'None'
+        self.ontology_info[key]['Obsolete'] = obs_cls if len(obs_cls) > 0 else 'None'
 
         return None
 
@@ -415,6 +409,9 @@ class OntologyCleaner(object):
         other types of identifiers, but given our detailed examination of the v2.0.0 ontologies, these were the
         identifier types that needed repair.
 
+        Note. In the future, this method can be expanded to replace identifiers in annotation axioms (i.e. updating
+        Literals, in addition to the URIRefs that currently being updated).
+
         Returns:
             None.
         """
@@ -423,31 +420,41 @@ class OntologyCleaner(object):
         logger.info('Normalizing Existing Classes')
 
         ents, missing = None, []
-        non_ont = set([x for x in gets_ontology_classes(self.ont_graph) if not str(x).startswith(str(obo))])
-        hgnc, url, g = set([x for x in non_ont if 'hgnc' in str(x)]), 'http://www.ncbi.nlm.nih.gov/gene/', self.gene_ids
+        non_ont = set([x for x in gets_ontology_classes(self.ont_graph)])
+        hgnc = set([x for x in non_ont if 'hgnc' in str(x).lower()])
+        url, g = 'http://www.ncbi.nlm.nih.gov/gene/', self.gene_ids
         for node in tqdm(hgnc):
             trips = list(self.ont_graph.triples((node, None, None))) + list(self.ont_graph.triples((None, None, node)))
-            nd = 'hgnc_id_' + str(node).split('/')[-1].split('=')[-1]
-            gene_dat = [str(x[2]) for x in trips if x[1] == RDFS.label]
-            if nd in g.keys(): ents = [URIRef(url + x) for x in g[nd] if x.startswith('entrez_id_')]
+            nd = 'hgnc_id_' + re.findall(r'\d.*', str(node).split('/')[-1])[0]
+            gene_dat = [str(x[2]).strip(' (human)') for x in trips if x[1] == RDFS.label]
+            if nd in g.keys():
+                ents = [URIRef(url + x.split('_')[-1]) for x in g[nd] if x.startswith('entrez_id_')]
+                if len(ents) == 0 and str(node) in self.withdrawn_map.keys():
+                    ents = [URIRef(url + x) for x in self.withdrawn_map[str(node)]]
+                else: missing += [str(node)]
             elif str(node) not in self.withdrawn_map.keys() and len(gene_dat) > 0:
                 if 'symbol_' + gene_dat[0] in g.keys() and 'entrez_id' in g['symbol_' + gene_dat[0]]:
                     ents = [URIRef(url + x) for x in g['symbol_' + gene_dat[0]] if 'entrez_id' in x][0]
                 else: missing += [str(node)]
             elif str(node) in self.withdrawn_map.keys(): ents = [URIRef(url + x) for x in self.withdrawn_map[str(node)]]
             else: missing += [str(node)]
-            if ents:
+
+            if ents is not None and len(ents) > 0:  # fix broken identifiers within affected triples
                 for edge in trips:
-                    if node in edge[0]:
-                        if isinstance(edge[2], URIRef) or isinstance(edge[2], BNode):
+                    if isinstance(edge[0], URIRef) or isinstance(edge[2], URIRef):
+                        if node in edge[0] and not (isinstance(edge[2], Literal) and ':' in str(edge[2])):
                             for i in ents:
                                 self.ont_graph.add((i, edge[1], edge[2]))
                                 self.ont_graph.remove(edge)
-                        else: self.ont_graph.remove(edge)
-                    if node in edge[2]:
-                        for i in ents:
-                            self.ont_graph.add((edge[0], edge[1], i))
-                            self.ont_graph.remove(edge)
+                        elif node in edge[0] and (isinstance(edge[2], Literal) and ':' in str(edge[2])):
+                            for i in ents:
+                                self.ont_graph.add((i, edge[1], Literal(nd.split('_')[-1], datatype=schema.string)))
+                                self.ont_graph.remove(edge)
+                        elif node in edge[2]:
+                            for i in ents:
+                                self.ont_graph.add((edge[0], edge[1], i))
+                                self.ont_graph.remove(edge)
+                        else: pass
 
         no_ont = len(non_ont) - len(hgnc)
         self.ontology_info[self.ont_file_location]['Normalized - NonOnt'] = no_ont if no_ont != 0 else 'None'
@@ -519,6 +526,15 @@ class OntologyCleaner(object):
               Punning Errors.
             - Merged Ontologies: (1) Identifier Error, (2) Normalizes Duplicate and Existing Concepts, and (3) Punning
               Errors.
+
+        NOTE. The OWL API, when running the ELK reasoner, seems to add back some of the errors that this script removes.
+            Example 1: In the Vaccine Ontology, we fix prefix errors where "PR" is recorded as "PRO". If you save the
+            ontology without running the reasoner and reload it, the fix remains.
+            Example 2: When we create the human subset of the Protein Ontology we verify that it contains only a
+            single large connected component.
+        For both examples, if you run the reasoner ELK, save the ontology with inferences, and re-load it, "PRO" will
+        re-appear and the human pro ontology with contain 3 connected components. Luckily, the merged ontologies are
+        not reasoned, thus the version used to build knowledge graphs is free of these errors.
 
         Returns:
             None.
