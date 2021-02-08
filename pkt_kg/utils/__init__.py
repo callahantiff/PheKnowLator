@@ -12,5 +12,5 @@ __all__ = ['url_download', 'ftp_url_download', 'gzipped_ftp_url_download', 'zipp
            'gets_ontology_classes', 'gets_deprecated_ontology_classes', 'gets_object_properties',
            'gets_ontology_class_dbxrefs', 'gets_ontology_class_synonyms', 'merges_ontologies',
            'ontology_file_formatter', 'adds_edges_to_graph', 'remove_edges_from_graph', 'gets_class_ancestors',
-           'connected_components', 'finds_node_type', 'updates_graph_namespace',
+           'connected_components', 'removes_self_nodes', 'finds_node_type', 'updates_graph_namespace',
            'maps_node_ids_to_integers', 'converts_rdflib_to_networkx']

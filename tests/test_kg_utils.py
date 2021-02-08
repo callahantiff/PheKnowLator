@@ -419,3 +419,22 @@ class TestKGUtils(unittest.TestCase):
         self.assertTrue(len(connected) == 2)
 
         return None
+
+    def test_removes_self_loops(self):
+        """Method tests the removes_self_loops method."""
+
+        # create test data
+        test_graph = Graph()
+        test_triples = [(URIRef('https://www.ncbi.nlm.nih.gov/gene/2'),
+                         URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                         URIRef('https://www.ncbi.nlm.nih.gov/gene/2'))]
+        test_graph.add(test_triples[0])
+
+        # test method
+        self_loops = removes_self_nodes(test_graph)
+        self.assertIsInstance(self_loops, List)
+        self.assertEqual(self_loops, [(URIRef('https://www.ncbi.nlm.nih.gov/gene/2'),
+                                       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                                       URIRef('https://www.ncbi.nlm.nih.gov/gene/2'))])
+
+        return None

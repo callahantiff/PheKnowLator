@@ -18,7 +18,8 @@ Interacts with Knowledge Graphs
 * remove_edges_from_graph
 * updates_graph_namespace
 * gets_class_ancestors
-* connected_graph
+* connected_components
+* removes_self_nodes
 
 Writes Triple Lists
 * maps_node_ids_to_integers
@@ -400,6 +401,26 @@ def connected_components(graph: Graph) -> List:
     component_dict = sorted(components, key=len, reverse=True)
 
     return component_dict
+
+
+def removes_self_nodes(graph: Graph) -> List:
+    """Method iterates over a graph and identifies all triples that contain self-loops. The method returns a list of
+    all self-loops.
+
+    Args:
+        graph:
+
+    Returns:
+        self_loops: A list of triples containing self-loops that need to be removed.
+    """
+
+    self_loops: Set = set()
+
+    for edge in tqdm(graph):
+        if edge[0] == edge[2]:
+            self_loops.add(edge)
+
+    return list(self_loops)
 
 
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:
