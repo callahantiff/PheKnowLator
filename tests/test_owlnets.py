@@ -156,11 +156,11 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_initialization_class_list(self):
-        """Tests the class initialization state for class_list."""
+    def test_initialization_node_list(self):
+        """Tests the class initialization state for node_list."""
 
-        self.assertIsInstance(self.owl_nets.class_list, List)
-        self.assertEqual(len(self.owl_nets.class_list), 2573)
+        self.assertIsInstance(self.owl_nets.node_list, List)
+        self.assertEqual(len(self.owl_nets.node_list), 2793)
 
         return None
 
@@ -197,7 +197,7 @@ class TestOwlNets(unittest.TestCase):
 
         # run method to roll back to re-map instances of classes
         self.owl_nets.updates_class_instance_identifiers()
-        self.assertEqual(len(self.owl_nets.graph), 8)
+        self.assertEqual(len(self.owl_nets.graph), 7)
         self.assertIn((URIRef('http://purl.obolibrary.org/obo/CHEBI_2504'),
                        URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
                        URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),
@@ -254,6 +254,44 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
+    def test_handles_exhaustive_subclassing_bnode(self):
+        """Tests the handles_exhaustive_subclassing method when there is a bnode."""
+
+        # test edge
+        self.owl_nets.graph = Graph()
+        self.owl_nets.graph.add((BNode('N27395f0caf9b7ce181efb2b28562f067'),
+                                 URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
+                                 URIRef('https://www.ncbi.nlm.nih.gov/gene/2')))
+        results = ({(BNode('N27395f0caf9b7ce181efb2b28562f067'),
+                     URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
+                     URIRef('http://purl.obolibrary.org/obo/HP_0110035'))}, None)
+
+        # check method
+        test_results = self.owl_nets.handles_exhaustive_subclassing(results[0])
+        self.assertIsInstance(test_results, Set)
+        self.assertEqual(test_results, {(URIRef('https://www.ncbi.nlm.nih.gov/gene/2'),
+                                         URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
+                                         URIRef('http://purl.obolibrary.org/obo/HP_0110035'))})
+
+        return None
+
+    def test_handles_exhaustive_subclassing_no_bnode(self):
+        """Tests the handles_exhaustive_subclassing method when there is not a bnode."""
+
+        # test edge
+        results = ({(URIRef('https://www.ncbi.nlm.nih.gov/gene/2'),
+                     URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
+                     URIRef('http://purl.obolibrary.org/obo/HP_0110035'))}, None)
+
+        # check method
+        test_results = self.owl_nets.handles_exhaustive_subclassing(results[0])
+        self.assertIsInstance(test_results, Set)
+        self.assertEqual(test_results, {(URIRef('https://www.ncbi.nlm.nih.gov/gene/2'),
+                                         URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
+                                         URIRef('http://purl.obolibrary.org/obo/HP_0110035'))})
+
+        return None
+
     def test_removes_edges_with_owl_semantics(self):
         """Tests the removes_edges_with_owl_semantics method."""
 
@@ -280,7 +318,7 @@ class TestOwlNets(unittest.TestCase):
         self.assertIsInstance(filtered_graph, Graph)
 
         # check output length
-        self.assertEqual(len(filtered_graph), 3009)
+        self.assertEqual(len(filtered_graph), 2732)
 
         return None
 
@@ -642,12 +680,11 @@ class TestOwlNets(unittest.TestCase):
         """Tests the cleans_owl_encoded_classes method"""
 
         # set-up inputs
-        self.owl_nets.class_list = [URIRef('http://purl.obolibrary.org/obo/SO_0000822')]
+        self.owl_nets.node_list = [URIRef('http://purl.obolibrary.org/obo/SO_0000822')]
         self.owl_nets.converts_rdflib_to_networkx_multidigraph()
 
         # test method
         decoded_graph = self.owl_nets.cleans_owl_encoded_classes()
-
         self.assertIsInstance(decoded_graph, Graph)
         self.assertEqual(len(decoded_graph), 2)
 
