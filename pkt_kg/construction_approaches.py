@@ -144,26 +144,17 @@ class KGConstructionApproach(object):
         u2 = 'N' + hashlib.md5(str(rel_core + str(OWL.Restriction)).encode()).hexdigest()
         u3 = 'N' + hashlib.md5(str(inv_rel_core).encode()).hexdigest()
         u4 = 'N' + hashlib.md5(str(inv_rel_core + str(OWL.Restriction)).encode()).hexdigest()
-
         # creates a restriction in order to connect two nodes using the input relation
-        new_edge_rel_only = ((node1, RDF.type, OWL.Class),
-                             (BNode(u1), RDFS.subClassOf, node1),
-                             (BNode(u1), RDF.type, OWL.Class),
-                             (BNode(u1), RDFS.subClassOf, BNode(u2)),
-                             (BNode(u2), RDF.type, OWL.Restriction),
-                             (BNode(u2), OWL.someValuesFrom, node2),
-                             (node2, RDF.type, OWL.Class),
-                             (BNode(u2), OWL.onProperty, relation),
+        new_edge_rel_only = ((node1, RDF.type, OWL.Class), (BNode(u1), RDFS.subClassOf, node1),
+                             (BNode(u1), RDF.type, OWL.Class), (BNode(u1), RDFS.subClassOf, BNode(u2)),
+                             (BNode(u2), RDF.type, OWL.Restriction), (BNode(u2), OWL.someValuesFrom, node2),
+                             (node2, RDF.type, OWL.Class), (BNode(u2), OWL.onProperty, relation),
                              (relation, RDF.type, OWL.ObjectProperty))
         if inverse_relation:
-            new_edge_inverse_rel = ((node2, RDF.type, OWL.Class),
-                                    (BNode(u3), RDFS.subClassOf, node2),
-                                    (BNode(u3), RDF.type, OWL.Class),
-                                    (BNode(u3), RDFS.subClassOf, BNode(u4)),
-                                    (BNode(u4), RDF.type, OWL.Restriction),
-                                    (BNode(u4), OWL.someValuesFrom, node1),
-                                    (node1, RDF.type, OWL.Class),
-                                    (BNode(u4), OWL.onProperty, inverse_relation),
+            new_edge_inverse_rel = ((node2, RDF.type, OWL.Class), (BNode(u3), RDFS.subClassOf, node2),
+                                    (BNode(u3), RDF.type, OWL.Class), (BNode(u3), RDFS.subClassOf, BNode(u4)),
+                                    (BNode(u4), RDF.type, OWL.Restriction), (BNode(u4), OWL.someValuesFrom, node1),
+                                    (node1, RDF.type, OWL.Class), (BNode(u4), OWL.onProperty, inverse_relation),
                                     (inverse_relation, RDF.type, OWL.ObjectProperty))
 
         return new_edge_rel_only + new_edge_inverse_rel
@@ -187,7 +178,7 @@ class KGConstructionApproach(object):
         Returns:
             edge_dict: A nested master edge list dict. The outer key is an edge-type (e.g.go-gene) and inner key is a
                 dict storing data from the resource_info.txt input document. See class doc note for more information.
-            edges: A list of new edges added to the knowledge graph.
+            edges: A set of tuples containing new edges to add to the knowledge graph.
         """
 
         res = finds_node_type(edge_info)
@@ -203,7 +194,6 @@ class KGConstructionApproach(object):
             if mapped_node:  # get non-class node mappings to ontology classes
                 edges = [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
                                      ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
-                # add edge with relation/inverse relation (if it exists)
                 if edge_info['n1'] == 'class':  # determine node order
                     edges += self.subclass_edge_constructor(URIRef(res['cls1']), URIRef(res['ent1']), rel, irel)
                 else:
@@ -216,10 +206,9 @@ class KGConstructionApproach(object):
                                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node1] for x in y]
                 edges += [x for y in [((URIRef(res['ent2']), RDFS.subClassOf, URIRef(obo + x)),) +
                                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
-                # add edge with relation/inverse relation (if it exists)
                 edges += self.subclass_edge_constructor(URIRef(res['ent1']), URIRef(res['ent2']), rel, irel)
 
-        return self.edge_dict, edges
+        return self.edge_dict, list(set(edges))
 
     @staticmethod
     def instance_edge_constructor(node1: Union[BNode, URIRef], node2: Union[BNode, URIRef], relation: URIRef,
@@ -246,16 +235,12 @@ class KGConstructionApproach(object):
         new_edge_inverse_rel: Tuple = tuple()
         # create uuid
         rels = sorted([relation, inverse_relation])[0] if inverse_relation is not None else [relation][0]
-        u1 = 'N' + hashlib.md5(str(str(node1) + str(rels) + str(node2) + 'subject').encode()).hexdigest()
-        u2 = 'N' + hashlib.md5(str(str(node1) + str(rels) + str(node2) + 'object').encode()).hexdigest()
-
+        u1 = URIRef(pkt + 'N' + hashlib.md5(str(str(node1) + str(rels) + str(node2) + 'subject').encode()).hexdigest())
+        u2 = URIRef(pkt + 'N' + hashlib.md5(str(str(node1) + str(rels) + str(node2) + 'object').encode()).hexdigest())
         # creates a restriction in order to connect two nodes using the input relation
-        new_edge_rel_only = ((u1, RDF.type, node1),
-                             (u1, RDF.type, OWL.NamedIndividual),
-                             (u2, RDF.type, node2),
-                             (u2, RDF.type, OWL.NamedIndividual),
-                             (u1, relation, u2),
-                             (relation, RDF.type, OWL.ObjectProperty))
+        new_edge_rel_only = ((u1, RDF.type, node1), (u1, RDF.type, OWL.NamedIndividual),
+                             (u2, RDF.type, node2), (u2, RDF.type, OWL.NamedIndividual),
+                             (u1, relation, u2), (relation, RDF.type, OWL.ObjectProperty))
         if inverse_relation:
             new_edge_inverse_rel = ((u2, inverse_relation, u1), (inverse_relation, RDF.type, OWL.ObjectProperty))
 
@@ -276,7 +261,7 @@ class KGConstructionApproach(object):
         Returns:
             edge_dict: A nested master edge list dict. The outer key is an edge-type (e.g.go-gene) and inner key is a
                 dict storing data from the resource_info.txt input document. See class doc note for more information.
-            edges: A list of new edges added to the knowledge graph.
+            edges: A set of tuples containing new edges to add to the knowledge graph.
         """
 
         res = finds_node_type(edge_info)
@@ -293,7 +278,6 @@ class KGConstructionApproach(object):
                 edges = [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
                                      ((URIRef(obo + x), RDF.type, OWL.Class),) +
                                      ((URIRef(res['ent1']), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
-                # add edge with relation/inverse relation (if it exists)
                 if edge_info['n1'] == 'class':  # determine node order
                     edges += self.instance_edge_constructor(URIRef(res['cls1']), URIRef(res['ent1']), rel, irel)
                 else:
@@ -308,7 +292,6 @@ class KGConstructionApproach(object):
                 edges += [x for y in [((URIRef(res['ent2']), RDFS.subClassOf, URIRef(obo + x)),) +
                                       ((URIRef(obo + x), RDF.type, OWL.Class),) +
                                       ((URIRef(res['ent2']), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
-                # add edge with relation/inverse relation (if it exists)
                 edges += self.instance_edge_constructor(URIRef(res['ent1']), URIRef(res['ent2']), rel, irel)
 
-        return self.edge_dict, edges
+        return self.edge_dict, list(set(edges))

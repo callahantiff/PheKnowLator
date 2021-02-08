@@ -323,7 +323,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 20)
+        self.assertEqual(len(edges), 17)
 
         return None
 
@@ -361,7 +361,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 18)
+        self.assertEqual(len(edges), 15)
 
         return None
 
@@ -380,7 +380,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 13)
+        self.assertEqual(len(edges), 12)
 
         return None
 
@@ -399,7 +399,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 22)
+        self.assertEqual(len(edges), 18)
 
         return None
 
@@ -437,7 +437,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 8)
+        self.assertEqual(len(edges), 7)
 
         return None
 
@@ -456,7 +456,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 12)
+        self.assertEqual(len(edges), 11)
 
         return None
 
@@ -475,7 +475,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 14)
+        self.assertEqual(len(edges), 12)
 
         return None
 
@@ -513,7 +513,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check returned results
         self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
-        self.assertEqual(len(edges), 11)
+        self.assertEqual(len(edges), 10)
 
         return None
 
