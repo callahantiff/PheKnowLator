@@ -53,7 +53,14 @@ Instance-Instance | Relations + Inverse Relations | **`HGNC_1234567`, `REL`, `HG
 
 <br>
 
-*Note.* `UUID` is a `BNode` that is created from an md5 hash of concatenated URIs. The URIs used in the hash string includes the subject and object URIs (each appended with "subject" and "object", respectfully) in addition to a relation (`<<REL>>`). To account for future use cases, we have devised a heuristic to determine what is used for `<<REL>>`: (1) for a given relation, determine if it has an inverse (via `owl:InverseOf`); (2) sort the relations alphabetically; and (3) select the first relation. The selected relation is then used for creating both `UUID` `BNodes` (i.e. `UUID1` and `UUID2` in all examples in the table above). For example, if the relations were `causes` and `caused_by` both `UUID` `BNodes` would be created using `caused_by`. We do not place the `BNode` within the `pkt` namespace.
+*Note.* `UUID` is a `BNode` that is created from an md5 hash of concatenated URIs. The URIs used in the hash string 
+includes the subject and object URIs (each appended with "subject" and "object", respectfully) in addition to a 
+relation (`<<REL>>`). To account for future use cases, we have devised a heuristic to determine what is used for 
+`<<REL>>`: (1) for a given relation, determine if it has an inverse (via `owl:InverseOf`); (2) sort the relations 
+alphabetically; and (3) select the first relation. The selected relation is then used for creating both `UUID` 
+`BNodes` (i.e. `UUID1` and `UUID2` in all examples in the table above). For example, if the relations were `causes` 
+and `caused_by` both `UUID` `BNodes` would be created using `caused_by`. Please note that all `UUID` `BNodes` 
+created during the construction process are explicitly defined within the `pkt` namespace.
 
 <br><br>
 
