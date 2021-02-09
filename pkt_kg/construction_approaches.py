@@ -140,19 +140,19 @@ class KGConstructionApproach(object):
         # set uuids
         rel_core = str(node1) + str(relation) + str(node2)
         inv_rel_core = str(node2) + str(inverse_relation) + str(node1)
-        u1 = 'N' + hashlib.md5(str(rel_core).encode()).hexdigest()
+        u1 = URIRef(pkt + 'N' + hashlib.md5(str(rel_core).encode()).hexdigest())
         u2 = 'N' + hashlib.md5(str(rel_core + str(OWL.Restriction)).encode()).hexdigest()
-        u3 = 'N' + hashlib.md5(str(inv_rel_core).encode()).hexdigest()
+        u3 = URIRef(pkt + 'N' + hashlib.md5(str(inv_rel_core).encode()).hexdigest())
         u4 = 'N' + hashlib.md5(str(inv_rel_core + str(OWL.Restriction)).encode()).hexdigest()
         # creates a restriction in order to connect two nodes using the input relation
-        new_edge_rel_only = ((node1, RDF.type, OWL.Class), (BNode(u1), RDFS.subClassOf, node1),
-                             (BNode(u1), RDF.type, OWL.Class), (BNode(u1), RDFS.subClassOf, BNode(u2)),
+        new_edge_rel_only = ((node1, RDF.type, OWL.Class), (u1, RDFS.subClassOf, node1),
+                             (u1, RDF.type, OWL.Class), (u1, RDFS.subClassOf, BNode(u2)),
                              (BNode(u2), RDF.type, OWL.Restriction), (BNode(u2), OWL.someValuesFrom, node2),
                              (node2, RDF.type, OWL.Class), (BNode(u2), OWL.onProperty, relation),
                              (relation, RDF.type, OWL.ObjectProperty))
         if inverse_relation:
-            new_edge_inverse_rel = ((node2, RDF.type, OWL.Class), (BNode(u3), RDFS.subClassOf, node2),
-                                    (BNode(u3), RDF.type, OWL.Class), (BNode(u3), RDFS.subClassOf, BNode(u4)),
+            new_edge_inverse_rel = ((node2, RDF.type, OWL.Class), (u3, RDFS.subClassOf, node2),
+                                    (u3, RDF.type, OWL.Class), (u3, RDFS.subClassOf, BNode(u4)),
                                     (BNode(u4), RDF.type, OWL.Restriction), (BNode(u4), OWL.someValuesFrom, node1),
                                     (node1, RDF.type, OWL.Class), (BNode(u4), OWL.onProperty, inverse_relation),
                                     (inverse_relation, RDF.type, OWL.ObjectProperty))
