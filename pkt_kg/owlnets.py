@@ -84,7 +84,6 @@ class OwlNets(object):
             raise ValueError('RDFLib Graph Object is empty.')
         else:
             self.graph = graph if isinstance(graph, Graph) else Graph().parse(graph)
-        # self.node_list: List = list(set([x[0] for x in self.graph.triples((None, RDF.type, OWL.Class))]))
         self.node_list: List = list(gets_ontology_classes(self.graph))
 
         # OWL-NETS CLEANING DICTIONARY
@@ -657,29 +656,6 @@ class OwlNets(object):
         self.updates_pkt_namespace_identifiers()
         self.converts_rdflib_to_networkx_multidigraph()
         self.graph = self.removes_edges_with_owl_semantics() + self.cleans_owl_encoded_classes()
-
-        # owl_nets.removes_disjoint_with_axioms()
-        # owl_nets.updates_pkt_namespace_identifiers()
-        # owl_nets.converts_rdflib_to_networkx_multidigraph()
-        # owl_nets.graph = owl_nets.removes_edges_with_owl_semantics() + owl_nets.cleans_owl_encoded_classes()
-        # for s, p, o in owl_nets.graph:
-        #     print(s, p, o)
-
-        # nodes = set(list(owl_nets.graph.subjects()) + list(owl_nets.graph.objects()))
-        # node_types = [x.split('/')[-1] if '=' not in x else x.split('/')[-1] for x in nodes]
-        # node_prefixes = set([x.split('_')[0] for x in node_types if '_' in x])
-        # node_prefixes
-        #
-        # relations = set([str(x[1]) for x in owl_nets.graph])
-        # rel_types = [x.split('/')[-1] if '=' not in x else x.split('/')[-1] for x in relations]
-        # rel_types
-        #
-        # conn_comps = connected_components(owl_nets.graph)
-        # len(conn_comps)
-        # count = 0
-        # for x in conn_comps:
-        #     print(count, len(x))
-        #     count += 1
 
         # Purify owl-nets representation
         if self.kg_construct_approach is not None:

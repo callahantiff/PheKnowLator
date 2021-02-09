@@ -160,7 +160,7 @@ class TestOwlNets(unittest.TestCase):
         """Tests the class initialization state for node_list."""
 
         self.assertIsInstance(self.owl_nets.node_list, List)
-        self.assertEqual(len(self.owl_nets.node_list), 2793)
+        self.assertEqual(len(self.owl_nets.node_list), 2573)
 
         return None
 
