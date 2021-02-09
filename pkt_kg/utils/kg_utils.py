@@ -23,6 +23,7 @@ Interacts with Knowledge Graphs
 
 Writes Triple Lists
 * maps_node_ids_to_integers
+* nt_serializes_node
 
 File Type Conversion
 * converts_rdflib_to_networkx
@@ -36,8 +37,9 @@ import networkx  # type: ignore
 import os
 import os.path
 import random
-from rdflib import Graph, Literal, Namespace, URIRef  # type: ignore
+from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
+from rdflib.plugins.serializers.nt import _quoteLiteral  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
@@ -483,6 +485,25 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
             json.dump(entity_map, file_name)
 
     return entity_map
+
+
+def nt_serializes_node(node: Union[URIRef, BNode, Literal]) -> str:
+    """Method takes an RDFLib node of type BNode, URIRef, or Literal and serializes it to meet the RDF 1.1 NTriples
+    format.
+
+    Src: https://github.com/RDFLib/rdflib/blob/c11f7b503b50b7c3cdeec0f36261fa09b0615380/rdflib/plugins/serializers/nt.py
+
+    Args:
+        node: An RDFLib
+
+    Returns:
+        serialized_node: A string containing the serialized
+    """
+
+    if isinstance(node, Literal): serialized_node = "%s" % _quoteLiteral(node)
+    else: serialized_node = "%s" % node.n3()
+
+    return serialized_node
 
 
 def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:

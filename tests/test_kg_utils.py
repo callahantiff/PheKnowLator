@@ -237,6 +237,48 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
+    def test_nt_serializes_node_literal(self):
+        """Tests the nt_serializes_node method for a literal node."""
+
+        node1 = Literal('http://orcid.org/0000-0001-7941-2961')
+        node2 = Literal('GOC:go_curators', datatype=URIRef('http://www.w3.org/2001/XMLSchema#string'))
+
+        # test node without schema
+        res1 = nt_serializes_node(node1)
+        self.assertIsInstance(res1, str)
+        self.assertEqual(res1, '"http://orcid.org/0000-0001-7941-2961"')
+
+        # test node with schema
+        res2 = nt_serializes_node(node2)
+        self.assertIsInstance(res2, str)
+        self.assertEqual(res2, '"GOC:go_curators"^^<http://www.w3.org/2001/XMLSchema#string>')
+
+        return None
+
+    def test_nt_serializes_node_bnode(self):
+        """Tests the nt_serializes_node method for a bnode node."""
+
+        node = BNode('Nb2859885c39248d4bdb82203ed1c51a6')
+
+        # test node without schema
+        res = nt_serializes_node(node)
+        self.assertIsInstance(res, str)
+        self.assertEqual(res, '_:Nb2859885c39248d4bdb82203ed1c51a6')
+
+        return None
+
+    def test_nt_serializes_node_uriref(self):
+        """Tests the nt_serializes_node method for a uriref node."""
+
+        node = URIRef('http://purl.obolibrary.org/obo/CHEBI_33241')
+
+        # test node without schema
+        res = nt_serializes_node(node)
+        self.assertIsInstance(res, str)
+        self.assertEqual(res, '<http://purl.obolibrary.org/obo/CHEBI_33241>')
+
+        return None
+
     def test_converts_rdflib_to_networkx(self):
         """Tests the converts_rdflib_to_networkx method."""
 
