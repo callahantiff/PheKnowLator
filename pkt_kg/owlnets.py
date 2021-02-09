@@ -84,7 +84,8 @@ class OwlNets(object):
             raise ValueError('RDFLib Graph Object is empty.')
         else:
             self.graph = graph if isinstance(graph, Graph) else Graph().parse(graph)
-        self.node_list: List = list(set([x[0] for x in self.graph.triples((None, RDF.type, OWL.Class))]))
+        # self.node_list: List = list(set([x[0] for x in self.graph.triples((None, RDF.type, OWL.Class))]))
+        self.node_list: List = list(gets_ontology_classes(self.graph))
 
         # OWL-NETS CLEANING DICTIONARY
         self.owl_nets_dict: Dict = {'owl_nets': {'decoded_classes': {}, 'complementOf': {}, 'cardinality': {},
@@ -127,13 +128,13 @@ class OwlNets(object):
 
         return None
 
-    def updates_class_instance_identifiers(self) -> None:
-        """Iterates over all class instances in a knowledge graph that was constructed using the instance-based
-        construction approach and converts pkt_BNodes back to the original ontology class identifier. A new edge for
-        each triple, containing an instance of a class is updated with the original ontology identifier, is added to
-        the graph.
+    def updates_pkt_namespace_identifiers(self) -> None:
+        """Iterates over all entities in a pkt knowledge graph that were constructed using the instance- and
+        subclass-based construction approaches and converts pkt-namespaced BNodes back to the original ontology class
+        identifier. A new edge for each triple, containing an instance of a class is updated with the original
+        ontology identifier, is added to the graph.
 
-        Assumptions: (1) all instances of a class identifier contain the pkt namespace
+        Assumptions: (1) all instances/classes of a BNode identifier contain the pkt namespace
                      (2) all relations used when adding new edges to a graph are part of the OBO namespace
 
         Returns:
@@ -144,19 +145,20 @@ class OwlNets(object):
         logger.info('Re-mapping Instances of Classes to Class Identifiers')
 
         # get all class individuals in pheknowlator namespace and save as dict with value as original ontology class
-        pkts = [x[0] for x in list(self.graph.triples((None, RDF.type, OWL.NamedIndividual))) if 'pkt' in str(x[0])]
-        pkt_ns_dict = {i: [x[2] for x in list(self.graph.triples((i, RDF.type, None)))
-                           if str(OWL) not in str(x[2])][0] for i in tqdm(pkts)}
+        if self.kg_construct_approach == 'instance': pred = RDF.type
+        else: pred = RDFS.subClassOf
+        pkts = [(x[0], x[2]) for x in list(self.graph.triples((None, pred, None))) if 'pkt' in str(x[0])]
+        pkt_ns_dict = {x[0]: x[1] for x in tqdm(pkts) if isinstance(x[1], URIRef) and str(OWL) not in str(x[1])}
 
         # update triples containing BNodes with original ontology class
         remove_edges: Set = set()
-        for node in tqdm(pkts):
-            inst_triples = list(self.graph.triples((node, None, None))) + list(self.graph.triples((None, None, node)))
-            for edge in inst_triples:
+        for node in tqdm(pkt_ns_dict.keys()):
+            triples = list(self.graph.triples((node, None, None))) + list(self.graph.triples((None, None, node)))
+            for edge in triples:
                 sub = pkt_ns_dict[edge[0]] if edge[0] in pkt_ns_dict.keys() else edge[0]
                 obj = pkt_ns_dict[edge[2]] if edge[2] in pkt_ns_dict.keys() else edge[2]
                 self.graph.add((sub, edge[1], obj))
-            remove_edges |= set(inst_triples)
+            remove_edges |= set(triples)
 
         # make sure that there are no self-loops
         remove_edges |= set(removes_self_nodes(self.graph))
@@ -482,29 +484,6 @@ class OwlNets(object):
             else:
                 return cleaned_classes, axioms
 
-    def handles_exhaustive_subclassing(self, results: Set) -> Set:
-        """Method unravels exhaustively subclassed nodes by looping through the set of triples returned after
-        decoding OWL classes. It specifically searches for BNodes and fixes them by and finding the actual node the
-        BNode represents, which can be found by finding the object it is a subclass of.
-
-        Args:
-            results: A set of tuples, where each tuple represents an owl-decoded triple.
-
-        Returns:
-            triples: A URIRef representing the object that is the owl:subClassOf a BNode.
-        """
-
-        triples: Set = set()
-        for edge in results:
-            if isinstance(edge[0], URIRef) and isinstance(edge[2], URIRef):
-                triples.add(edge)
-            else:
-                if isinstance(edge[0], BNode):
-                    node = [x for x in list(self.graph.objects(edge[0], RDFS.subClassOf)) if isinstance(x, URIRef)][0]
-                    triples.add((node, edge[1], edge[2]))
-
-        return triples
-
     def cleans_owl_encoded_classes(self) -> Graph:
         """Loops over a all owl:Class objects in a graph searching for edges that include owl:equivalentClass
         nodes (i.e. to find classes assembled using owl constructors) and rdfs:subClassof nodes (i.e. to find
@@ -530,21 +509,21 @@ class OwlNets(object):
             else:
                 cleaned_nodes |= {node}
                 cleaned_classes: Set = set()
-                semantic_chunk = [x[1] for x in list(self.nx_mdg.out_edges(node, keys=True)) if isinstance(x[1], BNode)]
+                semantic_chunk = [x[1] for x in list(self.nx_mdg.out_edges(node, keys=True))if isinstance(x[1], BNode)]
                 for element in semantic_chunk:  # decode owl-encoded edges
                     edges = node_info[0][element]
                     while edges:
                         if 'unionOf' in edges.keys():
                             results = self.parses_constructors(node, edges, node_info[0])
-                            cleaned_classes |= self.handles_exhaustive_subclassing(results[0])
+                            cleaned_classes |= results[0]
                             edges = results[1]
                         elif 'intersectionOf' in edges.keys():
                             results = self.parses_constructors(node, edges, node_info[0])
-                            cleaned_classes |= self.handles_exhaustive_subclassing(results[0])
+                            cleaned_classes |= results[0]
                             edges = results[1]
                         elif 'type' in edges.keys() and 'Restriction' in edges['type']:
                             results = self.parses_restrictions(node, edges, node_info[0])
-                            cleaned_classes |= self.handles_exhaustive_subclassing(results[0])
+                            cleaned_classes |= results[0]
                             edges = results[1]
                         else:  # catch all other axioms -- only catching owl:onProperty
                             misc_axioms = [x for x in edges.keys() if x not in ['type', 'first', 'rest', 'onProperty']]
@@ -675,32 +654,32 @@ class OwlNets(object):
 
         # run graph through OWL-NETS steps
         self.removes_disjoint_with_axioms()
-        if self.kg_construct_approach == 'instance': self.updates_class_instance_identifiers()
-        self.converts_rdflib_to_networkx_multidigraph()  # create networkx representation
+        self.updates_pkt_namespace_identifiers()
+        self.converts_rdflib_to_networkx_multidigraph()
         self.graph = self.removes_edges_with_owl_semantics() + self.cleans_owl_encoded_classes()
+
+        # owl_nets.removes_disjoint_with_axioms()
+        # owl_nets.updates_pkt_namespace_identifiers()
+        # owl_nets.converts_rdflib_to_networkx_multidigraph()
+        # owl_nets.graph = owl_nets.removes_edges_with_owl_semantics() + owl_nets.cleans_owl_encoded_classes()
+        # for s, p, o in owl_nets.graph:
+        #     print(s, p, o)
 
         # nodes = set(list(owl_nets.graph.subjects()) + list(owl_nets.graph.objects()))
         # node_types = [x.split('/')[-1] if '=' not in x else x.split('/')[-1] for x in nodes]
         # node_prefixes = set([x.split('_')[0] for x in node_types if '_' in x])
+        # node_prefixes
         #
         # relations = set([str(x[1]) for x in owl_nets.graph])
         # rel_types = [x.split('/')[-1] if '=' not in x else x.split('/')[-1] for x in relations]
+        # rel_types
         #
         # conn_comps = connected_components(owl_nets.graph)
+        # len(conn_comps)
         # count = 0
         # for x in conn_comps:
         #     print(count, len(x))
         #     count += 1
-        #
-        # for x in conn_comps:
-        #     print(x)
-        # len(conn_comps)
-        #
-        # conn_comps = connected_components(kg.graph)
-        # len(conn_comps)
-        # #
-        # for s, p, o in owl_nets.graph:
-        #     print(s, p, o)
 
         # Purify owl-nets representation
         if self.kg_construct_approach is not None:

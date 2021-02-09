@@ -164,8 +164,8 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_updates_class_instance_identifiers_instance(self):
-        """Tests the updates_class_instance_identifiers method  for a subclass construction approach."""
+    def test_updates_pkt_namespace_identifiers_instance(self):
+        """Tests the updates_pkt_namespace_identifiers method for an instance-based construction approach."""
 
         # update graph
         edges = (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
@@ -193,26 +193,58 @@ class TestOwlNets(unittest.TestCase):
                  URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
                  URIRef('http://www.w3.org/2002/07/owl#ObjectProperty'))
 
-        self.owl_nets.graph = adds_edges_to_graph(Graph(), edges)
+        self.owl_nets2.graph = adds_edges_to_graph(Graph(), edges)
 
         # run method to roll back to re-map instances of classes
-        self.owl_nets.updates_class_instance_identifiers()
-        self.assertEqual(len(self.owl_nets.graph), 7)
+        self.owl_nets2.updates_pkt_namespace_identifiers()
+        self.assertEqual(len(self.owl_nets2.graph), 7)
         self.assertIn((URIRef('http://purl.obolibrary.org/obo/CHEBI_2504'),
                        URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
                        URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),
-                      self.owl_nets.graph)
+                      self.owl_nets2.graph)
 
         return None
 
-    def test_updates_class_instance_identifiers_subclass(self):
-        """Tests the updates_class_instance_identifiers method for a subclass construction approach."""
+    def test_updates_pkt_namespace_identifiers_subclass(self):
+        """Tests the updates_pkt_namespace_identifiers method for a subclass-based construction approach."""
 
-        # make sure it does not run for subclass construction approach
-        self.owl_nets.graph = Graph()
-        self.owl_nets.kg_construct_approach = 'subclass'
-        self.owl_nets.updates_class_instance_identifiers()
-        self.assertEqual(len(self.owl_nets.graph), 0)
+        # update graph
+        edges = (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                 URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
+                 URIRef('http://purl.obolibrary.org/obo/DOID_3075')), \
+                (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
+                (URIRef('http://purl.obolibrary.org/obo/DOID_3075'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#Class')),\
+                (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                 URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
+                 BNode('N4ba9c4585bada420f5f94b3a2c6146e1')), \
+                (BNode('N4ba9c4585bada420f5f94b3a2c6146e1'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#Restriction')), \
+                (BNode('N4ba9c4585bada420f5f94b3a2c6146e1'),
+                 URIRef('http://www.w3.org/2002/07/owl#onProperty'),
+                 URIRef('http://purl.obolibrary.org/obo/RO_0003302')),\
+                (BNode('N4ba9c4585bada420f5f94b3a2c6146e1'),
+                 URIRef('http://www.w3.org/2002/07/owl#someValuesFrom'),
+                 URIRef('http://purl.obolibrary.org/obo/DOID_1080')), \
+                (URIRef('http://purl.obolibrary.org/obo/DOID_1080'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
+                (URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
+                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+                 URIRef('http://www.w3.org/2002/07/owl#ObjectProperty'))
+
+        self.owl_nets.graph = adds_edges_to_graph(Graph(), edges)
+
+        # run method to roll back to re-map instances of classes
+        self.owl_nets.updates_pkt_namespace_identifiers()
+        self.assertEqual(len(self.owl_nets.graph), 7)
+        self.assertTrue(((URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                          URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
+                          BNode('http://purl.obolibrary.org/obo/DOID_3075'))) not in self.owl_nets.graph)
 
         return None
 
@@ -251,44 +283,6 @@ class TestOwlNets(unittest.TestCase):
         # test method
         self.owl_nets.removes_disjoint_with_axioms()
         self.assertTrue(len(self.owl_nets.graph) == 0)
-
-        return None
-
-    def test_handles_exhaustive_subclassing_bnode(self):
-        """Tests the handles_exhaustive_subclassing method when there is a bnode."""
-
-        # test edge
-        self.owl_nets.graph = Graph()
-        self.owl_nets.graph.add((BNode('N27395f0caf9b7ce181efb2b28562f067'),
-                                 URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-                                 URIRef('https://www.ncbi.nlm.nih.gov/gene/2')))
-        results = ({(BNode('N27395f0caf9b7ce181efb2b28562f067'),
-                     URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
-                     URIRef('http://purl.obolibrary.org/obo/HP_0110035'))}, None)
-
-        # check method
-        test_results = self.owl_nets.handles_exhaustive_subclassing(results[0])
-        self.assertIsInstance(test_results, Set)
-        self.assertEqual(test_results, {(URIRef('https://www.ncbi.nlm.nih.gov/gene/2'),
-                                         URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
-                                         URIRef('http://purl.obolibrary.org/obo/HP_0110035'))})
-
-        return None
-
-    def test_handles_exhaustive_subclassing_no_bnode(self):
-        """Tests the handles_exhaustive_subclassing method when there is not a bnode."""
-
-        # test edge
-        results = ({(URIRef('https://www.ncbi.nlm.nih.gov/gene/2'),
-                     URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
-                     URIRef('http://purl.obolibrary.org/obo/HP_0110035'))}, None)
-
-        # check method
-        test_results = self.owl_nets.handles_exhaustive_subclassing(results[0])
-        self.assertIsInstance(test_results, Set)
-        self.assertEqual(test_results, {(URIRef('https://www.ncbi.nlm.nih.gov/gene/2'),
-                                         URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
-                                         URIRef('http://purl.obolibrary.org/obo/HP_0110035'))})
 
         return None
 
