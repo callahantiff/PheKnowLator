@@ -55,7 +55,7 @@ class OntologyCleaner(object):
         self.bucket: Union[storage.bucket.Bucket, str] = gcs_bucket
         self.original_data: str = org_data
         self.processed_data: str = proc_data
-        self.current_build: str = 'current_build/'
+        self.current_build: str = 'temp_build_inprogress/'  # location of where to write the logs
         # LOCAL VARIABLES
         self.owltools_location = './builds/owltools'
         # self.owltools_location = './pkt_kg/libs/owltools'
@@ -88,7 +88,7 @@ class OntologyCleaner(object):
             'http://identifiers.org/hgnc/1881': ['10167']}
         f_data = self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl'
         if not os.path.exists(f_data):
-            url = 'https://storage.googleapis.com/pheknowlator/{}data/processed_data/'.format(self.current_build)
+            url = 'https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/'
             data_downloader(url + f_data.split('/')[-1], self.temp_dir + '/')
         with open(f_data, 'rb') as out:
             self.gene_ids = pickle.load(out, encoding='bytes')

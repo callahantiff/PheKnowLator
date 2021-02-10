@@ -95,7 +95,7 @@ def monitor_gce_jobs(phase, sleep, gcs_log_location):
 @click.option('--gce_type', prompt='Indicate GCE Instance Type (e.g. "reg", "ai").', default='reg')
 @click.option('--phase', prompt='Integer Representing the Build Phase (i.e. "1" or "3").', type=int)
 @click.option('--sleep', prompt='Time in Seconds to Sleep when Monitoring', default=60, type=int)
-@click.option('--gcs_dir', prompt="Write directory within GCS current_build directory.", required=False, default='')
+@click.option('--gcs_dir', prompt="Write directory within GCS temp_build directory.", required=False, default='')
 @click.option('--project', prompt='Google Project Identifier', required=False, default='')
 @click.option('--job', prompt='Google Job Name', required=False, default='')
 def main(gce_type, phase, sleep, gcs_dir, project, job):
@@ -104,14 +104,14 @@ def main(gce_type, phase, sleep, gcs_dir, project, job):
 
     # set log name -- used for monitoring "reg" or regular GCE instances and gcs log location
     if phase == 1:
-        gcs_url_string = 'https://storage.googleapis.com/pheknowlator/current_build/{}'
+        gcs_url_string = 'https://storage.googleapis.com/pheknowlator/temp_build_inprogress/{}'
         gcs_log_location = gcs_url_string.format('pkt_builder_phases12_log.log')
     else:
-        gcs_url_string = 'https://storage.googleapis.com/pheknowlator/current_build/knowledge_graphs/{}/{}'
+        gcs_url_string = 'https://storage.googleapis.com/pheknowlator/temp_build_inprogress/knowledge_graphs/{}/{}'
         gcs_log_location = gcs_url_string.format(gcs_dir, 'pkt_build_log.log')
 
     # identify build phase and activate job monitoring
-    if gce_type == "ai": state = monitor_ai_platform_jobs(project=project, job=job, sleep=sleep)
+    if gce_type == 'ai': state = monitor_ai_platform_jobs(project=project, job=job, sleep=sleep)
     else: state = monitor_gce_jobs(phase=phase, sleep=sleep, gcs_log_location=gcs_log_location)
 
     # print job run information

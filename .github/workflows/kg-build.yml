@@ -19,7 +19,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
       with:
-       ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+       ref: master
     - name: Setup Python
       uses: actions/setup-python@v2
       with:
@@ -37,8 +37,10 @@ jobs:
       run: docker build --tag "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds
     - name: Publish Docker Image to Google Container Registry
       run: docker push "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
-    - name: Clean-Up Google Cloud Storage Environment
-      run: gsutil rm -f gs://pheknowlator/current_build/*.log 2> /dev/null || true
+    - name: Prepare Google Cloud Storage Bucket
+      run: |
+        gsutil cp gs://pheknowlator/current_build/*.log gs://pheknowlator/temp_build_inprogress/
+        gsutil rm -f gs://pheknowlator/temp_build_inprogress/*.log 2> /dev/null || true
     - name: Submit Build Job to AI-Platform
       run: |-
         gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
@@ -68,7 +70,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+          ref: master
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -124,7 +126,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+          ref: master
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -180,7 +182,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+          ref: master
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -236,7 +238,7 @@ jobs:
         - name: Checkout
           uses: actions/checkout@v2
           with:
-            ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+            ref: master
         - name: Setup Python
           uses: actions/setup-python@v2
           with:
@@ -292,7 +294,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+          ref: master
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -348,7 +350,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+          ref: master
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -404,7 +406,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+          ref: master
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -460,7 +462,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ci_cd_build # UPDATE TO MASTER WHEN DONE TESTNG
+          ref: master
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -494,6 +496,20 @@ jobs:
 #        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 #      - name: Delete Virtual Machine Instance
 #        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+
+#  build-clean-up:
+#    needs: [pkt-build-phase3-job1, pkt-build-phase3-job2, pkt-build-phase3-job3, pkt-build-phase3-job4,
+#            pkt-build-phase3-job5, pkt-build-phase3-job6, pkt-build-phase3-job7, pkt-build-phase3-job8]
+#    name: KG Build Clean-Up
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: google-github-actions/setup-gcloud@master
+#        with:
+#          version: '290.0.1'
+#          service_account_key: ${{ secrets.GCE_SA_KEY }}
+#          project_id: ${{ secrets.GCE_PROJECT }}
+#      - name: Delete temp_build_inprogress
+#        run: gsutil rm -r gs://pheknowlator/temp_build_inprogress
 
 ### ADD BILL'S CODE FOR UPDATING TO SPARQL ENDPOINT
 ### ADD SELF-HOSTED RUNNER: https://github.com/terraform-google-modules/terraform-google-github-actions-runners/blob/master/examples/gh-runner-gke-dind/README.md

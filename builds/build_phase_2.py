@@ -146,20 +146,20 @@ def run_phase_2():
     base_folder_path = 'archived_builds/{}/{}/data/'.format(release, build)
     gcs_original_data = base_folder_path + '{}'.format('original_data/')
     gcs_processed_data = base_folder_path + '{}'.format('processed_data/')
-    gcs_current_build = 'current_build/'
+    gcs_log_location = 'temp_build_inprogress/'
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(base_folder_path)
 
     #####################################################
     # STEP 2 - PREPROCESS BUILD DATA
     lod_data = DataPreprocessing(bucket, gcs_original_data, gcs_processed_data, temp_dir)
     lod_data.preprocesses_build_data()
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     #####################################################
     # STEP 3 - CLEAN ONTOLOGY DATA
     ont_data = OntologyCleaner(bucket, gcs_original_data, gcs_processed_data, temp_dir)
     ont_data.cleans_ontology_data()
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     #####################################################
     # STEP 4 - GENERATE METADATA DOCUMENTATION
@@ -175,7 +175,7 @@ def run_phase_2():
         url = gcs_url + 'original_data/' + data_file.replace(temp_dir + '/', '')
         metadata += [get_file_metadata(url, data_file, gcs_url + 'processed_data/')]
     writes_metadata(bucket, metadata, temp_dir, gcs_processed_data)
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     #####################################################
     # STEP 5 - UPDATE INPUT DEPENDENCY DOCUMENTS
@@ -189,30 +189,16 @@ def run_phase_2():
     # resource info
     resources = 'https://raw.githubusercontent.com/callahantiff/PheKnowLator/master/resources/resource_info.txt'
     updates_dependency_documents(gcs_url, resources, bucket, temp_dir)
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     #####################################################
     # STEP 6 - PREPARE FOR PHASE 3
     # ensures that all input dependencies needed for build phase 3 are uploaded to the current_build directory in GCS
-    logger.info('Uploading Input Dependency Documents to current_build Directory')
+    logger.info('Uploading Input Dependency Documents to current_build/dependencies Directory')
     dep_dat = ['resource_info.txt', 'edge_source_list.txt', 'ontology_source_list.txt', 'node_metadata_dict.pkl',
                'subclass_construction_map.pkl', 'INVERSE_RELATIONS.txt', 'RELATIONS_LABELS.txt',
                'PheKnowLator_MergedOntologies.owl']
-    copies_data_between_gcs_bucket_directories(bucket, gcs_processed_data, gcs_current_build + 'dependencies/', dep_dat)
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
-
-    # update current_build data directory -- delete existing data
-    print('Clearing current_build/data Directory')
-    logger.info('Clearing current_build/data Directory')
-    deletes_bucket_files(bucket, gcs_current_build + 'data/')
-    bucket.blob(gcs_current_build + 'data/').upload_from_string('')  # re-creates the data bucket
-
-    # copy data from the archived_builds directory to the current_data directory
-    source_directory, destination_directory = base_folder_path, gcs_current_build + 'data/'
-    source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_directory)]
-    print('Copying Data FROM: {} TO: {}'.format(source_directory, destination_directory))
-    logger.info('Copying Data FROM: {} TO: {}'.format(source_directory, destination_directory))
-    copies_data_between_gcs_bucket_directories(bucket, source_directory, destination_directory, source_data)
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
+    copies_data_between_gcs_bucket_directories(bucket, gcs_processed_data, 'current_build/' + 'dependencies/', dep_dat)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     return None

@@ -50,7 +50,7 @@ class DataPreprocessing(object):
         self.bucket: storage.bucket.Bucket = gcs_bucket
         self.original_data: str = org_data
         self.processed_data: str = processed_data
-        self.current_build = 'current_build/'
+        self.current_build = 'temp_build_inprogress/'  # directory for storing logs
         # SETTING LOCAL VARIABLES
         self.temp_dir = temp_dir
         self.owltools_location = './builds/owltools'
