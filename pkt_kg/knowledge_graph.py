@@ -279,10 +279,13 @@ class KGBuilder(object):
 
     @staticmethod
     def derives_graph_statistics(graph) -> None:
-        """Derives statistics from an input knowledge graph and prints them to the console.
+        """Derives statistics from an input knowledge graph and prints them to the console. Note that we are not
+        converting each node to a string before deriving our counts. This is purposeful as the number of unique nodes is
+        altered when you it converted to a string. For example, in the HPO when honoring the RDF type of each node
+        there are 406,717 unique nodes versus 406,331 unique nodes when ignoring the RDF type of each node.
 
         Args:
-            graph:
+            graph: An RDFLib graph object.
 
         Returns:
             None.
@@ -290,8 +293,8 @@ class KGBuilder(object):
 
         # gets statistics
         triples = len(graph)
-        nodes = len(set([str(x) for x in set(list(graph.subjects(None, None)) + list(graph.objects(None, None)))]))
-        rels = len(set([str(x) for x in set(list(graph.predicates(None, None)))]))
+        nodes = len(set([x for x in set(list(graph.subjects()) + list(graph.objects()))]))
+        rels = len(set([x for x in set(list(graph.predicates()))]))
         classes = len(set([x for x in graph.triples((None, RDF.type, OWL.Class))]))
         individs = len(set([x for x in graph.triples((None, RDF.type, OWL.NamedIndividual))]))
         object_props = len(set([x for x in graph.triples((None, RDF.type, OWL.ObjectProperty))]))
@@ -322,8 +325,11 @@ class KGBuilder(object):
             uri, edge_list = self.edge_dict[edge_type]['uri'], copy.deepcopy(self.edge_dict[edge_type]['edge_list'])
             edge_results: List = []
             rel = self.edge_dict[edge_type]['edge_relation']
-            self.verifies_object_property(URIRef(obo + rel))  # verify object property in knowledge graph
-            invrel = self.checks_for_inverse_relations(rel, edge_list) if self.inverse_relations else None
+            self.verifies_object_property(URIRef(obo + rel))
+            if self.inverse_relations is not None:
+                invrel = self.checks_for_inverse_relations(rel, edge_list)
+                if invrel is not None: self.verifies_object_property(URIRef(obo + invrel))
+            else: invrel = None
             print('\nCreating {} ({}-{}) Edges ***'.format(edge_type.upper(), n1_type, n2_type))
             logger.info('Creating {} ({}-{}) Edges ***'.format(edge_type.upper(), n1_type, n2_type))
             for edge in tqdm(edge_list):
@@ -332,9 +338,10 @@ class KGBuilder(object):
                 metadata_logic = [True if (self.node_data is None and meta is None)
                                   or [n1_type, n2_type] == ['class', 'class']
                                   or (self.node_data is not None and meta is not None) else False][0]
-                if self.check_ontology_class_nodes(edge_info) and metadata_logic:  # make sure ont class nodes are in KG
-                    if n1_type != 'class': self.graph = updates_graph_namespace(n1_type, self.graph, uri[0] + edge[0])
-                    if n2_type != 'class': self.graph = updates_graph_namespace(n2_type, self.graph, uri[1] + edge[1])
+                if self.check_ontology_class_nodes(edge_info) and metadata_logic:  # ensure ont class nodes are in KG
+                    nmspce_1, nmspce_2 = edge_type.split('-')
+                    if n1_type != 'class': self.graph = updates_graph_namespace(nmspce_1, self.graph, uri[0] + edge[0])
+                    if n2_type != 'class': self.graph = updates_graph_namespace(nmspce_2, self.graph, uri[1] + edge[1])
                     if self.construct_approach == 'subclass':
                         self.edge_dict, new_edges = edge_builder.subclass_constructor(edge_info, edge_type)
                         edge_results += new_edges
@@ -547,7 +554,7 @@ class PostClosureBuild(KGBuilder):
                 print('\n*** Processing Knowledge Graph Metadata ***')
                 logger.info('*** Processing Knowledge Graph Metadata ***')
                 metadata.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
-                if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
+                if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map, self.graph)
 
         # clean environment
         del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
@@ -652,7 +659,7 @@ class FullBuild(KGBuilder):
                 print('\n*** Processing Knowledge Graph Metadata ***')
                 logger.info('*** Processing Knowledge Graph Metadata ***')
                 metadata.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
-                if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map)
+                if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map, self.graph)
 
         # clean environment
         del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
