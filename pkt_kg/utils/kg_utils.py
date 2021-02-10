@@ -37,6 +37,7 @@ import networkx  # type: ignore
 import os
 import os.path
 import random
+
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 from rdflib.plugins.serializers.nt import _quoteLiteral  # type: ignore
