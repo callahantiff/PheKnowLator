@@ -455,17 +455,17 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     for edge in tqdm(graph):
-        if str(edge[0]) not in entity_map:
+        subj, pred, obj = nt_serializes_node(edge[0]), nt_serializes_node(edge[1]), nt_serializes_node(edge[2])
+        if subj not in entity_map:
             entity_counter += 1
-            entity_map[str(edge[0])] = entity_counter
-        if str(edge[1]) not in entity_map:
+            entity_map[subj] = entity_counter
+        if pred not in entity_map:
             entity_counter += 1
-            entity_map[str(edge[1])] = entity_counter
-        if str(edge[2]) not in entity_map:
+            entity_map[pred] = entity_counter
+        if obj not in entity_map:
             entity_counter += 1
-            entity_map[str(edge[2])] = entity_counter
+            entity_map[obj] = entity_counter
         # convert edge labels to ints
-        subj, pred, obj = str(edge[0]), str(edge[1]), str(edge[2])
         out_ints.write('%d' % entity_map[subj] + '\t' + '%d' % entity_map[pred] + '\t' + '%d' % entity_map[obj] + '\n')
         try:
             out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
