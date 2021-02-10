@@ -38,9 +38,7 @@ jobs:
     - name: Publish Docker Image to Google Container Registry
       run: docker push "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
     - name: Prepare Google Cloud Storage Bucket
-      run: |
-        gsutil cp gs://pheknowlator/current_build/*.log gs://pheknowlator/temp_build_inprogress/
-        gsutil rm -f gs://pheknowlator/temp_build_inprogress/*.log 2> /dev/null || true
+      run: gsutil cp gs://pheknowlator/README.txt gs://pheknowlator/temp_build_inprogress/
     - name: Submit Build Job to AI-Platform
       run: |-
         gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
