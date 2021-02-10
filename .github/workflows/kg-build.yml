@@ -1,8 +1,8 @@
 name: Build and Deploy to Google Compute Engine
-#on: push
-on:
-  schedule:
-    - cron: '0 0 1 * *'  # runs at midnight on the first day of each month
+on: push
+#on:
+#  schedule:
+#    - cron: '0 0 1 * *'  # runs at midnight on the first day of each month
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
   GCS_SERVICE_ACCOUNT: ${{ secrets.GCE_SA_KEY }}
@@ -98,10 +98,10 @@ jobs:
             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
       - name: Monitor Build
         run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-      - name: Stop Virtual Machine Instance
-        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-      - name: Delete Virtual Machine Instance
-        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Stop Virtual Machine Instance
+#        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Delete Virtual Machine Instance
+#        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
   pkt-build-phase3-job2:
     needs: pkt-build-phase-1-2
@@ -154,10 +154,10 @@ jobs:
             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
       - name: Monitor Build
         run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-      - name: Stop Virtual Machine Instance
-        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-      - name: Delete Virtual Machine Instance
-        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Stop Virtual Machine Instance
+#        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Delete Virtual Machine Instance
+#        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
   pkt-build-phase3-job3:
     needs: pkt-build-phase-1-2
@@ -210,10 +210,10 @@ jobs:
             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
       - name: Monitor Build
         run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-      - name: Stop Virtual Machine Instance
-        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-      - name: Delete Virtual Machine Instance
-        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Stop Virtual Machine Instance
+#        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Delete Virtual Machine Instance
+#        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
   pkt-build-phase3-job4:
       needs: pkt-build-phase-1-2
@@ -266,10 +266,10 @@ jobs:
               --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
         - name: Monitor Build
           run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-        - name: Stop Virtual Machine Instance
-          run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-        - name: Delete Virtual Machine Instance
-          run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#        - name: Stop Virtual Machine Instance
+#          run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#        - name: Delete Virtual Machine Instance
+#          run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
   pkt-build-phase3-job5:
     needs: pkt-build-phase-1-2
@@ -322,10 +322,10 @@ jobs:
             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
       - name: Monitor Build
         run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-      - name: Stop Virtual Machine Instance
-        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-      - name: Delete Virtual Machine Instance
-        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Stop Virtual Machine Instance
+#        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Delete Virtual Machine Instance
+#        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
   pkt-build-phase3-job6:
     needs: pkt-build-phase-1-2
@@ -378,10 +378,10 @@ jobs:
             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
       - name: Monitor Build
         run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-      - name: Stop Virtual Machine Instance
-        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-      - name: Delete Virtual Machine Instance
-        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Stop Virtual Machine Instance
+#        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Delete Virtual Machine Instance
+#        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
   pkt-build-phase3-job7:
     needs: pkt-build-phase-1-2
@@ -434,10 +434,10 @@ jobs:
             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
       - name: Monitor Build
         run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-      - name: Stop Virtual Machine Instance
-        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-      - name: Delete Virtual Machine Instance
-        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Stop Virtual Machine Instance
+#        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Delete Virtual Machine Instance
+#        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
   pkt-build-phase3-job8:
     needs: pkt-build-phase-1-2
@@ -490,10 +490,10 @@ jobs:
             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
       - name: Monitor Build
         run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-      - name: Stop Virtual Machine Instance
-        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-      - name: Delete Virtual Machine Instance
-        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Stop Virtual Machine Instance
+#        run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#      - name: Delete Virtual Machine Instance
+#        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
 ### ADD BILL'S CODE FOR UPDATING TO SPARQL ENDPOINT
 ### ADD SELF-HOSTED RUNNER: https://github.com/terraform-google-modules/terraform-google-github-actions-runners/blob/master/examples/gh-runner-gke-dind/README.md
