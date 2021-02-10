@@ -83,7 +83,7 @@ class Metadata(object):
     def extracts_class_metadata(self, graph: Graph) -> None:
         """Functions queries the knowledge graph to obtain labels, definitions/descriptions, and synonyms for all
         owl:Class, owl:NamedIndividual, and owl:ObjectProperty objects. This information is then added to the existing
-        self.node_dict  dictionary under the key of "nodes" (for owl:Class and owl:NamedIndividual) or "relations" (for
+        self.node_dict dictionary under the key of "nodes" (for owl:Class and owl:NamedIndividual) or "relations" (for
         owl:ObjectProperty). Each metadata type is saved as a dictionary key with the actual string stored as the
         value. The metadata types are packaged as a dictionary which is stored as the value to the node identifier as
         the key.
@@ -217,7 +217,7 @@ class Metadata(object):
 
         return graph
 
-    def output_knowledge_graph_metadata(self, node_integer_map: Dict) -> None:
+    def output_knowledge_graph_metadata(self, node_integer_map: Dict, graph: Graph) -> None:
         """Loops over the self.node_dict dictionary and writes out the data to a file locally. The data is stored as
         a tab-delimited '.txt' file with four columns: (1) node identifier; (2) node label; (3) node description or
         definition; and (4) node synonym.
@@ -229,6 +229,7 @@ class Metadata(object):
 
         Args:
             node_integer_map: A dictionary where keys are integers and values are node and relation identifiers.
+            graph: An RDFLib Graph object.
 
         Returns:
             None.
@@ -237,15 +238,17 @@ class Metadata(object):
         if self.node_dict:
             print('\nWriting Class Metadata')
             logger.info('Writing Class Metadata')
+            entities = set([i for j in [x for x in set(list(graph))] for i in j])
             filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:
                 out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'entity_uri' + '\t' + 'label' + '\t' +
                           'description/definition' + '\t' + 'synonym' + '\n')
-                for nid, nint in tqdm(node_integer_map.items()):
-                    if nid in self.node_dict['nodes'].keys():
-                        etyp, meta = 'NODES', self.node_dict['nodes'][nid]
-                    elif nid in self.node_dict['relations'].keys():
-                        etyp, meta = 'RELATIONS', self.node_dict['relations'][nid]
+                for x in tqdm(entities):
+                    nid, nint = nt_serializes_node(x), node_integer_map[nt_serializes_node(x)]
+                    if x in self.node_dict['nodes'].keys():
+                        etyp, meta = 'NODES', self.node_dict['nodes'][x]
+                    elif x in self.node_dict['relations'].keys():
+                        etyp, meta = 'RELATIONS', self.node_dict['relations'][x]
                     else:
                         meta, etyp, lab, dsc, syn = None, 'NA', 'NA', 'NA', 'NA'
                     if meta is not None:

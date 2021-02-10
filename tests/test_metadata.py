@@ -257,7 +257,7 @@ class TestMetadata(unittest.TestCase):
                                               'SO_Triples_Integer_Identifier_Map.json')
 
         # run function
-        self.metadata.output_knowledge_graph_metadata(node_ints)
+        self.metadata.output_knowledge_graph_metadata(node_ints, graph)
 
         # make sure that node data wrote out
         self.assertTrue(os.path.exists(self.dir_loc + '/ontologies/so_with_imports_NodeLabels.txt'))
