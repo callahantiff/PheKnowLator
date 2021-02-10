@@ -1,6 +1,7 @@
 import glob
 import json
 import logging
+import networkx  # type: ignore
 import os
 import os.path
 import pandas
@@ -493,17 +494,33 @@ class TestKGBuilder(unittest.TestCase):
         return None
 
     @patch('builtins.print')
-    def test_derives_graph_statistics(self, mock_print):
-        """Tests the derives_graph_statistics method."""
+    def test_derives_graph_statistics_rdflib(self, mock_print1):
+        """Tests the derives_graph_statistics method for rdflib graph."""
 
         # generate stats from existing ontology
         graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
-        res_str = 'Graph Stats: 42237 triples, 20277 nodes, 39 relations, 2793 classes, 0 individuals, 50 object ' \
-                  'props, 39 annotation props'
 
         # test method
         self.kg_subclass.derives_graph_statistics(graph)
-        mock_print.assert_called_with(res_str)
+        mock_print1.assert_called()
+
+        return None
+
+    @patch('builtins.print')
+    def test_derives_graph_statistics_nx(self, mock_print2):
+        """Tests the derives_graph_statistics method for networkx multidigraph."""
+
+        # generate stats from existing ontology
+        graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
+        nx_mdg = networkx.MultiDiGraph()
+        for s, p, o in graph:
+            nx_mdg.add_edge(s, o, **{'key': p})
+
+        self.kg_subclass.derives_graph_statistics(nx_mdg)
+
+        # test method
+        self.kg_subclass.derives_graph_statistics(nx_mdg)
+        mock_print2.assert_called()
 
         return None
 

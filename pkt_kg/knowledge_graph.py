@@ -14,10 +14,11 @@ import pickle
 import subprocess
 
 from abc import ABCMeta, abstractmethod
+from collections import Counter  # type: ignore
 from rdflib import Graph, Namespace, URIRef, BNode  # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
-from typing import Any, Callable, Dict, IO, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, IO, List, Optional, Set, Tuple, Union
 
 from pkt_kg.__version__ import __version__
 from pkt_kg.construction_approaches import KGConstructionApproach
@@ -264,7 +265,6 @@ class KGBuilder(object):
         """
 
         n1, n2, edges = edge_type.split('-')[0], edge_type.split('-')[1], self.edge_dict[edge_type]['edge_list']
-
         print('Total OWL Edges: {}'.format(len(set(results))))
         print('Unique Non-OWL Edges: {}'.format(len(edges) * 2 if invrel else len(edges)))
         print('Unique {}: {}'.format(n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']]))))
@@ -278,31 +278,53 @@ class KGBuilder(object):
         return None
 
     @staticmethod
-    def derives_graph_statistics(graph) -> None:
+    def derives_graph_statistics(graph: Union[Graph, networkx.MultiDiGraph]) -> None:
         """Derives statistics from an input knowledge graph and prints them to the console. Note that we are not
         converting each node to a string before deriving our counts. This is purposeful as the number of unique nodes is
         altered when you it converted to a string. For example, in the HPO when honoring the RDF type of each node
         there are 406,717 unique nodes versus 406,331 unique nodes when ignoring the RDF type of each node.
 
         Args:
-            graph: An RDFLib graph object.
+            graph: An RDFLib graph object or a networkx.MultiDiGraph.
 
         Returns:
             None.
         """
 
-        # gets statistics
-        triples = len(graph)
-        nodes = len(set([x for x in set(list(graph.subjects()) + list(graph.objects()))]))
-        rels = len(set([x for x in set(list(graph.predicates()))]))
-        classes = len(set([x for x in graph.triples((None, RDF.type, OWL.Class))]))
-        individs = len(set([x for x in graph.triples((None, RDF.type, OWL.NamedIndividual))]))
-        object_props = len(set([x for x in graph.triples((None, RDF.type, OWL.ObjectProperty))]))
-        annotation_props = len(set([x for x in graph.triples((None, RDF.type, OWL.AnnotationProperty))]))
-
-        x = ' {} triples, {} nodes, {} relations, {} classes, {} individuals, {} object props, {} annotation props'
-        print('Graph Stats:' + x.format(triples, nodes, rels, classes, individs, object_props, annotation_props))
-        logger.info('Graph Stats:' + x.format(triples, nodes, classes, rels, individs, object_props, annotation_props))
+        if isinstance(graph, Graph):
+            triples = len(graph)
+            nodes = len(set([x for x in set(list(graph.subjects()) + list(graph.objects()))]))
+            rels = len(set([x for x in set(list(graph.predicates()))]))
+            classes = len(set([x for x in graph.triples((None, RDF.type, OWL.Class))]))
+            individs = len(set([x for x in graph.triples((None, RDF.type, OWL.NamedIndividual))]))
+            object_props = len(set([x for x in graph.triples((None, RDF.type, OWL.ObjectProperty))]))
+            annot_props = len(set([x for x in graph.triples((None, RDF.type, OWL.AnnotationProperty))]))
+            x = ' {} triples, {} nodes, {} relations, {} classes, {} individuals, {} object props, {} annotation props'
+            print('Graph Stats:' + x.format(triples, nodes, rels, classes, individs, object_props, annot_props))
+            logger.info('Graph Stats:' + x.format(triples, nodes, classes, rels, individs, object_props, annot_props))
+        else:
+            nx_graph_und = graph.to_undirected()
+            nodes = networkx.number_of_nodes(graph)
+            edges = networkx.number_of_edges(graph)
+            self_loops = networkx.number_of_selfloops(graph)
+            ce = sorted(Counter([str(x[2]) for x in graph.edges(keys=True)]).items(),  # type: ignore
+                        key=lambda x: x[1],  # type: ignore
+                        reverse=1)[:6]  # type: ignore
+            avg_degree = float(edges) / nodes
+            n_deg = sorted([(str(x[0]), x[1]) for x in graph.degree()], key=lambda x: x[1],  # type: ignore
+                           reverse=1)[:6]  # type: ignore
+            density = networkx.density(graph)
+            components = sorted(list(networkx.connected_components(nx_graph_und)), key=len, reverse=True)
+            cc_sizes = {x: len(components[x]) for x in range(len(components))}
+            x = '{} nodes, {} edges, {} self-loops, 5 most most common edges: {}, average degree {}, 5 highest degree '\
+                'nodes: {}, density: {}, {} component(s) and size(s): {}'
+            print('Graph Stats: ' + x.format(nodes, edges, self_loops, ', '.join([x[0] + ':' + str(x[1]) for x in ce]),
+                                             avg_degree, ', '.join([x[0] + ':' + str(x[1]) for x in n_deg]), density,
+                                             len(components), cc_sizes))
+            logger.info('Graph Stats: ' + x.format(nodes, edges, self_loops,
+                                                   ', '.join([x[0] + ':' + str(x[1]) for x in ce]), avg_degree,
+                                                   ', '.join([x[0] + ':' + str(x[1]) for x in n_deg]), density,
+                                                   len(components), cc_sizes))
 
         return None
 
