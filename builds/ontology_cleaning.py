@@ -213,11 +213,9 @@ class OntologyCleaner(object):
 
         classes, obj_props = len(gets_ontology_classes(self.ont_graph)), len(gets_object_properties(self.ont_graph))
         triples, indv = len(self.ont_graph), len(list(self.ont_graph.triples((None, RDF.type, OWL.NamedIndividual))))
-        # conn_comps = len(connected_components(self.ont_graph))
-        # stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals; {} Connected Components'
-        # self.ontology_info[self.ont_file_location][key] = stats.format(classes, obj_props, triples, indv, conn_comps)
-        stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals'
-        self.ontology_info[self.ont_file_location][key] = stats.format(classes, obj_props, triples, indv)
+        conn_comps = len(connected_components(self.ont_graph))
+        stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals; {} Connected Components'
+        self.ontology_info[self.ont_file_location][key] = stats.format(classes, obj_props, triples, indv, conn_comps)
 
         return None
 
