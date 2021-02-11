@@ -53,14 +53,10 @@ def uploads_build_data(bucket, gcs_location):
     # move knowledge graph data
     for kg_file in [x for x in glob.glob(kg_loc + '*') if 'README.md' not in x]:
         uploads_data_to_gcs_bucket(bucket, gcs_location, kg_loc, kg_file.split('/')[-1])
-    # move master edge list
     uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc, 'Master_Edge_List_Dict.json')
-    # move metadata files
     uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc + 'edge_data/', 'edge_source_metadata.txt')
     uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc + 'ontologies/', 'ontology_source_metadata.txt')
-    # node metadata dict
     uploads_data_to_gcs_bucket(bucket, gcs_location, metadata_loc, 'node_metadata_dict.pkl')
-    # construction approach logs
     uploads_data_to_gcs_bucket(bucket, gcs_location, construct_app, 'subclass_map_missing_node_log.json')
 
     return None
@@ -108,8 +104,8 @@ def main(app, rel, owl):
     print('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
     logger.info('STEP 2: CONSTRUCT KNOWLEDGE GRAPH')
     logger.info('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
-    # start background process to upload logs while the pkt main knowledge graph function runs
-    ray.init()
+
+    ray.init()  # start background process to upload logs while the pkt main knowledge graph function runs
     background_task = PKTLogUploader.remote('pheknowlator', gcs_log_location, log_dir, 90)
     logger.info('RAN THE CONSTRUCT KNOWLEDGE GRAPH CODE')
     # run the pkt_kg main method
@@ -146,7 +142,7 @@ def main(app, rel, owl):
     logger.info('Uploading Knowledge Graph Data from Docker to the current_build Directory')
     uploads_build_data(bucket, gcs_current_loc)
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
-    # upload data from Docker to archived_builds Google Cloud Storage Bucket
+    # copy data from the current_builds Google Cloud Storage Bucket to the archived_builds Google Cloud Storage Bucket
     print('Copying Knowledge Graph Data from the current_build Directory to the archived_builds Directory')
     logger.info('Copying Knowledge Graph Data from the current_build Directory to the archived_builds Directory')
     source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_current_loc)]
