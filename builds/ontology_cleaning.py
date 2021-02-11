@@ -213,9 +213,11 @@ class OntologyCleaner(object):
 
         classes, obj_props = len(gets_ontology_classes(self.ont_graph)), len(gets_object_properties(self.ont_graph))
         triples, indv = len(self.ont_graph), len(list(self.ont_graph.triples((None, RDF.type, OWL.NamedIndividual))))
-        conn_comps = len(connected_components(self.ont_graph))
-        stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals; {} Connected Components'
-        self.ontology_info[self.ont_file_location][key] = stats.format(classes, obj_props, triples, indv, conn_comps)
+        # conn_comps = len(connected_components(self.ont_graph))
+        # stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals; {} Connected Components'
+        # self.ontology_info[self.ont_file_location][key] = stats.format(classes, obj_props, triples, indv, conn_comps)
+        stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals'
+        self.ontology_info[self.ont_file_location][key] = stats.format(classes, obj_props, triples, indv)
 
         return None
 
@@ -545,6 +547,7 @@ class OntologyCleaner(object):
         for ont in self.ontology_info.keys():
             if ont != self.merged_ontology_filename:
                 print('\nProcessing Ontology: {}'.format(ont.upper()))
+                logger.info('\nProcessing Ontology: {}'.format(ont.upper()))
                 self.ont_file_location, self.ont_graph = ont, self.reads_gcs_bucket_data_to_graph(ont)
                 self.updates_ontology_reporter()  # get starting statistics
                 self.fixes_ontology_parsing_errors()
@@ -562,6 +565,7 @@ class OntologyCleaner(object):
         self.merge_ontologies(individual_ontologies, self.temp_dir + '/', self.ont_file_location)
         if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
         print('\nLoading Merged Ontology')
+        logger.info('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
         self.fixes_identifier_errors()
