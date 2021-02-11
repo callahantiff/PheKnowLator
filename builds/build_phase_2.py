@@ -136,7 +136,6 @@ def run_phase_2():
     bucket = storage.Client().get_bucket('pheknowlator')
     release = 'release_v' + __version__
     bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix='archived_builds/' + release + '/')]
-
     # find current archived build directory
     builds = [x[0] for x in [re.findall(r'(?<=_)\d.*', x) for x in bucket_files] if len(x) > 0]
     sorted_dates = sorted([datetime.strftime(datetime.strptime(str(x), '%d%b%Y'), '%Y-%m-%d').upper() for x in builds])
@@ -199,6 +198,14 @@ def run_phase_2():
                'subclass_construction_map.pkl', 'INVERSE_RELATIONS.txt', 'RELATIONS_LABELS.txt',
                'PheKnowLator_MergedOntologies.owl']
     copies_data_between_gcs_bucket_directories(bucket, gcs_processed_data, 'current_build/' + 'dependencies/', dep_dat)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
+
+    # copy archived_data/data to temp_build_inprogress/data -- needed for build phase 3 Dockerfile
+    source_dir, destination_dir = 'archived_builds/{}/{}/data/'.format(release, build), gcs_log_location + 'data/'
+    source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_dir)]
+    print('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
+    logger.info('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
+    copies_data_between_gcs_bucket_directories(bucket, source_dir, destination_dir, source_data)
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     return None
