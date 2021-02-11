@@ -493,37 +493,6 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    @patch('builtins.print')
-    def test_derives_graph_statistics_rdflib(self, mock_print1):
-        """Tests the derives_graph_statistics method for rdflib graph."""
-
-        # generate stats from existing ontology
-        graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
-
-        # test method
-        self.kg_subclass.derives_graph_statistics(graph)
-        mock_print1.assert_called()
-
-        return None
-
-    @patch('builtins.print')
-    def test_derives_graph_statistics_nx(self, mock_print2):
-        """Tests the derives_graph_statistics method for networkx multidigraph."""
-
-        # generate stats from existing ontology
-        graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
-        nx_mdg = networkx.MultiDiGraph()
-        for s, p, o in graph:
-            nx_mdg.add_edge(s, o, **{'key': p})
-
-        self.kg_subclass.derives_graph_statistics(nx_mdg)
-
-        # test method
-        self.kg_subclass.derives_graph_statistics(nx_mdg)
-        mock_print2.assert_called()
-
-        return None
-
     def test_creates_knowledge_graph_edges_not_adding_metadata_to_kg(self):
         """Tests the creates_knowledge_graph_edges method without adding node metadata to the KG."""
 

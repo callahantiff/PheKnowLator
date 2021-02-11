@@ -160,7 +160,7 @@ class OwlNets(object):
             remove_edges |= set(triples)
 
         # make sure that there are no self-loops
-        remove_edges |= set(removes_self_nodes(self.graph))
+        remove_edges |= set(removes_self_loops(self.graph))
         self.graph = remove_edges_from_graph(self.graph, list(remove_edges))
 
         return None

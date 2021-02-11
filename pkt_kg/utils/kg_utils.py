@@ -20,6 +20,7 @@ Interacts with Knowledge Graphs
 * gets_class_ancestors
 * connected_components
 * removes_self_nodes
+* derives_graph_statistics
 
 Writes Triple Lists
 * maps_node_ids_to_integers
@@ -38,6 +39,7 @@ import os
 import os.path
 import random
 
+from collections import Counter  # type: ignore
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 from rdflib.plugins.serializers.nt import _quoteLiteral  # type: ignore
@@ -406,12 +408,12 @@ def connected_components(graph: Graph) -> List:
     return component_dict
 
 
-def removes_self_nodes(graph: Graph) -> List:
+def removes_self_loops(graph: Graph) -> List:
     """Method iterates over a graph and identifies all triples that contain self-loops. The method returns a list of
     all self-loops.
 
     Args:
-        graph:
+        graph: An RDFLib Graph object.
 
     Returns:
         self_loops: A list of triples containing self-loops that need to be removed.
@@ -424,6 +426,55 @@ def removes_self_nodes(graph: Graph) -> List:
             self_loops.add(edge)
 
     return list(self_loops)
+
+
+def derives_graph_statistics(graph: Union[Graph, networkx.MultiDiGraph]) -> str:
+    """Derives statistics from an input knowledge graph and prints them to the console. Note that we are not
+    converting each node to a string before deriving our counts. This is purposeful as the number of unique nodes is
+    altered when you it converted to a string. For example, in the HPO when honoring the RDF type of each node
+    there are 406,717 unique nodes versus 406,331 unique nodes when ignoring the RDF type of each node.
+
+    Args:
+        graph: An RDFLib graph object or a networkx.MultiDiGraph.
+
+    Returns:
+        stats: A formatted string containing descriptive statistics.
+    """
+
+    if isinstance(graph, Graph):
+        triples = len(graph)
+        nodes = len(set([x for x in set(list(graph.subjects()) + list(graph.objects()))]))
+        rels = len(set([x for x in set(list(graph.predicates()))]))
+        classes = len(set([x for x in graph.triples((None, RDF.type, OWL.Class))]))
+        individs = len(set([x for x in graph.triples((None, RDF.type, OWL.NamedIndividual))]))
+        object_props = len(set([x for x in graph.triples((None, RDF.type, OWL.ObjectProperty))]))
+        annot_props = len(set([x for x in graph.triples((None, RDF.type, OWL.AnnotationProperty))]))
+        x = ' {} triples, {} nodes, {} relations, {} classes, {} individuals, {} object properties, {} annotation ' \
+            'properties'
+        stats = 'Graph Stats:' + x.format(triples, nodes, rels, classes, individs, object_props, annot_props)
+    else:
+        nx_graph_und = graph.to_undirected()
+        nodes = networkx.number_of_nodes(graph)
+        edges = networkx.number_of_edges(graph)
+        self_loops = networkx.number_of_selfloops(graph)
+        ce = sorted(Counter([str(x[2]) for x in graph.edges(keys=True)]).items(),  # type: ignore
+                    key=lambda x: x[1],  # type: ignore
+                    reverse=1)[:6]  # type: ignore
+        avg_degree = float(edges) / nodes
+        n_deg = sorted([(str(x[0]), x[1]) for x in graph.degree()], key=lambda x: x[1],  # type: ignore
+                       reverse=1)[:6]  # type: ignore
+        density = networkx.density(graph)
+        components = sorted(list(networkx.connected_components(nx_graph_und)), key=len, reverse=True)
+        cc_sizes = {x: len(components[x]) for x in range(len(components))}
+        x = '{} nodes, {} edges, {} self-loops, 5 most most common edges: {}, average degree {}, 5 highest degree '\
+            'nodes: {}, density: {}, {} component(s) and size(s): {}'
+        stats = 'Graph Stats: ' + x.format(nodes, edges, self_loops,
+                                           ', '.join([x[0] + ':' + str(x[1]) for x in ce]),
+                                           avg_degree,
+                                           ', '.join([x[0] + ':' + str(x[1]) for x in n_deg]),
+                                           density, len(components), cc_sizes)
+
+    return stats
 
 
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:

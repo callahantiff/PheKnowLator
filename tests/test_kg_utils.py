@@ -4,6 +4,7 @@ import os
 import os.path
 import unittest
 
+from mock import patch
 from typing import Dict, List, Set
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
@@ -473,10 +474,39 @@ class TestKGUtils(unittest.TestCase):
         test_graph.add(test_triples[0])
 
         # test method
-        self_loops = removes_self_nodes(test_graph)
+        self_loops = removes_self_loops(test_graph)
         self.assertIsInstance(self_loops, List)
         self.assertEqual(self_loops, [(URIRef('https://www.ncbi.nlm.nih.gov/gene/2'),
                                        URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
                                        URIRef('https://www.ncbi.nlm.nih.gov/gene/2'))])
+
+        return None
+
+    def test_derives_graph_statistics_rdflib(self):
+        """Tests the derives_graph_statistics method for rdflib graph."""
+
+        # generate stats from existing ontology
+        graph = Graph().parse(self.dir_loc + '/so_with_imports.owl')
+
+        # test method
+        stats = derives_graph_statistics(graph)
+        expected_stats = 'Graph Stats: 42237 triples, 20277 nodes, 39 relations, 2793 classes, 0 individuals, ' \
+                         '50 object properties, 39 annotation properties'
+        self.assertEqual(stats, expected_stats)
+
+        return None
+
+    def test_derives_graph_statistics_nx(self):
+        """Tests the derives_graph_statistics method for networkx multidigraph."""
+
+        # generate stats from existing ontology
+        graph = Graph().parse(self.dir_loc + '/so_with_imports.owl')
+        nx_mdg = nx.MultiDiGraph()
+        for s, p, o in graph:
+            nx_mdg.add_edge(s, o, **{'key': p})
+
+        # test method
+        stats = derives_graph_statistics(nx_mdg)
+        self.assertEqual(len(stats), 755)
 
         return None
