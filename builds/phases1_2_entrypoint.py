@@ -33,7 +33,7 @@ def main():
     # initialize Google Cloud Storage Bucket object and delete prior logs (if present) from current_build directory
     bucket = storage.Client().get_bucket('pheknowlator')
     gcs_log_location = 'temp_build_inprogress/'
-    try: deletes_single_file(bucket, gcs_current_build + '{}'.format(log))
+    try: deletes_single_file(bucket, gcs_log_location + '{}'.format(log))
     except NotFound: pass
 
     # start logger and configure Google Cloud Storage settings
