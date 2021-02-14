@@ -189,7 +189,8 @@ class Metadata(object):
         logger.info('Adding Ontology Annotations')
 
         # set annotation variables
-        authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. Stefanski'
+        authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. ' \
+                  'Stefanski, Lawrence E. Hunter'
         date_full = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
         # convert filename to permanent url
         parsed_filename = '_'.join(filename.lower().split('/')[-1].split('_')[2:])
