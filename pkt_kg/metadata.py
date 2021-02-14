@@ -238,7 +238,7 @@ class Metadata(object):
         if self.node_dict:
             print('\nWriting Class Metadata')
             logger.info('Writing Class Metadata')
-            entities = set([i for j in [x for x in set(list(graph))] for i in j])
+            entities = set([i for j in tqdm(graph) for i in j])
             filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:
                 out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'entity_uri' + '\t' + 'label' + '\t' +
