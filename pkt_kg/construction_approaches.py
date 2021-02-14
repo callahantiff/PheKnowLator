@@ -243,7 +243,6 @@ class KGConstructionApproach(object):
         # select hash relation - if rel and inv rel take first in alphabetical order else use rel
         rels = sorted([relation, inverse_relation])[0] if inverse_relation is not None else [relation][0]
         rel_core = nt_serializes_node(node1) + nt_serializes_node(rels) + nt_serializes_node(node2)
-        print(rel_core)
         u1 = URIRef(pkt + 'N' + hashlib.md5((rel_core + 'subject').encode()).hexdigest())
         u2 = URIRef(pkt + 'N' + hashlib.md5((rel_core + 'object').encode()).hexdigest())
 
