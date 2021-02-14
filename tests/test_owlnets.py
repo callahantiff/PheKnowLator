@@ -197,7 +197,7 @@ class TestOwlNets(unittest.TestCase):
 
         # run method to roll back to re-map instances of classes
         self.owl_nets2.updates_pkt_namespace_identifiers()
-        self.assertEqual(len(self.owl_nets2.graph), 7)
+        self.assertEqual(len(self.owl_nets2.graph), 6)
         self.assertIn((URIRef('http://purl.obolibrary.org/obo/CHEBI_2504'),
                        URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
                        URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),
@@ -312,7 +312,7 @@ class TestOwlNets(unittest.TestCase):
         self.assertIsInstance(filtered_graph, Graph)
 
         # check output length
-        self.assertEqual(len(filtered_graph), 2732)
+        self.assertEqual(len(filtered_graph), 2745)
 
         return None
 
