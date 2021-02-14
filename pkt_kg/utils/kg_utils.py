@@ -19,7 +19,7 @@ Interacts with Knowledge Graphs
 * updates_graph_namespace
 * gets_class_ancestors
 * connected_components
-* removes_self_nodes
+* removes_self_loops
 * derives_graph_statistics
 
 Writes Triple Lists
@@ -443,8 +443,8 @@ def derives_graph_statistics(graph: Union[Graph, networkx.MultiDiGraph]) -> str:
 
     if isinstance(graph, Graph):
         triples = len(graph)
-        nodes = len(set([x for x in set(list(graph.subjects()) + list(graph.objects()))]))
-        rels = len(set([x for x in set(list(graph.predicates()))]))
+        nodes = len(set(list(graph.subjects()) + list(graph.objects())))
+        rels = len(set(list(graph.predicates())))
         classes = len(set([x for x in graph.triples((None, RDF.type, OWL.Class))]))
         individs = len(set([x for x in graph.triples((None, RDF.type, OWL.NamedIndividual))]))
         object_props = len(set([x for x in graph.triples((None, RDF.type, OWL.ObjectProperty))]))
