@@ -11,11 +11,11 @@ ENV PYTHONUNBUFFERED True
 WORKDIR /PheKnowLator/
 
 # download build dependencies and move them to the correct location
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/subclass_construction_map.pkl && mv subclass_construction_map.pkl resources/construction_approach/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/PheKnowLator_MergedOntologies.owl && mv PheKnowLator_MergedOntologies.owl resources/knowledge_graphs/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/node_metadata_dict.pkl && mv node_metadata_dict.pkl resources/node_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/INVERSE_RELATIONS.txt && mv INVERSE_RELATIONS.txt resources/relations_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/RELATIONS_LABELS.txt && mv RELATIONS_LABELS.txt resources/relations_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/subclass_construction_map.pkl && mv subclass_construction_map.pkl resources/construction_approach/
+RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/PheKnowLator_MergedOntologies.owl && mv PheKnowLator_MergedOntologies.owl resources/knowledge_graphs/
+RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/node_metadata_dict.pkl && mv node_metadata_dict.pkl resources/node_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/INVERSE_RELATIONS.txt && mv INVERSE_RELATIONS.txt resources/relations_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/RELATIONS_LABELS.txt && mv RELATIONS_LABELS.txt resources/relations_data/
 RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/DISEASE_MONDO_MAP.txt && mv DISEASE_MONDO_MAP.txt resources/processed_data/
 RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt && mv ENSEMBL_GENE_ENTREZ_GENE_MAP.txt resources/processed_data/
 RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt && mv ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt resources/processed_data/
