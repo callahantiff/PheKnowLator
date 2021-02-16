@@ -444,14 +444,14 @@ def derives_graph_statistics(graph: Union[Graph, networkx.MultiDiGraph]) -> str:
     if isinstance(graph, Graph):
         triples = len(graph)
         nodes = len(set(list(graph.subjects()) + list(graph.objects())))
-        rels = len(set(list(graph.predicates())))
-        classes = len(set([x for x in graph.triples((None, RDF.type, OWL.Class))]))
-        individs = len(set([x for x in graph.triples((None, RDF.type, OWL.NamedIndividual))]))
-        object_props = len(set([x for x in graph.triples((None, RDF.type, OWL.ObjectProperty))]))
-        annot_props = len(set([x for x in graph.triples((None, RDF.type, OWL.AnnotationProperty))]))
-        x = ' {} triples, {} nodes, {} relations, {} classes, {} individuals, {} object properties, {} annotation ' \
+        rels = set(list(graph.predicates()))
+        cls = set([x for x in graph.subjects(RDF.type, OWL.Class)])
+        inds = set([x for x in graph.subjects(RDF.type, OWL.NamedIndividual)])
+        obj_prop = set([x for x in graph.subjects(RDF.type, OWL.ObjectProperty)])
+        ant_prop = set([x for x in graph.subjects(RDF.type, OWL.AnnotationProperty)])
+        x = ' {} triples, {} nodes, {} predicates, {} classes, {} individuals, {} object properties, {} annotation ' \
             'properties'
-        stats = 'Graph Stats:' + x.format(triples, nodes, rels, classes, individs, object_props, annot_props)
+        stats = 'Graph Stats:' + x.format(triples, nodes, len(rels), len(cls), len(inds), len(obj_prop), len(ant_prop))
     else:
         nx_graph_und = graph.to_undirected()
         nodes = networkx.number_of_nodes(graph)
