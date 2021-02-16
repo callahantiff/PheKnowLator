@@ -193,7 +193,7 @@ def run_phase_2():
     #####################################################
     # STEP 6 - PREPARE FOR PHASE 3
     # copy archived_data/data to temp_build_inprogress/data -- needed for build phase 3 Dockerfile
-    logger.info('Uploading Input Dependency Documents to the temp_build_inprogress/data Directory')
+    logger.info('Uploading Processed Data to the temp_build_inprogress/data Directory')
     source_dir, destination_dir = 'archived_builds/{}/{}/data/'.format(release, build), gcs_log_location + 'data/'
     source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_dir)]
     print('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))

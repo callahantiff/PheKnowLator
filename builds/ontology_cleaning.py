@@ -55,7 +55,7 @@ class OntologyCleaner(object):
         self.bucket: Union[storage.bucket.Bucket, str] = gcs_bucket
         self.original_data: str = org_data
         self.processed_data: str = proc_data
-        self.current_build: str = 'temp_build_inprogress/'  # location of where to write the logs
+        self.log_location: str = 'temp_build_inprogress/'  # location of where to write the logs
         # LOCAL VARIABLES
         self.owltools_location = './builds/owltools'
         # self.owltools_location = './pkt_kg/libs/owltools'
@@ -554,14 +554,14 @@ class OntologyCleaner(object):
                 self.fixes_punning_errors()
                 self.updates_ontology_reporter()  # get finishing statistics
                 self._logically_verifies_cleaned_ontologies()
-                if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+                if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         logger.info('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
         self.ont_file_location = self.merged_ontology_filename
         individual_ontologies = self.checks_for_downloaded_ontology_data()
         self.merge_ontologies(individual_ontologies, self.temp_dir + '/', self.ont_file_location)
-        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
         print('\nLoading Merged Ontology')
         logger.info('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
@@ -571,16 +571,16 @@ class OntologyCleaner(object):
         self.normalizes_existing_classes()
         self.fixes_punning_errors()
         self.updates_ontology_reporter()  # get finishing statistics
-        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
         # serializes final ontology graph and uploads graph data and ontology report to gcs
         self.ont_graph.serialize(destination=self.temp_dir + '/' + self.ont_file_location, format='xml')
         ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
-        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         print('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
         logger.info('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
         self.generates_ontology_report()
-        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.current_build, log_dir, log)
+        if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         return None

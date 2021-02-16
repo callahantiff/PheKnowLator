@@ -177,6 +177,14 @@ def main(app, rel, owl):
     deletes_bucket_files(bucket, gcs_current_loc)
     bucket.blob(gcs_current_loc).upload_from_string('')
 
+    # copy archived_data/data to current_build/data
+    source_dir, destination_dir = 'archived_builds/{}/{}/data/'.format(release, build), gcs_current_root + 'data/'
+    source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_dir)]
+    print('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
+    logger.info('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
+    copies_data_between_gcs_bucket_directories(bucket, source_dir, destination_dir, source_data)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
+
     # move Docker data to current_builds Google Cloud Storage Bucket
     print('Uploading Knowledge Graph Data from Docker to the current_build Directory')
     logger.info('Uploading Knowledge Graph Data from Docker to the current_build Directory')
@@ -189,13 +197,6 @@ def main(app, rel, owl):
     copies_data_between_gcs_bucket_directories(bucket, gcs_current_loc, gcs_archive_loc, source_data)
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
-    # copy archived_data/data to current_build/data
-    source_dir, destination_dir = 'archived_builds/{}/{}/data/'.format(release, build), gcs_current_root + 'data/'
-    source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_dir)]
-    print('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
-    logger.info('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
-    copies_data_between_gcs_bucket_directories(bucket, source_dir, destination_dir, source_data)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     #############################################################################
     # STEP 4 - PRINT BUILD STATISTICS
