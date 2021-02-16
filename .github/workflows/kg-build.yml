@@ -55,7 +55,7 @@ jobs:
     env:
       GCE_ZONE: us-central1-a
       GCE_CPU: 1
-      GCE_MEMORY: 250GB
+      GCE_MEMORY: 500GB
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
@@ -88,8 +88,6 @@ jobs:
             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
       - name: Publish Docker Image to Google Container Registry
         run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-      - name: Clean-Up Google Cloud Storage Environment
-        run: gsutil rm -f "gs://pheknowlator/current_build/knowledge_graphs/$GCS_LOCATION/*.log" 2> /dev/null || true
       - name: Create Virtual Machine Instance
         run: |-
           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
@@ -111,7 +109,7 @@ jobs:
     env:
       GCE_ZONE: us-central1-a
       GCE_CPU: 1
-      GCE_MEMORY: 250GB
+      GCE_MEMORY: 500GB
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
@@ -144,8 +142,6 @@ jobs:
             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
       - name: Publish Docker Image to Google Container Registry
         run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-      - name: Clean-Up Google Cloud Storage Environment
-        run: gsutil rm -f "gs://pheknowlator/current_build/knowledge_graphs/$GCS_LOCATION/*.log" 2> /dev/null || true
       - name: Create Virtual Machine Instance
         run: |-
           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
@@ -167,7 +163,7 @@ jobs:
     env:
       GCE_ZONE: us-central1-a
       GCE_CPU: 1
-      GCE_MEMORY: 250GB
+      GCE_MEMORY: 500GB
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
@@ -200,8 +196,6 @@ jobs:
             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
       - name: Publish Docker Image to Google Container Registry
         run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-      - name: Clean-Up Google Cloud Storage Environment
-        run: gsutil rm -f "gs://pheknowlator/current_build/knowledge_graphs/$GCS_LOCATION/*.log" 2> /dev/null || true
       - name: Create Virtual Machine Instance
         run: |-
           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
@@ -223,7 +217,7 @@ jobs:
       env:
         GCE_ZONE: us-central1-a
         GCE_CPU: 1
-        GCE_MEMORY: 250GB
+        GCE_MEMORY: 500GB
         GCE_BOOT_DISC_TYPE: pd-standard
         GCE_BOOT_DISC_SIZE: 500GB
         DOCKERFILE: builds/Dockerfile.phase3
@@ -256,8 +250,6 @@ jobs:
               --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
         - name: Publish Docker Image to Google Container Registry
           run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-        - name: Clean-Up Google Cloud Storage Environment
-          run: gsutil rm -f "gs://pheknowlator/current_build/knowledge_graphs/$GCS_LOCATION/*.log" 2> /dev/null || true
         - name: Create Virtual Machine Instance
           run: |-
             gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
@@ -279,7 +271,7 @@ jobs:
     env:
       GCE_ZONE: us-central1-a
       GCE_CPU: 1
-      GCE_MEMORY: 250GB
+      GCE_MEMORY: 500GB
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
@@ -312,8 +304,6 @@ jobs:
             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
       - name: Publish Docker Image to Google Container Registry
         run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-      - name: Clean-Up Google Cloud Storage Environment
-        run: gsutil rm -f "gs://pheknowlator/current_build/knowledge_graphs/$GCS_LOCATION/*.log" 2> /dev/null || true
       - name: Create Virtual Machine Instance
         run: |-
           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
@@ -335,7 +325,7 @@ jobs:
     env:
       GCE_ZONE: us-central1-a
       GCE_CPU: 1
-      GCE_MEMORY: 250GB
+      GCE_MEMORY: 500GB
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
@@ -368,8 +358,6 @@ jobs:
             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
       - name: Publish Docker Image to Google Container Registry
         run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-      - name: Clean-Up Google Cloud Storage Environment
-        run: gsutil rm -f "gs://pheknowlator/current_build/knowledge_graphs/$GCS_LOCATION/*.log" 2> /dev/null || true
       - name: Create Virtual Machine Instance
         run: |-
           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
@@ -391,7 +379,7 @@ jobs:
     env:
       GCE_ZONE: us-central1-a
       GCE_CPU: 1
-      GCE_MEMORY: 250GB
+      GCE_MEMORY: 500GB
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
@@ -424,8 +412,6 @@ jobs:
             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
       - name: Publish Docker Image to Google Container Registry
         run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-      - name: Clean-Up Google Cloud Storage Environment
-        run: gsutil rm -f "gs://pheknowlator/current_build/knowledge_graphs/$GCS_LOCATION/*.log" 2> /dev/null || true
       - name: Create Virtual Machine Instance
         run: |-
           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
@@ -447,7 +433,7 @@ jobs:
     env:
       GCE_ZONE: us-central1-a
       GCE_CPU: 1
-      GCE_MEMORY: 250GB
+      GCE_MEMORY: 500GB
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
@@ -480,8 +466,6 @@ jobs:
             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
       - name: Publish Docker Image to Google Container Registry
         run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-      - name: Clean-Up Google Cloud Storage Environment
-        run: gsutil rm -f "gs://pheknowlator/current_build/knowledge_graphs/$GCS_LOCATION/*.log" 2> /dev/null || true
       - name: Create Virtual Machine Instance
         run: |-
           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
