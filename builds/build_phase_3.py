@@ -167,15 +167,17 @@ def main(app, rel, owl):
     logger.info('STEP 3: UPLOAD KNOWLEDGE GRAPH DATA TO GOOGLE CLOUD STORAGE')
 
     # remove data from current_build directory before writing new data
-    print('Removing Existing Data from Build Directory on Google Cloud Storage')
-    logging.info('Removing Existing Data from Build Directory on Google Cloud Storage')
+    print('Removing Existing Data from Current Build Directory on Google Cloud Storage')
+    logging.info('Removing Existing Data from Current Build Directory on Google Cloud Storage')
+    # data directories
     deletes_bucket_files(bucket, gcs_current_root + 'data/')
     bucket.blob(gcs_current_root + 'data/original_data/').upload_from_string('')
     bucket.blob(gcs_current_root + 'data/processed_data/').upload_from_string('')
-    deletes_bucket_files(bucket, gcs_current_loc)  # knowledge graph data for a particular build
+    # knowledge graph directories -- clearing data for a particular build
+    deletes_bucket_files(bucket, gcs_current_loc)
     bucket.blob(gcs_current_loc).upload_from_string('')
 
-    # upload data from Docker to current_builds Google Cloud Storage Bucket
+    # move Docker data to current_builds Google Cloud Storage Bucket
     print('Uploading Knowledge Graph Data from Docker to the current_build Directory')
     logger.info('Uploading Knowledge Graph Data from Docker to the current_build Directory')
     uploads_build_data(bucket, gcs_current_loc)
@@ -201,19 +203,20 @@ def main(app, rel, owl):
     logger.info('STEP 4: DERIVING NETWORK STATISTICS FOR BUILD KNOWLEDGE GRAPHS')
 
     # find Networkx MultiDiGraph files in Google Cloud Storage Bucket for build
-    kg_files = [f.name for f in bucket.list_blobs(prefix=gcs_current_loc) if f.name.endswith('gpickle')]
-    for f in kg_files:
-        print('Loading graph data: {}'.format(f))
-        logger.info('Loading graph data: {}'.format(f))
-        # download and load graph file
-        f_name = f.split('/')[-1]
-        data_downloader(f, '', f_name)
-        graph = networkx.read_gpickle(f_name)
-        # derive statistics
-        stats = derives_networkx_graph_statistics(graph)
-        print(stats)
-        logger.info(stats)
-        uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
+    try:
+        kg_files = [f.name for f in bucket.list_blobs(prefix=gcs_current_loc) if f.name.endswith('gpickle')]
+        for f in kg_files:
+            print('Loading graph data: {}'.format(f.split('/')[-1]))
+            logger.info('Loading graph data: {}'.format(f.split('/')[-1]))
+            # download and load graph file
+            f_name = f.split('/')[-1]
+            graph = networkx.read_gpickle(downloads_data_from_gcs_bucket(bucket, None, gcs_current_loc, f_name, ''))
+            stats = derives_networkx_graph_statistics(graph)
+            print(stats)
+            logger.info(stats)
+    except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
+
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 5 - CLEAN UP BUILD ENVIRONMENT + LOG EXIT STATUS TO FINISH RUN
