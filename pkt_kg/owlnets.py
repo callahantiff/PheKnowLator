@@ -303,7 +303,7 @@ class OwlNets(object):
 
         return class_edge_dict, cardinality
 
-    def detects_cardinality_axioms(self, node_info: Tuple, node: URIRef) -> None:
+    def captures_cardinality_axioms(self, node_info: Tuple, node: URIRef) -> None:
         """Method takes a tuple of information about a node and searches the information for nodes that contain
         semantic support information, but which also contain cardinality, which we don't yet fully process.
 
@@ -547,7 +547,7 @@ class OwlNets(object):
             pbar.update(1)
             node = self.node_list.pop(0)
             node_info = self.creates_edge_dictionary(node)
-            if self.detects_cardinality_axioms(node_info, node) is True: pass
+            self.captures_cardinality_axioms(node_info, node)
             if self.detects_negation_axioms(node_info, node) is True: continue
             if self.detects_complement_of_constructed_classes(node_info, node) is True: continue
             if len(node_info[0]) != 0:
@@ -578,13 +578,13 @@ class OwlNets(object):
                 self.owl_nets_dict['owl_nets']['decoded_classes'][nt_serializes_node(node)] = cleaned_classes
         pbar.close()
         str1 = 'Decoded {} owl-encoded classes. Note the following:\nPartially processed {} cardinality ' \
-               'elements\nIgnored: {} misc classes; {} classes constructed with owl:complementOf, ' \
+               'elements\nIgnored: {} misc classes; {} classes constructed with owl:complementOf; ' \
                'and {} classes containing negation (e.g. pr#lacks_part, cl#has_not_completed).'
         stats_str = str1.format(len(cleaned_nodes), len(self.owl_nets_dict['owl_nets']['cardinality'].keys()),
                                 len(self.owl_nets_dict['owl_nets']['misc'].keys()),
                                 len(self.owl_nets_dict['complementOf'].keys()),
                                 len(self.owl_nets_dict['negation'].keys()))
-        print('=' * 150 + '\n' + stats_str + '\n' + '=' * 150)
+        print('=' * 155 + '\n' + stats_str + '\n' + '=' * 155)
         logger.info(stats_str)
 
         del self.nx_mdg  # clean up environment
@@ -700,13 +700,13 @@ class OwlNets(object):
             original_graph = Graph()
             for triple in tqdm(self.graph):
                 original_graph.add(triple)
-            # self.write_out_results(original_graph)
+            self.write_out_results(original_graph)
 
             print('Creating {}-based Purified OWL-NETS Graph'.format(self.kg_construct_approach.title()))
             logger.info('Creating {}-based Purified OWL-NETS Graph'.format(self.kg_construct_approach.title()))
             self.purifies_graph_build()
-            # self.write_out_results(self.graph, self.kg_construct_approach)
+            self.write_out_results(self.graph, self.kg_construct_approach)
             return original_graph, self.graph
         else:
-            # self.write_out_results(self.graph)
+            self.write_out_results(self.graph)
             return self.graph, None

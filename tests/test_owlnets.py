@@ -425,8 +425,8 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_detects_cardinality_axioms(self):
-        """Tests the detects_constructed_class_to_ignore method for a cardinality object."""
+    def test_captures_cardinality_axioms(self):
+        """Tests the captures_cardinality_axioms method for a cardinality object."""
 
         # set-up input
         graph = Graph()
@@ -461,7 +461,7 @@ class TestOwlNets(unittest.TestCase):
         self.owl_nets.graph = graph
 
         # test method
-        self.owl_nets.detects_cardinality_axioms(results, node)
+        self.owl_nets.captures_cardinality_axioms(results, node)
         card_triples = self.owl_nets.owl_nets_dict['owl_nets']['cardinality']
         self.assertIsInstance(card_triples, dict)
         self.assertIsInstance(card_triples['<http://purl.obolibrary.org/obo/UBERON_0034923>'], set)
