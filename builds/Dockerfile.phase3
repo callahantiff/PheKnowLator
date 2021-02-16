@@ -11,6 +11,9 @@ ENV PYTHONUNBUFFERED True
 WORKDIR /PheKnowLator/
 
 # download build dependencies and move them to the correct location
+RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/edge_source_list.txt && mv edge_source_list.txt resources/
+RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/ontology_source_list.txt && mv ontology_source_list.txt resources/
+RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/resource_info.txt && mv resource_info.txt resources/
 RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/subclass_construction_map.pkl && mv subclass_construction_map.pkl resources/construction_approach/
 RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/PheKnowLator_MergedOntologies.owl && mv PheKnowLator_MergedOntologies.owl resources/knowledge_graphs/
 RUN curl -O https://storage.googleapis.com/pheknowlator/temp_build_inprogress/data/processed_data/node_metadata_dict.pkl && mv node_metadata_dict.pkl resources/node_data/
