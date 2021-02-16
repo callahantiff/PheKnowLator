@@ -490,7 +490,7 @@ class TestKGUtils(unittest.TestCase):
 
         # test method
         stats = derives_graph_statistics(graph)
-        expected_stats = 'Graph Stats: 42237 triples, 20277 nodes, 39 relations, 2793 classes, 0 individuals, ' \
+        expected_stats = 'Graph Stats: 42237 triples, 20277 nodes, 39 predicates, 2793 classes, 0 individuals, ' \
                          '50 object properties, 39 annotation properties'
         self.assertEqual(stats, expected_stats)
 
