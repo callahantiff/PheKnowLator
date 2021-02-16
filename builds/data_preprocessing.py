@@ -987,6 +987,12 @@ class DataPreprocessing(object):
                     if x.startswith('PW') or x.startswith('GO'): out.write(key + '\t' + x + '\n')
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, filename)
 
+        # update reactome dict to ensure identifiers are consistent -- replacing ontology concepts with ':' to '_'
+        temp_dict = dict()
+        for key, value in tqdm(reactome.items()):
+            temp_dict[key] = set(x.replace(':', '_') for x in value)
+        reactome = temp_dict  # overwrite original reactome dict with cleaned mappings
+
         return reactome
 
     def _preprocesses_gene_types(self, genomic_map: Dict) -> Dict:
@@ -1263,7 +1269,7 @@ class DataPreprocessing(object):
         # identify relation labels
         filename2 = 'RELATIONS_LABELS.txt'
         with open(self.temp_dir + '/' + filename2, 'w') as out1:
-            out1.write('Relation' + '\t' + 'Label' + '\n')
+            out1.write('Label' + '\t' + 'Relation' + '\n')
             for k, v in labs.items():
                 out1.write(str(k).split('/')[-1] + '\t' + str(v) + '\n')
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, filename2)
