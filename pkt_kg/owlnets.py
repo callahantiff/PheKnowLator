@@ -28,6 +28,9 @@ logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
+# TODO: need to verify losslessness with respect to pkt-specific uuids; verify dict keyed with serialized nodes
+
+
 class OwlNets(object):
     """Class removes OWL semantics from an ontology or knowledge graph using the OWL-NETS method. OWL-encoded or
     semantic edges are needed in a graph in order to enable a rich semantic representation. Many of the nodes in
@@ -87,9 +90,11 @@ class OwlNets(object):
         self.node_list: List = list(gets_ontology_classes(self.graph))
 
         # OWL-NETS CLEANING DICTIONARY
-        self.owl_nets_dict: Dict = {'owl_nets': {'decoded_classes': {}, 'complementOf': {}, 'cardinality': {},
-                                                 'negation': {}, 'misc': {}},
-                                    'disjointWith': {}, 'filtered_triples': set(),
+        self.owl_nets_dict: Dict = {'owl_nets': {'decoded_classes': {}, 'cardinality': {}, 'misc': {}},
+                                    'complementOf': {},
+                                    'negation': {},
+                                    'disjointWith': {},
+                                    'filtered_triples': set(),
                                     '{}_approach_purified'.format(self.kg_construct_approach): set()}
 
     def converts_rdflib_to_networkx_multidigraph(self) -> None:
@@ -120,10 +125,14 @@ class OwlNets(object):
         disjoint_elements = [x[0] for x in self.graph.triples((None, None, OWL.disjointWith))]
         for x in disjoint_elements:
             triples = list(self.graph.triples((x, None, None)))
-            self.owl_nets_dict['disjointWith'][x] = {tuple([(x[0], x[1], x[2]) for x in triples])}
+            self.owl_nets_dict['disjointWith'][nt_serializes_node(x)] = set(triples)
             # remove axioms from graph
             for triple in triples:
                 self.graph.remove(triple)
+
+        stats_str = len(self.owl_nets_dict['disjointWith'].keys())
+        print('Removed {} owl:disjointWith Axioms'.format(stats_str))
+        logger.info('Removed {} owl:disjointWith Axioms'.format(stats_str))
 
         return None
 
@@ -147,7 +156,6 @@ class OwlNets(object):
         pred = RDF.type if self.kg_construct_approach == 'instance' else RDFS.subClassOf
         pkt_ns_dict = {x[0]: x[2] for x in list(self.graph.triples((None, pred, None))) if isinstance(x[2], URIRef)
                        and (str(x[0]).startswith(str(pkt)) and x[2] not in [OWL.NamedIndividual, OWL.Class])}
-
         # update triples containing BNodes with original ontology class
         remove_edges: Set = set()
         for node in tqdm(pkt_ns_dict.keys()):
@@ -161,7 +169,6 @@ class OwlNets(object):
             if len(node_types) > 1: triples += [tuple(x) for x in node_types if x[2] == OWL.NamedIndividual]
             remove_edges |= set(triples)
 
-        # make sure that there are no self-loops
         self.graph = remove_edges_from_graph(self.graph, list(remove_edges))
 
         return None
@@ -203,7 +210,7 @@ class OwlNets(object):
                         p = [i for i in list(self.graph.triples((x[1], RDF.type, None)))
                              if i[2] != OWL.AnnotationProperty]
                         if len(s) > 0 and len(o) > 0 and len(p) > 0:
-                            if OWL.ObjectProperty in p[0][2]: keep_predicates.add(x)
+                            if OWL.ObjectProperty in [x[2] for x in p]: keep_predicates.add(x)
                             else: filtered_triples |= {x}
                         if len(s) > 0 and len(o) > 0 and len(p) == 0:
                             if RDFS.subClassOf in x[1]: keep_predicates.add(x)
@@ -296,42 +303,76 @@ class OwlNets(object):
 
         return class_edge_dict, cardinality
 
-    def detects_constructed_class_to_ignore(self, node_info: Tuple, node: URIRef) -> bool:
+    def detects_cardinality_axioms(self, node_info: Tuple, node: URIRef) -> None:
         """Method takes a tuple of information about a node and searches the information for nodes that contain
-        semantic support information, but also contains other types of information (i.e. cardinality, complementOf,
-        or negation (i.e. lacks_part)) we either don't full process or want to ignore.
+        semantic support information, but which also contain cardinality, which we don't yet fully process.
 
         Args:
-            node: An RDFLib URIRef object containing node information.
             node_info: A tuple where the first item is a nested dictionary. The outer dictionary keys are anonymous
                 nodes and the inner keys are owl:ObjectProperty values from each out edge triple that comes out of that
-                anonymous node. The second item is a  set of strings, where each string is formatted such that the
+                anonymous node. The second item is a set of strings, where each string is formatted such that the
                 substring that occurs before the ':' is the class node and the substring after the ':' is the
                 anonymous node naming the element where cardinality was used.
+            node: An RDFLib URIRef object containing node information.
 
         Returns:
-            True: if a class to ignore was detected.
-            False: if a class to ignore was not detected.
+            None.
         """
 
         if len(node_info[1]) != 0:  # want to note and will process ignoring the specified integer value
-            self.owl_nets_dict['owl_nets']['cardinality'][str(node)] = {
-                tuple([(str(x[0]), str(x[1]), str(x[2])) for x in
-                       self.graph.triples((BNode(list(node_info[1])[0].split(': ')[-1]), None, None))])}
-            return False
-        elif any(v for v in node_info[0].values() if 'complementOf' in v.keys()):
-            self.owl_nets_dict['owl_nets']['complementOf'][str(node)] = {
-                tuple([(str(x[0]), str(x[1]), str(x[2])) for x in
-                       self.graph.triples((list(node_info[0].keys())[0], None, None))])}
-            return True
-        elif any(v for v in node_info[0].items() if any(i for i in v[1].items() if 'lacks_part' in str(i))):
-            self.owl_nets_dict['owl_nets']['negation'][str(node)] = {
-                tuple([tuple([(str(x[0]), str(x[1]), str(x[2])) for x in self.graph.triples((k, None, None))])
-                       for k, v in node_info[0].items() if 'onProperty' in v.keys()])}
-            return True
+            self.owl_nets_dict['owl_nets']['cardinality'][nt_serializes_node(node)] = set(
+                self.graph.triples((BNode(list(node_info[1])[0].split(': ')[-1]), None, None)))
 
-        else:
-            return False
+        return None
+
+    def detects_negation_axioms(self, node_info: Tuple, node: URIRef) -> bool:
+        """Removes axioms from an RDFLib Graph object that convey or contain negation. The method currently checks
+        for negation by searching for any occurrence of the following key words: "not", "lacks".
+
+        Args:
+            node_info: A tuple where the first item is a nested dictionary. The outer dictionary keys are anonymous
+                nodes and the inner keys are owl:ObjectProperty values from each out edge triple that comes out of that
+                anonymous node. The second item is a set of strings, where each string is formatted such that the
+                substring that occurs before the ':' is the class node and the substring after the ':' is the
+                anonymous node naming the element where cardinality was used.
+            node: An RDFLib URIRef object containing node information.
+
+        Returns:
+            True if the class is detected to contain a negation axiom.
+            False if the class is not detected to contain a negation axiom.
+        """
+
+        neg_terms = ['lacks_', 'not_']
+        neg_res = {k: v for k, v in node_info[0].items()
+                   if 'onProperty' in v.keys() and any(i for i in neg_terms if i in str(v['onProperty']).lower())}
+        if len(neg_res) > 0:
+            self.owl_nets_dict['negation'][nt_serializes_node(node)] = neg_res
+            return True
+        else: return False
+
+    def detects_complement_of_constructed_classes(self, node_info: Tuple, node: URIRef) -> bool:
+        """Removes classes from an RDFLib Graph object that were constructed using the owl:ComplementOf constructor.
+        Currently, this type of constructor is removed because it conveys a negative relationship, which we are not
+        currently able to represent using OWL-NETS.
+
+        Args:
+            node_info: A tuple where the first item is a nested dictionary. The outer dictionary keys are anonymous
+                nodes and the inner keys are owl:ObjectProperty values from each out edge triple that comes out of that
+                anonymous node. The second item is a set of strings, where each string is formatted such that the
+                substring that occurs before the ':' is the class node and the substring after the ':' is the
+                anonymous node naming the element where cardinality was used.
+            node: An RDFLib URIRef object containing node information.
+
+        Returns:
+            True if the class is detected to contain a owl:ComplementOf constructor.
+            False if the class is not detected to contain a owl:ComplementOf constructor.
+        """
+
+        comp_res = {k: v for k, v in node_info[0].items() if 'complementOf' in v.keys()}
+        if len(comp_res) > 0:
+            self.owl_nets_dict['complementOf'][nt_serializes_node(node)] = comp_res
+            return True
+        else: return False
 
     @staticmethod
     def returns_object_property(sub: URIRef, obj: URIRef, prop: URIRef = None) -> URIRef:
@@ -506,12 +547,13 @@ class OwlNets(object):
             pbar.update(1)
             node = self.node_list.pop(0)
             node_info = self.creates_edge_dictionary(node)
-            if len(node_info[0]) == 0: pass
-            if self.detects_constructed_class_to_ignore(node_info, node) is True: pass
-            else:
+            if self.detects_cardinality_axioms(node_info, node) is True: pass
+            if self.detects_negation_axioms(node_info, node) is True: continue
+            if self.detects_complement_of_constructed_classes(node_info, node) is True: continue
+            if len(node_info[0]) != 0:
                 cleaned_nodes |= {node}
                 cleaned_classes: Set = set()
-                semantic_chunk = [x[1] for x in list(self.nx_mdg.out_edges(node, keys=True))if isinstance(x[1], BNode)]
+                semantic_chunk = [x[1] for x in list(self.nx_mdg.out_edges(node, keys=True)) if isinstance(x[1], BNode)]
                 for element in semantic_chunk:  # decode owl-encoded edges
                     edges = node_info[0][element]
                     while edges:
@@ -529,30 +571,25 @@ class OwlNets(object):
                             edges = results[1]
                         else:  # catch all other axioms -- only catching owl:onProperty
                             misc_axioms = [x for x in edges.keys() if x not in ['type', 'first', 'rest', 'onProperty']]
-                            self.owl_nets_dict['owl_nets']['misc'][str(node)] = {tuple(misc_axioms)}
+                            self.owl_nets_dict['owl_nets']['misc'][nt_serializes_node(node)] = {tuple(misc_axioms)}
                             edges = None
                 # add kept edges to filtered graph
                 decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes))
-                self.owl_nets_dict['owl_nets']['decoded_classes'][str(node)] = {
-                    tuple([(str(x[0]), str(x[1]), str(x[2])) for x in cleaned_classes])}
+                self.owl_nets_dict['owl_nets']['decoded_classes'][nt_serializes_node(node)] = cleaned_classes
         pbar.close()
-        print('=' * 75 + '\nDecoded {} owl-encoded classes. Note the following:'.format(len(cleaned_nodes)))
-        print('{} cardinality elements'.format(len(list(self.owl_nets_dict['owl_nets']['cardinality'].keys()))))
-        print('ignored {} misc elements'.format(len(list(self.owl_nets_dict['owl_nets']['misc'].keys()))))
-        print('removed {} owl:complementOf'.format(len(list(self.owl_nets_dict['owl_nets']['complementOf'].keys()))))
-        print('{} negation elements\n'.format(len(list(self.owl_nets_dict['owl_nets']['negation'].keys()))) + '=' * 75)
+        str1 = 'Decoded {} owl-encoded classes. Note the following:\nPartially processed {} cardinality ' \
+               'elements\nIgnored: {} misc classes; {} classes constructed with owl:complementOf, ' \
+               'and {} classes containing negation (e.g. pr#lacks_part, cl#has_not_completed).'
+        stats_str = str1.format(len(cleaned_nodes), len(self.owl_nets_dict['owl_nets']['cardinality'].keys()),
+                                len(self.owl_nets_dict['owl_nets']['misc'].keys()),
+                                len(self.owl_nets_dict['complementOf'].keys()),
+                                len(self.owl_nets_dict['negation'].keys()))
+        print('=' * 150 + '\n' + stats_str + '\n' + '=' * 150)
+        logger.info(stats_str)
+
         del self.nx_mdg  # clean up environment
         self.graph = decoded_graph  # pass decoded classes through triple cleaner
         cleaned_decoded_graph = self.removes_edges_with_owl_semantics()
-
-        # update logging
-        res_string = 'Decoded {} classes; partially decoded {} cardinality elements; ignored {} misc elements; ' \
-                     'removed {} owl:complementOf and {} negation elements'
-        logger.info(res_string.format(
-            len(cleaned_nodes), len(list(self.owl_nets_dict['owl_nets']['cardinality'].keys())),
-            len(list(self.owl_nets_dict['owl_nets']['misc'].keys())),
-            len(list(self.owl_nets_dict['owl_nets']['complementOf'].keys())),
-            len(list(self.owl_nets_dict['owl_nets']['negation'].keys()))))
 
         return cleaned_decoded_graph
 
@@ -611,25 +648,22 @@ class OwlNets(object):
         # write out owl-nets graph
         print('Serializing OWL-NETS Graph')
         logger.info('Serializing OWL-NETS Graph')
+
+        # set filepath information
         f_name_lab = '_' + kg_construction_approach.upper() + '_purified' if kg_construction_approach else ''
         f_name = [self.filename[:-4] + f_name_lab if '.owl' in self.filename
                   else '.'.join(self.filename.split('.')[:-1]) + f_name_lab if '.' in self.filename
                   else self.filename + f_name_lab][0]
         f_name = '/' + f_name + '_OWLNETS.nt' if not f_name.startswith('/') else f_name + '_OWLNETS.nt'
-        graph.serialize(destination=self.write_location + f_name, format='nt')
 
-        # get output statistics
-        unique_nodes = set([str(x) for y in [node[0::2] for node in list(graph)] for x in y])
-        unique_relations = set([str(rel[1]) for rel in list(graph)])
-        gets_ontology_statistics(self.write_location + f_name, self.owl_tools)
-        stats = 'The OWL-Decoded Knowledge Graph Contained: {} Triples, {} Unique Nodes, and {} Unique Relations'
-        print(stats.format(len(graph), len(unique_nodes), len(unique_relations)))
+        # write n-triples version of graph
+        graph.serialize(destination=self.write_location + f_name, format='nt')
 
         # write out owl_nets dictionary
         with open(self.write_location + f_name.strip('.nt') + '_decoding_dict.pkl', 'wb') as out:
             pickle.dump(self.owl_nets_dict, out)
 
-        # convert graph to NetworkX MultiDigraph
+        # write NetworkX MultiDigraph version of graph
         converts_rdflib_to_networkx(self.write_location, f_name.strip('.nt'), graph)
 
         return None
@@ -653,21 +687,26 @@ class OwlNets(object):
 
         print('Creating OWL-NETS graph')
         logger.info('Creating OWL-NETS graph')
-
-        # run graph through OWL-NETS steps
         self.removes_disjoint_with_axioms()
         self.updates_pkt_namespace_identifiers()
         self.converts_rdflib_to_networkx_multidigraph()
-        self.graph = self.removes_edges_with_owl_semantics() + self.cleans_owl_encoded_classes()
+        filtered_graph = self.removes_edges_with_owl_semantics()
+        decoded_graph = self.cleans_owl_encoded_classes()
+        self.graph = filtered_graph + decoded_graph
 
-        # Purify owl-nets representation
+        print('Processing OWL-NETS Graph Output')
+        logger.info('Processing OWL-NETS Graph Output')
         if self.kg_construct_approach is not None:
-            not_purified_graph = Graph()
-            not_purified_graph += self.graph.triples((None, None, None))
-            self.write_out_results(not_purified_graph)  # if purifying, write out original version first
+            original_graph = Graph()
+            for triple in tqdm(self.graph):
+                original_graph.add(triple)
+            # self.write_out_results(original_graph)
+
+            print('Creating {}-based Purified OWL-NETS Graph'.format(self.kg_construct_approach.title()))
+            logger.info('Creating {}-based Purified OWL-NETS Graph'.format(self.kg_construct_approach.title()))
             self.purifies_graph_build()
-            self.write_out_results(self.graph, self.kg_construct_approach)
-            return not_purified_graph, self.graph
+            # self.write_out_results(self.graph, self.kg_construct_approach)
+            return original_graph, self.graph
         else:
-            self.write_out_results(self.graph)
+            # self.write_out_results(self.graph)
             return self.graph, None

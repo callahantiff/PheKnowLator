@@ -145,10 +145,10 @@ class TestOwlNets(unittest.TestCase):
         self.assertIsInstance(self.owl_nets.owl_nets_dict, Dict)
         self.assertIn('owl_nets', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('decoded_classes', self.owl_nets.owl_nets_dict['owl_nets'])
-        self.assertIn('complementOf', self.owl_nets.owl_nets_dict['owl_nets'].keys())
         self.assertIn('cardinality', self.owl_nets.owl_nets_dict['owl_nets'].keys())
-        self.assertIn('negation', self.owl_nets.owl_nets_dict['owl_nets'].keys())
         self.assertIn('misc', self.owl_nets.owl_nets_dict['owl_nets'].keys())
+        self.assertIn('negation', self.owl_nets.owl_nets_dict.keys())
+        self.assertIn('complementOf', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('disjointWith', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('filtered_triples', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('{}_approach_purified'.format(self.owl_nets.kg_construct_approach),
@@ -217,7 +217,7 @@ class TestOwlNets(unittest.TestCase):
                  URIRef('http://www.w3.org/2002/07/owl#Class')), \
                 (URIRef('http://purl.obolibrary.org/obo/DOID_3075'),
                  URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#Class')),\
+                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
                 (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
                  URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
                  BNode('N4ba9c4585bada420f5f94b3a2c6146e1')), \
@@ -226,7 +226,7 @@ class TestOwlNets(unittest.TestCase):
                  URIRef('http://www.w3.org/2002/07/owl#Restriction')), \
                 (BNode('N4ba9c4585bada420f5f94b3a2c6146e1'),
                  URIRef('http://www.w3.org/2002/07/owl#onProperty'),
-                 URIRef('http://purl.obolibrary.org/obo/RO_0003302')),\
+                 URIRef('http://purl.obolibrary.org/obo/RO_0003302')), \
                 (BNode('N4ba9c4585bada420f5f94b3a2c6146e1'),
                  URIRef('http://www.w3.org/2002/07/owl#someValuesFrom'),
                  URIRef('http://purl.obolibrary.org/obo/DOID_1080')), \
@@ -363,113 +363,109 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_detects_constructed_class_to_ignore_complement(self):
-        """Tests the detects_constructed_class_to_ignore method for a complementOf object."""
+    def test_detects_complement_of_constructed_classes_true(self):
+        """Tests the detects_complement_of_constructed_classes method when complementOf is present."""
 
-        # set-up input
-        node = URIRef('http://purl.obolibrary.org/obo/SO_0000340')
-        results = ({BNode('N47395fcce3fc4bae86eb0a785f6a50fe'): {
-            'type': URIRef('http://www.w3.org/2002/07/owl#Class'),
-            'complementOf': URIRef('http://purl.obolibrary.org/obo/BFO_0000016')},
-                       BNode('N7d4b70b12467414383dcda0b2de14fac'): {
-                           'type': URIRef(
-                               'http://www.w3.org/2002/07/owl#Restriction'),
-                           'onProperty': URIRef('http://purl.obolibrary.org/obo/BFO_0000186'),
-                           'allValuesFrom': BNode('N47395fcce3fc4bae86eb0a785f6a50fe')},
-                       BNode('N9912bdc5f0b64056b8f733834c3f8788'): {
-                           'complementOf': URIRef(
-                               'http://purl.obolibrary.org/obo/BFO_0000016'),
-                           'type': URIRef('http://www.w3.org/2002/07/owl#Class')},
-                       BNode('N20dddb25602944319568f385e40fd434'): {
-                           'type': URIRef(
-                               'http://www.w3.org/2002/07/owl#Restriction'),
-                           'onProperty': URIRef('http://purl.obolibrary.org/obo/BFO_0000176'),
-                           'allValuesFrom': BNode('N9912bdc5f0b64056b8f733834c3f8788')}}, set())
+        # set-up test data
+        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')
+        node_info = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
+                      'complementOf': URIRef('http://www.w3.org/2002/07/owl#Restriction')}},
+                     {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
 
-        # test method
-        decision = self.owl_nets.detects_constructed_class_to_ignore(results, node)
-        self.assertIsInstance(decision, bool)
-        self.assertEqual(decision, True)
+        result = self.owl_nets.detects_complement_of_constructed_classes(node_info, node)
+        self.assertTrue(result)
 
         return None
 
-    def test_detects_constructed_class_to_ignore_cardinality(self):
+    def test_detects_complement_of_constructed_classes_false(self):
+        """Tests the detects_complement_of_constructed_classes method when complementOf is not present."""
+
+        # set-up test data
+        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')
+        node_info = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
+                             'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
+                             'onClass': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
+                             'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002180')}},
+                     {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
+
+        result = self.owl_nets.detects_complement_of_constructed_classes(node_info, node)
+        self.assertFalse(result)
+
+        return None
+
+    def test_detects_negation_axioms_true(self):
+        """Tests the detects_negation_axioms method for negation axioms when one is present"""
+
+        # set-up test data
+        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')
+        node_info = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
+                             'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
+                             'onClass': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
+                             'onProperty': URIRef('http://purl.obolibrary.org/obo/cl#lacks_part')}},
+                     {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
+
+        result = self.owl_nets.detects_negation_axioms(node_info, node)
+        self.assertTrue(result)
+
+        return None
+
+    def test_detects_negation_axioms_false(self):
+        """Tests the detects_negation_axioms method for negation axioms when none present"""
+
+        # set-up test data
+        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')
+        node_info = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
+                             'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
+                             'onClass': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
+                             'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0001111')}},
+                     {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
+
+        result = self.owl_nets.detects_negation_axioms(node_info, node)
+        self.assertFalse(result)
+
+        return None
+
+    def test_detects_cardinality_axioms(self):
         """Tests the detects_constructed_class_to_ignore method for a cardinality object."""
 
         # set-up input
-        node = URIRef('http://purl.obolibrary.org/obo/SO_0000340')
-        results = ({BNode('Nbfdbf873070f4ff4b8e421afdafcc0d1'): {
-            'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002180'),
-            'onClass': URIRef('http://purl.obolibrary.org/obo/PR_Q9BW19'),
-            'type': URIRef('http://www.w3.org/2002/07/owl#Restriction')},
-                       BNode('N92d1234ef3d1431e9696302f8b640855'): {
-                           'type': URIRef('http://www.w3.org/2002/07/owl#Class'),
-                           'intersectionOf': BNode('N75923190ee8d4c569ad0860e55143000')},
-                       BNode('N75923190ee8d4c569ad0860e55143000'): {
-                           'rest': BNode('Ndb37cfaab1534414acc1bd5782cd226d'),
-                           'first': URIRef('http://purl.obolibrary.org/obo/PR_000027264')},
-                       BNode('Ndb37cfaab1534414acc1bd5782cd226d'): {
-                           'first': BNode('N7f08599ce3a945f2a0a7188e30313957'),
-                           'rest': URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')},
-                       BNode('N7f08599ce3a945f2a0a7188e30313957'): {
-                           'onProperty': URIRef(
-                               'http://purl.obolibrary.org/obo/RO_0002160'),
-                           'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                           'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/NCBITaxon_9606')},
-                       BNode('Nacc48f51eda64c25ab95f675c9de9b22'): {
-                           'onProperty': URIRef(
-                               'http://purl.obolibrary.org/obo/RO_0002160'),
-                           'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                           'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/NCBITaxon_9606')}},
-                   {'http://purl.obolibrary.org/obo/PR_000027428: Nbfdbf873070f4ff4b8e421afdafcc0d1'})
-
-        # test method
-        decision = self.owl_nets.detects_constructed_class_to_ignore(results, node)
-        self.assertIsInstance(decision, bool)
-        self.assertEqual(decision, False)
-
-        return None
-
-    def test_detects_constructed_class_to_ignore_lacks_part(self):
-        """Tests the detects_constructed_class_to_ignore method for a lacks_part object."""
-
-        # set-up input
-        node = URIRef('http://purl.obolibrary.org/obo/SO_000047373')
-        results = ({BNode('Nfb450d1260944ec0a6be7f302e785ee9'): {
+        graph = Graph()
+        triples = [
+            (BNode('N6ebac4ecc22240cdafe506f43d240733'),
+             URIRef('http://www.w3.org/2002/07/owl#minQualifiedCardinality'),
+             Literal('2', datatype=URIRef('http://www.w3.org/2001/XMLSchema#nonNegativeInteger'))),
+            (BNode('N6ebac4ecc22240cdafe506f43d240733'),
+             URIRef('http://www.w3.org/2002/07/owl#onClass'),
+             URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')),
+            (BNode('N6ebac4ecc22240cdafe506f43d240733'),
+             URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+             URIRef('http://www.w3.org/2002/07/owl#Restriction')),
+            (BNode('N6ebac4ecc22240cdafe506f43d240733'),
+             URIRef('http://www.w3.org/2002/07/owl#onProperty'),
+             URIRef('http://purl.obolibrary.org/obo/RO_0002180'))
+        ]
+        for x in triples:
+            graph.add(x)
+        # fake output
+        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0034923')
+        results = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
             'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-            'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002160'),
-            'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/NCBITaxon_9606')},
-                       BNode('N22b5a01aab6f4257b3bdc5d291c01e31'): {
-                           'someValuesFrom': URIRef(
-                               'http://purl.obolibrary.org/obo/MOD_00115'),
+            'onClass': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
+            'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002180')},
+                       BNode('N350cb10c104f45d1893c63ccc055b52a'): {
                            'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                           'onProperty': URIRef('http://purl.obolibrary.org/obo/BFO_0000051')},
-                       BNode('N9407d67a6bb642c09c50cf98fba99eec'): {
-                           'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                           'onProperty': URIRef('http://purl.obolibrary.org/obo/pr#lacks_part'),
-                           'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/PR_000021937')}}, set())
+                           'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
+                           'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002473')}},
+                   {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
+        # set-up method
+        self.owl_nets.graph = graph
 
         # test method
-        decision = self.owl_nets.detects_constructed_class_to_ignore(results, node)
-        self.assertIsInstance(decision, bool)
-        self.assertEqual(decision, True)
-
-        return None
-
-    def test_detects_constructed_class_to_ignore_regular(self):
-        """Tests the detects_constructed_class_to_ignore method for a regular class."""
-
-        # set-up input
-        node = URIRef('http://purl.obolibrary.org/obo/MONDO_0014439')
-        results = ({BNode('N384aa47973974606a24846db62455903'): {
-            'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/NCBITaxon_9606'),
-            'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002160'),
-            'type': URIRef('http://www.w3.org/2002/07/owl#Restriction')}}, set())
-
-        # test method
-        decision = self.owl_nets.detects_constructed_class_to_ignore(results, node)
-        self.assertIsInstance(decision, bool)
-        self.assertEqual(decision, False)
+        self.owl_nets.detects_cardinality_axioms(results, node)
+        card_triples = self.owl_nets.owl_nets_dict['owl_nets']['cardinality']
+        self.assertIsInstance(card_triples, dict)
+        self.assertIsInstance(card_triples['<http://purl.obolibrary.org/obo/UBERON_0034923>'], set)
+        self.assertEqual(len(card_triples['<http://purl.obolibrary.org/obo/UBERON_0034923>']), 4)
 
         return None
 
