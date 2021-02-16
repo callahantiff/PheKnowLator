@@ -482,13 +482,11 @@ class TestKGBuilder(unittest.TestCase):
         # test 1
         edge_list1 = self.kg_subclass.edge_dict['gene-phenotype']['edge_list']
         rel1_check = self.kg_subclass.checks_for_inverse_relations('RO_0003302', edge_list1)
-
         self.assertIsNone(rel1_check)
 
         # test 2
         edge_list2 = self.kg_subclass.edge_dict['gene-gene']['edge_list']
         rel2_check = self.kg_subclass.checks_for_inverse_relations('RO_0002435', edge_list2)
-
         self.assertEqual(rel2_check, 'RO_0002435')
 
         return None
@@ -560,7 +558,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # no inverse edges
         self.kg_subclass.gets_edge_statistics('gene-gene', None, [x for x in range(0, 100)])
-        mock_print.assert_called_with('Unique gene: 8')
+        mock_print.assert_called_with('Unique gene(s): 8')
 
         return None
 
@@ -570,7 +568,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # no inverse edges
         self.kg_subclass.gets_edge_statistics('gene-gene', 'RO_0000000', [x for x in range(0, 100)])
-        mock_print.assert_called_with('Unique gene: 8')
+        mock_print.assert_called_with('Unique gene(s): 8')
 
         return None
 

@@ -158,15 +158,14 @@ class KGBuilder(object):
             None.
         """
 
-        if self.inverse_relations:
+        if self.inverse_relations is not None:
             print('Loading and Processing Relation Data')
             logging.info('Loading and Processing Relation Data')
             for data in self.inverse_relations:
-                df = pandas.read_csv(data, header=0, delimiter='\t')
-                df.drop_duplicates(keep='first', inplace=True)
-                df.set_index(list(df)[0], inplace=True)
-                if 'inverse' in data.lower(): self.inverse_relations_dict = df.to_dict('index')
-                else: self.relations_dict = df.to_dict('index')
+                with open(data, 'r') as f:
+                    rel_data = [x.strip('\n').split('\t') for x in f.readlines()[1:]]  # assumes header
+                    if 'inverse' in data.lower(): self.inverse_relations_dict = {x[0]: x[1] for x in rel_data}
+                    else: self.relations_dict = {x[1].split('/')[-1]: x[0] for x in rel_data}
 
         return None
 
@@ -229,28 +228,28 @@ class KGBuilder(object):
             edge_list: A list of knowledge graph edges. For example: [["8837", "4283"], ["8837", "839"]]
 
         Returns:
-            A string containing an ontology identifier (e.g. "RO_0000056). The value depends on a set of conditions:
-                - inverse relation, if the stored relation has an inverse relation in inverse_relations
-                - current relation, if the stored relation string includes 'interact' and there is an equal count of
-                  each node type (i.e., this is checking for symmetry in interaction-based edge types)
-                - None, assuming the prior listed conditions are not met
+            inverse_rel: A string containing an ontology identifier (e.g. "RO_0000056) or None.
+                The value depends on a set of conditions:
+                    - inverse relation, if the stored relation has an inverse relation in inverse_relations
+                    - current relation, if the stored relation string includes 'interact' and there is an equal count of
+                      each node type (i.e., this is checking for symmetry in interaction-based edge types)
+                    - None, assuming the prior listed conditions are not met
         """
 
-        # check for inverse relations
-        inverse_relation = None
+        if self.inverse_relations is not None:
+            if self.inverse_relations_dict is not None and relation in self.inverse_relations_dict.keys():
+                self.verifies_object_property(URIRef(obo + self.inverse_relations_dict[relation]))
+                inverse_rel = self.inverse_relations_dict[relation]
+            elif relation in self.relations_dict.keys() and 'interact' in self.relations_dict[relation]:
+                inverse_rel = None
+                for x in edge_list:
+                    if x[-1::-1] not in edge_list:
+                        inverse_rel = relation
+                        break
+            else: inverse_rel = None
+        else: inverse_rel = None
 
-        if self.inverse_relations:
-            if self.inverse_relations_dict and relation in self.inverse_relations_dict.keys():
-                self.verifies_object_property(URIRef(obo + self.inverse_relations_dict[relation]['Inverse_Relation']))
-                inverse_relation = self.inverse_relations_dict[relation]['Inverse_Relation']
-            elif relation in self.relations_dict.keys():
-                if 'interact' in self.relations_dict[relation]['Label']:
-                    if len(set([x[0] for x in edge_list])) != len(set([x[1] for x in edge_list])):
-                        inverse_relation = relation
-            else:
-                pass
-
-        return inverse_relation
+        return inverse_rel
 
     def gets_edge_statistics(self, edge_type: str, invrel: Optional[str], results: List) -> None:
         """Calculates the number of nodes and edges created from the build process.
@@ -267,8 +266,8 @@ class KGBuilder(object):
         n1, n2, edges = edge_type.split('-')[0], edge_type.split('-')[1], self.edge_dict[edge_type]['edge_list']
         print('Total OWL Edges: {}'.format(len(set(results))))
         print('Unique Non-OWL Edges: {}'.format(len(edges) * 2 if invrel else len(edges)))
-        print('Unique {}: {}'.format(n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']]))))
-        print('Unique {}: {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
+        print('Unique {}(s): {}'.format(n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']]))))
+        print('Unique {}(s): {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
         # log statistics
         res_string = '{} Edge Statistics: {} OWL Edges, {} Non-OWL Edges, {} {} Nodes and {} {} Nodes'
         logger.info(res_string.format(edge_type.upper(), len(set(results)), len(edges) * 2 if invrel else len(edges),
@@ -301,26 +300,25 @@ class KGBuilder(object):
                 invrel = self.checks_for_inverse_relations(rel, edge_list)
                 if invrel is not None: self.verifies_object_property(URIRef(obo + invrel))
             else: invrel = None
-            print('\nCreating {} ({}-{}) Edges ***'.format(edge_type.upper(), n1_type, n2_type))
-            logger.info('Creating {} ({}-{}) Edges ***'.format(edge_type.upper(), n1_type, n2_type))
+            print('\nCreating {} ({}-{}) Edges'.format(edge_type.upper(), n1_type, n2_type))
+            print('\nRELATION: {}; INVERSE: {}'.format(rel.upper(), invrel.upper() if invrel is not None else 'NONE'))
+            logger.info('Creating {} ({}-{}) Edges'.format(edge_type.upper(), n1_type, n2_type))
             for edge in tqdm(edge_list):
                 edge_info = {'n1': n1_type, 'n2': n2_type, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
                 meta = node_metadata_func(ent=[''.join(x) for x in list(zip(uri, edge))], e_type=[n1_type, n2_type])
                 metadata_logic = [True if (self.node_data is None and meta is None)
                                   or [n1_type, n2_type] == ['class', 'class']
                                   or (self.node_data is not None and meta is not None) else False][0]
-                if self.check_ontology_class_nodes(edge_info) and metadata_logic:  # ensure ont class nodes are in KG
+                if self.check_ontology_class_nodes(edge_info) and metadata_logic:  # ensure ont classes are in kg
                     nmspce_1, nmspce_2 = edge_type.split('-')
                     if n1_type != 'class': self.graph = updates_graph_namespace(nmspce_1, self.graph, uri[0] + edge[0])
                     if n2_type != 'class': self.graph = updates_graph_namespace(nmspce_2, self.graph, uri[1] + edge[1])
                     if self.construct_approach == 'subclass':
                         self.edge_dict, new_edges = edge_builder.subclass_constructor(edge_info, edge_type)
-                        edge_results += new_edges
-                        self.graph = adds_edges_to_graph(self.graph, new_edges + meta if meta else new_edges)
                     else:
                         self.edge_dict, new_edges = edge_builder.instance_constructor(edge_info, edge_type)
-                        edge_results += new_edges
-                        self.graph = adds_edges_to_graph(self.graph, new_edges + meta if meta else new_edges)
+                    edge_results += new_edges
+                    self.graph = adds_edges_to_graph(self.graph, new_edges + meta if meta else new_edges)
                 else: self.edge_dict[edge_type]['edge_list'].pop(self.edge_dict[edge_type]['edge_list'].index(edge))
             self.gets_edge_statistics(edge_type, invrel, edge_results)
         if len(edge_builder.subclass_error.keys()) > 0:  # output error logs
@@ -526,6 +524,7 @@ class PostClosureBuild(KGBuilder):
                 stats = derives_graph_statistics(self.graph)
                 print(stats)
                 logger.info(stats)
+                # map uris to integers
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
                 logger.info('Create Entity-Integer Map')
@@ -637,6 +636,7 @@ class FullBuild(KGBuilder):
                 stats = derives_graph_statistics(self.graph)
                 print(stats)
                 logger.info(stats)
+                # map uris to integers
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
                 logger.info('Create Entity-Integer Map')
