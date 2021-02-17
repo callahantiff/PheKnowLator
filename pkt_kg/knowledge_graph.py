@@ -301,7 +301,6 @@ class KGBuilder(object):
                 if invrel is not None: self.verifies_object_property(URIRef(obo + invrel))
             else: invrel = None
             print('\nCreating {} ({}-{}) Edges'.format(edge_type.upper(), n1_type, n2_type))
-            print('\nRELATION: {}; INVERSE: {}'.format(rel.upper(), invrel.upper() if invrel is not None else 'NONE'))
             logger.info('Creating {} ({}-{}) Edges'.format(edge_type.upper(), n1_type, n2_type))
             for edge in tqdm(edge_list):
                 edge_info = {'n1': n1_type, 'n2': n2_type, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
@@ -328,7 +327,6 @@ class KGBuilder(object):
             print('\nSome edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
             logger.info('Some edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
             outputs_dictionary_data(edge_builder.subclass_error, log_file)
-
         print('\nSerializing Knowledge Graph')
         logger.info('Serializing Knowledge Graph')
         full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
