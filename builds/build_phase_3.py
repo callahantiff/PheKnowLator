@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import traceback
 
+from collections import Counter
 from datetime import datetime
 from google.cloud import storage  # type: ignore
 
@@ -115,7 +116,7 @@ def main(app, rel, owl):
     print('\nSTEP 1: INITIALIZE GOOGLE STORAGE BUCKET AND REFORMAT INPUT ARGUMENTS')
     logger.info('STEP 1: INITIALIZE GOOGLE STORAGE BUCKET AND REFORMAT INPUT ARGUMENTS')
 
-    # set bucket information and find current archived build directory - chunk gets build name from archived_builds
+    # set GCS bucket information and find name of current GCS archived_builds directory
     release = 'release_v' + __version__
     bucket = storage.Client().get_bucket('pheknowlator')
     bucket_files = [file.name.split('/')[2] for file in bucket.list_blobs(prefix='archived_builds/' + release + '/')]
@@ -123,7 +124,7 @@ def main(app, rel, owl):
     sorted_dates = sorted([datetime.strftime(datetime.strptime(str(x), '%d%b%Y'), '%Y-%m-%d').upper() for x in builds])
     build = 'build_' + datetime.strftime(datetime.strptime(sorted_dates[-1], '%Y-%m-%d'), '%d%b%Y').upper()
 
-    # reformat input arguments and create gcs directory variables
+    # reformat input build arguments and create needed GCS directory variables
     build_app = 'instance_builds' if app == 'instance' else 'subclass_builds'
     rel_type = 'relations_only' if rel == 'no' else 'inverse_relations'
     owl_decoding = 'owl' if owl == 'no' else 'owlnets'
@@ -142,8 +143,7 @@ def main(app, rel, owl):
     print('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
     logger.info('STEP 2: CONSTRUCT KNOWLEDGE GRAPH')
     logger.info('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
-
-    ray.init()  # start background process to upload logs while the pkt main knowledge graph function runs
+    ray.init()  # start daemon to continuously upload logs while the pkt main knowledge graph function runs
     background_task = PKTLogUploader.remote('pheknowlator', gcs_log_location, log_dir, 90)
     logger.info('RAN THE CONSTRUCT KNOWLEDGE GRAPH CODE')
     # run the pkt_kg main method
@@ -166,18 +166,16 @@ def main(app, rel, owl):
     print('\nSTEP 3: UPLOAD KNOWLEDGE GRAPH DATA TO GOOGLE CLOUD STORAGE')
     logger.info('STEP 3: UPLOAD KNOWLEDGE GRAPH DATA TO GOOGLE CLOUD STORAGE')
 
-    # remove data from current_build directory before writing new data
+    # remove GCS current_build directory data before writing new data
     print('Removing Existing Data from Current Build Directory on Google Cloud Storage')
     logging.info('Removing Existing Data from Current Build Directory on Google Cloud Storage')
-    # data directories
-    deletes_bucket_files(bucket, gcs_current_root + 'data/')
+    deletes_bucket_files(bucket, gcs_current_root + 'data/')  # data directories
     bucket.blob(gcs_current_root + 'data/original_data/').upload_from_string('')
     bucket.blob(gcs_current_root + 'data/processed_data/').upload_from_string('')
-    # knowledge graph directories -- clearing data for a particular build
-    deletes_bucket_files(bucket, gcs_current_loc)
+    deletes_bucket_files(bucket, gcs_current_loc)  # knowledge graph directories -- clearing data for a particular build
     bucket.blob(gcs_current_loc).upload_from_string('')
 
-    # copy archived_data/data to current_build/data
+    # copy GCS archived_data/data --> GCS current_build/data
     source_dir, destination_dir = 'archived_builds/{}/{}/data/'.format(release, build), gcs_current_root + 'data/'
     source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_dir)]
     print('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
@@ -185,33 +183,31 @@ def main(app, rel, owl):
     copies_data_between_gcs_bucket_directories(bucket, source_dir, destination_dir, source_data)
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
-    # move Docker data to current_builds Google Cloud Storage Bucket
-    print('Uploading Knowledge Graph Data from Docker to the current_build Directory')
-    logger.info('Uploading Knowledge Graph Data from Docker to the current_build Directory')
-    uploads_build_data(bucket, gcs_current_loc)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
-    # copy data from the current_builds Google Cloud Storage Bucket to the archived_builds Google Cloud Storage Bucket
-    print('Copying Knowledge Graph Data from the current_build Directory to the archived_builds Directory')
-    logger.info('Copying Knowledge Graph Data from the current_build Directory to the archived_builds Directory')
-    source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_current_loc)]
-    copies_data_between_gcs_bucket_directories(bucket, gcs_current_loc, gcs_archive_loc, source_data)
+    # move Docker pkt output --> GCS archived_builds
+    print('Uploading Knowledge Graph Data from Docker to the archived_builds Directory')
+    logger.info('Uploading Knowledge Graph Data from Docker to the archived_builds Directory')
+    uploads_build_data(bucket, gcs_archive_loc)
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
+    # copy GCS archived_builds --> GCS current_build
+    print('Copying Knowledge Graph Data from the archived_builds to the current_build Directory Directory')
+    logger.info('Copying Knowledge Graph Data from the archived_builds to the current_build DirectoryDirectory')
+    source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_archive_loc)]
+    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc, gcs_current_loc, source_data)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 4 - PRINT BUILD STATISTICS
     print('\nSTEP 4: DERIVING NETWORK STATISTICS FOR BUILD KNOWLEDGE GRAPHS')
     logger.info('STEP 4: DERIVING NETWORK STATISTICS FOR BUILD KNOWLEDGE GRAPHS')
 
-    # find Networkx MultiDiGraph files in Google Cloud Storage Bucket for build
-    try:
+    try:  # find Networkx MultiDiGraph files in Google Cloud Storage Bucket for build
         kg_files = [f.name for f in bucket.list_blobs(prefix=gcs_current_loc) if f.name.endswith('gpickle')]
         for f in kg_files:
             print('Loading graph data: {}'.format(f.split('/')[-1]))
             logger.info('Loading graph data: {}'.format(f.split('/')[-1]))
-            # download and load graph file
-            f_name = f.split('/')[-1]
-            graph = networkx.read_gpickle(downloads_data_from_gcs_bucket(bucket, None, gcs_current_loc, f_name, ''))
+            nx_local_file = downloads_data_from_gcs_bucket(bucket, None, gcs_current_loc, f.split('/')[-1], '')
+            graph = networkx.read_gpickle(nx_local_file)
             stats = derives_networkx_graph_statistics(graph)
             print(stats)
             logger.info(stats)
@@ -225,17 +221,17 @@ def main(app, rel, owl):
     logger.info('STEP 5: BUILD CLEAN-UP')
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
     print('\n\n' + '*' * 5 + ' COMPLETED BUILD PHASE 3: {} MINUTES '.format(runtime) + '*' * 5)
-    logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime))  # don't delete needed for build monitoring
-    logger.info('EXIT BUILD PHASE 3')  # don't delete needed for build monitoring
-    uploads_data_to_gcs_bucket(bucket, gcs_current_loc, log_dir, log)  # to store final log in current_build dir
+    logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime))  # don't delete - needed for build monitoring
+    logger.info('EXIT BUILD PHASE 3')  # don't delete - needed for build monitoring
+    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc, log_dir, log)
 
-    # copy build logs
-    print('Copying Logs from the current_build Directory to the archived_builds Directory')
-    logger.info('Copying Logs from the current_build Directory to the archived_builds Directory')
+    # copy build logs from GCS temp_build_inprogress --> GCS archived_builds and GCS current_build
+    print('Copying Logs to the current_build and archived_builds Directories')
+    logger.info('Copying Logs to the current_build and archived_builds Directories')
     log_1 = [x for x in [_.name for _ in bucket.list_blobs(prefix=gcs_log_root)] if x.endswith('phases12_log.log')]
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc, [log_1[0].split('/')[-1]])
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_root, [log_1[0].split('/')[-1]])
-    copies_data_between_gcs_bucket_directories(bucket, gcs_current_loc, gcs_archive_loc, [log])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc, gcs_current_loc, [log])
 
     # exit build
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
