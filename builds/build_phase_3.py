@@ -145,7 +145,6 @@ def main(app, rel, owl):
     logger.info('Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower()))
     ray.init()  # start daemon to continuously upload logs while the pkt main knowledge graph function runs
     background_task = PKTLogUploader.remote('pheknowlator', gcs_log_location, log_dir, 90)
-    logger.info('RAN THE CONSTRUCT KNOWLEDGE GRAPH CODE')
     # run the pkt_kg main method
     command = 'python Main.py --onts resources/ontology_source_list.txt --edg resources/edge_source_list.txt ' \
               '--res resources/resource_info.txt --out ./resources/knowledge_graphs --nde yes --kg full ' \
