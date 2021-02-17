@@ -321,12 +321,14 @@ class KGBuilder(object):
                     self.graph = adds_edges_to_graph(self.graph, new_edges + meta if meta else new_edges)
                 else: self.edge_dict[edge_type]['edge_list'].pop(self.edge_dict[edge_type]['edge_list'].index(edge))
             self.gets_edge_statistics(edge_type, invrel, edge_results)
-        if len(edge_builder.subclass_error.keys()) > 0:  # output error logs
+        self.graph = ontology_annotator_func(self.full_kg.split('/')[-1], self.graph)
+        # output error logs
+        if len(edge_builder.subclass_error.keys()) > 0:
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_missing_node_log.json'
             print('\nSome edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
             logger.info('Some edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
             outputs_dictionary_data(edge_builder.subclass_error, log_file)
-        self.graph = ontology_annotator_func(self.full_kg.split('/')[-1], self.graph)
+
         print('\nSerializing Knowledge Graph')
         logger.info('Serializing Knowledge Graph')
         full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
@@ -395,13 +397,9 @@ class PartialBuild(KGBuilder):
             merged_ontology_location = self.merged_ont_kg.split('/')[-1]
             merges_ontologies(self.ontologies, merged_ontology_location, self.owl_tools)
             self.graph.parse(self.merged_ont_kg, format='xml')  # load the merged ontology
-        # print statistics on the merged ontologies
-        gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
         stats = derives_graph_statistics(self.graph)
         print(stats)
         logger.info(stats)
-        print('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
-        logger.info('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
@@ -418,16 +416,10 @@ class PartialBuild(KGBuilder):
         self.ont_classes = gets_ontology_classes(self.graph)
         self.obj_properties = gets_object_properties(self.graph)
         self.creates_knowledge_graph_edges(metadata.creates_node_metadata, metadata.adds_ontology_annotations)
-        full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        # print statistics on the updated graph
         stats = derives_graph_statistics(self.graph)
         print(stats)
         logger.info(stats)
-        gets_ontology_statistics(self.write_location + full_kg_owl, self.owl_tools)
-        print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
-        logger.info('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
-        # clean environment
         del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
 
         return None
@@ -479,13 +471,9 @@ class PostClosureBuild(KGBuilder):
             logger.info('*** Loading Closed Knowledge Graph ***')
             os.rename(closed_kg_location[0], self.write_location + self.full_kg)  # rename closed kg file
             self.graph = Graph().parse(self.write_location + self.full_kg, format='xml')
-        # print statistics on the updated graph
         stats = derives_graph_statistics(self.graph)
         print(stats)
         logger.info(stats)
-        gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
-        print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
-        logger.info('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
@@ -506,13 +494,6 @@ class PostClosureBuild(KGBuilder):
         else:
             logger.info('*** Converting  Knowledge Graph to Networkx MultiDiGraph ***')
             converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
-        # print statistics on the updated graph
-        stats = derives_graph_statistics(self.graph)
-        print(stats)
-        logger.info(stats)
-        gets_ontology_statistics(self.write_location + self.full_kg, self.owl_tools)
-        print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
-        logger.info('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 5: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         print('\n*** Writing Knowledge Graph Edge Lists ***')
@@ -521,9 +502,6 @@ class PostClosureBuild(KGBuilder):
         for graph in results:
             if isinstance(graph, Graph):
                 self.graph = graph
-                stats = derives_graph_statistics(self.graph)
-                print(stats)
-                logger.info(stats)
                 # map uris to integers
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
@@ -536,7 +514,6 @@ class PostClosureBuild(KGBuilder):
                 metadata.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map, self.graph)
 
-        # clean environment
         del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
 
         return None
@@ -583,13 +560,9 @@ class FullBuild(KGBuilder):
             merged_ontology_location = self.merged_ont_kg.split('/')[-1]
             merges_ontologies(self.ontologies, merged_ontology_location, self.owl_tools)
             self.graph.parse(self.merged_ont_kg, format='xml')  # load the merged ontology
-        # print statistics on the merged ontologies
         stats = derives_graph_statistics(self.graph)
         print(stats)
         logger.info(stats)
-        gets_ontology_statistics(self.merged_ont_kg, self.owl_tools)
-        print('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
-        logger.info('The Merged Core Ontology Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 3: PROCESS NODE METADATA
         print('*** Loading Node Metadata Data ***')
@@ -606,24 +579,17 @@ class FullBuild(KGBuilder):
         self.ont_classes = gets_ontology_classes(self.graph)
         self.obj_properties = gets_object_properties(self.graph)
         self.creates_knowledge_graph_edges(metadata.creates_node_metadata, metadata.adds_ontology_annotations)
-        full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        # print statistics on the updated graph
         stats = derives_graph_statistics(self.graph)
         print(stats)
         logger.info(stats)
-        gets_ontology_statistics(self.write_location + full_kg_owl, self.owl_tools)
-        print('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
-        logger.info('The Knowledge Graph Contains: {} Triples'.format(len(self.graph)))
 
         # STEP 5: DECODE OWL SEMANTICS
         results: Tuple = tuple([self.graph, None])
         if self.decode_owl:
-            print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-            logger.info('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
             owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
             results = owl_nets.run_owl_nets()
         else:
-            logger.info('*** Converting  Knowledge Graph to Networkx MultiDiGraph ***')
+            logger.info('*** Converting Knowledge Graph to Networkx MultiDiGraph ***')
             converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
 
         # STEP 6: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
@@ -633,9 +599,6 @@ class FullBuild(KGBuilder):
         for graph in results:
             if isinstance(graph, Graph):
                 self.graph = graph
-                stats = derives_graph_statistics(self.graph)
-                print(stats)
-                logger.info(stats)
                 # map uris to integers
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
@@ -648,7 +611,6 @@ class FullBuild(KGBuilder):
                 metadata.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map, self.graph)
 
-        # clean environment
         del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
 
         return None
