@@ -37,23 +37,23 @@ COPY README.rst /PheKnowLator
 COPY resources /PheKnowLator/resources
 
 # download and copy needed data
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/edge_source_list.txt && mv edge_source_list.txt resources/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/ontology_source_list.txt && mv ontology_source_list.txt resources/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/resource_info.txt && mv resource_info.txt resources/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/subclass_construction_map.pkl && mv subclass_construction_map.pkl resources/construction_approach/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/PheKnowLator_MergedOntologies.owl && mv PheKnowLator_MergedOntologies.owl resources/knowledge_graphs/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/node_metadata_dict.pkl && mv node_metadata_dict.pkl resources/node_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/DISEASE_MONDO_MAP.txt && mv DISEASE_MONDO_MAP.txt resources/processed_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt && mv ENSEMBL_GENE_ENTREZ_GENE_MAP.txt resources/processed_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt && mv ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt resources/processed_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt && mv GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt resources/processed_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/HPA_GTEx_TISSUE_CELL_MAP.txt && mv HPA_GTEx_TISSUE_CELL_MAP.txt resources/processed_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/MESH_CHEBI_MAP.txt && mv MESH_CHEBI_MAP.txt resources/processed_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/PHENOTYPE_HPO_MAP.txt && mv PHENOTYPE_HPO_MAP.txt resources/processed_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/STRING_PRO_ONTOLOGY_MAP.txt && mv STRING_PRO_ONTOLOGY_MAP.txt resources/processed_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt && mv UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt resources/processed_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/INVERSE_RELATIONS.txt && mv INVERSE_RELATIONS.txt resources/relations_data/
-RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/dependencies/RELATIONS_LABELS.txt && mv RELATIONS_LABELS.txt resources/relations_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/edge_source_list.txt && mv edge_source_list.txt resources/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ontology_source_list.txt && mv ontology_source_list.txt resources/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/resource_info.txt && mv resource_info.txt resources/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/subclass_construction_map.pkl && mv subclass_construction_map.pkl resources/construction_approach/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/PheKnowLator_MergedOntologies.owl && mv PheKnowLator_MergedOntologies.owl resources/knowledge_graphs/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/node_metadata_dict.pkl && mv node_metadata_dict.pkl resources/node_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/DISEASE_MONDO_MAP.txt && mv DISEASE_MONDO_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt && mv ENSEMBL_GENE_ENTREZ_GENE_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt && mv ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt && mv GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt && mv HPA_GTEx_TISSUE_CELL_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/MESH_CHEBI_MAP.txt && mv MESH_CHEBI_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/PHENOTYPE_HPO_MAP.txt && mv PHENOTYPE_HPO_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/STRING_PRO_ONTOLOGY_MAP.txt && mv STRING_PRO_ONTOLOGY_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt && mv UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/INVERSE_RELATIONS.txt && mv INVERSE_RELATIONS.txt resources/relations_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/RELATIONS_LABELS.txt && mv RELATIONS_LABELS.txt resources/relations_data/
 
 # install needed python libraries
 RUN pip install --upgrade pip setuptools
@@ -75,9 +75,6 @@ RUN echo $OWLTOOLS_MEMORY
 
 # set python envrionment encoding
 RUN export PYTHONIOENCODING=utf-8
-
-# create a volume to enable persistent data
-VOLUME ["/PheKnowLator/resources"]
 
 
 ############################################
