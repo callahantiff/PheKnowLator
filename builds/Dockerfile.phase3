@@ -7,7 +7,7 @@ FROM callahantiff/pheknowlator:latest
 # allow statements and log messages to immediately appear in logs
 ENV PYTHONUNBUFFERED True
 
-# set wroking directory in container
+# set working directory in container
 WORKDIR /PheKnowLator/
 
 # download build dependencies and move them to the correct location

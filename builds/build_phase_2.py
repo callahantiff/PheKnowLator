@@ -193,25 +193,13 @@ def run_phase_2():
 
     #####################################################
     # STEP 6 - PREPARE FOR PHASE 3
-    # copy archived_data/data to current_build/dependencies -- ensures each monthly build is using correct data
-    logger.info('Uploading Input Dependency Documents to current_build Directory')
-    logger.info('Uploading Input Dependency Documents to current_build/dependencies Directory')
-    dep_dat = ['resource_info.txt', 'edge_source_list.txt', 'ontology_source_list.txt', 'node_metadata_dict.pkl',
-               'subclass_construction_map.pkl', 'INVERSE_RELATIONS.txt', 'RELATIONS_LABELS.txt',
-               'PheKnowLator_MergedOntologies.owl', 'DISEASE_MONDO_MAP.txt', 'ENSEMBL_GENE_ENTREZ_GENE_MAP.txt',
-               'ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt', 'GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt',
-               'HPA_GTEx_TISSUE_CELL_MAP.txt', 'MESH_CHEBI_MAP.txt', 'PHENOTYPE_HPO_MAP.txt',
-               'STRING_PRO_ONTOLOGY_MAP.txt', 'UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt']
-    copies_data_between_gcs_bucket_directories(bucket, gcs_processed_data, gcs_current_build + 'dependencies/', dep_dat)
-    uploads_data_to_gcs_bucket(bucket, gcs_current_build, log_dir, log)
-
-    # # copy archived_data/data to temp_build_inprogress/data -- needed for build phase 3 Dockerfile
-    # logger.info('Uploading Processed Data to the temp_build_inprogress/data Directory')
-    # source_dir, destination_dir = 'archived_builds/{}/{}/data/'.format(release, build), gcs_log_location + 'data/'
-    # source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_dir)]
-    # print('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
-    # logger.info('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
-    # copies_data_between_gcs_bucket_directories(bucket, source_dir, destination_dir, source_data)
-    # uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
+    # copy archived_data/data to temp_build_inprogress/data -- needed for build phase 3 Dockerfile
+    logger.info('Uploading Processed Data to the temp_build_inprogress/data Directory')
+    source_dir, destination_dir = 'archived_builds/{}/{}/data/'.format(release, build), gcs_log_location + 'data/'
+    source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_dir)]
+    print('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
+    logger.info('Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir))
+    copies_data_between_gcs_bucket_directories(bucket, source_dir, destination_dir, source_data)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     return None
