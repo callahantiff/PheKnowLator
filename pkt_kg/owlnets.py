@@ -645,6 +645,10 @@ class OwlNets(object):
              None.
         """
 
+        stats = derives_graph_statistics(graph)
+        print(stats)
+        logger.info(stats)
+
         # write out owl-nets graph
         print('Serializing OWL-NETS Graph')
         logger.info('Serializing OWL-NETS Graph')
@@ -658,11 +662,9 @@ class OwlNets(object):
 
         # write n-triples version of graph
         graph.serialize(destination=self.write_location + f_name, format='nt')
-
         # write out owl_nets dictionary
         with open(self.write_location + f_name.strip('.nt') + '_decoding_dict.pkl', 'wb') as out:
             pickle.dump(self.owl_nets_dict, out)
-
         # write NetworkX MultiDigraph version of graph
         converts_rdflib_to_networkx(self.write_location, f_name.strip('.nt'), graph)
 
@@ -685,8 +687,8 @@ class OwlNets(object):
                 additional to being purified according to the kg_construct_approach.
         """
 
-        print('Creating OWL-NETS graph')
-        logger.info('Creating OWL-NETS graph')
+        print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
+        logger.info('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
         self.removes_disjoint_with_axioms()
         self.updates_pkt_namespace_identifiers()
         self.converts_rdflib_to_networkx_multidigraph()
