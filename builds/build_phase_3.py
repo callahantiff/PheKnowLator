@@ -229,7 +229,7 @@ def main(app, rel, owl):
     logger.info('Copying Logs to the current_build and archived_builds Directories')
     log_1 = [x for x in [_.name for _ in bucket.list_blobs(prefix=gcs_log_root)] if x.endswith('phases12_log.log')]
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc, [log_1[0].split('/')[-1]])
-    copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_root, [log_1[0].split('/')[-1]])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_loc, [log_1[0].split('/')[-1]])
     copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc, gcs_current_loc, [log])
 
     # exit build
