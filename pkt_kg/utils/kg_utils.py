@@ -461,18 +461,19 @@ def derives_graph_statistics(graph: Union[Graph, networkx.MultiDiGraph]) -> str:
                     key=lambda x: x[1],  # type: ignore
                     reverse=1)[:6]  # type: ignore
         avg_degree = float(edges) / nodes
-        n_deg = sorted([(str(x[0]), x[1]) for x in graph.degree()], key=lambda x: x[1],  # type: ignore
-                       reverse=1)[:6]  # type: ignore
+        n_deg = sorted([(str(x[0]), x[1]) for x in graph.degree], key=lambda x: x[1], reverse=1)[:6]  # type: ignore
         density = networkx.density(graph)
         components = sorted(list(networkx.connected_components(nx_graph_und)), key=len, reverse=True)
-        cc_sizes = {x: len(components[x]) for x in range(len(components))}
+        # cc_sizes = {x: len(components[x]) for x in range(len(components))}
+        cc_content = {x: str(len(components[x])) + ' nodes :' + ' | '.join(components[x]) if len(components[x]) < 500
+                      else len(components[x]) for x in range(len(components))}
         x = '{} nodes, {} edges, {} self-loops, 5 most most common edges: {}, average degree {}, 5 highest degree '\
-            'nodes: {}, density: {}, {} component(s) and size(s): {}'
+            'nodes: {}, density: {}, {} component(s): {}'
         stats = 'Graph Stats: ' + x.format(nodes, edges, self_loops,
                                            ', '.join([x[0] + ':' + str(x[1]) for x in ce]),
                                            avg_degree,
                                            ', '.join([x[0] + ':' + str(x[1]) for x in n_deg]),
-                                           density, len(components), cc_sizes)
+                                           density, len(components), cc_content)
 
     return stats
 
