@@ -72,6 +72,7 @@ setup(
     install_requires=['argparse>=1.4.0',
                       'click==7.1.2',
                       'Cython==0.29.14',
+                      'more-itertools==8.2.0',
                       'networkx==2.4',
                       'numpy==1.18.1',
                       'openpyxl==3.0.3',

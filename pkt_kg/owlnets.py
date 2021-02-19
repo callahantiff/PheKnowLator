@@ -42,8 +42,11 @@ class OwlNets(object):
     graph alone and provide no purification steps. Alternatively, one can select "instance" or "subclass"
     purification. For more information see the purifies_graph_build() method.
 
-    REMOVAL OF NON-OBO CLASSES: The method will remove all triples containing a owl:Class or owl:NamedIndividual that is
-    not from the OBO namespace. If you do not want this functionality, comment line XXX.
+    ASSUMPTIONS: In order to prevent the filtered graph from becoming unnecessarily disconnected, all OWL-NETS
+    nodes are checked to ensure that at least one of their ancestor concepts in the cleaned graph is a subclass of
+    BFO_0000001 ('Entity'). While this is not the best solution long-term is the cleanest way to ensure the graph
+    remains connected and to introduce the least amount of extra edges (i.e. avoids having to make every  node
+    rdfs:subClassOf BFO_0000001).
 
     Additional Information: https://github.com/callahantiff/PheKnowLator/wiki/OWL-NETS-2.0
 
@@ -73,10 +76,10 @@ class OwlNets(object):
 
         # EXCLUSION ONTOLOGY PREFIXES
         # top-level and relation-specific ontologies - can appear only as predicates
-        self.top_level_ontologies: List = ['BFO', 'ISO', 'SUMO']
+        self.top_level_ontologies: List = ['ISO', 'SUMO', 'BFO']
         self.relations_ontologies: List = ['RO']
         # support ontologies - can never appear in OWL-NETS triples
-        self.support_ontologies: List = ['IAO', 'SWO']
+        self.support_ontologies: List = ['IAO', 'SWO', 'OBI', 'UBPROP']
 
         # VERIFY INPUT GRAPH
         if not isinstance(graph, Graph) and not isinstance(graph, str):
@@ -126,7 +129,6 @@ class OwlNets(object):
         for x in disjoint_elements:
             triples = list(self.graph.triples((x, None, None)))
             self.owl_nets_dict['disjointWith'][nt_serializes_node(x)] = set(triples)
-            # remove axioms from graph
             for triple in triples:
                 self.graph.remove(triple)
 
@@ -593,6 +595,35 @@ class OwlNets(object):
 
         return cleaned_decoded_graph
 
+    @staticmethod
+    def makes_graph_connected(graph: Graph) -> Graph:
+        """In order to prevent the filtered graph from becoming unnecessarily disconnected, all OWL-NETS nodes are
+        checked to ensure that at least one of their ancestor concepts in the cleaned graph is a subclass of
+        BFO_0000001 ('Entity'). While this is not the best solution long-term is the cleanest way to ensure the graph
+        remains connected and to introduce the least amount of extra edges (i.e. avoids having to make every node
+        rdfs:subClassOf BFO_0000001).
+
+        Args:
+            graph: An RDFLib Graph object.
+
+        Returns:
+            graph: An RDFLib Graph object that has been updated to be connected.
+        """
+
+        nodes = set([x for x in list(graph.subjects()) + list(graph.objects()) if isinstance(x, URIRef)])
+        starting_size = len(graph)
+        for x in tqdm(nodes):
+            ancestors = gets_class_ancestors(graph, [x])
+            if str(obo.BFO_0000001) not in ancestors and len(ancestors) != 0:
+                graph.add((URIRef(ancestors[0]), RDFS.subClassOf, obo.BFO_0000001))
+            else:
+                graph.add((x, RDFS.subClassOf, obo.BFO_0000001))
+
+        res = len(graph) - starting_size
+        print('{} triples were added in order to ensure the graph contains a single connected component.'.format(res))
+
+        return graph
+
     def purifies_graph_build(self) -> None:
         """Purifies an existing graph according to its kg_construction approach (i.e. "subclass" or "instance"). When
         kg_construction is "subclass", then all triples where the subject and object are connected by RDF.type are
@@ -619,7 +650,7 @@ class OwlNets(object):
             self.graph.add((edge[0], pure_rel, edge[2]))  # fix primary edge
             self.graph.remove(edge)
             # make s "rel" (pure_rel - RDF.type or RDFS.subClassOf) all ancestors of o
-            o_ancs = gets_class_ancestors(self.graph, {edge[2]}, {edge[2]})  # filter to keep same namespace
+            o_ancs = gets_class_ancestors(self.graph, [edge[2]], [edge[2]])  # filter to keep same namespace
             ancs_filter = tuple([x for x in o_ancs if x.startswith('http') and URIRef(x) != edge[2]])
             for node in ancs_filter:
                 self.graph.add((edge[0], pure_rel, URIRef(node)))
@@ -694,7 +725,7 @@ class OwlNets(object):
         self.converts_rdflib_to_networkx_multidigraph()
         filtered_graph = self.removes_edges_with_owl_semantics()
         decoded_graph = self.cleans_owl_encoded_classes()
-        self.graph = filtered_graph + decoded_graph
+        self.graph = self.makes_graph_connected(filtered_graph + decoded_graph)
 
         print('Processing OWL-NETS Graph Output')
         logger.info('Processing OWL-NETS Graph Output')

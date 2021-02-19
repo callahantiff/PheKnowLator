@@ -40,6 +40,7 @@ import os.path
 import random
 
 from collections import Counter  # type: ignore
+from more_itertools import unique_everseen  # type: ignore
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 from rdflib.plugins.serializers.nt import _quoteLiteral  # type: ignore
@@ -354,7 +355,7 @@ def finds_node_type(edge_info: Dict) -> Dict:
     return nodes
 
 
-def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], class_list: Optional[Set] = None) -> Set:
+def gets_class_ancestors(graph: Graph, class_uris: List[Union[URIRef, str]], class_list: Optional[List] = None) -> List:
     """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input class.
 
     Args:
@@ -363,22 +364,28 @@ def gets_class_ancestors(graph: Graph, class_uris: Set[Union[URIRef, str]], clas
         class_list: A list of URIs representing the ancestor classes found for the input class_uris.
 
     Returns:
-        A list of ontology class ordered by the ontology hierarchy.
+        An ordered (ascending; root to leaf) list of ontology classes containing the input ancestor hierarchy for the
+            class_uris. For example:
+                input: [URIRef('http://purl.obolibrary.org/obo/NCBITaxon_11157')]
+                output: [
+                    'http://purl.obolibrary.org/obo/NCBITaxon_10239',
+                    'http://purl.obolibrary.org/obo/NCBITaxon_2559587',
+                    'http://purl.obolibrary.org/obo/NCBITaxon_2497569',
+                    'http://purl.obolibrary.org/obo/NCBITaxon_11157'
+                    ]
     """
 
     # instantiate list object if none passed to function
-    class_list = set() if class_list is None else class_list
-    class_list = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_list])
-
+    class_list = [] if class_list is None else class_list
+    class_list = list(unique_everseen([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_list]))
     # check class uris are formatted correctly and get their ancestors
-    class_uris = set([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris])
-    ancestors = set([j for k in [list(graph.objects(x, RDFS.subClassOf)) for x in set(class_uris)] for j in k])
-
-    if len(ancestors) == 0 or len(ancestors.difference(class_list)) == 0:
-        return set([str(x) for x in class_list])
+    class_uris = list(unique_everseen([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris]))
+    ancestors = list(unique_everseen([j for k in [graph.objects(x, RDFS.subClassOf) for x in class_uris] for j in k]))
+    if len(ancestors) == 0 or len(set(ancestors).difference(set(class_list))) == 0:
+        return list(unique_everseen([str(x) for x in class_list]))
     else:
-        class_uris = ancestors.difference(class_list)
-        class_list |= ancestors.difference(class_list)
+        class_uris = [x for x in ancestors if x not in class_list]
+        class_list.insert(0, [x for x in class_uris][0])
         return gets_class_ancestors(graph, class_uris, class_list)
 
 
@@ -465,7 +472,7 @@ def derives_graph_statistics(graph: Union[Graph, networkx.MultiDiGraph]) -> str:
         density = networkx.density(graph)
         components = sorted(list(networkx.connected_components(nx_graph_und)), key=len, reverse=True)
         # cc_sizes = {x: len(components[x]) for x in range(len(components))}
-        cc_content = {x: str(len(components[x])) + ' nodes :' + ' | '.join(components[x]) if len(components[x]) < 500
+        cc_content = {x: str(len(components[x])) + ' nodes: ' + ' | '.join(components[x]) if len(components[x]) < 500
                       else len(components[x]) for x in range(len(components))}
         x = '{} nodes, {} edges, {} self-loops, 5 most most common edges: {}, average degree {}, 5 highest degree '\
             'nodes: {}, density: {}, {} component(s): {}'

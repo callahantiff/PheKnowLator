@@ -688,6 +688,15 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
+    def test_makes_graph_connected(self):
+        """Tests the makes_graph_connected method."""
+
+        starting_size = len(self.owl_nets.graph)
+        connected_graph = self.owl_nets.makes_graph_connected(self.owl_nets.graph)
+        self.assertTrue(len(connected_graph) > starting_size)
+
+        return None
+
     def test_purifies_graph_build_none(self):
         """Tests the purifies_graph_build method when kg_construction is None."""
 
@@ -737,7 +746,7 @@ class TestOwlNets(unittest.TestCase):
         self.assertIsInstance(owl_nets_graph, Tuple)
         self.assertIsInstance(owl_nets_graph[0], Graph)
         self.assertEqual(owl_nets_graph[1], None)
-        self.assertEqual(len(owl_nets_graph[0]), 2940)
+        self.assertEqual(len(owl_nets_graph[0]), 5173)
 
         # make sure files are written locally
         nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
@@ -755,7 +764,7 @@ class TestOwlNets(unittest.TestCase):
         owl_nets_graph = self.owl_nets.run_owl_nets()
         self.assertIsInstance(owl_nets_graph, Tuple)
         self.assertIsInstance(owl_nets_graph[0], Graph)
-        self.assertEqual(len(owl_nets_graph[0]), 2940)
+        self.assertEqual(len(owl_nets_graph[0]), 5173)
         self.assertIsInstance(owl_nets_graph[1], Graph)
         self.assertEqual(len(owl_nets_graph[0]), len(owl_nets_graph[1]))
 
@@ -782,7 +791,7 @@ class TestOwlNets(unittest.TestCase):
         owl_nets_graph = self.owl_nets2.run_owl_nets()
         self.assertIsInstance(owl_nets_graph, Tuple)
         self.assertIsInstance(owl_nets_graph[0], Graph)
-        self.assertEqual(len(owl_nets_graph[0]), 2940)
+        self.assertEqual(len(owl_nets_graph[0]), 5173)
         self.assertIsInstance(owl_nets_graph[1], Graph)
         self.assertTrue(len(owl_nets_graph[1]) > len(owl_nets_graph[0]))
 

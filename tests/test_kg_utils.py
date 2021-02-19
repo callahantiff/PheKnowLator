@@ -390,7 +390,7 @@ class TestKGUtils(unittest.TestCase):
 
         # get ancestors when a valid class is provided -- class is URIRef
         ancestors1 = gets_class_ancestors(graph, so_class, so_class)
-        self.assertIsInstance(ancestors1, Set)
+        self.assertIsInstance(ancestors1, List)
         self.assertEqual(sorted(list(ancestors1)),
                          sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
                                       'http://purl.obolibrary.org/obo/SO_0000400',
@@ -408,7 +408,7 @@ class TestKGUtils(unittest.TestCase):
         # get ancestors when a valid class is provided -- class is not URIRef
         class_uri = set([str(x).split('/')[-1] for x in so_class])
         ancestors1 = gets_class_ancestors(graph, class_uri, class_uri)
-        self.assertIsInstance(ancestors1, Set)
+        self.assertIsInstance(ancestors1, List)
         self.assertEqual(sorted(list(ancestors1)),
                          sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
                                       'http://purl.obolibrary.org/obo/SO_0000400',
@@ -423,9 +423,9 @@ class TestKGUtils(unittest.TestCase):
         graph = Graph().parse(self.good_ontology_file_location, format='xml')
 
         # get ancestors when no class is provided
-        ancestors2 = gets_class_ancestors(graph, set())
-        self.assertIsInstance(ancestors2, Set)
-        self.assertEqual(ancestors2, set())
+        ancestors2 = gets_class_ancestors(graph, [])
+        self.assertIsInstance(ancestors2, List)
+        self.assertEqual(ancestors2, [])
 
         return None
 
