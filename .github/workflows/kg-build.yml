@@ -55,7 +55,7 @@ jobs:
     env:
       GCE_ZONE: us-central1-a
       GCE_CPU: 1
-      GCE_MEMORY: 500GB
+      GCE_MEMORY: 250GB
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
@@ -107,9 +107,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3000
     env:
-      GCE_ZONE: us-central1-a
+      GCE_ZONE: us-west1-b
       GCE_CPU: 1
-      GCE_MEMORY: 500GB
+      GCE_MEMORY: 250GB
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 500GB
       DOCKERFILE: builds/Dockerfile.phase3
@@ -215,7 +215,7 @@ jobs:
       runs-on: ubuntu-latest
       timeout-minutes: 3000
       env:
-        GCE_ZONE: us-central1-a
+        GCE_ZONE: us-west1-b
         GCE_CPU: 1
         GCE_MEMORY: 500GB
         GCE_BOOT_DISC_TYPE: pd-standard
@@ -323,7 +323,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3000
     env:
-      GCE_ZONE: us-central1-a
+      GCE_ZONE: us-west1-b
       GCE_CPU: 1
       GCE_MEMORY: 500GB
       GCE_BOOT_DISC_TYPE: pd-standard
@@ -431,7 +431,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3000
     env:
-      GCE_ZONE: us-central1-a
+      GCE_ZONE: us-west1-b
       GCE_CPU: 1
       GCE_MEMORY: 500GB
       GCE_BOOT_DISC_TYPE: pd-standard
@@ -493,5 +493,6 @@ jobs:
 #      - name: Delete temp_build_inprogress
 #        run: gsutil rm -r gs://pheknowlator/temp_build_inprogress
 
-### ADD BILL'S CODE FOR UPDATING TO SPARQL ENDPOINT
-### ADD SELF-HOSTED RUNNER: https://github.com/terraform-google-modules/terraform-google-github-actions-runners/blob/master/examples/gh-runner-gke-dind/README.md
+#TODO: Uncomment all code once Terraform solution is implemented
+# fix Bill's endpoint code to update for new builds (place that chunk before the build-clean-up section)
+# need self-hosted runners or Terraform: https://github.com/terraform-google-modules/terraform-google-github-actions-runners/blob/master/examples/gh-runner-gke-dind/README.md
