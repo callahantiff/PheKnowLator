@@ -294,8 +294,9 @@ class KGBuilder(object):
             n1_type, n2_type = self.edge_dict[edge_type]['data_type'].split('-')
             uri, edge_list = self.edge_dict[edge_type]['uri'], copy.deepcopy(self.edge_dict[edge_type]['edge_list'])
             edge_results: List = []
-            rel, invrel = self.edge_dict[edge_type]['edge_relation'], self.inverse_relations
+            rel = self.edge_dict[edge_type]['edge_relation']
             if self.inverse_relations is not None: invrel = self.checks_for_inverse_relations(rel, edge_list)
+            else: invrel = self.inverse_relations
             print('\nCreating {} ({}-{}) Edges'.format(edge_type.upper(), n1_type, n2_type))
             logger.info('Creating {} ({}-{}) Edges'.format(edge_type.upper(), n1_type, n2_type))
             for edge in tqdm(edge_list):
