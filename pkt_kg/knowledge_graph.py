@@ -294,12 +294,8 @@ class KGBuilder(object):
             n1_type, n2_type = self.edge_dict[edge_type]['data_type'].split('-')
             uri, edge_list = self.edge_dict[edge_type]['uri'], copy.deepcopy(self.edge_dict[edge_type]['edge_list'])
             edge_results: List = []
-            rel = self.edge_dict[edge_type]['edge_relation']
-            self.verifies_object_property(URIRef(obo + rel))
-            if self.inverse_relations is not None:
-                invrel = self.checks_for_inverse_relations(rel, edge_list)
-                if invrel is not None: self.verifies_object_property(URIRef(obo + invrel))
-            else: invrel = None
+            rel, invrel = self.edge_dict[edge_type]['edge_relation'], self.inverse_relations
+            if self.inverse_relations is not None: invrel = self.checks_for_inverse_relations(rel, edge_list)
             print('\nCreating {} ({}-{}) Edges'.format(edge_type.upper(), n1_type, n2_type))
             logger.info('Creating {} ({}-{}) Edges'.format(edge_type.upper(), n1_type, n2_type))
             for edge in tqdm(edge_list):
@@ -320,18 +316,18 @@ class KGBuilder(object):
                     self.graph = adds_edges_to_graph(self.graph, new_edges + meta if meta else new_edges)
                 else: self.edge_dict[edge_type]['edge_list'].pop(self.edge_dict[edge_type]['edge_list'].index(edge))
             self.gets_edge_statistics(edge_type, invrel, edge_results)
-        self.graph = ontology_annotator_func(self.full_kg.split('/')[-1], self.graph)
-        # output error logs
-        if len(edge_builder.subclass_error.keys()) > 0:
-            log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_missing_node_log.json'
-            print('\nSome edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
-            logger.info('Some edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
-            outputs_dictionary_data(edge_builder.subclass_error, log_file)
         print('\nSerializing Knowledge Graph')
         logger.info('Serializing Knowledge Graph')
+        self.graph = ontology_annotator_func(self.full_kg.split('/')[-1], self.graph)
         full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         self.graph.serialize(destination=self.write_location + full_kg_owl, format='xml')
         ontology_file_formatter(self.write_location, full_kg_owl, self.owl_tools)
+
+        # output error logs
+        if len(edge_builder.subclass_error.keys()) > 0:
+            log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_missing_node_log.json'
+            logger.info('Some edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
+            outputs_dictionary_data(edge_builder.subclass_error, log_file)
 
         return None
 

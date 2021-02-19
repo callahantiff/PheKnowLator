@@ -595,7 +595,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance.graph) > 0)
-        self.assertEqual(len(self.kg_instance.graph), 139)
+        self.assertEqual(len(self.kg_instance.graph), 138)
 
         # check graph was saved
         self.assertTrue(os.path.exists(self.kg_instance.write_location + self.kg_instance.full_kg))
@@ -625,7 +625,7 @@ class TestKGBuilder(unittest.TestCase):
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance2.graph) > 0)
-        self.assertEqual(len(self.kg_instance2.graph), 146)
+        self.assertEqual(len(self.kg_instance2.graph), 145)
 
         # check graph was saved
         f_name = self.kg_instance2.full_kg.replace('_noOWL.owl', '_OWL.owl')
