@@ -201,7 +201,8 @@ jobs:
           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
             --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
             --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
-            --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
+            --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw \
+            --metadata=google-monitoring-enabled=true
       - name: Monitor Build
         run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
 #      - name: Stop Virtual Machine Instance
