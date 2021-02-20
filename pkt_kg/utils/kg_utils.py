@@ -12,6 +12,8 @@ Interacts with OWL Tools API
 * gets_ontology_class_synonyms
 * merges_ontologies
 * ontology_file_formatter
+* removes_annotation_assertions
+* adds_annotation_assertions
 
 Interacts with Knowledge Graphs
 * adds_edges_to_graph
@@ -265,6 +267,29 @@ def ontology_file_formatter(write_location: str, full_kg: str,
             subprocess.check_call([owltools_location, graph_write_location, '-o', graph_write_location])
         except subprocess.CalledProcessError as error:
             print(error.output)
+
+    return None
+
+
+def removes_annotation_assertions(filename: str,
+                                  owltools_location: str = os.path.abspath('./pkt_kg/libs/owltools')) -> None:
+    """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
+    removes annotation assertions to make a pure logic subset', which reduces the overall size of the knowledge
+    graph, while still being compatible with a reasoner.
+
+    Args:
+        filename: A string pointing to a filename and local directory for writing data to.
+        owltools_location: A string pointing to the location of the owl tools library.
+
+    Returns:
+        None.
+    """
+
+    try:
+        subprocess.check_call([owltools_location, filename, '--remove-annotation-assertions',
+                               '-o', filename[:-4] + '_NoAnnotationAssertions.owl'])
+    except subprocess.CalledProcessError as error:
+        print(error.output)
 
     return None
 

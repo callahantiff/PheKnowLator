@@ -511,3 +511,17 @@ class TestKGUtils(unittest.TestCase):
         self.assertTrue(len(stats) > 700)
 
         return None
+
+    def test_removes_annotation_assertions(self):
+        """Tests the removes_annotation_assertions method."""
+
+        removes_annotation_assertions(self.good_ontology_file_location, self.owltools_location)
+
+        # check that annotations were removed
+        no_assert_loc = self.good_ontology_file_location[:-4] + '_NoAnnotationAssertions.owl'
+        self.assertTrue(os.path.exists(no_assert_loc))
+
+        # remove file
+        os.remove(no_assert_loc)
+
+        return None

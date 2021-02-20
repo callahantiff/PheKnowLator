@@ -151,8 +151,6 @@ class Metadata(object):
         """
 
         key, edges, x = key_type, [], []
-
-        # find eligible entities to add (i.e. all relations and nodes for entities that are not a class)
         if self.node_dict:
             if key == 'relations' and e_type is None: x = [i for i in ent if i in self.node_dict[key].keys()]
             elif e_type: x = [i for i in ent if e_type[ent.index(i)] != 'class' and i in self.node_dict[key].keys()]
@@ -264,50 +262,3 @@ class Metadata(object):
                                   '\t' + dsc.encode('utf-8').decode() + '\t' + syn.encode('utf-8').decode() + '\n')
 
         return None
-
-    def removes_annotation_assertions(self, owltools_location: str = os.path.abspath('./pkt_kg/libs/owltools')) -> None:
-        """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
-        removes annotation assertions to make a pure logic subset', which reduces the overall size of the knowledge
-        graph, while still being compatible with a reasoner.
-
-        Note. This method is usually only applied to partial builds.
-
-        Args:
-            owltools_location: A string pointing to the location of the owl tools library.
-
-        Returns:
-            None.
-        """
-
-        # remove annotation assertions
-        try:
-            subprocess.check_call([owltools_location, self.write_location + self.full_kg,
-                                   '--remove-annotation-assertions',
-                                   '-o', self.write_location + self.full_kg[:-4] + '_NoAnnotationAssertions.owl'])
-        except subprocess.CalledProcessError as error:
-            print(error.output)
-
-        return None
-
-    @staticmethod
-    def adds_annotation_assertions(graph: Graph, filename: str) -> Graph:
-        """Adds edges removed from the knowledge graph when annotation assertions were removed. First, the knowledge
-        graph that was created prior to removing annotation assertions is read in. Then, the function iterates over the
-        closed knowledge graph files and adds any edges that are present in the list, but missing from the closed
-        knowledge graph.
-
-        Note. This method is usually only applied to post-closure builds.
-
-        Args:
-            graph: An rdflib graph object.
-            filename: A string containing the filepath to the full knowledge graph that includes annotation assertions.
-
-        Returns:
-            graph: An rdflib graph object that includes annotation assertions.
-        """
-
-        assertions = Graph().parse(filename)
-        for edge in tqdm(assertions):
-            graph.add(edge)
-
-        return graph

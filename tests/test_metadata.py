@@ -169,53 +169,6 @@ class TestMetadata(unittest.TestCase):
 
         return None
 
-    def test_removes_annotation_assertions(self):
-        """Tests the removes_annotation_assertions method."""
-
-        # check inputs
-        self.assertIsInstance(self.metadata.write_location, str)
-        self.assertTrue(self.metadata.write_location == self.dir_loc)
-        self.assertIsInstance(self.metadata.full_kg, str)
-        self.assertTrue(self.metadata.full_kg == self.dir_loc + '/ontologies/so_with_imports.owl')
-
-        # run function
-        self.metadata.write_location = ''
-        self.metadata.removes_annotation_assertions(self.owltools_location)
-
-        # check that annotations were removed
-        no_assert_loc = self.metadata.full_kg[:-4] + '_NoAnnotationAssertions.owl'
-        self.assertTrue(os.path.exists(no_assert_loc))
-
-        # remove file
-        os.remove(self.dir_loc + '/ontologies/so_with_imports_NoAnnotationAssertions.owl')
-
-        return None
-
-    def test_adds_annotation_assertions(self):
-        """Tests the adds_annotation_assertions method."""
-
-        # remove annotation assertions
-        self.metadata.write_location = ''
-        self.metadata.removes_annotation_assertions(self.owltools_location)
-
-        # update inputs
-        filename = self.metadata.full_kg[:-4] + '_NoAnnotationAssertions.owl'
-
-        # load graph
-        graph = Graph().parse(filename)
-        no_annot_graph_len = len(graph)
-
-        # add back annotation assertions
-        updated_graph = self.metadata.adds_annotation_assertions(graph=graph, filename=filename)
-
-        # verify that new edges were added to the graph
-        self.assertTrue(len(updated_graph) > no_annot_graph_len)
-
-        # remove file
-        os.remove(self.dir_loc + '/ontologies/so_with_imports_NoAnnotationAssertions.owl')
-
-        return None
-
     def test_extracts_class_metadata(self):
         """Tests the extracts_class_metadata data."""
 
