@@ -20,8 +20,8 @@ What Does This Repository Provide?
 
 How do I Learn More?
 ===================================
-- Join an existing or start a new `Discussion`_
-- The Project `Wiki`_ for more details on available knowledge graphs, the knowledge graph construction process, algorithm, and information on the data sources used to build each knowledge graph
+- Join and/or start a `Discussion`_
+- The Project `Wiki`_ for available knowledge graphs, `pkt_kg` data sources, and the knowledge graph construction process
 - Preliminary results from our 2020 ISMB presentation are available `here <https://doi.org/10.1101/2020.04.30.071407>`__
 
 |
@@ -41,6 +41,12 @@ Important Updates and Notifications
     - SPARQL Endpoint (``OWL-NETS``  instance-based + inverse relations and no metadata): `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
 
     - Neo4J Endpoint: *COMING SOON*
+
+  - New Jupyter Notebooks:
+
+    - Applying ``OWL-NETS``: `OWLNETS_Example_Application.ipynb <https://github.com/callahantiff/PheKnowLator/blob/master/OWLNETS_Example_Application.ipynb>`_
+
+    - Exploring ``pkt_kg`` knowledge graphs and other ontologies: `RDF_Graph_Processing_Example.ipynb <https://github.com/callahantiff/PheKnowLator/blob/master/RDF_Graph_Processing_Example.ipynb>`_
 
 Releases
 =========
