@@ -161,6 +161,7 @@ class DataPreprocessing(object):
         """
 
         logger.info('Preprocessing Ensembl Data')
+
         f_name, cleaned_col = 'Homo_sapiens.GRCh38.*.gtf', []
         ensembl_geneset = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=5, head=None, sht=None)
         data_cols = ['gene_id', 'transcript_id', 'gene_name', 'gene_biotype', 'transcript_name', 'transcript_biotype']
@@ -212,6 +213,7 @@ class DataPreprocessing(object):
         """
 
         logger.info('Merging Ensembl Annotation Data')
+
         drop_cols = ['db_name', 'info_type', 'source_identity', 'xref_identity', 'linkage_type']
         un_name, ent_name = 'Homo_sapiens.GRCh38.*.uniprot.tsv', 'Homo_sapiens.GRCh38.*.entrez.tsv'
         # uniprot data
@@ -256,6 +258,7 @@ class DataPreprocessing(object):
         """
 
         logger.info('Preprocessing UniProt Data')
+
         f_name = 'uniprot_identifier_mapping.tab'
         uniprot = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=0, sht=None)
         uniprot.fillna('None', inplace=True)
@@ -284,6 +287,7 @@ class DataPreprocessing(object):
         """
 
         logger.info('Preprocessing Entrez Data')
+
         f_name = 'Homo_sapiens.gene_info'
         ncbi_gene = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=0, sht=None)
         ncbi_gene = ncbi_gene.loc[ncbi_gene['#tax_id'].apply(lambda x: x == 9606)]  # remove non-human rows
@@ -323,6 +327,7 @@ class DataPreprocessing(object):
         """
 
         logger.info('Preprocessing Protein Ontology Data')
+
         col_names = ['pro_id', 'Entry', 'pro_mapping']
         pro = self.reads_gcs_bucket_data_to_df(f_name='promapping.txt', delm='\t', skip=0, head=col_names, sht=None)
         pro = pro.loc[pro['Entry'].apply(lambda x: x.startswith('UniProtKB:') and '_VAR' not in x and ', ' not in x)]
@@ -342,8 +347,7 @@ class DataPreprocessing(object):
             merged_data: A Pandas DataFrame of merged genomic identifier information.
         """
 
-        print('\t- Loading, Processing, and Merging Genomic Identifier Data')
-        logger.info('Merging Genomic Identifier Data')
+        print('\t- Loading, Processing, and Merging Genomic ID Data'); logger.info('Merging Genomic ID Data')
 
         # hgnc + ensembl
         hgnc, ensembl = self._preprocess_hgnc_data(), self.merges_ensembl_mapping_data()
@@ -379,6 +383,7 @@ class DataPreprocessing(object):
         """
 
         logger.info('Fixing genomic Symbols')
+
         clean_dates, merged_data = [], self._merges_genomic_identifier_data()
         for x in tqdm(list(merged_data['symbol'])):
             if '-' in x and len(x.split('-')[0]) < 3 and len(x.split('-')[1]) == 3:
@@ -410,6 +415,7 @@ class DataPreprocessing(object):
         """
 
         logger.info('Cross-Mapping Genomic Identifier Data')
+
         # reformat data to convert all nones, empty values, and unknowns to NaN
         merged_data: pandas.DataFrame = self._fixes_genomic_symbols()
         master_dict: Dict = {}
@@ -442,8 +448,7 @@ class DataPreprocessing(object):
                 identifier types and where values are lists of all other genomic identifiers that map to that key.
         """
 
-        print('\t- Creating Genomic Identifier Cross-Mapping Dictionary')
-        logger.info('Creating Genomic Identifier Cross-Mapping Dictionary')
+        print('\t- Creating Genomic ID Cross-Map Dictionary'); logger.info('Creating Genomic ID Cross-Map Dictionary')
 
         master_dict = self._cross_maps_genomic_identifier_data()
         reformatted_mapped_identifiers, gene_type, transcript_type = {}, 'gene_type', 'transcript_type'
@@ -482,8 +487,7 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('\t- Generating Genomic Identifier Cross-Mapping Sets')
-        logger.info('Generating Pairwise Genomic Cross-Map Sets')
+        print('\t- Generating Genomic ID Cross-Map Sets'); logger.info('Generating Pairwise Genomic Cross-Map Sets')
 
         self._loads_genomic_typing_dictionary()  # creates genomic typing dictionary
         reformatted_mapped_identifiers = self.creates_master_genomic_identifier_map()
@@ -518,8 +522,7 @@ class DataPreprocessing(object):
                 synonyms for each key.
         """
 
-        print('\t- Processing MeSH Data')
-        logger.info('Preprocessing MeSH Data')
+        print('\t- Processing MeSH Data'); logger.info('Preprocessing MeSH Data')
 
         f_name = 'mesh*.nt'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
@@ -564,8 +567,7 @@ class DataPreprocessing(object):
                 labels or synonyms), and TYP (i.e. a string denoting if the STR column entry is a 'NAME' or 'SYNONYM').
         """
 
-        print('\t- Processing ChEBI Data')
-        logger.info('Preprocessing ChEBI Data')
+        print('\t- Processing ChEBI Data'); logger.info('Preprocessing ChEBI Data')
 
         chebi = self.reads_gcs_bucket_data_to_df(f_name='names.tsv', delm='\t', skip=0, head=0, sht=None)
         chebi_df = chebi[['COMPOUND_ID', 'TYPE', 'NAME']]  # remove unneeded columns
@@ -587,8 +589,7 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Creating MeSH-ChEBI Identifier Cross-Mapping Data')
-        logger.info('Creating MeSH-ChEBI Identifier Cross-Mapping Data')
+        print('Creating MeSH-ChEBI ID Cross-Map Data'); logger.info('Creating MeSH-ChEBI ID Cross-Map Data')
 
         mesh_df, mesh_dict = self._processes_mesh_data()
         chebi_df = self._processes_chebi_data()
@@ -624,8 +625,7 @@ class DataPreprocessing(object):
             mondo_dict: A dict where disease identifiers mapped to mondo are keys and mondo identifiers are values.
         """
 
-        print('\t- Loading MonDO Disease Ontology Data')
-        logger.info('Loading MonDO Disease Ontology Data')
+        print('\t- Loading MonDO Disease Ontology Data'); logger.info('Loading MonDO Disease Ontology Data')
 
         f_name = 'mondo_with_imports.owl'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
@@ -647,8 +647,7 @@ class DataPreprocessing(object):
             hp_dict: A dict where disease identifiers mapped to hpo are keys and mondo identifiers are values.
         """
 
-        print('\t- Loading Human Phenotype Ontology Data')
-        logger.info('Loading Human Phenotype Ontology Data')
+        print('\t- Loading Human Phenotype Ontology Data'); logger.info('Loading Human Phenotype Ontology Data')
 
         f_name = 'hp_with_imports.owl'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
@@ -669,8 +668,8 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Creating Phenotype and Disease Identifier Cross-Mapping Data')
-        logger.info('Creating Phenotype and Disease Identifier Cross-Mapping Data')
+        log_str = 'Creating Phenotype and Disease ID Cross-Map Data'
+        print(log_str); logger.info(log_str)
 
         mondo_dict, hp_dict = self._preprocess_mondo_mapping_data(), self._preprocess_hpo_mapping_data()
         data = self.reads_gcs_bucket_data_to_df(f_name='disease_mappings.tsv', delm='\t', skip=0, head=0, sht=None)
@@ -729,6 +728,7 @@ class DataPreprocessing(object):
         """
 
         logger.info('Preprocessing HPA Data')
+
         data_file, sheet = 'zooma_tissue_cell_mapping_04JAN2020.xlsx', 'Concept_Mapping - 04JAN2020'
         mapping_data = self.reads_gcs_bucket_data_to_df(f_name=data_file, delm='\t', skip=0, head=0, sht=sheet)
         mapping_data.fillna('NA', inplace=True)
@@ -754,6 +754,7 @@ class DataPreprocessing(object):
         """
 
         logger.info('Extracting HPA Tissue and Cell Information')
+
         hpa = self.reads_gcs_bucket_data_to_df(f_name='proteinatlas_search.tsv', delm='\t', skip=0, head=0, sht=None)
         hpa.fillna('None', inplace=True)
 
@@ -780,8 +781,8 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Creating Human Protein Atlas and Genotype-Tissue Expression Project Cross-Mapping Data')
-        logger.info('Creating Human Protein Atlas and Genotype-Tissue Expression Project Cross-Mapping Data')
+        log_str = 'Creating Human Protein Atlas and Genotype-Tissue Expression Project Cross-Map Data'
+        print(log_str); logger.info(log_str)
 
         hpa = self._extracts_hpa_tissue_information()
         f_name = 'GTEx_Analysis_*_RNASeQC*_gene_median_tpm.gct'
@@ -835,8 +836,7 @@ class DataPreprocessing(object):
              id_mappings: A dict containing mappings between the PW and other relevant ontologies.
         """
 
-        print('\t- Loading Protein Ontology Data')
-        logger.info('Loading Protein Ontology Data')
+        print('\t- Loading Protein Ontology Data'); logger.info('Loading Protein Ontology Data')
 
         f_name = 'pw_with_imports.owl'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
@@ -858,8 +858,7 @@ class DataPreprocessing(object):
             reactome: A dict mapping different pathway identifiers to the Pathway Ontology.
         """
 
-        print('\t- Loading Reactome Annotation Data')
-        logger.info('Loading Reactome Annotation Data')
+        print('\t- Loading Reactome Annotation Data'); logger.info('Loading Reactome Annotation Data')
 
         r_name, g_name, c_name = 'ReactomePathways.txt', 'gene_association.reactome', 'ChEBI2Reactome_All_Levels.txt'
         # reactome pathways
@@ -889,8 +888,7 @@ class DataPreprocessing(object):
              reactome: An extended dict mapping different pathway identifiers to the Pathway Ontology.
         """
 
-        print('\t- Loading ComPath Canonical Pathway Data')
-        logger.info('Loading ComPath Canonical Pathway Data')
+        print('\t- Loading ComPath Canonical Pathway Data'); logger.info('Loading ComPath Canonical Pathway Data')
 
         f_name = 'compath_canonical_pathway_mappings.txt'
         compath = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=None, sht=None)
@@ -919,8 +917,7 @@ class DataPreprocessing(object):
              reactome: An extended dict mapping different pathway identifiers to the Pathway Ontology.
         """
 
-        print('\t- Loading KEGG Data')
-        logger.info('Loading KEGG Data')
+        print('\t- Loading KEGG Data'); logger.info('Loading KEGG Data')
 
         f_name = 'kegg_reactome.csv'
         kegg_reactome_map = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm=',', skip=0, head=0, sht=None)
@@ -949,8 +946,8 @@ class DataPreprocessing(object):
              reactome: An extended dict mapping different pathway identifiers to the Pathway Ontology.
         """
 
-        print('\t- Querying Reactome API to Obtain Reactome-GO Biological Process Mappings')
-        logger.info('Querying Reactome API to Obtain Reactome-GO Biological Process Mappings')
+        log_str = 'Querying Reactome API to Obtain Reactome-GO Biological Process Mappings'
+        print('\t- ' + log_str); logger.info(log_str)
 
         for request_ids in tqdm(list(chunks(list(reactome.keys()), 20))):
             result, key = content.query_ids(ids=','.join(request_ids)), 'goBiologicalProcess'
@@ -971,8 +968,8 @@ class DataPreprocessing(object):
             reactome: A dict mapping different types of pathway identifiers to sequence ontology classes.
         """
 
-        print('\nCreating Pathway Ontology Identifier Cross-Mapping Data')
-        logger.info('Creating Pathway Ontology Identifier Cross-Mapping Data')
+        log_str = 'Creating Pathway Ontology ID Cross-Map Data'
+        print('\n' + log_str); logger.info(log_str)
 
         pw_dict = self._preprocess_pathway_mapping_data()
         reactome = self._processes_reactome_data()
@@ -1005,8 +1002,8 @@ class DataPreprocessing(object):
             sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
         """
 
-        print('\t- Mapping Sequence Ontology Classes to Gene Identifiers')
-        logger.info('Mapping Sequence Ontology Classes to Gene Identifiers')
+        log_str = 'Mapping Sequence Ontology Classes to Gene IDs'
+        print('\t- ' + log_str); logger.info(log_str)
 
         gene_ids = pickle.load(open(self.temp_dir + '/Merged_gene_rna_protein_identifiers.pkl', 'rb'), encoding='bytes')
         sequence_map: Dict = {}
@@ -1041,8 +1038,8 @@ class DataPreprocessing(object):
             sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
         """
 
-        print('\t- Mapping Sequence Ontology Classes to Transcript Identifiers')
-        logger.info('Mapping Sequence Ontology Classes to Transcript Identifiers')
+        log_str = 'Mapping Sequence Ontology Classes to Transcript IDs'
+        print('\t- ' + log_str); logger.info(log_str)
 
         trans: Dict = {}
         trans_id: str = 'transcript_stable_id'
@@ -1074,8 +1071,8 @@ class DataPreprocessing(object):
             sequence_map: A dict containing genomic identifiers as keys and Sequence Ontology classes as values.
         """
 
-        print('\t- Mapping Sequence Ontology Classes to Variant Identifiers')
-        logger.info('Mapping Sequence Ontology Classes to Variant Identifiers')
+        log_str = 'Mapping Sequence Ontology Classes to Variant Identifiers'
+        print('\t- ' + log_str); logger.info(log_str)
 
         f_name: str = 'variant_summary.txt'
         v_df: Dict = {}
@@ -1101,8 +1098,8 @@ class DataPreprocessing(object):
                 classes as values.
         """
 
-        print('\nCreating Sequence Ontology Identifier Cross-Mapping Data')
-        logger.info('Creating Sequence Ontology Identifier Cross-Mapping Data')
+        log_str = 'Creating Sequence Ontology ID Cross-Map Data'
+        print('\n' + log_str); logger.info(log_str)
 
         f_name, sht = 'genomic_sequence_ontology_mappings.xlsx', 'GenomicType_SO_Map_09Mar2020'
         mapping_data = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=0, sht=sht)
@@ -1131,8 +1128,8 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Creating Pathway and Sequence Ontology Mapping Dictionary')
-        logger.info('Creating Pathway and Sequence Ontology Mapping Dictionary')
+        log_str = 'Creating Pathway and Sequence Ontology Mapping Dictionary'
+        print(log_str); logger.info(log_str)
 
         sequence_map = self._creates_sequence_identifier_mappings()
         reactome_map = self._creates_pathway_identifier_mappings()
@@ -1156,8 +1153,7 @@ class DataPreprocessing(object):
             networkx_mdg: A Networkx MultiDiGraph object containing protein ontology data.
         """
 
-        print('\t- Loading Protein Ontology Data')
-        logger.info('Loading Protein Ontology Data')
+        print('\t- Loading Protein Ontology Data'); logger.info('Loading Protein Ontology Data')
 
         f_name = 'pr_with_imports.owl'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
@@ -1181,8 +1177,8 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('\t- Logically Verifying Constructed Human Protein Ontology')
-        logger.info('Logically Verifying Constructed Human Protein Ontology')
+        log_str = 'Logically Verifying Constructed Human Protein Ontology'
+        print('\t- ' + log_str); logger.info(log_str)
 
         # run reasoner
         command = "{} ./{} --reasoner {} --run-reasoner --assert-implied -o ./{}"
@@ -1212,8 +1208,8 @@ class DataPreprocessing(object):
             ValueError: When the human versions of the PRO contains more than a single connected component.
         """
 
-        print('Constructing a Human Version of the PRotein Ontology')
-        logger.info('Constructing a Human Version of the PRotein Ontology')
+        log_str = 'Constructing a Human Version of the PRotein Ontology'
+        print(log_str); logger.info(log_str)
 
         networkx_mdg = self._processes_protein_ontology_data()
         f_name = 'human_pro_classes.html'
@@ -1250,8 +1246,7 @@ class DataPreprocessing(object):
              None.
         """
 
-        print('Creating Required Relations Ontology Data')
-        logger.info('Creating Required Relations Ontology Data')
+        print('Creating Required Relations Ontology Data'); logger.info('Creating Required Relations Ontology Data')
 
         f_name = 'ro_with_imports.owl'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
@@ -1284,8 +1279,7 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Generating ClinVar Cross-Mapping Data')
-        logger.info('Generating ClinVar Cross-Mapping Data')
+        print('Generating ClinVar Cross-Mapping Data'); logger.info('Generating ClinVar Cross-Mapping Data')
 
         f_name = 'variant_summary.txt'
         clinvar_data = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=0, sht=None)
@@ -1310,8 +1304,8 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Creating Protein-Cofactor and Protein-Catalyst Cross-Mapping Data')
-        logger.info('Creating Protein-Cofactor and Protein-Catalyst Cross-Mapping Data')
+        log_str = 'Creating Protein-Cofactor and Protein-Catalyst Cross-Mapping Data'
+        print(log_str); logger.info(log_str)
 
         # reformat data and write data
         f_name = 'uniprot-cofactor-catalyst.tab'
@@ -1347,8 +1341,7 @@ class DataPreprocessing(object):
                         'Synonym': 'HEL-S-163pA|A1B|ABG|HYST2477alpha-1B-glycoprotein|GAB'}, ...}
         """
 
-        print('\t- Generating Metadata for Gene Identifiers')
-        logger.info('Generating Metadata for Gene Identifiers')
+        print('\t- Generating Metadata for Gene Identifiers'); logger.info('Generating Metadata for Gene Identifiers')
 
         f_name = 'Homo_sapiens.gene_info'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
@@ -1396,8 +1389,8 @@ class DataPreprocessing(object):
                         'Synonym': 'None'}, ...}
         """
 
-        print('\t- Generating Metadata for Transcript Identifiers')
-        logger.info('Generating Metadata for Transcript Identifiers')
+        log_str = 'Generating Metadata for Transcript Identifiers'
+        print('\t- ' + log_str); logger.info(log_str)
 
         f_name = 'ensembl_identifier_data_cleaned.txt'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
@@ -1447,8 +1440,7 @@ class DataPreprocessing(object):
                         no conflict'.", 'Synonym': 'None'}, ...}
         """
 
-        print('\t- Generating Metadata for Variant Identifiers')
-        logger.info('Generating Metadata for Variant Identifiers')
+        print('\t- Generating Metadata for Variant IDs'); logger.info('Generating Metadata for Variant IDs')
 
         f_name = 'variant_summary.txt'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
@@ -1503,8 +1495,7 @@ class DataPreprocessing(object):
                         'Synonym': 'Gap junction trafficking and regulation'}}, ...}
         """
 
-        print('\t- Generating Metadata for Pathway Identifiers')
-        logger.info('Generating Metadata for Pathway Identifiers')
+        print('\t- Generating Metadata for Pathway IDs'); logger.info('Generating Metadata for Pathway IDs')
 
         # reactome pathways
         f_name = 'ReactomePathways.txt'
@@ -1548,8 +1539,7 @@ class DataPreprocessing(object):
                     'Synonym': 'None'}}, ...}
         """
 
-        print('\t- Generating Metadata for Relations Identifiers')
-        logger.info('Generating Metadata for Relations Identifiers')
+        print('\t- Generating Metadata for Relations IDs'); logger.info('Generating Metadata for Relations IDs')
 
         # get ontology information
         f_name = 'ro_with_imports.owl'
@@ -1590,8 +1580,8 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('Creating Master Metadata Dictionary for Non-Ontology Entities')
-        logger.info('Creating Master Metadata Dictionary for Non-Ontology Entities')
+        log_str = 'Creating Master Metadata Dictionary for Non-Ontology Entities'
+        print(log_str); logger.info(log_str)
 
         # create single dictionary of
         master_metadata_dictionary = {'nodes': {**self._creates_gene_metadata_dict(),
@@ -1614,66 +1604,61 @@ class DataPreprocessing(object):
             None.
         """
 
-        print('*** PROCESSING LINKED OPEN DATA SOURCES ***')
+        log_str = '*** PROCESSING LINKED OPEN DATA SOURCES ***'
+        print(log_str); logger.info(log_str)
 
         # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
-        print('\nSTEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
-        logger.info('STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN IDENTIFIER MAPPING')
+        log_str = 'STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN ID MAPPING'
+        print('\n' + log_str); logger.info(log_str)
         self.generates_specific_genomic_identifier_maps()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 2: MeSH-ChEBI Identifier Mapping
-        print('\nSTEP 2: MESH-CHEBI IDENTIFIER MAPPING')
-        logger.info('STEP 2: MESH-CHEBI IDENTIFIER MAPPING')
+        print('\nSTEP 2: MESH-CHEBI ID MAPPING'); logger.info('STEP 2: MESH-CHEBI ID MAPPING')
         self.creates_chebi_to_mesh_identifier_mappings()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 3: Disease and Phenotype Identifier Mapping
-        print('\nSTEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
-        logger.info('STEP 3: DISEASE-PHENOTYPE IDENTIFIER MAPPING')
+        print('\nSTEP 3: DISEASE-PHENOTYPE ID MAPPING'); logger.info('STEP 3: DISEASE-PHENOTYPE ID MAPPING')
         self.creates_disease_identifier_mappings()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 4: Human Protein Atlas/GTEx Tissue/Cells Edge Data
-        print('\nSTEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
-        logger.info('STEP 4: CREATING HPA + GTEX IDENTIFIER EDGE DATA')
+        print('\nSTEP 4: CREATING HPA + GTEX ID EDGE DATA'); logger.info('STEP 4: CREATING HPA + GTEX ID EDGE DATA')
         self._hpa_gtex_ontology_alignment()
         self.processes_hpa_gtex_data()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 5: Creating Pathway and Sequence Ontology Mappings
-        print('\nSTEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
-        logger.info('STEP 5: PATHWAY + SEQUENCE ONTOLOGY IDENTIFIER MAPPING')
+        print('\nSTEP 5: PATHWAY + SEQUENCE ONTOLOGY ID MAP'); logger.info('STEP 5: PATHWAY + SEQUENCE ONTOLOGY ID MAP')
         self.combines_pathway_and_sequence_ontology_dictionaries()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 6: Creating a Human Protein Ontology
-        print('\nSTEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
-        logger.info('STEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
+        print('\nSTEP 6: CREATING A HUMAN PROTEIN ONTOLOGY'); logger.info('STEP 6: CREATING A HUMAN PROTEIN ONTOLOGY')
         self.constructs_human_protein_ontology()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 7: Extracting Relations Ontology Information
-        print('\nSTEP 7: EXTRACTING RELATION ONTOLOGY INFORMATION')
-        logger.info('STEP 7: EXTRACTING RELATION ONTOLOGY INFORMATION')
+        print('\nSTEP 7: EXTRACTING RELATION ONTOLOGY INFO'); logger.info('STEP 7: EXTRACTING RELATION ONTOLOGY INFO')
         self.processes_relation_ontology_data()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 8: Clinvar Variant-Diseases and Phenotypes Edge Data
-        print('\nSTEP 8: CREATING CLINVAR VARIANT, DISEASE, PHENOTYPE DATA')
-        logger.info('STEP 8: CREATING CLINVAR VARIANT, DISEASE, PHENOTYPE DATA')
+        log_str = 'STEP 8: CREATING CLINVAR VARIANT-DISEASE-PHENOTYPE DATA'
+        print('\n' + log_str); logger.info(log_str)
         self.processes_clinvar_data()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 9: Uniprot Protein-Cofactor and Protein-Catalyst Edge Data
-        print('\nSTEP 9: CREATING COFACTOR + CATALYST EDGE DATA')
-        logger.info('STEP 9: CREATING COFACTOR + CATALYST EDGE DATA')
+        log_str = 'STEP 9: CREATING COFACTOR + CATALYST EDGE DATA'
+        print('\n' + log_str); logger.info(log_str)
         self.processes_cofactor_catalyst_data()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 10: Non-Ontology Metadata Dictionary
-        print('\nSTEP 10: CREATING OBO-ONTOLOGY METADATA DICTIONARY')
-        logger.info('STEP 10: CREATING OBO-ONTOLOGY METADATA DICTIONARY')
+        log_str = 'STEP 10: CREATING OBO-ONTOLOGY METADATA DICTIONARY'
+        print('\n' + log_str); logger.info(log_str)
         self.creates_non_ontology_class_metadata_dict()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 

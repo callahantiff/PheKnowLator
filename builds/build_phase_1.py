@@ -43,8 +43,7 @@ def creates_build_directory_structure(bucket, release, build):
             current build.
     """
 
-    print('Creating Build Directory Structure')
-    logger.info('Creating Build Directory Structure')
+    print('Creating Build Directory Structure'); logger.info('Creating Build Directory Structure')
 
     # set-up file names
     folder_list = [
@@ -135,8 +134,7 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
         None.
     """
 
-    print('Downloading Build Data')
-    logger.info('Downloading Build Data')
+    print('Downloading Build Data'); logger.info('Downloading Build Data')
 
     # check what data has already been downloaded
     gcs_original_path = '/'.join(gcs_url.split('/')[4:-1])

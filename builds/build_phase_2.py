@@ -145,7 +145,6 @@ def run_phase_2():
     base_folder_path = 'archived_builds/{}/{}/data/'.format(release, build)
     gcs_original_data = base_folder_path + '{}'.format('original_data/')
     gcs_processed_data = base_folder_path + '{}'.format('processed_data/')
-    gcs_current_build = 'current_build/'
     gcs_log_location = 'temp_build_inprogress/'
     gcs_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(base_folder_path)
 

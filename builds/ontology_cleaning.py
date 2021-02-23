@@ -168,8 +168,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Logically Verifying Ontology')
-        logger.info('PKT: Logically Verifying Ontology')
+        print('Logically Verifying Ontology'); logger.info('PKT: Logically Verifying Ontology')
 
         # save graph in order to run reasoner
         filename = self.temp_dir + '/' + self.ont_file_location
@@ -193,8 +192,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Obtaining Ontology Statistics')
-        logger.info('Obtaining Ontology Statistics')
+        print('Obtaining Ontology Statistics'); logger.info('Obtaining Ontology Statistics')
 
         if isinstance(self.bucket, str):
             gcs_org_url = '{}/{}'.format(self.temp_dir, self.original_data)
@@ -244,8 +242,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Finding Parsing Errors')
-        logger.info('Finding Parsing Errors')
+        print('Finding Parsing Errors'); logger.info('Finding Parsing Errors')
 
         errors, error_key, key = self._finds_ontology_errors(), 'OwlReadyOntologyParsingError', self.ont_file_location
         if error_key in errors.keys():
@@ -271,8 +268,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Fixing Identifier Errors')
-        logger.info('Fixing Identifier Errors')
+        print('Fixing Identifier Errors'); logger.info('Fixing Identifier Errors')
 
         known_errors = ['PRO', 'PR']  # known errors
         kg_classes, bad_cls, key = gets_ontology_classes(self.ont_graph), set(), self.ont_file_location
@@ -301,8 +297,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Removing Deprecated and Obsolete Classes')
-        logger.info('Removing Deprecated and Obsolete Classes')
+        print('Removing Deprecated and Obsolete Classes'); logger.info('Removing Deprecated and Obsolete Classes')
 
         ont, key, schma = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location, schema.boolean
         dep_cls = {x[0] for x in list(self.ont_graph.triples((None, OWL.deprecated, Literal('true', datatype=schma))))}
@@ -327,8 +322,7 @@ class OntologyCleaner(object):
              None.
         """
 
-        print('Resolving Punning Errors')
-        logger.info('Resolving Punning Errors')
+        print('Resolving Punning Errors'); logger.info('Resolving Punning Errors')
 
         key, bad_cls, bad_obj = self.ont_file_location, set(), set()
         onts_entities = set([x[0] for x in tqdm(self.ont_graph)])
@@ -382,8 +376,7 @@ class OntologyCleaner(object):
              None.
         """
 
-        print('Normalizing Duplicate Concepts')
-        logger.info('Normalizing Duplicate Concepts')
+        print('Normalizing Duplicate Concepts'); logger.info('Normalizing Duplicate Concepts')
 
         self.ont_graph.add((obo.OGG_0000000002, RDFS.subClassOf, obo.SO_0000704))  # fix gene class inconsistencies
         self.ont_graph.add((obo.PR_000000001, RDFS.subClassOf, obo.SO_0000104))  # fix protein class inconsistencies
@@ -416,8 +409,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Normalizing Existing Classes')
-        logger.info('Normalizing Existing Classes')
+        print('Normalizing Existing Classes'); logger.info('Normalizing Existing Classes')
 
         ents, missing = None, []
         non_ont = set([x for x in gets_ontology_classes(self.ont_graph)])
@@ -540,8 +532,9 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
-        logger.info('*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***')
+        log_str = '*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***'
+        print(log_str); logger.info(log_str)
+
         for ont in self.ontology_info.keys():
             if ont != self.merged_ontology_filename:
                 print('\nProcessing Ontology: {}'.format(ont.upper()))
@@ -556,14 +549,14 @@ class OntologyCleaner(object):
                 self._logically_verifies_cleaned_ontologies()
                 if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
-        print('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
-        logger.info('\n\n*** CLEANING MERGED ONTOLOGY DATA ***')
+        log_str = '*** CLEANING MERGED ONTOLOGY DATA ***'
+        print('\n\n' + log_str); logger.info(log_str)
+
         self.ont_file_location = self.merged_ontology_filename
         individual_ontologies = self.checks_for_downloaded_ontology_data()
         self.merge_ontologies(individual_ontologies, self.temp_dir + '/', self.ont_file_location)
         if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
-        print('\nLoading Merged Ontology')
-        logger.info('\nLoading Merged Ontology')
+        print('\nLoading Merged Ontology'); logger.info('\nLoading Merged Ontology')
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
         self.fixes_identifier_errors()
@@ -578,8 +571,9 @@ class OntologyCleaner(object):
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
         if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
-        print('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
-        logger.info('\n\n*** GENERATING ONTOLOGY CLEANING REPORT ***')
+        log_str = '*** GENERATING ONTOLOGY CLEANING REPORT ***'
+        print('\n\n' + log_str); logger.info(log_str)
+
         self.generates_ontology_report()
         if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
