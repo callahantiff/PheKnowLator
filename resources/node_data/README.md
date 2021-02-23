@@ -4,11 +4,13 @@
 ***
 
 **Wiki Page:** **[`Dependencies`](https://github.com/callahantiff/PheKnowLator/wiki/Dependencies#node-metadata)**  
-**Jupyter Notebook:** **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb)**  
+**Jupyter Notebook:** **[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/Data_Preparation.ipynb)**  
 
 ___
 
-**Purpose:** The knowledge graph can be built with or without the inclusion of node and relation metadata (i.e. labels, descriptions or definitions, and synonyms). If you'd like to create and use node metadata, please run the [`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb) Jupyter Notebook and run the code chunks listed under the **INSTANCE AND/OR SUBCLASS (NON-ONTOLOGY CLASS) METADATA** section. These code chunks should be run before the knowledge graph is constructed. For more details on what these data sources are and how they are created, please see the `node_data` [`README.md`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md).
+**Purpose:** The knowledge graph can be built with or without the inclusion of node and relation metadata (i.e. 
+labels, descriptions or definitions, and synonyms). If you'd like to create and use node metadata, please run the 
+[`Data_Preparation.ipynb`](https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/Data_Preparation.ipynb) Jupyter Notebook and run the code chunks listed under the **INSTANCE AND/OR SUBCLASS (NON-ONTOLOGY CLASS) METADATA** section. These code chunks should be run before the knowledge graph is constructed. For more details on what these data sources are and how they are created, please see the `node_data` [`README.md`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md).
 
 Example structure of the metadata dictionary is shown below:
 

@@ -44,9 +44,11 @@ Important Updates and Notifications
 
   - New Jupyter Notebooks:
 
-    - Applying ``OWL-NETS``: `OWLNETS_Example_Application.ipynb <https://github.com/callahantiff/PheKnowLator/blob/master/OWLNETS_Example_Application.ipynb>`_
+    - Applying ``OWL-NETS``: `OWLNETS_Example_Application.ipynb <https://github
+    .com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb>`_
 
-    - Exploring ``pkt_kg`` knowledge graphs and other ontologies: `RDF_Graph_Processing_Example.ipynb <https://github.com/callahantiff/PheKnowLator/blob/master/RDF_Graph_Processing_Example.ipynb>`_
+    - Exploring ``pkt_kg`` knowledge graphs and other ontologies: `RDF_Graph_Processing_Example.ipynb <https://github
+    .com/callahantiff/PheKnowLator/blob/master/notebooks/RDF_Graph_Processing_Example.ipynb>`_
 
 Releases
 =========
@@ -170,11 +172,11 @@ The `KG Construction`_ Wiki page provides a detailed description of the knowledg
 Running the pkt Library
 ************************
 
-``pkt_kg`` can be run via the provided `Main.py`_ script or using the `main.ipynb`_ Jupyter Notebook or using a Docker container.
+``pkt_kg`` can be run via the provided `main.py`_ script or using the `main.ipynb`_ Jupyter Notebook or using a Docker container.
 
 Main Script or Jupyter Notebook
 ==========================================
-The program can be run locally using the `Main.py`_ script or using the `main.ipynb`_ Jupyter Notebook. An example of the workflow used in both of these approaches is shown below.
+The program can be run locally using the `main.py`_ script or using the `main.ipynb`_ Jupyter Notebook. An example of the workflow used in both of these approaches is shown below.
 
 .. code:: python
 
@@ -209,14 +211,14 @@ The program can be run locally using the `Main.py`_ script or using the `main.ip
 
  kg.construct_knowledge_graph()
 
-``Main.py``
+``main.py``
 -----------
-The example below provides the details needed to run ``pkt_kg`` using ``./Main.py``.
+The example below provides the details needed to run ``pkt_kg`` using ``./main.py``.
 
 .. code:: bash
 
-    python3 Main.py -h
-    usage: Main.py [-h] -g ONTS -e EDG -a APP -t RES -b KG -o OUT -n NDE -r REL -s OWL -m KGM
+    python3 main.py -h
+    usage: main.py [-h] -g ONTS -e EDG -a APP -t RES -b KG -o OUT -n NDE -r REL -s OWL -m KGM
 
     PheKnowLator: This program builds a biomedical knowledge graph using Open Biomedical Ontologies
     and linked open data. The program takes the following arguments:
@@ -396,7 +398,7 @@ Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. `A Framework for Automated C
 
 .. _`Document Dependencies`: https://github.com/callahantiff/PheKnowLator/wiki/Dependencies
 
-.. _`Data_Preparation.ipynb`: https://github.com/callahantiff/PheKnowLator/blob/master/Data_Preparation.ipynb
+.. _`Data_Preparation.ipynb`: https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/Data_Preparation.ipynb
 
 .. _`resources/resource_info.txt`: https://github.com/callahantiff/PheKnowLator/wiki/Dependencies#master-resources
 
@@ -430,7 +432,7 @@ Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. `A Framework for Automated C
 
 .. _`main.ipynb`: https://github.com/callahantiff/pheknowlator/blob/master/main.ipynb
 
-.. _`Main.py`: https://github.com/callahantiff/pheknowlator/blob/master/Main.py
+.. _`main.py`: https://github.com/callahantiff/pheknowlator/blob/master/main.py
 
 .. _CONTRIBUTING.md: https://github.com/callahantiff/pheknowlator/blob/master/CONTRIBUTING.md
 
