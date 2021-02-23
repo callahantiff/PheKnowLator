@@ -296,7 +296,7 @@ def removes_annotation_assertions(filename: str,
     return None
 
 
-def adds_edges_to_graph(graph: Graph, edge_list: Union[List, Set], progress_bar: bool=True) -> Graph:
+def adds_edges_to_graph(graph: Graph, edge_list: Union[List, Set], progress_bar: bool = True) -> Graph:
     """Takes a set or list of tuples representing new triples and adds them to a knowledge graph.
 
     Args:
@@ -308,26 +308,27 @@ def adds_edges_to_graph(graph: Graph, edge_list: Union[List, Set], progress_bar:
         graph: An updated RDFLib graph.
     """
 
-    edge_list = set(edge_list) if isinstance(edge_list, List) else edge_list
-    edge_set = tqdm(edge_list) if progress_bar else edge_list
+    edge_list_updated = set(edge_list) if isinstance(edge_list, List) else edge_list
+    edge_set = tqdm(edge_list_updated) if progress_bar else edge_list_updated
     for edge in edge_set:
         graph.add(edge)
 
     return graph
 
 
-def remove_edges_from_graph(graph: Graph, edge_list: List) -> Graph:
+def remove_edges_from_graph(graph: Graph, edge_list: Union[List, Set]) -> Graph:
     """Takes a tuple of tuples and removes them from a knowledge graph.
 
     Args:
         graph: An RDFLib Graph object.
-        edge_list: A list of tuples, where each tuple contains a triple.
+        edge_list: A list or set of tuples, where each tuple contains a triple.
 
     Returns:
         graph: An updated RDFLib graph.
     """
 
-    for edge in set(edge_list):
+    edge_list_updated = set(edge_list) if isinstance(edge_list, List) else edge_list
+    for edge in edge_list_updated:
         graph.remove(edge)
 
     return graph
@@ -529,30 +530,30 @@ def splits_knowledge_graph(graph: Graph) -> Tuple[Graph, Graph]:
 
     print('Creating Logic and Annotation Graph Subsets')
 
-    # create list of entities to use to find annotations
-    onts = set([x for x in list(graph.subjects()) if str(x).endswith('.owl')])
-    versioning = set([x for x in list(graph.subjects()) if 'version' in str(x).lower()])
-    owl_ann = [OWL.Ontology, OWL.annotatedProperty, OWL.annotatedTarget, OWL.annotatedSource, OWL.Axiom, OWL.versionIRI]
-    annot_entities = list(graph.subjects(RDF.type, OWL.AnnotationProperty)) + owl_ann + list(onts) + list(versioning)
-    annot_entities.remove(RDF.type)  # remove rdf:type -- needed for OWL-NETS
-    annotation_triples = set()
-    for prop in tqdm(annot_entities):
-        entities = list(graph.triples((prop, None, None))) + list(graph.triples((None, None, prop)))
-        predicates = list(graph.triples((None, prop, None)))
-        annotation_triples |= set([x for x in entities + predicates if len(x) > 0])
+    entities = set([x[0] for x in graph.triples((None, RDF.type, None)) if isinstance(x[0], URIRef)])
+    annotation_props = set(graph.subjects(RDF.type, OWL.AnnotationProperty))
+    annotation_axioms = set()
+    for ent in tqdm(entities):
+        axioms = list(graph.triples((None, OWL.annotatedSource, ent)))
+        if len(axioms) > 0:
+            for axiom in axioms:
+                annotation_axioms |= set(graph.triples((axiom[0], None, None)))
+                annotation_axioms |= set([x for x in graph.triples((axiom[2], None, None)) if x[1] in annotation_props])
+        else:
+            annotation_axioms |= set([x for x in graph.triples((ent, None, None)) if x[1] in annotation_props])
+
     # create graph subsets
     all_triples = set(list(graph.triples((None, None, None))))
-    logic_triples = all_triples.difference(annotation_triples)
-    annotation_graph = adds_edges_to_graph(Graph(), annotation_triples)
+    logic_triples = all_triples.difference(annotation_axioms)
+    annotation_graph = adds_edges_to_graph(Graph(), annotation_axioms)
     logic_graph = adds_edges_to_graph(Graph(), logic_triples)
 
-    if len(logic_triples) + len(annotation_triples) != len(all_triples):
+    if len(logic_triples) + len(annotation_axioms) != len(all_triples):
         raise ValueError('Error: Subsetting was Unsuccessful!')
     else:
-        print('logic_graph: {} triples; annotation_graph: {} triles'.format(len(logic_graph), len(annotation_graph)))
-        # add rdf typing back to annotations -- needed for extracting node and relation metadata
-        type_trips = list(graph.triples((RDF.type, None, None))) + list(graph.triples((None, RDF.type, None)))
-        annotation_graph = adds_edges_to_graph(annotation_graph, type_trips)
+        print('logic_graph: {} triples; annotation_graph: {} triples'.format(len(logic_graph), len(annotation_graph)))
+        # add rdf:type to annotations -- needed for extracting node and relation metadata
+        annotation_graph = adds_edges_to_graph(annotation_graph, list(graph.triples((None, RDF.type, None))), False)
 
         return logic_graph, annotation_graph
 
