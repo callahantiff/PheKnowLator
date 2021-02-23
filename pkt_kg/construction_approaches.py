@@ -168,7 +168,7 @@ class KGConstructionApproach(object):
 
         return new_edge_rel_only + new_edge_inverse_rel
 
-    def subclass_constructor(self, edge_info: Dict, edge_type: str) -> Tuple[Dict, List]:
+    def subclass_constructor(self, edge_info: Dict, edge_type: str) -> List:
         """Adds edges for the subclass construction approach.
 
         Assumption: All ontology class nodes use the obo namespace.
@@ -185,8 +185,6 @@ class KGConstructionApproach(object):
             edge_type: A string containing the name of the edge_type (e.g. "gene-disease", "chemical-gene").
 
         Returns:
-            edge_dict: A nested master edge list dict. The outer key is an edge-type (e.g.go-gene) and inner key is a
-                dict storing data from the resource_info.txt input document. See class doc note for more information.
             edges: A set of tuples containing new edges to add to the knowledge graph.
         """
 
@@ -216,7 +214,7 @@ class KGConstructionApproach(object):
                                       ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
                 edges += self.subclass_core_constructor(URIRef(res['ent1']), URIRef(res['ent2']), rel, irel)
 
-        return self.edge_dict, edges
+        return edges
 
     @staticmethod
     def instance_core_constructor(node1: Union[BNode, URIRef], node2: Union[BNode, URIRef], relation: URIRef,
@@ -259,7 +257,7 @@ class KGConstructionApproach(object):
 
         return new_edge_rel_only + new_edge_inverse_rel
 
-    def instance_constructor(self, edge_info: Dict, edge_type: str) -> Tuple[Dict, List]:
+    def instance_constructor(self, edge_info: Dict, edge_type: str) -> List:
         """Adds edges for the instance construction approach.
 
         Assumption: All ontology class nodes use the obo namespace.
@@ -272,8 +270,6 @@ class KGConstructionApproach(object):
             edge_type: A string containing the name of the edge_type (e.g. "gene-disease", "chemical-gene").
 
         Returns:
-            edge_dict: A nested master edge list dict. The outer key is an edge-type (e.g.go-gene) and inner key is a
-                dict storing data from the resource_info.txt input document. See class doc note for more information.
             edges: A set of tuples containing new edges to add to the knowledge graph.
         """
 
@@ -306,4 +302,4 @@ class KGConstructionApproach(object):
                                       ((URIRef(res['ent2']), RDF.type, OWL.Class),) for x in mapped_node2] for x in y]
                 edges += self.instance_core_constructor(URIRef(res['ent1']), URIRef(res['ent2']), rel, irel)
 
-        return self.edge_dict, edges
+        return edges

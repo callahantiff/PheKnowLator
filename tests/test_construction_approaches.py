@@ -275,10 +275,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', 'HP_0000716']}
 
         # test method
-        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-phenotype')
+        edges = self.kg_builder.subclass_constructor(edge_info, 'gene-phenotype')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 0)
 
@@ -299,10 +298,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', 'HP_0110035']}
 
         # test method
-        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-phenotype')
+        edges = self.kg_builder.subclass_constructor(edge_info, 'gene-phenotype')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 11)
 
@@ -318,10 +316,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', 'HP_0110035']}
 
         # test method
-        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-phenotype')
+        edges = self.kg_builder.subclass_constructor(edge_info, 'gene-phenotype')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 20)
         self.assertEqual(len(set(edges)), 17)
@@ -338,10 +335,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['DOID_3075', 'DOID_1080']}
 
         # test method
-        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'disease-disease')
+        edges = self.kg_builder.subclass_constructor(edge_info, 'disease-disease')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 9)
 
@@ -357,10 +353,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['DOID_3075', 'DOID_1080']}
 
         # test method
-        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'disease-disease')
+        edges = self.kg_builder.subclass_constructor(edge_info, 'disease-disease')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 18)
         self.assertEqual(len(set(edges)), 15)
@@ -377,10 +372,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', '10']}
 
         # test method
-        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-gene')
+        edges = self.kg_builder.subclass_constructor(edge_info, 'gene-gene')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 13)
         self.assertEqual(len(set(edges)), 12)
@@ -397,10 +391,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', '10']}
 
         # test method
-        dic, edges = self.kg_builder.subclass_constructor(edge_info, 'gene-gene')
+        edges = self.kg_builder.subclass_constructor(edge_info, 'gene-gene')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 22)
         self.assertEqual(len(set(edges)), 18)
@@ -417,10 +410,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['DOID_3075', 'DOID_1080']}
 
         # test method
-        dic, edges = self.kg_builder.instance_constructor(edge_info, 'disease-disease')
+        edges = self.kg_builder.instance_constructor(edge_info, 'disease-disease')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 6)
 
@@ -436,10 +428,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['DOID_3075', 'DOID_1080']}
 
         # test method
-        dic, edges = self.kg_builder.instance_constructor(edge_info, 'disease-disease')
+        edges = self.kg_builder.instance_constructor(edge_info, 'disease-disease')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 8)
         self.assertEqual(len(set(edges)), 7)
@@ -456,10 +447,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', '10']}
 
         # test method
-        dic, edges = self.kg_builder.instance_constructor(edge_info, 'gene-gene')
+        edges = self.kg_builder.instance_constructor(edge_info, 'gene-gene')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 12)
         self.assertEqual(len(set(edges)), 11)
@@ -476,10 +466,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', '10']}
 
         # test method
-        dic, edges = self.kg_builder.instance_constructor(edge_info, 'gene-gene')
+        edges = self.kg_builder.instance_constructor(edge_info, 'gene-gene')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 14)
         self.assertEqual(len(set(edges)), 12)
@@ -496,10 +485,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', 'HP_0110035']}
 
         # test method
-        dic, edges = self.kg_builder.instance_constructor(edge_info, 'gene-phenotype')
+        edges = self.kg_builder.instance_constructor(edge_info, 'gene-phenotype')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 9)
 
@@ -515,10 +503,9 @@ class TestKGConstructionApproach(unittest.TestCase):
                      'edges': ['2', 'HP_0110035']}
 
         # test method
-        dic, edges = self.kg_builder.instance_constructor(edge_info, 'gene-phenotype')
+        edges = self.kg_builder.instance_constructor(edge_info, 'gene-phenotype')
 
         # check returned results
-        self.assertIsInstance(dic, Dict)
         self.assertIsInstance(edges, List)
         self.assertEqual(len(edges), 11)
         self.assertEqual(len(set(edges)), 10)
