@@ -551,7 +551,7 @@ class TestKGUtils(unittest.TestCase):
         graph.serialize(filepath, format='nt')
 
         # test method when adding a new edge
-        edge2 = (URIRef('http://purl.obolibrary.org/obo/CHEBI_9444'), RDFS.label, Literal('Teprotide'))
+        edge2 = [(URIRef('http://purl.obolibrary.org/obo/CHEBI_9444'), RDFS.label, Literal('Teprotide'))]
         appends_to_existing_file(edge2, filepath, ' ')
         graph = Graph().parse(filepath, format='nt')
         self.assertEqual(len(graph), 2)

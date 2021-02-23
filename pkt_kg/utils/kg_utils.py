@@ -296,20 +296,21 @@ def removes_annotation_assertions(filename: str,
     return None
 
 
-def adds_edges_to_graph(graph: Graph, edge_list: Union[List, Set]) -> Graph:
+def adds_edges_to_graph(graph: Graph, edge_list: Union[List, Set], progress_bar: bool=True) -> Graph:
     """Takes a set or list of tuples representing new triples and adds them to a knowledge graph.
 
     Args:
         graph: An RDFLib Graph object.
         edge_list: A list or set of tuples, where each tuple contains a triple.
+        progress_bar: A boolean indicating whether or not the progress bar should be used.
 
     Returns:
         graph: An updated RDFLib graph.
     """
 
-    if isinstance(edge_list, List): edge_list = set(edge_list)
-
-    for edge in tqdm(edge_list):
+    edge_list = set(edge_list) if isinstance(edge_list, List) else edge_list
+    edge_set = tqdm(edge_list) if progress_bar else edge_list
+    for edge in edge_set:
         graph.add(edge)
 
     return graph
@@ -637,11 +638,11 @@ def nt_serializes_node(node: Union[URIRef, BNode, Literal]) -> str:
     return serialized_node
 
 
-def appends_to_existing_file(edge: Tuple, filepath: str, sep: str) -> None:
+def appends_to_existing_file(edges: List, filepath: str, sep: str) -> None:
     """Method adds data to the end of an existing file. Assumes that it is adding data to the end of a n-triples file.
 
     Args:
-        edge: A tuple of 3 RDFLib terms.
+        edges: A tuple of 3 RDFLib terms.
         filepath: A string specifying a path to an existing file.
         sep: A string containing a separator (e.g. '\t', ',').
 
@@ -650,7 +651,8 @@ def appends_to_existing_file(edge: Tuple, filepath: str, sep: str) -> None:
     """
 
     with open(filepath, 'a', newline='') as out:
-        out.write(edge[0].n3() + sep + edge[1].n3() + sep + edge[2].n3() + ' .\n')
+        for edge in edges:
+            out.write(edge[0].n3() + sep + edge[1].n3() + sep + edge[2].n3() + ' .\n')
     out.close()
 
     return None
