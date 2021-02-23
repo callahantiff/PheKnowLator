@@ -28,6 +28,7 @@ Interacts with Knowledge Graphs
 Writes Triple Lists
 * maps_node_ids_to_integers
 * nt_serializes_node
+* appends_to_existing_file
 
 File Type Conversion
 * converts_rdflib_to_networkx
@@ -585,7 +586,7 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
     for edge in tqdm(graph):
-        subj, pred, obj = nt_serializes_node(edge[0]), nt_serializes_node(edge[1]), nt_serializes_node(edge[2])
+        subj, pred, obj = edge[0].n3(), edge[1].n3(), edge[2].n3()
         if subj not in entity_map:
             entity_counter += 1
             entity_map[subj] = entity_counter
@@ -634,6 +635,25 @@ def nt_serializes_node(node: Union[URIRef, BNode, Literal]) -> str:
     else: serialized_node = "%s" % node.n3()
 
     return serialized_node
+
+
+def appends_to_existing_file(edge: Tuple, filepath: str, sep: str) -> None:
+    """Method adds data to the end of an existing file. Assumes that it is adding data to the end of a n-triples file.
+
+    Args:
+        edge: A tuple of 3 RDFLib terms.
+        filepath: A string specifying a path to an existing file.
+        sep: A string containing a separator (e.g. '\t', ',').
+
+    Returns:
+        None.
+    """
+
+    with open(filepath, 'a', newline='') as out:
+        out.write(edge[0].n3() + sep + edge[1].n3() + sep + edge[2].n3() + ' .\n')
+    out.close()
+
+    return None
 
 
 def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:

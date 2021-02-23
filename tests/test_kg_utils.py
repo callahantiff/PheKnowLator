@@ -2,6 +2,7 @@ import glob
 import networkx as nx
 import os
 import os.path
+import shutil
 import unittest
 
 from mock import patch
@@ -537,5 +538,25 @@ class TestKGUtils(unittest.TestCase):
         self.assertIsInstance(subsets, Tuple)
         self.assertIsInstance(subsets[0], Graph)
         self.assertIsInstance(subsets[1], Graph)
+
+        return None
+
+    def test_appends_to_existing_file(self):
+        """Tests the appends_to_existing_file method"""
+
+        # create test data and write it locally
+        filepath = self.dir_loc + '/TEST_Annotations.nt'
+        graph = Graph()
+        graph.add((BNode('Nf72db1a3dc964ce3b0cd2ea4c7142af5'), RDF.type, OWL.Class))
+        graph.serialize(filepath, format='nt')
+
+        # test method when adding a new edge
+        edge2 = (URIRef('http://purl.obolibrary.org/obo/CHEBI_9444'), RDFS.label, Literal('Teprotide'))
+        appends_to_existing_file(edge2, filepath, ' ')
+        graph = Graph().parse(filepath, format='nt')
+        self.assertEqual(len(graph), 2)
+
+        # clean up environment
+        if os.path.exists(filepath): os.remove(filepath)
 
         return None
