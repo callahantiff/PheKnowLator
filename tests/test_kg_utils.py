@@ -5,7 +5,7 @@ import os.path
 import unittest
 
 from mock import patch
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 
@@ -523,5 +523,19 @@ class TestKGUtils(unittest.TestCase):
 
         # remove file
         os.remove(no_assert_loc)
+
+        return None
+
+    def test_splits_knowledge_graph(self):
+        """Tests the splits_knowledge_graph method."""
+
+        # generate testing data
+        graph = Graph().parse(self.dir_loc + '/so_with_imports.owl')
+
+        # test method
+        subsets = splits_knowledge_graph(graph)
+        self.assertIsInstance(subsets, Tuple)
+        self.assertIsInstance(subsets[0], Graph)
+        self.assertIsInstance(subsets[1], Graph)
 
         return None
