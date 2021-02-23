@@ -197,8 +197,8 @@ class DataSource(object):
             None.
         """
 
-        print('\n*** Generating Metadata ***\n')
-        logger.info('*** Generating Metadata ***')
+        print('\n*** Generating Metadata ***\n'); logger.info('*** Generating Metadata ***')
+
         self.metadata.append(['#' + str(datetime.datetime.utcnow().strftime('%a %b %d %X UTC %Y')) + ' \n'])
 
         for i in tqdm(self.data_files.keys()):
@@ -278,15 +278,15 @@ class OntData(DataSource):
 
         self.parses_resource_file()  # check data before download
         file_loc = '/'.join(self.data_path.split('/')[:-1]) + '/ontologies/'
-        print('\n ***Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
-        logger.info('***Downloading Data: {0} to "{1}" ***'.format(self.data_type, file_loc))
+        log_str = '***Downloading Data: {0} to "{1}" ***'.format(self.data_type, file_loc)
+        print('\n' + log_str + '\n'); logger.info(log_str)
 
         for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]
             file_prefix = source.split('/')[-1].split('.')[0]
             write_loc = file_loc + file_prefix
-            print('\nDownloading: {}'.format(str(file_prefix)))
-            logger.info('Downloading: {}'.format(str(file_prefix)))
+            log_str = 'Downloading: {}'.format(str(file_prefix))
+            print('\n' + log_str); logger.info(log_str)
             # don't re-download ontologies
             if any(x for x in os.listdir(file_loc) if file_prefix == x.split('.')[0]):
                 self.data_files[i] = glob.glob(file_loc + '*' + file_prefix + '*')[0]
@@ -349,8 +349,8 @@ class LinkedData(DataSource):
 
         self.parses_resource_file()  # check data before download
         file_loc = '/'.join(self.data_path.split('/')[:-1]) + '/edge_data/'
-        print('\n*** Downloading Data: {0} to "{1}" ***\n'.format(self.data_type, file_loc))
-        logger.info('*** Downloading Data: {0} to "{1}" ***'.format(self.data_type, file_loc))
+        log_str = '*** Downloading Data: {0} to "{1}" ***'.format(self.data_type, file_loc)
+        print('\n' + log_str + '\n'); logger.info(log_str)
 
         for i in tqdm(self.source_list.keys()):
             source = self.source_list[i]

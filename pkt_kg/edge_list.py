@@ -355,17 +355,16 @@ class CreatesEdgeList(object):
         logger.info('*' * 10 + 'PKT STEP: GENERATING KNOWLEDGE GRAPH MASTER EDGE LIST' + '*' * 10)
 
         for edge_type in tqdm(self.source_info.keys()):
-            print('\n\n### Processing Edge: {}'.format(edge_type))
-            logger.info('### Processing Edge: {}'.format(edge_type))
+            log_str = '### Processing Edge: {}'.format(edge_type)
+            print('\n\n' + log_str); logger.info(log_str)
 
             # STEP 1: Read Data
-            print('*** Reading Edge Data ***')
-            logger.info('*** Reading Edge Data ***')
+            print('*** Reading Edge Data ***'); logger.info('*** Reading Edge Data ***')
             edge_data = self.data_reader(self.data_files[edge_type], self.source_info[edge_type]['delimiter'])
 
             # STEP 2: Apply Filtering and Evidence Criteria
-            print('*** Applying Filtering and/or Mapping Criteria to Edge Data ***')
-            logger.info('*** Applying Filtering and/or Mapping Criteria to Edge Data ***')
+            log_str = '*** Applying Filtering and/or Mapping Criteria to Edge Data ***'
+            print(log_str); logger.info(log_str)
             edge_data = self.filter_data(edge_data,
                                          self.source_info[edge_type]['filter_criteria'],
                                          self.source_info[edge_type]['evidence_criteria'])
@@ -374,8 +373,7 @@ class CreatesEdgeList(object):
             edge_data = self.data_reducer(self.source_info[edge_type]['column_idx'], edge_data)
 
             # STEP 4: Update Node Column Values
-            print('*** Reformatting Node Values ***')
-            logger.info('*** Reformatting Node Values ***')
+            print('*** Reformatting Node Values ***'); logger.info('*** Reformatting Node Values ***')
             edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
 
             # STEP 5: Rename Nodes
@@ -384,8 +382,7 @@ class CreatesEdgeList(object):
                              inplace=True)
 
             # STEP 6: Map Identifiers
-            print('*** Performing Identifier Mapping ***')
-            logger.info('*** Performing Identifier Mapping ***')
+            print('*** Performing Identifier Mapping ***'); logger.info('*** Performing Identifier Mapping ***')
             mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'], edge_data)
             self.source_info[edge_type]['edge_list'] = [edge for edge in mapped_data if 'None' not in edge]
 

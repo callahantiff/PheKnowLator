@@ -95,8 +95,7 @@ class Metadata(object):
             None.
         """
 
-        print('\nExtracting Class and Relation Metadata')
-        logger.info('Extracting Class and Relation Metadata')
+        print('\nExtracting Class and Relation Metadata'); logger.info('Extracting Class and Relation Metadata')
 
         if self.node_dict:
             domains = [
@@ -183,8 +182,7 @@ class Metadata(object):
             graph: An rdflib graph object with edited ontology annotations.
         """
 
-        print('\nAdding Ontology Annotations')
-        logger.info('Adding Ontology Annotations')
+        print('\nAdding Ontology Annotations'); logger.info('Adding Ontology Annotations')
 
         # set annotation variables
         authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. ' \
@@ -235,8 +233,8 @@ class Metadata(object):
         """
 
         if self.node_dict:
-            print('\nWriting Class Metadata')
-            logger.info('Writing Class Metadata')
+            print('\nWriting Class Metadata'); logger.info('Writing Class Metadata')
+
             entities = set([i for j in tqdm(graph) for i in j])
             filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:
