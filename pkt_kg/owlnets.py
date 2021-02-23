@@ -128,7 +128,7 @@ class OwlNets(object):
         disjoint_elements = [x[0] for x in self.graph.triples((None, None, OWL.disjointWith))]
         for x in disjoint_elements:
             triples = list(self.graph.triples((x, None, None)))
-            self.owl_nets_dict['disjointWith'][nt_serializes_node(x)] = set(triples)
+            self.owl_nets_dict['disjointWith'][x.n3()] = set(triples)
             for triple in triples:
                 self.graph.remove(triple)
 
@@ -322,7 +322,7 @@ class OwlNets(object):
         """
 
         if len(node_info[1]) != 0:  # want to note and will process ignoring the specified integer value
-            self.owl_nets_dict['owl_nets']['cardinality'][nt_serializes_node(node)] = set(
+            self.owl_nets_dict['owl_nets']['cardinality'][node.n3()] = set(
                 self.graph.triples((BNode(list(node_info[1])[0].split(': ')[-1]), None, None)))
 
         return None
@@ -348,7 +348,7 @@ class OwlNets(object):
         neg_res = {k: v for k, v in node_info[0].items()
                    if 'onProperty' in v.keys() and any(i for i in neg_terms if i in str(v['onProperty']).lower())}
         if len(neg_res) > 0:
-            self.owl_nets_dict['negation'][nt_serializes_node(node)] = neg_res
+            self.owl_nets_dict['negation'][node.n3()] = neg_res
             return True
         else: return False
 
@@ -372,7 +372,7 @@ class OwlNets(object):
 
         comp_res = {k: v for k, v in node_info[0].items() if 'complementOf' in v.keys()}
         if len(comp_res) > 0:
-            self.owl_nets_dict['complementOf'][nt_serializes_node(node)] = comp_res
+            self.owl_nets_dict['complementOf'][node.n3()] = comp_res
             return True
         else: return False
 
@@ -573,11 +573,11 @@ class OwlNets(object):
                             edges = results[1]
                         else:  # catch all other axioms -- only catching owl:onProperty
                             misc_axioms = [x for x in edges.keys() if x not in ['type', 'first', 'rest', 'onProperty']]
-                            self.owl_nets_dict['owl_nets']['misc'][nt_serializes_node(node)] = {tuple(misc_axioms)}
+                            self.owl_nets_dict['owl_nets']['misc'][node.n3()] = {tuple(misc_axioms)}
                             edges = None
                 # add kept edges to filtered graph
                 decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes))
-                self.owl_nets_dict['owl_nets']['decoded_classes'][nt_serializes_node(node)] = cleaned_classes
+                self.owl_nets_dict['owl_nets']['decoded_classes'][node.n3()] = cleaned_classes
         pbar.close()
         str1 = 'Decoded {} owl-encoded classes. Note the following:\nPartially processed {} cardinality ' \
                'elements\nIgnored: {} misc classes; {} classes constructed with owl:complementOf; ' \

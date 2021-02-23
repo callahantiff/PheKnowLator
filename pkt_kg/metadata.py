@@ -243,7 +243,7 @@ class Metadata(object):
                 out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'entity_uri' + '\t' + 'label' + '\t' +
                           'description/definition' + '\t' + 'synonym' + '\n')
                 for x in tqdm(entities):
-                    nid, nint = nt_serializes_node(x), node_integer_map[nt_serializes_node(x)]
+                    nid, nint = x.n3(), node_integer_map[x.n3()]
                     if x in self.node_dict['nodes'].keys():
                         etyp, meta = 'NODES', self.node_dict['nodes'][x]
                     elif x in self.node_dict['relations'].keys():
