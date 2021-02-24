@@ -29,7 +29,11 @@ obo = Namespace('http://purl.obolibrary.org/obo/')
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 # logging
 log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
-if not os.path.exists(log_dir): os.mkdir(log_dir)
+try:
+    if not os.path.exists(log_dir): os.mkdir(log_dir)
+except FileNotFoundError:
+    log_dir, log_config = '../builds/logs', glob.glob('../builds/logging.ini', recursive=True)
+    if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
@@ -302,9 +306,15 @@ class OntologyCleaner(object):
         ont, key, schma = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location, schema.boolean
         dep_cls = {x[0] for x in list(self.ont_graph.triples((None, OWL.deprecated, Literal('true', datatype=schma))))}
         obs_cls = {x[0] for x in list(self.ont_graph.triples((None, RDFS.subClassOf, oboinowl.ObsoleteClass)))}
-        # remove deprecated and obsolete information
-        for node in list(dep_cls) + list(obs_cls):
-            self.ont_graph.remove((node, None, None))
+        obs_cls |= set([x[0] for x in self.ont_graph if str(x[2]).startswith('OBSOLETE. ')])
+
+        # remove triples
+        for node in tqdm(list(dep_cls) + list(obs_cls)):
+            triples = list(self.ont_graph.triples((node, None, None)))
+            while len(triples) > 0:
+                s, p, o = triples.pop(0)
+                triples += list(self.ont_graph.triples((s, None, None)))
+                self.ont_graph = remove_edges_from_graph(self.ont_graph, [(s, p, o)])
 
         self.ontology_info[key]['Deprecated'] = dep_cls if len(dep_cls) > 0 else 'None'
         self.ontology_info[key]['Obsolete'] = obs_cls if len(obs_cls) > 0 else 'None'
@@ -545,8 +555,10 @@ class OntologyCleaner(object):
                 self.fixes_identifier_errors()
                 self.removes_deprecated_obsolete_entities()
                 self.fixes_punning_errors()
-                self.updates_ontology_reporter()  # get finishing statistics
                 self._logically_verifies_cleaned_ontologies()
+                # read in cleaned, verified, and updated ontology containing inference
+                self.ont_graph = Graph().parse(ont)
+                self.updates_ontology_reporter()  # get finishing statistics
                 if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         log_str = '*** CLEANING MERGED ONTOLOGY DATA ***'

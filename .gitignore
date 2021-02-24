@@ -4,6 +4,7 @@
 \.DS_Store
 .idea/
 .ipynb_checkpoints/*
+notebooks/*/*.ipynb
 .mypy*
 __pycache__
 __pycache__/
@@ -53,7 +54,7 @@ scratch*.py
 /resources/processed_data/*
 /resources/relations_data/*
 
-## Dependency Files
+#### Dependency Files
 !/resources/construction_approach/README.md
 !/resources/edge_data/edge_source_metadata.txt
 !/resources/edge_data/README.md
@@ -65,5 +66,11 @@ scratch*.py
 !/resources/owl_decoding/README.md
 !/resources/relations_data/README.md
 
-## Releases
+#### Releases
 /releases/*
+
+#### Documentation
+/docs/make.bat
+/docs/build
+notebooks/.ipynb_checkpoints/Ontology_Cleaning-checkpoint.ipynb
+notebooks/.ipynb_checkpoints/Ontology_Cleaning-checkpoint.ipynb

@@ -25,7 +25,11 @@ oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 obo = Namespace('http://purl.obolibrary.org/obo/')
 # logging
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
-if not os.path.exists(log_dir): os.mkdir(log_dir)
+try:
+    if not os.path.exists(log_dir): os.mkdir(log_dir)
+except FileNotFoundError:
+    log_dir, log_config = '../builds/logs', glob.glob('../builds/logging.ini', recursive=True)
+    if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
