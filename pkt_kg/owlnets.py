@@ -23,7 +23,11 @@ obo = Namespace('http://purl.obolibrary.org/obo/')
 pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
 # logging
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
-if not os.path.exists(log_dir): os.mkdir(log_dir)
+try:
+    if not os.path.exists(log_dir): os.mkdir(log_dir)
+except FileNotFoundError:
+    log_dir, log_config = '../builds/logs', glob.glob('../builds/logging.ini', recursive=True)
+    if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
@@ -107,8 +111,8 @@ class OwlNets(object):
             None.
         """
 
-        print('Converting RDFLib Graph to Networkx MultiDiGraph. Note, this process can take up to 60 minutes.')
-        logger.info('Converting RDFLib Graph to Networkx MultiDiGraph. Note, this process can take up to 60 minutes.')
+        log_str = 'Converting RDFLib Graph to Networkx MultiDiGraph. Note, this process can take up to 60 minutes.'
+        print(log_str); logger.info(log_str)
 
         for s, p, o in tqdm(self.graph):
             self.nx_mdg.add_edge(s, o, **{'key': p})
@@ -122,19 +126,16 @@ class OwlNets(object):
             None.
         """
 
-        print('Removing owl:disjointWith Axioms')
-        logger.info('Removing owl:disjointWith Axioms')
+        print('Removing owl:disjointWith Axioms'); logger.info('Removing owl:disjointWith Axioms')
 
-        disjoint_elements = [x[0] for x in self.graph.triples((None, None, OWL.disjointWith))]
-        for x in disjoint_elements:
-            triples = list(self.graph.triples((x, None, None)))
-            self.owl_nets_dict['disjointWith'][x.n3()] = set(triples)
-            for triple in triples:
-                self.graph.remove(triple)
+        triples = set(
+            list(self.graph.triples((None, OWL.disjointWith, None))) +
+            list(self.graph.triples((None, None, OWL.disjointWith))))
+        self.graph = remove_edges_from_graph(self.graph, triples)
 
-        stats_str = len(self.owl_nets_dict['disjointWith'].keys())
-        print('Removed {} owl:disjointWith Axioms'.format(stats_str))
-        logger.info('Removed {} owl:disjointWith Axioms'.format(stats_str))
+        self.owl_nets_dict['disjointWith'] = set(triples)
+        stats_str = 'Removed {} owl:disjointWith Axioms'.format(len(self.owl_nets_dict['disjointWith']))
+        print(stats_str); logger.info(stats_str)
 
         return None
 
@@ -151,8 +152,7 @@ class OwlNets(object):
              None.
         """
 
-        print('Re-mapping Instances of Classes to Class Identifiers')
-        logger.info('Re-mapping Instances of Classes to Class Identifiers')
+        print('Re-mapping pkt_kg Instances to Class IDs'); logger.info('Re-mapping pkt_kg Instances to Class IDs')
 
         # get all class individuals in pheknowlator namespace and save as dict with value as original ontology class
         pred = RDF.type if self.kg_construct_approach == 'instance' else RDFS.subClassOf
@@ -193,8 +193,8 @@ class OwlNets(object):
             filtered_graph: An RDFLib graph that contains only clinically and biologically meaningful triples.
         """
 
-        print('Filtering Triples')
-        logger.info('Filtering Triples')
+        print('Filtering Triples'); logger.info('Filtering Triples')
+
         keep_predicates, filtered_triples = set(), set()
         exclude = self.top_level_ontologies + self.relations_ontologies + self.support_ontologies
         for x in tqdm(self.graph):
@@ -226,7 +226,7 @@ class OwlNets(object):
                 else: filtered_triples |= {x}
             else: filtered_triples |= {x}
 
-        filtered_graph = adds_edges_to_graph(Graph(), list(keep_predicates))  # create a new graph from filtered edges
+        filtered_graph = adds_edges_to_graph(Graph(), list(keep_predicates), False)  # create a new graph from filtered
         self.owl_nets_dict['filtered_triples'] |= filtered_triples
 
         return filtered_graph
@@ -539,8 +539,7 @@ class OwlNets(object):
              An rdflib.Graph object that has been updated to only include triples owl decoded triples.
         """
 
-        print('Decoding OWL Constructors and Restrictions')
-        logger.info('Decoding OWL Constructors and Restrictions')
+        print('Decoding OWL Constructors and Restrictions'); logger.info('Decoding OWL Constructors and Restrictions')
 
         decoded_graph: Graph = Graph()
         cleaned_nodes: Set = set()
@@ -576,7 +575,7 @@ class OwlNets(object):
                             self.owl_nets_dict['owl_nets']['misc'][node.n3()] = {tuple(misc_axioms)}
                             edges = None
                 # add kept edges to filtered graph
-                decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes))
+                decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes), False)
                 self.owl_nets_dict['owl_nets']['decoded_classes'][node.n3()] = cleaned_classes
         pbar.close()
         str1 = 'Decoded {} owl-encoded classes. Note the following:\nPartially processed {} cardinality ' \
@@ -596,7 +595,7 @@ class OwlNets(object):
         return cleaned_decoded_graph
 
     @staticmethod
-    def makes_graph_connected(graph: Graph) -> Graph:
+    def makes_graph_connected(graph: Graph, common_ancestor: Union[URIRef, str] = obo.BFO_0000001) -> Graph:
         """In order to prevent the filtered graph from becoming unnecessarily disconnected, all OWL-NETS nodes are
         checked to ensure that at least one of their ancestor concepts in the cleaned graph is a subclass of
         BFO_0000001 ('Entity'). While this is not the best solution long-term is the cleanest way to ensure the graph
@@ -605,24 +604,30 @@ class OwlNets(object):
 
         Args:
             graph: An RDFLib Graph object.
+            common_ancestor: A URIRef or str containing a URI that represents the node that should be used as the
+                common ancestor when making the graph a single connected component (default=obo.BFO_0000001).
 
         Returns:
             graph: An RDFLib Graph object that has been updated to be connected.
         """
 
-        nodes = set([x for x in list(graph.subjects()) + list(graph.objects()) if isinstance(x, URIRef)])
-        starting_size = len(graph)
-        for x in tqdm(nodes):
-            ancestors = gets_class_ancestors(graph, [x])
-            if str(obo.BFO_0000001) not in ancestors and len(ancestors) != 0:
-                graph.add((URIRef(ancestors[0]), RDFS.subClassOf, obo.BFO_0000001))
-            else:
-                graph.add((x, RDFS.subClassOf, obo.BFO_0000001))
+        if not str(common_ancestor).startswith('http'):
+            raise ValueError('Error: common_ancestor must be a valid URL')
+        else:
+            ancestor_node = common_ancestor if isinstance(common_ancestor, URIRef) else URIRef(common_ancestor)
+            nodes = set([x for x in list(graph.subjects()) + list(graph.objects()) if isinstance(x, URIRef)])
+            starting_size = len(graph)
+            for x in tqdm(nodes):
+                ancestors = gets_class_ancestors(graph, [x])
+                if str(ancestor_node) not in ancestors and len(ancestors) != 0:
+                    graph.add((URIRef(ancestors[0]), RDFS.subClassOf, ancestor_node))
+                else:
+                    graph.add((x, RDFS.subClassOf, ancestor_node))
 
-        res = len(graph) - starting_size
-        print('{} triples were added in order to ensure the graph contains a single connected component.'.format(res))
+            res = len(graph) - starting_size
+            print('{} triples were added to ensure the graph contains a single connected component.'.format(res))
 
-        return graph
+            return graph
 
     def purifies_graph_build(self) -> None:
         """Purifies an existing graph according to its kg_construction approach (i.e. "subclass" or "instance"). When
@@ -637,8 +642,8 @@ class OwlNets(object):
              None.
         """
 
-        print('Purifying Graph Based on Knowledge Graph Construction Approach')
-        logger.info('Purifying Graph Based on Knowledge Graph Construction Approach')
+        log_str = 'Purifying Graph Based on Knowledge Graph Construction Approach'
+        print(log_str); logger.info(log_str)
 
         # get original and purification relation
         org_rel = RDF.type if self.kg_construct_approach == 'subclass' else RDFS.subClassOf
@@ -681,8 +686,7 @@ class OwlNets(object):
         logger.info(stats)
 
         # write out owl-nets graph
-        print('Serializing OWL-NETS Graph')
-        logger.info('Serializing OWL-NETS Graph')
+        print('Serializing OWL-NETS Graph'); logger.info('Serializing OWL-NETS Graph')
 
         # set filepath information
         f_name_lab = '_' + kg_construction_approach.upper() + '_purified' if kg_construction_approach else ''
@@ -718,8 +722,9 @@ class OwlNets(object):
                 additional to being purified according to the kg_construct_approach.
         """
 
-        print('\n*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
-        logger.info('*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***')
+        log_str = '*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***'
+        print('\n' + log_str); logger.info(log_str)
+
         self.removes_disjoint_with_axioms()
         self.updates_pkt_namespace_identifiers()
         self.converts_rdflib_to_networkx_multidigraph()
@@ -727,16 +732,15 @@ class OwlNets(object):
         decoded_graph = self.cleans_owl_encoded_classes()
         self.graph = self.makes_graph_connected(filtered_graph + decoded_graph)
 
-        print('Processing OWL-NETS Graph Output')
-        logger.info('Processing OWL-NETS Graph Output')
+        print('Processing OWL-NETS Graph Output'); logger.info('Processing OWL-NETS Graph Output')
         if self.kg_construct_approach is not None:
             original_graph = Graph()
             for triple in tqdm(self.graph):
                 original_graph.add(triple)
             self.write_out_results(original_graph)
 
-            print('Creating {}-based Purified OWL-NETS Graph'.format(self.kg_construct_approach.title()))
-            logger.info('Creating {}-based Purified OWL-NETS Graph'.format(self.kg_construct_approach.title()))
+            log_str = 'Creating {}-based Purified OWL-NETS Graph'.format(self.kg_construct_approach.title())
+            print(log_str); logger.info(log_str)
             self.purifies_graph_build()
             self.write_out_results(self.graph, self.kg_construct_approach)
             return original_graph, self.graph

@@ -688,11 +688,26 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_makes_graph_connected(self):
-        """Tests the makes_graph_connected method."""
+    def test_makes_graph_connected_default(self):
+        """Tests the makes_graph_connected method using the default argument for common_ancestor."""
 
         starting_size = len(self.owl_nets.graph)
         connected_graph = self.owl_nets.makes_graph_connected(self.owl_nets.graph)
+        self.assertTrue(len(connected_graph) > starting_size)
+
+        return None
+
+    def test_makes_graph_connected_other(self):
+        """Tests the makes_graph_connected method using something other than the default arg for common_ancestor."""
+
+        starting_size = len(self.owl_nets.graph)
+
+        # test when bad node is passed
+        self.assertRaises(ValueError, self.owl_nets.makes_graph_connected, self.owl_nets.graph, 'SO_0000110')
+
+        # test when good node is passed
+        node = 'http://purl.obolibrary.org/obo/SO_0000110'
+        connected_graph = self.owl_nets.makes_graph_connected(self.owl_nets.graph, node)
         self.assertTrue(len(connected_graph) > starting_size)
 
         return None
