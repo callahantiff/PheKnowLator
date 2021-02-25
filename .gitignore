@@ -4,7 +4,7 @@
 \.DS_Store
 .idea/
 .ipynb_checkpoints/*
-notebooks/*/*.ipynb
+notebooks/.ipynb_checkpoints/*
 .mypy*
 __pycache__
 __pycache__/
@@ -72,5 +72,3 @@ scratch*.py
 #### Documentation
 /docs/make.bat
 /docs/build
-notebooks/.ipynb_checkpoints/Ontology_Cleaning-checkpoint.ipynb
-notebooks/.ipynb_checkpoints/Ontology_Cleaning-checkpoint.ipynb
