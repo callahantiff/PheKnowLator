@@ -182,7 +182,6 @@ class OntologyCleaner(object):
         command = "{} {} --reasoner elk --run-reasoner --assert-implied -o {}"
         return_code = os.system(command.format(self.owltools_location, filename, filename))
         if return_code == 0:
-            ontology_file_formatter(self.temp_dir, '/' + self.ont_file_location, self.owltools_location)
             if isinstance(self.bucket, storage.bucket.Bucket):
                 uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
         else:
