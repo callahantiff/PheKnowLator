@@ -41,6 +41,8 @@ class DataPreprocessing(object):
     more detailed descriptions of each processed data source and the rationale behind the different filtering and
     processing approaches.
 
+    Companion Notebook: https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/Data_Preparation.ipynb
+
     Attributes:
         gcs_bucket: A storage Bucket object specifying a Google Cloud Storage bucket.
         org_data: A string specifying the location of the original_data directory for a specific build.
