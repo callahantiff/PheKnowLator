@@ -382,7 +382,7 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
-    def test_finds_class_ancestors(self):
+    def test_finds_entity_ancestors(self):
         """Tests the finds_class_ancestors method."""
 
         # load ontology
@@ -390,7 +390,7 @@ class TestKGUtils(unittest.TestCase):
         so_class = {URIRef('http://purl.obolibrary.org/obo/SO_0000348')}
 
         # get ancestors when a valid class is provided -- class is URIRef
-        ancestors1 = gets_class_ancestors(graph, so_class, so_class)
+        ancestors1 = gets_entity_ancestors(graph, so_class, so_class)
         self.assertIsInstance(ancestors1, List)
         self.assertEqual(sorted(list(ancestors1)),
                          sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
@@ -399,7 +399,7 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
-    def test_finds_class_ancestors_bad_format(self):
+    def test_finds_entity_ancestors_bad_format(self):
         """Tests the finds_class_ancestors method when badly formatted class_uris are passed."""
 
         # load ontology
@@ -408,7 +408,7 @@ class TestKGUtils(unittest.TestCase):
 
         # get ancestors when a valid class is provided -- class is not URIRef
         class_uri = set([str(x).split('/')[-1] for x in so_class])
-        ancestors1 = gets_class_ancestors(graph, class_uri, class_uri)
+        ancestors1 = gets_entity_ancestors(graph, class_uri, class_uri)
         self.assertIsInstance(ancestors1, List)
         self.assertEqual(sorted(list(ancestors1)),
                          sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
@@ -417,14 +417,14 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
-    def test_finds_class_ancestors_none(self):
+    def test_finds_entity_ancestors_none(self):
         """Tests the finds_class_ancestors method when an empty set of class uris is passed."""
 
         # load ontology
         graph = Graph().parse(self.good_ontology_file_location, format='xml')
 
         # get ancestors when no class is provided
-        ancestors2 = gets_class_ancestors(graph, [])
+        ancestors2 = gets_entity_ancestors(graph, [])
         self.assertIsInstance(ancestors2, List)
         self.assertEqual(ancestors2, [])
 
@@ -524,6 +524,21 @@ class TestKGUtils(unittest.TestCase):
 
         # remove file
         os.remove(no_assert_loc)
+
+        return None
+
+    def test_adds_namespace_to_bnodes(self):
+        """Tests the adds_namespace_to_bnodes method"""
+
+        # generate testing data
+        graph = Graph().parse(self.dir_loc + '/so_with_imports.owl')
+        graph_len = len(graph)
+        pkt_bnode = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
+
+        # test method
+        updated_graph = adds_namespace_to_bnodes(graph, pkt_bnode)
+        self.assertIsInstance(updated_graph, Graph)
+        self.assertEqual(graph_len, len(updated_graph))
 
         return None
 

@@ -23,6 +23,7 @@ Interacts with Knowledge Graphs
 * connected_components
 * removes_self_loops
 * derives_graph_statistics
+* adds_namespace_to_bnodes
 * splits_knowledge_graph
 
 Writes Triple Lists
@@ -57,6 +58,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 obo = Namespace('http://purl.obolibrary.org/obo/')
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 schema = Namespace('http://www.w3.org/2001/XMLSchema#')
+pkt_bnode = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
 
 
 def gets_ontology_classes(graph: Graph) -> Set:
@@ -261,8 +263,7 @@ def ontology_file_formatter(write_location: str, full_kg: str,
     print('Applying OWL API Formatting to Knowledge Graph OWL File')
 
     graph_write_location = write_location + full_kg
-    if '.owl' not in graph_write_location: raise TypeError('The provided file is not type .owl')
-    elif not os.path.exists(graph_write_location): raise IOError('{} does not exist!'.format(graph_write_location))
+    if not os.path.exists(graph_write_location): raise IOError('{} does not exist!'.format(graph_write_location))
     elif os.stat(graph_write_location).st_size == 0: raise TypeError('{} is empty'.format(graph_write_location))
     else:
         try:
@@ -386,17 +387,19 @@ def finds_node_type(edge_info: Dict) -> Dict:
     return nodes
 
 
-def gets_class_ancestors(graph: Graph, class_uris: List[Union[URIRef, str]], class_list: Optional[List] = None) -> List:
-    """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input class.
+def gets_entity_ancestors(graph: Graph, entity_uris: List[Union[URIRef, str]],
+                          rel: Union[URIRef, str] = RDFS.subClassOf, class_list: Optional[List] = None) -> List:
+    """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input entity.
 
     Args:
         graph: An RDFLib graph object assumed to contain ontology data.
-        class_uris: A list of at least one ontology class RDFLib URIRef object.
+        entity_uris: A list of at least one ontology RDFLib URIRef object or string.
+        rel: A string or RDFLib URI object containing a predicate.
         class_list: A list of URIs representing the ancestor classes found for the input class_uris.
 
     Returns:
-        An ordered (ascending; root to leaf) list of ontology classes containing the input ancestor hierarchy for the
-            class_uris. For example:
+        An ordered (ascending; root to leaf) list of ontology objects containing the input ancestor hierarchy for the
+            entity_uris. For example:
                 input: [URIRef('http://purl.obolibrary.org/obo/NCBITaxon_11157')]
                 output: [
                     'http://purl.obolibrary.org/obo/NCBITaxon_10239',
@@ -407,17 +410,18 @@ def gets_class_ancestors(graph: Graph, class_uris: List[Union[URIRef, str]], cla
     """
 
     # instantiate list object if none passed to function
+    prop = rel if isinstance(rel, URIRef) else URIRef(rel)
     class_list = [] if class_list is None else class_list
     class_list = list(unique_everseen([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_list]))
     # check class uris are formatted correctly and get their ancestors
-    class_uris = list(unique_everseen([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_uris]))
-    ancestors = list(unique_everseen([j for k in [graph.objects(x, RDFS.subClassOf) for x in class_uris] for j in k]))
+    entity_uris = list(unique_everseen([x if isinstance(x, URIRef) else URIRef(obo + x) for x in entity_uris]))
+    ancestors = list(unique_everseen([j for k in [graph.objects(x, prop) for x in entity_uris] for j in k]))
     if len(ancestors) == 0 or len(set(ancestors).difference(set(class_list))) == 0:
         return list(unique_everseen([str(x) for x in class_list]))
     else:
-        class_uris = [x for x in ancestors if x not in class_list]
-        class_list.insert(0, [x for x in class_uris][0])
-        return gets_class_ancestors(graph, class_uris, class_list)
+        entity_uris = [x for x in ancestors if x not in class_list]
+        class_list.insert(0, [x for x in entity_uris][0])
+        return gets_entity_ancestors(graph, entity_uris, prop, class_list)
 
 
 def connected_components(graph: Graph) -> List:
@@ -516,9 +520,34 @@ def derives_graph_statistics(graph: Union[Graph, networkx.MultiDiGraph]) -> str:
     return stats
 
 
+def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode) -> Graph:
+    """Method adds a namespace to all anonymous (RDFLib Term type BNode).
+
+    Args:
+        graph: An RDFLib Graph object.
+        ns: A string or RDFLib Namespace object (default='https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
+
+    Returns:
+         graph: An RDFLib Graph object with updated BNodes.
+    """
+
+    ns_uri = ns if isinstance(ns, Namespace) else Namespace(ns)
+
+    for s, p, o in tqdm(graph):
+        updated_s = URIRef(ns_uri + str(s)) if isinstance(s, BNode) else s
+        updated_p = URIRef(ns_uri + str(p)) if isinstance(p, BNode) else p
+        updated_o = URIRef(ns_uri + str(o)) if isinstance(o, BNode) else o
+        graph.add((updated_s, updated_p, updated_o))
+        graph.remove((s, p, o))
+
+    return graph
+
+
 def splits_knowledge_graph(graph: Graph) -> Tuple[Graph, Graph]:
     """Method takes an input RDFLib Graph object and splits it into two new graphs where the first graph contains
     only those triples needed to maintain a base logical subset and the second contains only annotation assertions.
+
+    Source: https://www.w3.org/TR/owl2-syntax/#Annotation_Assertion
 
     Args:
         graph: An RDFLib Graph object.
@@ -530,32 +559,48 @@ def splits_knowledge_graph(graph: Graph) -> Tuple[Graph, Graph]:
 
     print('Creating Logic and Annotation Graph Subsets')
 
-    entities = set([x[0] for x in graph.triples((None, RDF.type, None)) if isinstance(x[0], URIRef)])
-    annotation_props = set(graph.subjects(RDF.type, OWL.AnnotationProperty))
-    annotation_axioms = set()
-    for ent in tqdm(entities):
-        axioms = list(graph.triples((None, OWL.annotatedSource, ent)))
-        if len(axioms) > 0:
-            for axiom in axioms:
-                annotation_axioms |= set(graph.triples((axiom[0], None, None)))
-                annotation_axioms |= set([x for x in graph.triples((axiom[2], None, None)) if x[1] in annotation_props])
-        else:
-            annotation_axioms |= set([x for x in graph.triples((ent, None, None)) if x[1] in annotation_props])
+    # add namespace to all bnodes
+    graph = adds_namespace_to_bnodes(graph)
+
+    annotation_properties = set([x for x in graph.subjects(RDF.type, OWL.AnnotationProperty) if x != RDF.type])
+    annotation_properties |= {OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget}
+    annotated_entities = set(graph.subjects(RDF.type, OWL.Axiom))
+    annotated_entities |= set([x[0] for x in graph if x[1] in annotation_properties and isinstance(x[0], URIRef)])
+    annotation_axioms, entity_types = set(), set()
+    for ent in tqdm(annotated_entities):
+        triples = set(graph.triples((ent, None, None)))
+        entity_types |= set(graph.triples((ent, RDF.type, None)))
+        annotation_axioms |= set((s, p, o) for s, p, o in triples if p in annotation_properties or o == OWL.Axiom)
 
     # create graph subsets
-    all_triples = set(list(graph.triples((None, None, None))))
+    all_triples = set(graph.triples((None, None, None)))
     logic_triples = all_triples.difference(annotation_axioms)
-    annotation_graph = adds_edges_to_graph(Graph(), annotation_axioms)
-    logic_graph = adds_edges_to_graph(Graph(), logic_triples)
 
     if len(logic_triples) + len(annotation_axioms) != len(all_triples):
         raise ValueError('Error: Subsetting was Unsuccessful!')
     else:
-        print('logic_graph: {} triples; annotation_graph: {} triples'.format(len(logic_graph), len(annotation_graph)))
-        # add rdf:type to annotations -- needed for extracting node and relation metadata
-        annotation_graph = adds_edges_to_graph(annotation_graph, list(graph.triples((None, RDF.type, None))), False)
+        print('Creating Annotation Graph: {} Triples'.format(len(annotation_axioms)))
+        annotation_graph = adds_edges_to_graph(Graph(), annotation_axioms | entity_types)  # type added to avoid punning
+        print('Creating Logic Graph: {} Triples'.format(len(logic_triples)))
+        logic_graph = adds_edges_to_graph(Graph(), logic_triples)
 
         return logic_graph, annotation_graph
+
+    for s, p, o in graph:
+        if s == obo.RO_0002331 or o == obo.RO_0002331 or p == obo.RO_0002331:
+            print(s, p, o)
+
+    annotation_graph.serialize('resources/ontologies/mondo_Annotations.nt', format='nt')
+    ontology_file_formatter('resources/ontologies/', 'mondo_Annotations.nt')
+
+    logic_graph.serialize('resources/ontologies/mondo_logic_only.owl', format='xml')
+    ontology_file_formatter('resources/ontologies/', 'mondo_logic_only.owl')
+
+    annot, logic = 'resources/ontologies/mondo_Annotations.nt', 'resources/ontologies/mondo_logic_only.owl'
+    merges_ontologies([annot, logic], 'resources/ontologies/', 'mondo_full.owl')
+    ontology_file_formatter('resources/ontologies/', 'mondo_test.owl')
+    graph2 = Graph().parse('resources/ontologies/mondo_full.owl')
+    len(graph2)
 
 
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:
