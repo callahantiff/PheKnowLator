@@ -45,6 +45,8 @@ class OntologyCleaner(object):
 
     Note. Currently there is some hard-coding which converts all HGNC identifiers to Entrez.
 
+    Companion Notebook: https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/Ontology_Cleaning.ipynb
+
     Attributes:
         gcs_bucket: A storage Bucket object specifying a Google Cloud Storage bucket.
         org_data: A string specifying the location of the original_data directory for a specific build.
@@ -305,13 +307,13 @@ class OntologyCleaner(object):
 
         ont, key, schma = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location, schema.boolean
         dep_cls = set(self.ont_graph.subjects(OWL.deprecated, None))
-        obs_cls = {x[0] for x in list(self.ont_graph.triples((None, RDFS.subClassOf, oboinowl.ObsoleteClass)))}
+        obs_cls = set(self.ont_graph.subjects(RDFS.subClassOf, oboinowl.ObsoleteClass))
         obs_cls |= set([x[0] for x in self.ont_graph if
                         str(x[2]).startswith('OBSOLETE. ') or
                         str(x[2]).lower().startswith('obsolete ')])
-
-        for node in tqdm(set(list(dep_cls) + list(obs_cls))):
-            self.ont_graph = remove_edges_from_graph(self.ont_graph, set(self.ont_graph.triples((node, None, None))))
+        for node in tqdm(dep_cls | obs_cls):
+            axioms = list(self.ont_graph.triples((node, None, None)))
+            self.ont_graph = remove_edges_from_graph(self.ont_graph, axioms)
 
         self.ontology_info[key]['Deprecated'] = dep_cls if len(dep_cls) > 0 else 'None'
         self.ontology_info[key]['Obsolete'] = obs_cls if len(obs_cls) > 0 else 'None'
@@ -353,14 +355,12 @@ class OntologyCleaner(object):
                         self.ont_graph.remove(a_prop)
                         bad_obj.add(str(x))
                         # check if the object property is used beyond definition -- if not, delete it
-                        out_edges = list(self.ont_graph.triples((x, None, None)))
-                        in_edges = list(self.ont_graph.triples((None, None, x)))
-                        val_nodes = [i for i in out_edges + in_edges if len(
-                            [j[2] for j in list(self.ont_graph.triples((i, RDF.type, OWL.Class)))] +
-                            [j[2] for j in list(self.ont_graph.triples((i, RDF.type, OWL.NamedIndividual)))]) > 0]
-                        if len(val_nodes) == 0:
-                            self.ont_graph.remove((x, None, None))
-                            bad_obj.add(str(x))
+                        e = set(self.ont_graph.triples((x, None, None))) | set(self.ont_graph.triples((None, None, x)))
+                        val_nodes = [i for i in e if len(
+                            [j[2] for j in list(self.ont_graph.triples((i[0], RDF.type, OWL.Class)))] +
+                            [j[2] for j in list(self.ont_graph.triples((i[0], RDF.type, OWL.NamedIndividual)))] +
+                            [j[2] for j in list(self.ont_graph.triples((None, OWL.someValuesFrom, i[0])))]) > 0]
+                        if len(val_nodes) == 0: self.ont_graph.remove((x, None, None))
 
         self.ontology_info[key]['PunningErrors - Classes'] = ', '.join(bad_cls) if len(bad_cls) > 0 else 'None'
         self.ontology_info[key]['PunningErrors - ObjectProperty'] = ', '.join(bad_obj) if len(bad_obj) > 0 else 'None'
@@ -437,7 +437,6 @@ class OntologyCleaner(object):
                 else: missing += [str(node)]
             elif str(node) in self.withdrawn_map.keys(): ents = [URIRef(url + x) for x in self.withdrawn_map[str(node)]]
             else: missing += [str(node)]
-
             if ents is not None and len(ents) > 0:  # fix broken identifiers within affected triples
                 for edge in trips:
                     if isinstance(edge[0], URIRef) or isinstance(edge[2], URIRef):
@@ -523,7 +522,7 @@ class OntologyCleaner(object):
         individual ontology- and the merged ontology-level, each are described below:
             - Individual Ontologies: (1) Parsing Errors, (2) Identifier Errors, (3) Deprecated/Obsolete Errors, and (4)
               Punning Errors.
-            - Merged Ontologies: (1) Identifier Error, (2) Normalizes Duplicate and Existing Concepts, and (3) Punning
+            - Merged Ontologies: (1) Identifier Errors, (2) Normalizes Duplicate and Existing Concepts, and (3) Punning
               Errors.
 
         NOTE. The OWL API, when running the ELK reasoner, seems to add back some of the errors that this script removes.
