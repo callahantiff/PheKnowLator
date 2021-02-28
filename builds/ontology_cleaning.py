@@ -313,10 +313,13 @@ class OntologyCleaner(object):
                 master_triples |= {(s, p, o)}
                 out_edges = set(self.ont_graph.triples((s, None, None)))
                 in_edges = set(self.ont_graph.triples((None, None, s)))
-                triples += list(out_edges | in_edges)
-            else: master_triples |= {(s, p, o)}
+                new_trips = [x for x in out_edges | in_edges if x not in triples and x not in master_triples]
+                new_bnodes = [x for x in new_trips if isinstance(x[2], BNode)]
+                if len(new_trips) > 0 and len(new_bnodes) > 0:  triples += new_trips
+                else: master_triples |= set(new_trips)
+            else:
+                if (s, p, o) not in master_triples: master_triples |= {(s, p, o)}
             return self.path_finder(triples, master_triples)
-
         else: return master_triples | set(triples)
 
     def removes_deprecated_obsolete_entities(self) -> None:
@@ -328,7 +331,7 @@ class OntologyCleaner(object):
 
         print('Removing Deprecated and Obsolete Classes'); logger.info('Removing Deprecated and Obsolete Classes')
 
-        ont, key, schma = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location, schema.boolean
+        ont, key = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location
         dep_cls = set(self.ont_graph.subjects(OWL.deprecated, None))
         obs_cls = set(self.ont_graph.subjects(RDFS.subClassOf, oboinowl.ObsoleteClass))
         obs_oth = set([x[0] for x in self.ont_graph if
@@ -336,7 +339,8 @@ class OntologyCleaner(object):
                         str(x[2]).lower().startswith('obsolete ')) and x[0] not in obs_cls | dep_cls])
         for node in tqdm(dep_cls | obs_cls | obs_oth):
             axioms = set(self.ont_graph.triples((node, None, None))) | set(self.ont_graph.triples((None, None, node)))
-            triples = self.path_finder(list(axioms), set())
+            bnode_triples = set([x for x in axioms if isinstance(x[0], BNode)])
+            triples = self.path_finder(list(bnode_triples), set())
             self.ont_graph = remove_edges_from_graph(self.ont_graph, axioms | triples)
 
         self.ontology_info[key]['Deprecated'] = dep_cls if len(dep_cls) > 0 else 'None'
