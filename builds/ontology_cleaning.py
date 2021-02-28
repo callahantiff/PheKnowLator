@@ -16,7 +16,7 @@ from owlready2 import get_ontology, OwlReadyOntologyParsingError  # type: ignore
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Set, Union
 
 # import script containing helper functions
 from builds.build_utilities import downloads_data_from_gcs_bucket, uploads_data_to_gcs_bucket
@@ -295,6 +295,30 @@ class OntologyCleaner(object):
 
         return None
 
+    def path_finder(self, triples: List, master_triples: Set) -> Set:
+        """Method takes a triple an RDFLib graph object and searches the graph to return all triples associated with
+        BNodes in the input triple list.
+
+        Args:
+            triples: A list of triples where each item in the list is an RDFLib object.
+            master_triples: None or a list of triples where each item in the list is an RDFLib object.
+
+        Returns:
+            triple_list: A set of triples, where each item in the list is an RDFLib object.
+        """
+
+        if len(triples) != 0 and len([x for x in triples if isinstance(x[0], BNode)]) > 0:
+            s, p, o = triples.pop(0)
+            if isinstance(s, BNode) and (s, p, o) not in master_triples:
+                master_triples |= {(s, p, o)}
+                out_edges = set(self.ont_graph.triples((s, None, None)))
+                in_edges = set(self.ont_graph.triples((None, None, s)))
+                triples += list(out_edges | in_edges)
+            else: master_triples |= {(s, p, o)}
+            return self.path_finder(triples, master_triples)
+
+        else: return master_triples | set(triples)
+
     def removes_deprecated_obsolete_entities(self) -> None:
         """Identifies and removes all deprecated and obsolete classes.
 
@@ -307,15 +331,16 @@ class OntologyCleaner(object):
         ont, key, schma = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location, schema.boolean
         dep_cls = set(self.ont_graph.subjects(OWL.deprecated, None))
         obs_cls = set(self.ont_graph.subjects(RDFS.subClassOf, oboinowl.ObsoleteClass))
-        obs_cls |= set([x[0] for x in self.ont_graph if
-                        str(x[2]).startswith('OBSOLETE. ') or
-                        str(x[2]).lower().startswith('obsolete ')])
-        for node in tqdm(dep_cls | obs_cls):
-            axioms = list(self.ont_graph.triples((node, None, None)))
-            self.ont_graph = remove_edges_from_graph(self.ont_graph, axioms)
+        obs_oth = set([x[0] for x in self.ont_graph if
+                       (str(x[2]).startswith('OBSOLETE. ') or
+                        str(x[2]).lower().startswith('obsolete ')) and x[0] not in obs_cls | dep_cls])
+        for node in tqdm(dep_cls | obs_cls | obs_oth):
+            axioms = set(self.ont_graph.triples((node, None, None))) | set(self.ont_graph.triples((None, None, node)))
+            triples = self.path_finder(list(axioms), set())
+            self.ont_graph = remove_edges_from_graph(self.ont_graph, axioms | triples)
 
         self.ontology_info[key]['Deprecated'] = dep_cls if len(dep_cls) > 0 else 'None'
-        self.ontology_info[key]['Obsolete'] = obs_cls if len(obs_cls) > 0 else 'None'
+        self.ontology_info[key]['Obsolete'] = obs_cls if len(obs_cls | obs_oth) > 0 else 'None'
 
         return None
 
