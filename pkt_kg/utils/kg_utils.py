@@ -19,7 +19,7 @@ Interacts with Knowledge Graphs
 * adds_edges_to_graph
 * remove_edges_from_graph
 * updates_graph_namespace
-* gets_class_ancestors
+* gets_entity_ancestors
 * connected_components
 * removes_self_loops
 * derives_graph_statistics
@@ -531,14 +531,28 @@ def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode
          graph: An RDFLib Graph object with updated BNodes.
     """
 
-    ns_uri = ns if isinstance(ns, Namespace) else Namespace(ns)
+    # get original bnodes
+    print('Processing Original Nodes')
+    all_triples = set(graph.triples((None, None, None)))
+    sub_only_bnodes_org = {x for x in graph if isinstance(x[0], BNode) and not isinstance(x[2], BNode)}
+    obj_only_bnodes_org = {x for x in graph if isinstance(x[2], BNode) and not isinstance(x[0], BNode)}
+    sub_and_obj_bnodes_org = {x for x in graph if isinstance(x[0], BNode) and isinstance(x[2], BNode)}
+    graph_no_bnodes = all_triples - (sub_only_bnodes_org | obj_only_bnodes_org | sub_and_obj_bnodes_org)
+    del all_triples, graph
 
-    for s, p, o in tqdm(graph):
-        updated_s = URIRef(ns_uri + str(s)) if isinstance(s, BNode) else s
-        updated_p = URIRef(ns_uri + str(p)) if isinstance(p, BNode) else p
-        updated_o = URIRef(ns_uri + str(o)) if isinstance(o, BNode) else o
-        graph.add((updated_s, updated_p, updated_o))
-        graph.remove((s, p, o))
+    # reformat original bnodes by converting them into namespaced-URIs
+    print('Converting BNodes to Namespaced-URIs')
+    ns_uri = ns if isinstance(ns, Namespace) else Namespace(ns)
+    sub_fixed = {(URIRef(ns_uri + str(x[0])), x[1], x[2]) for x in sub_only_bnodes_org}
+    obj_fixed = {(x[0], x[1], URIRef(ns_uri + str(x[2]))) for x in obj_only_bnodes_org}
+    both_fixed = {(URIRef(ns_uri + str(x[0])), x[1], URIRef(ns_uri + str(x[2]))) for x in sub_and_obj_bnodes_org}
+    del sub_only_bnodes_org, obj_only_bnodes_org, sub_and_obj_bnodes_org
+
+    # create graph from all non-bnode triples + reformatted bnodes triples back to graph
+    print('Finalizing Updated Graph')
+    graph = Graph()
+    for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed):
+        graph.add((s, p, o))
 
     return graph
 
@@ -566,41 +580,24 @@ def splits_knowledge_graph(graph: Graph) -> Tuple[Graph, Graph]:
     annotation_properties |= {OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget}
     annotated_entities = set(graph.subjects(RDF.type, OWL.Axiom))
     annotated_entities |= set([x[0] for x in graph if x[1] in annotation_properties and isinstance(x[0], URIRef)])
-    annotation_axioms, entity_types = set(), set()
+    annotation_axioms = set()
     for ent in tqdm(annotated_entities):
-        triples = set(graph.triples((ent, None, None)))
-        entity_types |= set(graph.triples((ent, RDF.type, None)))
+        triples = set(graph.triples((ent, None, None))) | set(graph.triples((None, None, ent)))
         annotation_axioms |= set((s, p, o) for s, p, o in triples if p in annotation_properties or o == OWL.Axiom)
 
     # create graph subsets
     all_triples = set(graph.triples((None, None, None)))
-    logic_triples = all_triples.difference(annotation_axioms)
+    logic_triples = all_triples - annotation_axioms
 
-    if len(logic_triples) + len(annotation_axioms) != len(all_triples):
-        raise ValueError('Error: Subsetting was Unsuccessful!')
-    else:
+    if len(logic_triples) + len(annotation_axioms) == len(all_triples):
         print('Creating Annotation Graph: {} Triples'.format(len(annotation_axioms)))
-        annotation_graph = adds_edges_to_graph(Graph(), annotation_axioms | entity_types)  # type added to avoid punning
+        annotation_graph = adds_edges_to_graph(Graph(), annotation_axioms)  # type added to avoid punning
         print('Creating Logic Graph: {} Triples'.format(len(logic_triples)))
         logic_graph = adds_edges_to_graph(Graph(), logic_triples)
-
         return logic_graph, annotation_graph
 
-    for s, p, o in graph:
-        if s == obo.RO_0002331 or o == obo.RO_0002331 or p == obo.RO_0002331:
-            print(s, p, o)
-
-    annotation_graph.serialize('resources/ontologies/mondo_Annotations.nt', format='nt')
-    ontology_file_formatter('resources/ontologies/', 'mondo_Annotations.nt')
-
-    logic_graph.serialize('resources/ontologies/mondo_logic_only.owl', format='xml')
-    ontology_file_formatter('resources/ontologies/', 'mondo_logic_only.owl')
-
-    annot, logic = 'resources/ontologies/mondo_Annotations.nt', 'resources/ontologies/mondo_logic_only.owl'
-    merges_ontologies([annot, logic], 'resources/ontologies/', 'mondo_full.owl')
-    ontology_file_formatter('resources/ontologies/', 'mondo_test.owl')
-    graph2 = Graph().parse('resources/ontologies/mondo_full.owl')
-    len(graph2)
+    else:
+        raise ValueError('Error: Subsetting was Unsuccessful!')
 
 
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:

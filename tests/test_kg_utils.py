@@ -77,14 +77,11 @@ class TestKGUtils(unittest.TestCase):
         owltools = self.owltools_location
 
         # test method handling of bad file types
-        # not an owl file
-        self.assertRaises(TypeError, ontology_file_formatter, self.dir_loc, '/so_with_imports.txt', owltools)
-
         # a file that does not exist
         self.assertRaises(IOError, ontology_file_formatter, self.dir_loc, '/sop_with_imports.owl', owltools)
 
         # an empty file
-        self.assertRaises(TypeError, ontology_file_formatter, self.dir_loc, '/empty_hp_with_imports.txt', owltools)
+        self.assertRaises(TypeError, ontology_file_formatter, self.dir_loc, '/empty_hp_with_imports.owl', owltools)
 
         # make sure method runs on legitimate file
         self.assertTrue(ontology_file_formatter(write_location=self.dir_loc,
@@ -387,10 +384,10 @@ class TestKGUtils(unittest.TestCase):
 
         # load ontology
         graph = Graph().parse(self.good_ontology_file_location, format='xml')
-        so_class = {URIRef('http://purl.obolibrary.org/obo/SO_0000348')}
+        so_class = [URIRef('http://purl.obolibrary.org/obo/SO_0000348')]
 
         # get ancestors when a valid class is provided -- class is URIRef
-        ancestors1 = gets_entity_ancestors(graph, so_class, so_class)
+        ancestors1 = gets_entity_ancestors(graph, so_class, RDFS.subClassOf, so_class)
         self.assertIsInstance(ancestors1, List)
         self.assertEqual(sorted(list(ancestors1)),
                          sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
@@ -408,7 +405,7 @@ class TestKGUtils(unittest.TestCase):
 
         # get ancestors when a valid class is provided -- class is not URIRef
         class_uri = set([str(x).split('/')[-1] for x in so_class])
-        ancestors1 = gets_entity_ancestors(graph, class_uri, class_uri)
+        ancestors1 = gets_entity_ancestors(graph, class_uri, RDFS.subClassOf, class_uri)
         self.assertIsInstance(ancestors1, List)
         self.assertEqual(sorted(list(ancestors1)),
                          sorted(list({'http://purl.obolibrary.org/obo/SO_0000348',
@@ -424,7 +421,7 @@ class TestKGUtils(unittest.TestCase):
         graph = Graph().parse(self.good_ontology_file_location, format='xml')
 
         # get ancestors when no class is provided
-        ancestors2 = gets_entity_ancestors(graph, [])
+        ancestors2 = gets_entity_ancestors(graph, [], RDFS.subClassOf, [])
         self.assertIsInstance(ancestors2, List)
         self.assertEqual(ancestors2, [])
 
