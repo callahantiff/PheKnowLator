@@ -24,6 +24,7 @@ Interacts with Knowledge Graphs
 * removes_self_loops
 * derives_graph_statistics
 * adds_namespace_to_bnodes
+* removes_namespace_from_bnodes
 * splits_knowledge_graph
 
 Writes Triple Lists
@@ -528,12 +529,12 @@ def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode
         ns: A string or RDFLib Namespace object (default='https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
 
     Returns:
-         graph: An RDFLib Graph object with updated BNodes.
+         updated_graph: An RDFLib Graph object with updated BNodes.
     """
 
     # get original bnodes
     print('Processing Original Nodes')
-    all_triples = set(graph.triples((None, None, None)))
+    all_triples = set(graph)
     sub_only_bnodes_org = {x for x in graph if isinstance(x[0], BNode) and not isinstance(x[2], BNode)}
     obj_only_bnodes_org = {x for x in graph if isinstance(x[2], BNode) and not isinstance(x[0], BNode)}
     sub_and_obj_bnodes_org = {x for x in graph if isinstance(x[0], BNode) and isinstance(x[2], BNode)}
@@ -548,13 +549,51 @@ def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode
     both_fixed = {(URIRef(ns_uri + str(x[0])), x[1], URIRef(ns_uri + str(x[2]))) for x in sub_and_obj_bnodes_org}
     del sub_only_bnodes_org, obj_only_bnodes_org, sub_and_obj_bnodes_org
 
-    # create graph from all non-bnode triples + reformatted bnodes triples back to graph
+    # create graph from all non-bnode triples + reformatted bnodes triples
     print('Finalizing Updated Graph')
-    graph = Graph()
+    updated_graph = Graph()
     for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed):
-        graph.add((s, p, o))
+        updated_graph.add((s, p, o))
 
-    return graph
+    return updated_graph
+
+
+def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode) -> Graph:
+    """Methods removes namespace from nodes originally assumed to be RDFLib BNodes. This method acts to reverse the
+    pkt_kg.utils.adds_namespace_to_bnodes method.
+
+    Args:
+        graph: An RDFLib Graph object.
+        ns: A string or RDFLib Namespace object (default='https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
+
+    Returns:
+        updated_graph: An RDFLib Graph object with bnode namespaces removed.
+    """
+
+    # get original bnodes
+    print('Processing Original Nodes')
+    ns_uri = str(ns) if isinstance(ns, Namespace) else ns
+    all_triples = set(graph)
+    sub_only_bnodes_ns = {(s, p, o) for s, p, o in graph if str(s).startswith(ns_uri) and not str(o).startswith(ns_uri)}
+    obj_only_bnodes_ns = {(s, p, o) for s, p, o in graph if str(o).startswith(ns_uri) and not str(s).startswith(ns_uri)}
+    sub_and_obj_bnodes_ns = {(s, p, o) for s, p, o in graph if str(s).startswith(ns_uri) and str(o).startswith(ns_uri)}
+    graph_no_bnodes = all_triples - (sub_only_bnodes_ns | obj_only_bnodes_ns | sub_and_obj_bnodes_ns)
+    del all_triples, graph
+
+    # reformat original bnodes by converting them into namespaced-URIs
+    print('Removing Namespace from BNodes')
+    sub_fixed = {(BNode(str(s).split('/')[-1]), p, o) for s, p, o in sub_only_bnodes_ns}
+    obj_fixed = {(s, p, BNode(str(o).split('/')[-1])) for s, p, o in obj_only_bnodes_ns}
+    both_fixed = {(BNode(str(s).split('/')[-1]), p, BNode(str(o).split('/')[-1])) for s, p, o in sub_and_obj_bnodes_ns}
+    del sub_only_bnodes_ns, obj_only_bnodes_ns, sub_and_obj_bnodes_ns
+
+    # create graph from all non-namespaced-bnode triples + reformatted bnodes triples
+    print('Finalizing Updated Graph')
+    updated_graph = Graph()
+    for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed):
+        updated_graph.add((s, p, o))
+
+    return updated_graph
 
 
 def splits_knowledge_graph(graph: Graph) -> Tuple[Graph, Graph]:

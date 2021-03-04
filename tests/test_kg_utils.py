@@ -539,6 +539,21 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
+    def test_removes_namespace_from_bnodes(self):
+        """Tests the removes_namespace_from_bnodes method."""
+
+        # generate testing data
+        pkt_bnode = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
+        graph = adds_namespace_to_bnodes(Graph().parse(self.dir_loc + '/so_with_imports.owl'), pkt_bnode)
+        graph_len = len(graph)
+
+        # test method
+        updated_graph = removes_namespace_from_bnodes(graph, pkt_bnode)
+        self.assertIsInstance(updated_graph, Graph)
+        self.assertEqual(graph_len, len(updated_graph))
+
+        return None
+
     def test_splits_knowledge_graph(self):
         """Tests the splits_knowledge_graph method."""
 
