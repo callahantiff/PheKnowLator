@@ -14,11 +14,12 @@ from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Tuple, Union
 
-from pkt_kg.utils import finds_node_type, nt_serializes_node
+from pkt_kg.utils import finds_node_type
 
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
 pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
+pkt_bnode = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
 # logging
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
 try:
@@ -119,8 +120,7 @@ class KGConstructionApproach(object):
         return subclass_map
 
     @staticmethod
-    def subclass_core_constructor(node1: Union[BNode, URIRef], node2: Union[BNode, URIRef], relation: URIRef,
-                                  inverse_relation: Optional[URIRef]) -> Tuple:
+    def subclass_core_constructor(node1: URIRef, node2: URIRef, relation: URIRef, inv_relation: URIRef) -> Tuple:
         """Core subclass-based edge construction method. Constructs a single edge between to ontology classes as well as
         verifies if the user wants an inverse edge created and if so, then this edge is also added to the knowledge
         graph. Note that a Bnode is used for subclass construction versus the UUID hash + pkt namespace that is used
@@ -133,32 +133,31 @@ class KGConstructionApproach(object):
             node1: A URIRef or BNode object containing a subject node.
             node2: A URIRef or BNode object containing a object node.
             relation: A URIRef object containing an owl:ObjectProperty.
-            inverse_relation: A string containing an inverse relation identifier (i.e. RO_0002200) or None (i.e.
+            inv_relation: A string containing an inverse relation identifier (i.e. RO_0002200) or None (i.e.
                 indicating no inverse relation).
 
         Returns:
             A list of tuples representing new edges to add to the knowledge graph.
         """
 
-        # rel_core = str(node1) + str(relation) + str(node2)
-        rel_core = nt_serializes_node(node1) + nt_serializes_node(relation) + nt_serializes_node(node2)
+        rel_core = node1.n3() + relation.n3() + node2.n3()
         u1 = URIRef(pkt + 'N' + hashlib.md5(rel_core.encode()).hexdigest())
-        u2 = BNode('N' + hashlib.md5((rel_core + nt_serializes_node(OWL.Restriction)).encode()).hexdigest())
+        u2 = URIRef(pkt_bnode + 'N' + hashlib.md5((rel_core + OWL.Restriction.n3()).encode()).hexdigest())
 
         new_edge_inverse_rel: Tuple = tuple()
         new_edge_rel_only: Tuple = ((node1, RDF.type, OWL.Class),
                                     (u1, RDFS.subClassOf, node1),
                                     (u1, RDF.type, OWL.Class),
                                     (u1, RDFS.subClassOf, u2),
-                                    (BNode(u2), RDF.type, OWL.Restriction),
+                                    (u2, RDF.type, OWL.Restriction),
                                     (u2, OWL.someValuesFrom, node2),
                                     (node2, RDF.type, OWL.Class),
                                     (u2, OWL.onProperty, relation),
                                     (relation, RDF.type, OWL.ObjectProperty))
-        if inverse_relation:
-            inv_rel_core = nt_serializes_node(node2) + nt_serializes_node(inverse_relation) + nt_serializes_node(node1)
+        if inv_relation:
+            inv_rel_core = node2.n3() + inv_relation.n3() + node1.n3()
             u3 = URIRef(pkt + 'N' + hashlib.md5(inv_rel_core.encode()).hexdigest())
-            u4 = BNode('N' + hashlib.md5((inv_rel_core + nt_serializes_node(OWL.Restriction)).encode()).hexdigest())
+            u4 = URIRef(pkt_bnode + 'N' + hashlib.md5((inv_rel_core + OWL.Restriction.n3()).encode()).hexdigest())
 
             new_edge_inverse_rel = ((node2, RDF.type, OWL.Class),
                                     (u3, RDFS.subClassOf, node2),
@@ -167,8 +166,8 @@ class KGConstructionApproach(object):
                                     (u4, RDF.type, OWL.Restriction),
                                     (u4, OWL.someValuesFrom, node1),
                                     (node1, RDF.type, OWL.Class),
-                                    (u4, OWL.onProperty, inverse_relation),
-                                    (inverse_relation, RDF.type, OWL.ObjectProperty))
+                                    (u4, OWL.onProperty, inv_relation),
+                                    (inv_relation, RDF.type, OWL.ObjectProperty))
 
         return new_edge_rel_only + new_edge_inverse_rel
 
@@ -194,8 +193,7 @@ class KGConstructionApproach(object):
 
         res = finds_node_type(edge_info)
         rel, irel = URIRef(obo + edge_info['rel']), URIRef(obo + edge_info['inv_rel']) if edge_info['inv_rel'] else None
-        uri1, uri2 = edge_info['uri']
-        edges: List = []
+        uri1, uri2 = edge_info['uri']; edges: List = []
 
         if res['cls1'] and res['cls2']:  # class-class edges
             edges = list(self.subclass_core_constructor(URIRef(res['cls1']), URIRef(res['cls2']), rel, irel))
@@ -205,8 +203,7 @@ class KGConstructionApproach(object):
             if mapped_node:  # get entity mappings to current classes from subclass_construction_map
                 edges = [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
                                      ((URIRef(obo + x), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
-                # determine node order in relation (i.e. class-entity or entity-class)
-                ent_order = ['cls1', 'ent1'] if edge_info['n1'] == 'class' else ['ent1', 'cls1']
+                ent_order = ['cls1', 'ent1'] if edge_info['n1'] == 'class' else ['ent1', 'cls1']  # determine node order
                 edges += self.subclass_core_constructor(URIRef(res[ent_order[0]]), URIRef(res[ent_order[1]]), rel, irel)
         else:  # entity-entity edges
             mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''), edge_info['edges'])
@@ -221,21 +218,19 @@ class KGConstructionApproach(object):
         return edges
 
     @staticmethod
-    def instance_core_constructor(node1: Union[BNode, URIRef], node2: Union[BNode, URIRef], relation: URIRef,
-                                  inverse_relation: Optional[URIRef]) -> Tuple:
+    def instance_core_constructor(node1: URIRef, node2: URIRef, relation: URIRef, inv_relation: URIRef) -> Tuple:
         """Core instance-based edge construction method. Constructs a single edge between two ontology classes as
         well as verifies if the user wants an inverse edge created and if so, then this edge is also added to the
         knowledge graph.
 
-        Note. We explicitly type each node and each relation/inverse relation. This may seem redundant,
-        but it is needed in order to ensure consistency between the data after applying the OWL API to reformat the
-        data.
+        Note. We explicitly type each node and each relation/inverse relation. This may seem redundant, but it is
+        needed in order to ensure consistency between the data after applying the OWL API to reformat the data.
 
         Args:
             node1: A URIRef or BNode object containing a subject node.
             node2: A URIRef or BNode object containing a object node.
             relation: A URIRef object containing an owl:ObjectProperty.
-            inverse_relation: A string containing the identifier for an inverse relation (i.e. RO_0002200) or None
+            inv_relation: A string containing the identifier for an inverse relation (i.e. RO_0002200) or None
                 (i.e. indicator of no inverse relation).
 
         Returns:
@@ -243,8 +238,8 @@ class KGConstructionApproach(object):
         """
 
         # select hash relation - if rel and inv rel take first in alphabetical order else use rel
-        rels = sorted([relation, inverse_relation])[0] if inverse_relation is not None else [relation][0]
-        rel_core = nt_serializes_node(node1) + nt_serializes_node(rels) + nt_serializes_node(node2)
+        rels = sorted([relation, inv_relation])[0] if inv_relation is not None else [relation][0]
+        rel_core = node1.n3() + rels.n3() + node2.n3()
         u1 = URIRef(pkt + 'N' + hashlib.md5((rel_core + 'subject').encode()).hexdigest())
         u2 = URIRef(pkt + 'N' + hashlib.md5((rel_core + 'object').encode()).hexdigest())
 
@@ -255,9 +250,7 @@ class KGConstructionApproach(object):
                                     (u2, RDF.type, OWL.NamedIndividual),
                                     (u1, relation, u2),
                                     (relation, RDF.type, OWL.ObjectProperty))
-        if inverse_relation:
-            new_edge_inverse_rel = ((u2, inverse_relation, u1),
-                                    (inverse_relation, RDF.type, OWL.ObjectProperty))
+        if inv_relation: new_edge_inverse_rel = ((u2, inv_relation, u1), (inv_relation, RDF.type, OWL.ObjectProperty))
 
         return new_edge_rel_only + new_edge_inverse_rel
 
@@ -279,8 +272,7 @@ class KGConstructionApproach(object):
 
         res = finds_node_type(edge_info)
         rel, irel = URIRef(obo + edge_info['rel']), URIRef(obo + edge_info['inv_rel']) if edge_info['inv_rel'] else None
-        uri1, uri2 = edge_info['uri']
-        edges: List = []
+        uri1, uri2 = edge_info['uri']; edges: List = []
 
         if res['cls1'] and res['cls2']:  # class-class edges
             edges = list(self.instance_core_constructor(URIRef(res['cls1']), URIRef(res['cls2']), rel, irel))
@@ -291,8 +283,7 @@ class KGConstructionApproach(object):
                 edges = [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + x)),) +
                                      ((URIRef(obo + x), RDF.type, OWL.Class),) +
                                      ((URIRef(res['ent1']), RDF.type, OWL.Class),) for x in mapped_node] for x in y]
-                # determine node order in relation (i.e. class-entity or entity-class)
-                ent_order = ['cls1', 'ent1'] if edge_info['n1'] == 'class' else ['ent1', 'cls1']
+                ent_order = ['cls1', 'ent1'] if edge_info['n1'] == 'class' else ['ent1', 'cls1']  # determine node order
                 edges += self.instance_core_constructor(URIRef(res[ent_order[0]]), URIRef(res[ent_order[1]]), rel, irel)
         else:  # entity-entity edges
             mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''), edge_info['edges'])
