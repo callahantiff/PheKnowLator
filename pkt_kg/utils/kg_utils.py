@@ -599,6 +599,7 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
 def splits_knowledge_graph(graph: Graph) -> Tuple[Graph, Graph]:
     """Method takes an input RDFLib Graph object and splits it into two new graphs where the first graph contains
     only those triples needed to maintain a base logical subset and the second contains only annotation assertions.
+    Please note that the code below processes both entities (i.e. owl:Class and owl:ObjectProperties
 
     Source: https://www.w3.org/TR/owl2-syntax/#Annotation_Assertion
 
@@ -612,37 +613,34 @@ def splits_knowledge_graph(graph: Graph) -> Tuple[Graph, Graph]:
 
     print('Creating Logic and Annotation Graph Subsets')
 
-    # add namespace to all bnodes
     graph = adds_namespace_to_bnodes(graph)
 
     # get information needed to find annotation assertions
-    annot_properties = set([x for x in graph.subjects(RDF.type, OWL.AnnotationProperty) if x != RDF.type])
-    annot_properties_primary = {OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget}
-    all_annot_properties = annot_properties | annot_properties_primary
-    annot_entities = set(graph.subjects(RDF.type, OWL.Axiom))
-    annot_entities |= set([x[0] for x in graph if x[1] in annot_properties and isinstance(x[0], URIRef)])
-    annot_axioms = set()
-
-    for ent in tqdm(annot_entities):
+    annot_props = set([x for x in graph.subjects(RDF.type, OWL.AnnotationProperty) if x != RDF.type])
+    core_annot_props = {OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget}
+    all_annot_props = annot_props | core_annot_props
+    axioms = set(graph.subjects(RDF.type, OWL.Axiom))
+    entities = set([x[0] for x in graph if isinstance(x[0], URIRef) and (x[1] in annot_props and x[0] not in axioms)])
+    annot_list = set()
+    for ent in tqdm(axioms | entities):
         triples = set(graph.triples((ent, None, None))) | set(graph.triples((None, None, ent)))
-        logic_axioms = [(s, p, o) for s, p, o in triples if isinstance(o, URIRef) and
-                        ((s == ent and p == OWL.annotatedTarget) or (s == ent and p == OWL.annotatedSource)) or
-                        ((o == ent and p == OWL.annotatedTarget) or (o == ent and p == OWL.annotatedSource))]
-        if len(logic_axioms) > 0: annot_axioms |= {(s, p, o) for s, p, o in triples if p in annot_properties}
-        else:
-            annot_axioms |= {(s, p, o) for s, p, o in triples if p in all_annot_properties or o == OWL.Axiom}
-
+        target = [x for x in triples if (x[0] == ent and x[1] == OWL.annotatedTarget and isinstance(x[2], URIRef))]
+        source = [x for x in triples if (x[0] == ent and x[1] == OWL.annotatedSource and isinstance(x[2], URIRef))]
+        if len(target) > 0 and len(source) > 0: annot_list |= {x for x in triples if x[1] in annot_props}
+        elif len(target) == 0 and len(source) == 0:
+            match = [x for x in triples if x[2] == ent and (x[1] == OWL.annotatedTarget or x[1] == OWL.annotatedSource)]
+            keep = [x for x in match if x not in annot_list]
+            annot_list |= {x for x in triples if (x[1] in all_annot_props or x[2] == OWL.Axiom) and x not in keep}
+        else: annot_list |= {x for x in triples if x[1] in all_annot_props or x[2] == OWL.Axiom}
     # create graph subsets
-    all_triples = set(graph); logic_triples = all_triples - annot_axioms
-
-    if len(logic_triples) + len(annot_axioms) == len(all_triples):
-        print('Creating Annotation Graph (n={} Triples)'.format(len(annot_axioms)))
-        annotation_graph = adds_edges_to_graph(Graph(), annot_axioms)
+    all_triples = set(graph); logic_triples = all_triples - annot_list
+    if len(logic_triples) + len(annot_list) == len(all_triples):
+        print('Creating Annotation Graph (n={} Triples)'.format(len(annot_list)))
+        annotation_graph = adds_edges_to_graph(Graph(), annot_list)
         print('Creating Logic Graph (n={} Triples)'.format(len(logic_triples)))
         logic_graph = adds_edges_to_graph(Graph(), logic_triples)
         return logic_graph, annotation_graph
-    else:
-        raise ValueError('Error: Graph Subsetting was Unsuccessful!')
+    else: raise ValueError('Error: Graph Subsetting was Unsuccessful!')
 
 
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:
