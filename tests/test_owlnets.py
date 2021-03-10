@@ -5,11 +5,15 @@ import os
 import shutil
 import unittest
 
-from rdflib import Graph, BNode, Literal, URIRef
+from rdflib import Graph, BNode, Literal, Namespace, URIRef
+from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from typing import Dict, List, Set, Tuple
 
 from pkt_kg.owlnets import OwlNets
 from pkt_kg.utils import adds_edges_to_graph
+
+# set namespace
+obo = Namespace('http://purl.obolibrary.org/obo/')
 
 
 class TestOwlNets(unittest.TestCase):
@@ -61,8 +65,6 @@ class TestOwlNets(unittest.TestCase):
         # write_location
         self.assertIsInstance(self.write_location, str)
         self.assertEqual(self.dir_loc_resources + '/knowledge_graphs', self.write_location)
-
-        # write_location
         self.assertIsInstance(self.write_location, str)
         self.assertEqual(self.dir_loc_resources + '/knowledge_graphs', self.write_location)
 
@@ -116,7 +118,6 @@ class TestOwlNets(unittest.TestCase):
                            write_location=self.write_location,
                            filename=self.kg_filename,
                            owl_tools='test_location')
-
         self.assertIsInstance(owl_nets.graph, Graph)
 
         # when path to graph is provided
@@ -125,7 +126,6 @@ class TestOwlNets(unittest.TestCase):
                            write_location=self.write_location,
                            filename=self.kg_filename,
                            owl_tools='test_location')
-
         self.assertIsInstance(owl_nets.graph, Graph)
 
         return None
@@ -160,7 +160,7 @@ class TestOwlNets(unittest.TestCase):
         """Tests the class initialization state for node_list."""
 
         self.assertIsInstance(self.owl_nets.node_list, List)
-        self.assertEqual(len(self.owl_nets.node_list), 2573)
+        self.assertEqual(len(self.owl_nets.node_list), 0)
 
         return None
 
@@ -168,31 +168,16 @@ class TestOwlNets(unittest.TestCase):
         """Tests the updates_pkt_namespace_identifiers method for an instance-based construction approach."""
 
         # update graph
-        edges = (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://purl.obolibrary.org/obo/CHEBI_2504')), \
-                (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#NamedIndividual')), \
-                (URIRef('http://purl.obolibrary.org/obo/CHEBI_2504'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
-                (URIRef('https://www.ncbi.nlm.nih.gov/gene/55847'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#NamedIndividual')), \
-                (URIRef('https://www.ncbi.nlm.nih.gov/gene/55847'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://purl.obolibrary.org/obo/SO_0001217')), \
-                (URIRef('http://purl.obolibrary.org/obo/SO_0001217'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
-                (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
-                 URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
-                 URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')), \
-                (URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#ObjectProperty'))
-
+        edges = [(URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
+                 RDF.type, obo.CHEBI_2504),
+                 (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
+                 RDF.type, OWL.NamedIndividual), (obo.CHEBI_2504, RDF.type, OWL.Class),
+                 (URIRef('https://www.ncbi.nlm.nih.gov/gene/55847'), RDF.type, OWL.NamedIndividual),
+                 (URIRef('https://www.ncbi.nlm.nih.gov/gene/55847'), RDF.type, obo.SO_0001217),
+                 (obo.SO_0001217, RDF.type, OWL.Class),
+                 (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
+                 obo.RO_0002434, URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),
+                 (obo.RO_0002434, RDF.type, OWL.ObjectProperty)]
         self.owl_nets2.graph = adds_edges_to_graph(Graph(), edges)
 
         # run method to roll back to re-map instances of classes
@@ -209,51 +194,22 @@ class TestOwlNets(unittest.TestCase):
         """Tests the updates_pkt_namespace_identifiers method for a subclass-based construction approach."""
 
         # update graph
-        edges = (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
-                 URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-                 URIRef('http://purl.obolibrary.org/obo/DOID_3075')), \
-                (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
-                (URIRef('http://purl.obolibrary.org/obo/DOID_3075'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
-                (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
-                 URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-                 BNode('N4ba9c4585bada420f5f94b3a2c6146e1')), \
-                (BNode('N4ba9c4585bada420f5f94b3a2c6146e1'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#Restriction')), \
-                (BNode('N4ba9c4585bada420f5f94b3a2c6146e1'),
-                 URIRef('http://www.w3.org/2002/07/owl#onProperty'),
-                 URIRef('http://purl.obolibrary.org/obo/RO_0003302')), \
-                (BNode('N4ba9c4585bada420f5f94b3a2c6146e1'),
-                 URIRef('http://www.w3.org/2002/07/owl#someValuesFrom'),
-                 URIRef('http://purl.obolibrary.org/obo/DOID_1080')), \
-                (URIRef('http://purl.obolibrary.org/obo/DOID_1080'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#Class')), \
-                (URIRef('http://purl.obolibrary.org/obo/RO_0003302'),
-                 URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                 URIRef('http://www.w3.org/2002/07/owl#ObjectProperty'))
-
+        edges = [(URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                 RDFS.subClassOf, obo.DOID_3075),
+                 (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                 RDF.type, OWL.Class), (obo.DOID_3075, RDF.type, OWL.Class),
+                 (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                 RDFS.subClassOf, BNode('N4ba9c')), (BNode('N4ba9c'), RDF.type, OWL.Restriction),
+                 (BNode('N4ba9c'), OWL.onProperty, obo.RO_0003302),
+                 (BNode('N4ba9c'), OWL.someValuesFrom, obo.DOID_1080),
+                 (obo.DOID_1080, RDF.type, OWL.Class), (obo.RO_0003302, RDF.type, OWL.ObjectProperty)]
         self.owl_nets.graph = adds_edges_to_graph(Graph(), edges)
 
         # run method to roll back to re-map instances of classes
         self.owl_nets.updates_pkt_namespace_identifiers()
         self.assertEqual(len(self.owl_nets.graph), 7)
         self.assertTrue(((URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
-                          URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-                          BNode('http://purl.obolibrary.org/obo/DOID_3075'))) not in self.owl_nets.graph)
-
-        return None
-
-    def test_converts_rdflib_to_networkx_multidigraph(self):
-        """Tests the converts_rdflib_to_networkx_multidigraph method."""
-
-        self.owl_nets.converts_rdflib_to_networkx_multidigraph()
-        self.assertIsInstance(self.owl_nets.nx_mdg, networkx.MultiDiGraph)
-        self.assertTrue(len(self.owl_nets.nx_mdg) == 20277)
+                          RDFS.subClassOf, obo.DOID_3075)) not in self.owl_nets.graph)
 
         return None
 
@@ -261,41 +217,25 @@ class TestOwlNets(unittest.TestCase):
         """Tests the removes_disjoint_with_axioms method."""
 
         # create test data
-        graph = Graph()
-        triples = [(BNode('N9f94b1ff016149d0859c059b74e5360f'),
-                    URIRef('http://www.geneontology.org/formats/oboInOwl#source'),
+        triples = [(BNode('N9f94b'), URIRef('http://www.geneontology.org/formats/oboInOwl#source'),
                     Literal('lexical', datatype=URIRef('http://www.w3.org/2001/XMLSchema#string'))),
-                   (BNode('N9f94b1ff016149d0859c059b74e5360f'),
-                    URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                    URIRef('http://www.w3.org/2002/07/owl#Axiom')),
-                   (BNode('N9f94b1ff016149d0859c059b74e5360f'),
-                    URIRef('http://www.w3.org/2002/07/owl#annotatedTarget'),
-                    URIRef('http://purl.obolibrary.org/obo/UBERON_0022716')),
-                   (BNode('N9f94b1ff016149d0859c059b74e5360f'),
-                    URIRef('http://www.w3.org/2002/07/owl#annotatedSource'),
-                    URIRef('http://purl.obolibrary.org/obo/UBERON_0022352')),
-                   (BNode('N9f94b1ff016149d0859c059b74e5360f'),
-                    URIRef('http://www.w3.org/2002/07/owl#annotatedProperty'),
-                    URIRef('http://www.w3.org/2002/07/owl#disjointWith'))]
-        for x in triples: graph.add(x)
-        self.owl_nets.graph = graph
+                   (BNode('N9f94b'), RDF.type, OWL.Axiom),
+                   (BNode('N9f94b'), OWL.AnnotatedTarget, obo.UBERON_0022716),
+                   (BNode('N9f94b'), OWL.AnnotatedSource, obo.UBERON_0022352),
+                   (BNode('N9f94b'), OWL.AnnotatedProperty, OWL.disjointWith)]
+        self.owl_nets.graph = adds_edges_to_graph(Graph(), triples, False)
 
         # test method
         self.owl_nets.removes_disjoint_with_axioms()
-        self.assertTrue(len(self.owl_nets.graph) == 0)
+        self.assertTrue(len(self.owl_nets.graph) == 4)
 
         return None
 
     def test_removes_edges_with_owl_semantics(self):
         """Tests the removes_edges_with_owl_semantics method."""
 
-        # run method
         filtered_graph = self.owl_nets.removes_edges_with_owl_semantics()
-
-        # check output type
         self.assertIsInstance(filtered_graph, Graph)
-
-        # check output length
         self.assertEqual(len(filtered_graph), 2328)
 
         return None
@@ -307,11 +247,7 @@ class TestOwlNets(unittest.TestCase):
 
         # run method
         filtered_graph = self.owl_nets.removes_edges_with_owl_semantics()
-
-        # check output type
         self.assertIsInstance(filtered_graph, Graph)
-
-        # check output length
         self.assertEqual(len(filtered_graph), 2745)
 
         return None
@@ -320,46 +256,97 @@ class TestOwlNets(unittest.TestCase):
         """Tests the recurses_axioms method."""
 
         # run method when passing axioms that include BNodes
-        # function inputs
         seen_nodes = []
-        axioms = [(BNode('N194ae548a89740849c3536d9753d39d8'),
-                   URIRef('http://www.w3.org/2002/07/owl#someValuesFrom'),
-                   URIRef('http://purl.obolibrary.org/obo/SO_0000784'))]
-
+        axioms = [(BNode('N194ae548a89740849c3536d9753d39d8'), OWL.someValuesFrom, obo.SO_0000784)]
         visited_nodes = self.owl_nets.recurses_axioms(seen_nodes, axioms)
-
         self.assertIsInstance(visited_nodes, List)
         self.assertEqual(len(visited_nodes), 1)
         self.assertIn(BNode('N194ae548a89740849c3536d9753d39d8'), visited_nodes)
 
         # run method when passing axioms that do not include BNodes
-        # function inputs
         seen_nodes = []
-        axioms = [(URIRef('http://purl.obolibrary.org/obo/SO_0002047'),
-                   URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                   URIRef('http://www.w3.org/2002/07/owl#Class'))]
-
+        axioms = [(obo.SO_0002047, RDF.type, OWL.Class)]
         visited_nodes = self.owl_nets.recurses_axioms(seen_nodes, axioms)
-
         self.assertIsInstance(visited_nodes, List)
         self.assertEqual(len(visited_nodes), 0)
+
+        return None
+
+    def test_finds_bnode_uri(self):
+        """Tests the finds_bnode_uri method."""
+
+        # set-up testing data
+        triples = [(BNode('N31fefc6d'), RDF.type, OWL.Axiom),
+                   (BNode('N31fefc6d'), OWL.annotatedProperty, RDFS.subClassOf),
+                   (BNode('N31fefc6d'), OWL.annotatedSource, obo.UBERON_0002373),
+                   (BNode('N31fefc6d'), OWL.annotatedTarget, BNode('N26cd7b2c')),
+                   (BNode('N26cd7b2c'), RDF.type, OWL.Restriction),
+                   (BNode('N26cd7b2c'), OWL.onProperty, obo.RO_0002202),
+                   (BNode('N26cd7b2c'), OWL.someValuesFrom, obo.UBERON_0010023),
+                   (obo.UBERON_0010023, RDF.type, OWL.Class)]
+        self.owl_nets.graph = adds_edges_to_graph(Graph(), triples)
+
+        # test method
+        node = self.owl_nets.finds_bnode_uri(BNode('N26cd7b2c'), obo.UBERON_0002373)
+        self.assertEqual(node, obo.UBERON_0010023)
+
+        return None
+
+    def test_reconciles_axioms(self):
+        """Tests the reconciles_axioms method."""
+
+        # set-up testing data
+        triples = [(BNode('N31fefc6d'), RDF.type, OWL.Axiom),
+                   (BNode('N31fefc6d'), OWL.annotatedProperty, RDFS.subClassOf),
+                   (BNode('N31fefc6d'), OWL.annotatedSource, obo.UBERON_0002373),
+                   (BNode('N31fefc6d'), OWL.annotatedTarget, BNode('N26cd7b2c')),
+                   (BNode('N26cd7b2c'), RDF.type, OWL.Restriction),
+                   (BNode('N26cd7b2c'), OWL.onProperty, obo.RO_0002202),
+                   (BNode('N26cd7b2c'), OWL.someValuesFrom, obo.UBERON_0010023),
+                   (obo.UBERON_0010023, RDF.type, OWL.Class)]
+        result = {(BNode('N26cd7b2c'), RDF.type, OWL.Restriction),
+                  (BNode('N26cd7b2c'), OWL.onProperty, obo.RO_0002202),
+                  (BNode('N26cd7b2c'), OWL.someValuesFrom, obo.UBERON_0010023)}
+        self.owl_nets.graph = adds_edges_to_graph(Graph(), triples)
+
+        # test method
+        node, matches = self.owl_nets.reconciles_axioms(obo.UBERON_0002373, BNode('N26cd7b2c'))
+        self.assertIsInstance(node, URIRef)
+        self.assertIsInstance(matches, Set)
+        self.assertEqual(sorted(list(matches)), sorted(list(result)))
+
+        return None
+
+    def test_reconciles_classes(self):
+        """Tests the reconciles_classes method."""
+
+        # set-up testing data
+        triples = [(obo.UBERON_0002374, RDFS.subClassOf, BNode('N41c7c5fd')),
+                   (BNode('N41c7c5fd'), RDF.type, OWL.Restriction),
+                   (BNode('N41c7c5fd'), OWL.onProperty, obo.BFO_0000050),
+                   (BNode('N41c7c5fd'), OWL.someValuesFrom, obo.UBERON_0010544)]
+        result = {(BNode('N41c7c5fd'), OWL.someValuesFrom, obo.UBERON_0010544),
+                  (BNode('N41c7c5fd'), RDF.type, OWL.Restriction),
+                  (BNode('N41c7c5fd'), OWL.onProperty, obo.BFO_0000050)}
+        self.owl_nets.graph = adds_edges_to_graph(Graph(), triples)
+
+        # test method
+        matches = self.owl_nets.reconciles_classes(obo.UBERON_0002374)
+        self.assertIsInstance(matches, Set)
+        self.assertEqual(sorted(list(matches)), sorted(list(result)))
 
         return None
 
     def test_creates_edge_dictionary(self):
         """Tests the creates_edge_dictionary method."""
 
-        # set-up inputs
-        self.owl_nets.converts_rdflib_to_networkx_multidigraph()
-        node = URIRef('http://purl.obolibrary.org/obo/SO_0000822')
-        edge_dict = self.owl_nets.creates_edge_dictionary(node)
-
-        # test method
-        self.assertIsInstance(edge_dict[0], Dict)
-        self.assertEqual(len(edge_dict[0]), 5)
-        self.assertIsInstance(edge_dict[0][list(edge_dict[0].keys())[0]], Dict)
-        self.assertIsInstance(edge_dict[1], Set)
-        self.assertEqual(len(edge_dict[1]), 0)
+        node, edge_dict, cardinality = self.owl_nets.creates_edge_dictionary(obo.SO_0000822)
+        self.assertIsInstance(node, URIRef)
+        self.assertIsInstance(edge_dict, Dict)
+        self.assertEqual(len(edge_dict), 5)
+        self.assertIsInstance(edge_dict[list(edge_dict.keys())[0]], Dict)
+        self.assertIsInstance(cardinality, Set)
+        self.assertEqual(len(cardinality), 0)
 
         return None
 
@@ -367,12 +354,9 @@ class TestOwlNets(unittest.TestCase):
         """Tests the detects_complement_of_constructed_classes method when complementOf is present."""
 
         # set-up test data
-        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')
-        node_info = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
-                      'complementOf': URIRef('http://www.w3.org/2002/07/owl#Restriction')}},
-                     {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
+        node_info = {BNode('N6ebac4ecc22240cdafe506f43d240733'): {'complementOf': OWL.Restriction}}
 
-        result = self.owl_nets.detects_complement_of_constructed_classes(node_info, node)
+        result = self.owl_nets.detects_complement_of_constructed_classes(node_info, obo.UBERON_0000061)
         self.assertTrue(result)
 
         return None
@@ -381,14 +365,10 @@ class TestOwlNets(unittest.TestCase):
         """Tests the detects_complement_of_constructed_classes method when complementOf is not present."""
 
         # set-up test data
-        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')
-        node_info = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
-                             'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                             'onClass': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
-                             'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002180')}},
-                     {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
+        node_info = {BNode('N6ebac4ecc22240cdafe506f43d240733'): {
+            'type': OWL.Restriction, 'onClass': obo.UBERON_0000061, 'onProperty': obo.RO_0002180}}
 
-        result = self.owl_nets.detects_complement_of_constructed_classes(node_info, node)
+        result = self.owl_nets.detects_complement_of_constructed_classes(node_info, obo.UBERON_0000061)
         self.assertFalse(result)
 
         return None
@@ -397,14 +377,11 @@ class TestOwlNets(unittest.TestCase):
         """Tests the detects_negation_axioms method for negation axioms when one is present"""
 
         # set-up test data
-        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')
-        node_info = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
-                             'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                             'onClass': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
-                             'onProperty': URIRef('http://purl.obolibrary.org/obo/cl#lacks_part')}},
-                     {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
+        node_info = {BNode('N6ebac4ecc22240cdafe506f43d240733'): {
+            'type': OWL.Restriction, 'onClass': obo.UBERON_0000061,
+            'onProperty': URIRef('http://purl.obolibrary.org/obo/cl#lacks_part')}}
 
-        result = self.owl_nets.detects_negation_axioms(node_info, node)
+        result = self.owl_nets.detects_negation_axioms(node_info, obo.UBERON_0000061)
         self.assertTrue(result)
 
         return None
@@ -413,12 +390,9 @@ class TestOwlNets(unittest.TestCase):
         """Tests the detects_negation_axioms method for negation axioms when none present"""
 
         # set-up test data
-        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')
-        node_info = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
-                             'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                             'onClass': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
-                             'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0001111')}},
-                     {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
+        node = obo.UBERON_0000061
+        node_info = {BNode('N6ebac4ecc22240cdafe506f43d240733'): {
+            'type': OWL.Restriction, 'onClass': obo.UBERON_0000061, 'onProperty': obo.RO_0001111}}
 
         result = self.owl_nets.detects_negation_axioms(node_info, node)
         self.assertFalse(result)
@@ -429,39 +403,16 @@ class TestOwlNets(unittest.TestCase):
         """Tests the captures_cardinality_axioms method for a cardinality object."""
 
         # set-up input
-        graph = Graph()
         triples = [
-            (BNode('N6ebac4ecc22240cdafe506f43d240733'),
-             URIRef('http://www.w3.org/2002/07/owl#minQualifiedCardinality'),
+            (BNode('N6ebac'), URIRef('http://www.w3.org/2002/07/owl#minQualifiedCardinality'),
              Literal('2', datatype=URIRef('http://www.w3.org/2001/XMLSchema#nonNegativeInteger'))),
-            (BNode('N6ebac4ecc22240cdafe506f43d240733'),
-             URIRef('http://www.w3.org/2002/07/owl#onClass'),
-             URIRef('http://purl.obolibrary.org/obo/UBERON_0000061')),
-            (BNode('N6ebac4ecc22240cdafe506f43d240733'),
-             URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-             URIRef('http://www.w3.org/2002/07/owl#Restriction')),
-            (BNode('N6ebac4ecc22240cdafe506f43d240733'),
-             URIRef('http://www.w3.org/2002/07/owl#onProperty'),
-             URIRef('http://purl.obolibrary.org/obo/RO_0002180'))
+            (BNode('N6ebac'), OWL.onClass, obo.UBERON_0000061), (BNode('N6ebac'), RDF.type, OWL.Restriction),
+            (BNode('N6ebac'), OWL.onProperty, obo.RO_0002180)
         ]
-        for x in triples:
-            graph.add(x)
-        # fake output
-        node = URIRef('http://purl.obolibrary.org/obo/UBERON_0034923')
-        results = ({BNode('N6ebac4ecc22240cdafe506f43d240733'): {
-            'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-            'onClass': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
-            'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002180')},
-                       BNode('N350cb10c104f45d1893c63ccc055b52a'): {
-                           'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                           'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/UBERON_0000061'),
-                           'onProperty': URIRef('http://purl.obolibrary.org/obo/RO_0002473')}},
-                   {'http://purl.obolibrary.org/obo/UBERON_0034923: N6ebac4ecc22240cdafe506f43d240733'})
-        # set-up method
-        self.owl_nets.graph = graph
+        self.owl_nets.graph = adds_edges_to_graph(Graph(), triples)
 
         # test method
-        self.owl_nets.captures_cardinality_axioms(results, node)
+        self.owl_nets.captures_cardinality_axioms({str(obo.UBERON_0034923) + ': N6ebac'}, obo.UBERON_0034923)
         card_triples = self.owl_nets.owl_nets_dict['owl_nets']['cardinality']
         self.assertIsInstance(card_triples, dict)
         self.assertIsInstance(card_triples['<http://purl.obolibrary.org/obo/UBERON_0034923>'], set)
@@ -473,51 +424,49 @@ class TestOwlNets(unittest.TestCase):
         """Tests the returns_object_property method."""
 
         # when sub and obj are PATO terms and property is none
-        res1 = self.owl_nets.returns_object_property(URIRef('http://purl.obolibrary.org/obo/PATO_0001199'),
-                                                     URIRef('http://purl.obolibrary.org/obo/PATO_0000402'),
-                                                     None)
-
+        res1 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.PATO_0000402, None)
         self.assertIsInstance(res1, URIRef)
-        self.assertEqual(res1, URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'))
+        self.assertEqual(res1, RDFS.subClassOf)
 
         # when sub and obj are NOT PATO terms and property is none
-        res2 = self.owl_nets.returns_object_property(URIRef('http://purl.obolibrary.org/obo/SO_0000784'),
-                                                     URIRef('http://purl.obolibrary.org/obo/GO_2000380'),
-                                                     None)
-
+        res2 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.GO_2000380, None)
         self.assertIsInstance(res2, URIRef)
-        self.assertEqual(res2, URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'))
+        self.assertEqual(res2, RDFS.subClassOf)
 
         # when the obj is a PATO term and property is none
-        res3 = self.owl_nets.returns_object_property(URIRef('http://purl.obolibrary.org/obo/SO_0000784'),
-                                                     URIRef('http://purl.obolibrary.org/obo/PATO_0001199'),
-                                                     None)
-
+        res3 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.PATO_0001199, None)
         self.assertIsInstance(res3, URIRef)
-        self.assertEqual(res3, URIRef('http://purl.obolibrary.org/obo/RO_0000086'))
+        self.assertEqual(res3, obo.RO_0000086)
 
         # when the obj is a PATO term and property is NOT none
-        res4 = self.owl_nets.returns_object_property(URIRef('http://purl.obolibrary.org/obo/SO_0000784'),
-                                                     URIRef('http://purl.obolibrary.org/obo/PATO_0001199'),
-                                                     URIRef('http://purl.obolibrary.org/obo/RO_0002202'))
-
+        res4 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.PATO_0001199, obo.RO_0002202)
         self.assertIsInstance(res4, URIRef)
-        self.assertEqual(res4, URIRef('http://purl.obolibrary.org/obo/RO_0000086'))
+        self.assertEqual(res4, obo.RO_0000086)
 
         # when sub is a PATO term and property is NOT none
-        res5 = self.owl_nets.returns_object_property(URIRef('http://purl.obolibrary.org/obo/PATO_0001199'),
-                                                     URIRef('http://purl.obolibrary.org/obo/SO_0000784'),
-                                                     URIRef('http://purl.obolibrary.org/obo/RO_0002202'))
-
+        res5 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.SO_0000784, obo.RO_0002202)
         self.assertIsInstance(res5, URIRef)
-        self.assertEqual(res5, URIRef('http://purl.obolibrary.org/obo/RO_0002202'))
+        self.assertEqual(res5, obo.RO_0002202)
 
         # when sub is a PATO term and property is none
-        res6 = self.owl_nets.returns_object_property(URIRef('http://purl.obolibrary.org/obo/PATO_0001199'),
-                                                     URIRef('http://purl.obolibrary.org/obo/SO_0000784'),
-                                                     None)
-
+        res6 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.SO_0000784, None)
         self.assertEqual(res6, None)
+
+        return None
+
+    def test_parses_subclasses(self):
+        """Tests the parses_subclasses method."""
+
+        # set-up input data
+        node = obo.UBERON_0010757
+        edges = {'type': OWL.Class, 'subClassOf': obo.UBERON_0002238, 'intersectionOf': BNode('N070550')}
+
+        # test method
+        results = self.owl_nets.parses_subclasses(node, edges)
+        self.assertIsInstance(results[0], set)
+        self.assertIsInstance(results[1], dict)
+        self.assertEqual(results[0], {(obo.UBERON_0010757, RDFS.subClassOf, obo.UBERON_0002238)})
+        self.assertEqual(results[1], {'type': OWL.Class, 'intersectionOf': BNode('N070550')})
 
         return None
 
@@ -526,38 +475,27 @@ class TestOwlNets(unittest.TestCase):
 
         # set-up input variables
         class_dict = {
-            BNode('N41aa20de8e3d4f8cac6047850b200829'): {
-                'first': URIRef('http://purl.obolibrary.org/obo/SO_0000340'),
-                'rest': BNode('N6e7b4832dafc413f9b8376f0019df405')},
-            BNode('Nbb739d65cc61479ca8970cf68c276f8a'): {
-                'intersectionOf': BNode('N41aa20de8e3d4f8cac6047850b200829'),
-                'type': URIRef('http://www.w3.org/2002/07/owl#Class')},
-            BNode('N6e7b4832dafc413f9b8376f0019df405'): {
-                'first': BNode('N51191013960246b2abf331675b3a3331'),
-                'rest': URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')},
-            BNode('N51191013960246b2abf331675b3a3331'): {
+            BNode('N41aa20'): {'first': obo.SO_0000340, 'rest': BNode('N6e7b')},
+            BNode('Nbb739'): {'intersectionOf': BNode('N41aa20'), 'type': OWL.Class},
+            BNode('N6e7b'): {'first': BNode('N5119'), 'rest': RDF.nil},
+            BNode('N5119'): {
                 'onProperty': URIRef('http://purl.obolibrary.org/obo/so#has_origin'),
-                'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/SO_0000746'),
-                'type': URIRef('http://www.w3.org/2002/07/owl#Restriction')},
+                'someValuesFrom': obo.SO_0000746, 'type': OWL.Restriction},
             BNode('Na36bfb34a35047838a8df32b37a8ff50'): {
-                'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/SO_0000746'),
-                'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                'onProperty': URIRef('http://purl.obolibrary.org/obo/so#has_origin')}
+                'someValuesFrom': obo.SO_0000746,
+                'type': OWL.Restriction, 'onProperty': URIRef('http://purl.obolibrary.org/obo/so#has_origin')}
         }
+        edges = {'first': obo.SO_0000340, 'rest': BNode('N6e7b')}
 
         # test when first is a URIRef and rest is a BNode
-        edges = {'first': URIRef('http://purl.obolibrary.org/obo/SO_0000340'),
-                 'rest': BNode('N6e7b4832dafc413f9b8376f0019df405')}
         res1 = self.owl_nets.parses_anonymous_axioms(edges, class_dict)
-
         self.assertIsInstance(res1, Dict)
         self.assertTrue(len(res1), 2)
         self.assertIn('first', res1.keys())
         self.assertIn('rest', res1.keys())
 
         # test when first is a BNode and rest is a URIRef
-        edges = {'first': BNode('N51191013960246b2abf331675b3a3331'),
-                 'rest': URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')}
+        edges = {'first': BNode('N5119'), 'rest': RDF.nil}
         res2 = self.owl_nets.parses_anonymous_axioms(edges, class_dict)
 
         self.assertIsInstance(res2, Dict)
@@ -572,63 +510,35 @@ class TestOwlNets(unittest.TestCase):
         """Tests the parses_constructors method for the intersectionOf class constructor"""
 
         # set-up inputs
-        node = URIRef('http://purl.obolibrary.org/obo/PATO_0000380')
-
-        edges = {'intersectionOf': BNode('Ne7ce944017f64e62bc445ec2c336a481'),
-                 'type': URIRef('http://www.w3.org/2002/07/owl#Class')}
-
-        class_dict = {
-            BNode('Ne7ce944017f64e62bc445ec2c336a481'): {
-                'first': URIRef('http://purl.obolibrary.org/obo/PATO_0000044'),
-                'rest': BNode('Neb29f9314a9344cb886ae5a3da065ccf')},
-            BNode('Neb29f9314a9344cb886ae5a3da065ccf'): {
-                'first': BNode('N8e6e0832f80e497cb694cd1894699102'),
-                'rest': URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')},
-            BNode('N8e6e0832f80e497cb694cd1894699102'): {
-                'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                'onProperty': URIRef('http://purl.obolibrary.org/obo/pato#increased_in_magnitude_relative_to'),
-                'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/PATO_0000461')}
-        }
+        node = obo.SO_0000034
+        node_info = self.owl_nets.creates_edge_dictionary(node)
+        bnodes = set(x for x in self.owl_nets.graph.objects(node, None) if isinstance(x, BNode))
+        edges = {k: v for k, v in node_info[1].items() if 'intersectionOf' in v.keys() and k in bnodes}
+        edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
 
         # test method
-        res = self.owl_nets.parses_constructors(node, edges, class_dict)
+        res = self.owl_nets.parses_constructors(node, edges, node_info[1])
         self.assertIsInstance(res, Tuple)
-        self.assertEqual(res[0], {(URIRef('http://purl.obolibrary.org/obo/PATO_0000380'),
-                                   URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-                                   URIRef('http://purl.obolibrary.org/obo/PATO_0000044'))})
-        self.assertEqual(res[1], {'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                                  'onProperty': URIRef(
-                                      'http://purl.obolibrary.org/obo/pato#increased_in_magnitude_relative_to'),
-                                  'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/PATO_0000461')})
+        self.assertEqual(res[0], {(obo.SO_0000034, RDFS.subClassOf, obo.SO_0001247)})
+        self.assertEqual(len(res[1]), 3)
 
         return None
 
-    def test_parses_constructors_union(self):
+    def test_parses_constructors_intersection2(self):
         """Tests the parses_constructors method for the UnionOf class constructor"""
 
         # set-up inputs
-        node = URIRef('http://purl.obolibrary.org/obo/CL_0000995')
-
-        edges = {'type': URIRef('http://www.w3.org/2002/07/owl#Class'),
-                 'unionOf': BNode('Nbd4f84c8a171450cbef8c1c925245484')}
-
-        class_dict = {BNode('Nbd4f84c8a171450cbef8c1c925245484'): {
-            'first': URIRef('http://purl.obolibrary.org/obo/CL_0001021'),
-            'rest': BNode('N039be74c7577473d93f664a5074c57b2')},
-            BNode('N039be74c7577473d93f664a5074c57b2'): {
-                'first': URIRef('http://purl.obolibrary.org/obo/CL_0001026'),
-                'rest': URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')}}
+        node = obo.SO_0000078
+        node_info = self.owl_nets.creates_edge_dictionary(node)
+        bnodes = set(x for x in self.owl_nets.graph.objects(node, None) if isinstance(x, BNode))
+        edges = {k: v for k, v in node_info[1].items() if 'intersectionOf' in v.keys() and k in bnodes}
+        edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
 
         # test method
-        res = self.owl_nets.parses_constructors(node, edges, class_dict)
+        res = self.owl_nets.parses_constructors(node, edges, node_info[1])
         self.assertIsInstance(res, Tuple)
-        self.assertEqual(res[0], {(URIRef('http://purl.obolibrary.org/obo/CL_0000995'),
-                                   URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-                                   URIRef('http://purl.obolibrary.org/obo/CL_0001026')),
-                                  (URIRef('http://purl.obolibrary.org/obo/CL_0000995'),
-                                   URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-                                   URIRef('http://purl.obolibrary.org/obo/CL_0001021'))})
-        self.assertEqual(res[1], None)
+        self.assertEqual(res[0], {(obo.SO_0000078, RDFS.subClassOf, obo.SO_0000673)})
+        self.assertEqual(len(res[1]), 3)
 
         return None
 
@@ -636,32 +546,18 @@ class TestOwlNets(unittest.TestCase):
         """Tests the parses_restrictions method."""
 
         # set-up inputs
-        node = URIRef('http://purl.obolibrary.org/obo/PATO_0000380')
-
-        edges = {'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                 'onProperty': URIRef(
-                     'http://purl.obolibrary.org/obo/pato#increased_in_magnitude_relative_to'),
-                 'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/PATO_0000461')}
-
-        class_dict = {
-            BNode('Ne7ce944017f64e62bc445ec2c336a481'): {
-                'first': URIRef('http://purl.obolibrary.org/obo/PATO_0000044'),
-                'rest': BNode('Neb29f9314a9344cb886ae5a3da065ccf')},
-            BNode('Neb29f9314a9344cb886ae5a3da065ccf'): {
-                'first': BNode('N8e6e0832f80e497cb694cd1894699102'),
-                'rest': URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')},
-            BNode('N8e6e0832f80e497cb694cd1894699102'): {
-                'type': URIRef('http://www.w3.org/2002/07/owl#Restriction'),
-                'onProperty': URIRef('http://purl.obolibrary.org/obo/pato#increased_in_magnitude_relative_to'),
-                'someValuesFrom': URIRef('http://purl.obolibrary.org/obo/PATO_0000461')}
-        }
+        node = obo.SO_0000078
+        node_info = self.owl_nets.creates_edge_dictionary(node)
+        bnodes = set(x for x in self.owl_nets.graph.objects(node, None) if isinstance(x, BNode))
+        edges = {k: v for k, v in node_info[1].items()
+                 if ('type' in v.keys() and v['type'] == OWL.Restriction) and k in bnodes}
+        edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
 
         # test method
-        res = self.owl_nets.parses_restrictions(node, edges, class_dict)
+        res = self.owl_nets.parses_restrictions(node, edges, node_info[1])
         self.assertIsInstance(res, Tuple)
-        self.assertEqual(res[0], {(URIRef('http://purl.obolibrary.org/obo/PATO_0000380'),
-                                   URIRef('http://purl.obolibrary.org/obo/pato#increased_in_magnitude_relative_to'),
-                                   URIRef('http://purl.obolibrary.org/obo/PATO_0000461'))})
+        self.assertEqual(res[0], {(
+            obo.SO_0000078, URIRef('http://purl.obolibrary.org/obo/so#has_quality'), obo.SO_0000880)})
         self.assertEqual(res[1], None)
 
         return None
@@ -671,7 +567,6 @@ class TestOwlNets(unittest.TestCase):
 
         # set-up inputs
         self.owl_nets.node_list = [URIRef('http://purl.obolibrary.org/obo/SO_0000822')]
-        self.owl_nets.converts_rdflib_to_networkx_multidigraph()
 
         # test method
         decoded_graph = self.owl_nets.cleans_owl_encoded_classes()
