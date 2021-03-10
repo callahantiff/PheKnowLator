@@ -724,7 +724,7 @@ def nt_serializes_node(node: Union[URIRef, BNode, Literal]) -> str:
     return serialized_node
 
 
-def appends_to_existing_file(edges: List, filepath: str, sep: str) -> None:
+def appends_to_existing_file(edges: Union[List, Set], filepath: str, sep: str) -> None:
     """Method adds data to the end of an existing file. Assumes that it is adding data to the end of a n-triples file.
 
     Args:
