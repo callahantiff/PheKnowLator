@@ -34,7 +34,9 @@ logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
-# TODO: need to verify losslessness with respect to pkt-specific uuids; verify dict keyed with serialized nodes
+# TODO:
+#  (1) need to verify losslessness with respect to pkt-specific uuids; verify dict keyed with serialized nodes
+#  (2) Method is currently built to handle class axioms; small modifications needed to handle propertyChainAxioms
 
 
 class OwlNets(object):
@@ -81,7 +83,7 @@ class OwlNets(object):
         self.filename = filename
 
         # EXCLUSION ONTOLOGY PREFIXES
-        # top-level and relation-specific ontologies - can appear only as predicates
+        # top-level and relation-specific ontologies - can only appear as predicates
         self.top_level_ontologies: List = ['ISO', 'SUMO', 'BFO']
         self.relations_ontologies: List = ['RO']
         # support ontologies - can never appear in OWL-NETS triples
@@ -141,12 +143,11 @@ class OwlNets(object):
 
         print('Re-mapping pkt_kg Instances to Class IDs'); logger.info('Re-mapping pkt_kg Instances to Class IDs')
 
-        # get all class individuals in pheknowlator namespace and save as dict with value as original ontology class
+        # STEP 1: check for pkt-namespaced bnodes (pkt-added bnodes) and remove them if present
         pred = RDF.type if self.kg_construct_approach == 'instance' else RDFS.subClassOf
         pkt_ns_dict = {x[0]: x[2] for x in list(self.graph.triples((None, pred, None))) if isinstance(x[2], URIRef)
-                       and (str(x[0]).startswith(str(pkt)) and x[2] not in [OWL.NamedIndividual, OWL.Class])}
-        # update triples containing BNodes with original ontology class
-        remove_edges: Set = set()
+                       and (str(x[0]).startswith(str(pkt) + 'N') and x[2] not in [OWL.NamedIndividual, OWL.Class])}
+        remove_edges: Set = set()  # update triples containing BNodes with original ontology class
         for node in tqdm(pkt_ns_dict.keys()):
             triples = list(self.graph.triples((node, None, None))) + list(self.graph.triples((None, None, node)))
             for edge in triples:
@@ -157,10 +158,9 @@ class OwlNets(object):
             node_types = list(self.graph.triples((pkt_ns_dict[node], RDF.type, None)))
             if len(node_types) > 1: triples += [tuple(x) for x in node_types if x[2] == OWL.NamedIndividual]
             remove_edges |= set(triples)
-
         self.graph = remove_edges_from_graph(self.graph, list(remove_edges))
 
-        # check for namespaced bnodes and remove them if present
+        # STEP 2: check for pkt-namespaced bnodes (original bnodes) and remove them if present
         ns_bnodes = {x for x in tqdm(self.graph) if str(x[0]).startswith(pkt_bnode) or str(x[2]).startswith(pkt_bnode)}
         if len(ns_bnodes) > 0: self.graph = removes_namespace_from_bnodes(self.graph)
 
@@ -249,14 +249,15 @@ class OwlNets(object):
         else:
             return seen_nodes
 
-    def finds_bnode_uri(self, node1: BNode, node2: URIRef, node_list: Optional[list] = None) -> URIRef:
+    def finds_bnode_uri(self, node1: Union[BNode, URIRef], node2: Optional[URIRef],
+                        node_list: Optional[list] = None) -> URIRef:
         """Method searches for the RDFLib URIRef object that represents a BNode that is either an OWL.annotatedSource or
         OWL.annotatedTarget within an OWL.Axiom.
 
         Args:
             node1: An RDFLib BNode object.
-            node2: An RDFLib URIRef object.
-            node_list: A list of RDFLib Bnode and URIRef objects.
+            node2: An RDFLib URIRef object or None.
+            node_list: A list of RDFLib BNode and/or URIRef objects.
 
         Returns:
             node: A RDFLib URIRef object.
@@ -264,12 +265,12 @@ class OwlNets(object):
 
         nodes = list(self.graph.objects(node1, None)) if node_list is None else node_list
         nodes = [x for x in nodes if x != node2 and
-                 (isinstance(x, BNode) or len(set(self.graph.objects(x, RDF.type))) > 0)]
+                 (isinstance(x, BNode) or OWL.Class in set(self.graph.objects(x, RDF.type)))]
         node1 = nodes.pop(0)
 
-        if node1 != node2 and isinstance(node1, URIRef): return node1
+        if node1 != node2 and OWL.Class in list(self.graph.objects(node1, RDF.type)): return node1
         else:
-            nodes += [x for x in list(self.graph.objects(node1, None)) if x not in nodes]
+            nodes += [x for x in set(self.graph.objects(node1, None)) if x not in nodes]
             return self.finds_bnode_uri(node1, node2, nodes)
 
     def reconciles_axioms(self, src: Union[BNode, URIRef], tgt: Union[BNode, URIRef]) -> Tuple:
@@ -286,10 +287,16 @@ class OwlNets(object):
         """
 
         # make sure that both the target and source are both valid ontology identifiers
-        org_src, src = src, src if isinstance(src, URIRef) else self.finds_bnode_uri(src, tgt, None)
-        org_tgt, tgt = tgt, tgt if isinstance(tgt, URIRef) else self.finds_bnode_uri(tgt, src, None)
+        if isinstance(src, BNode) and isinstance(tgt, BNode):
+            org_tgt, tgt = tgt, self.finds_bnode_uri(tgt, None, None)
+            org_src, src = src, src if isinstance(src, URIRef) else self.finds_bnode_uri(src, tgt, None)
+            bnodes = [org_src, org_tgt]
+        else:
+            org_src, src = src, src if isinstance(src, URIRef) else self.finds_bnode_uri(src, tgt, None)
+            org_tgt, tgt = tgt, tgt if isinstance(tgt, URIRef) else self.finds_bnode_uri(tgt, src, None)
+            bnodes = [org_src] if isinstance(org_src, BNode) and not isinstance(org_tgt, BNode) else [org_tgt]
         # update axiom dictionary
-        master, bnodes, matches = set(), [org_src] if isinstance(org_src, BNode) else [org_tgt], set()
+        master, matches = set(), set()
         while len(bnodes) > 0:
             x = bnodes.pop(0); master |= {x}
             matches |= set(self.graph.triples((x, None, None)))
@@ -329,45 +336,40 @@ class OwlNets(object):
         then a formatted string that contains the class node and the anonymous node naming the element that includes
         cardinality is constructed and added to a set.
 
-        Axioms Only: All nodes of type axiom are BNodes. The first step for axioms is to retrieve a URIRef for all
-        core components of an axiom (i.e. owl:AnnotatedSource, owl:AnnotatedTarget, and owl:AnnotatedProperty). Then,
-        a list of core triples used to define the axiom is obtained.
+        Axioms: Retrieve a URIRef for all core components of an axiom (i.e. owl:AnnotatedSource, owl:AnnotatedTarget,
+        and owl:AnnotatedProperty). Then, a list of core triples used to define the axiom is returned.
 
         Args:
-            node: An rdflib.term object.
+            node: An RDFLib Term object.
 
         Returns:
             node: A URIRef object containing the node being decoded.
-            ent_edge_dict: A nested dictionary. The outer dictionary keys are anonymous nodes and the inner keys
-                are owl:ObjectProperty values from each out edge triple that come out of that anonymous node. For
-                example:
+            edge_dict: A nested dictionary. The outer dictionary keys are anonymous nodes and the inner keys
+                are owl:ObjectProperty values from each out edge triple that come out of that anonymous node. For ex:
                     {BNode('N3243b60f69ba468687aa3cbe4e66991f'): {
                         someValuesFrom': rdflib.term.URIRef('http://purl.obolibrary.org/obo/PATO_0000587'),
                         type': rdflib.term.URIRef('http://www.w3.org/2002/07/owl#Restriction'),
                         onProperty': rdflib.term.URIRef('http://purl.obolibrary.org/obo/RO_0000086')}}
-            cardinality: A set of strings, where each string is formatted such that the substring that occurs before
-                the ':' is the class node and the substring after the ':' is the anonymous node naming the element where
-                cardinality was used.
+            cardinality: A set of strings, where each string is formatted such that the substring before ':' is the
+            class node and the substring after is the anonymous node naming the element where cardinality was used.
         """
 
-        ent_edge_dict: Dict = dict(); cardinality: Set = set()
-        if isinstance(node, BNode):
+        edge_dict: Dict = dict(); cardinality: Set = set()
+        if OWL.Axiom in set(self.graph.objects(node, RDF.type)):
             annotation_source = list(self.graph.objects(node, OWL.annotatedSource))[0]
             annotation_target = list(self.graph.objects(node, OWL.annotatedTarget))[0]
-            if isinstance(annotation_source, Literal) or isinstance(annotation_target, Literal): return None
+            if isinstance(annotation_source, Literal) or isinstance(annotation_target, Literal): matches = None
             else: node, matches = self.reconciles_axioms(annotation_source, annotation_target)
         else: matches = self.reconciles_classes(node)
-        for s, p, o in sorted(list(matches)):
-            if 'cardinality' in str(p).lower(): cardinality |= {'{}: {}'.format(node, s)}
-            else:
-                if s in ent_edge_dict:
-                    ent_edge_dict[s][p.split('#')[-1]] = {}
-                    ent_edge_dict[s][p.split('#')[-1]] = o
+        if matches is not None:
+            for s, p, o in sorted(list(matches)):
+                if 'cardinality' in str(p).lower(): cardinality |= {'{}: {}'.format(node, s)}
                 else:
-                    ent_edge_dict[s] = {}
-                    ent_edge_dict[s][p.split('#')[-1]] = o
+                    if s in edge_dict: edge_dict[s][p.split('#')[-1]] = {}; edge_dict[s][p.split('#')[-1]] = o
+                    else: edge_dict[s] = {}; edge_dict[s][p.split('#')[-1]] = o
 
-        return node, ent_edge_dict, cardinality
+            return node, edge_dict, cardinality
+        else: return None
 
     def captures_cardinality_axioms(self, node_info: Set, node: URIRef) -> None:
         """Method takes a tuple of information about a node and searches the information for nodes that contain
@@ -486,7 +488,7 @@ class OwlNets(object):
             return {**class_dict[edges['first']], **class_dict[edges['rest']]}
 
     @staticmethod
-    def parses_subclasses(node: URIRef, edges: Dict) -> Tuple[Set, Optional[Dict]]:
+    def parses_subclasses(node: URIRef, edges: Dict, class_dict: Dict) -> Tuple[Set, Optional[Dict]]:
         """Parses a subset of a dictionary containing RDFLib objects participating in a RDFS:SubclassOf relationship
         and outputs a triple (referenced by node) representing this relationship. An example is provided below:
             INPUT: <owl:annotatedProperty rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
@@ -495,18 +497,22 @@ class OwlNets(object):
 
         Args:
             node: An rdflib term of type URIRef or BNode that references an OWL-encoded class.
-            edges: A subset of dictionary where keys are owl:Objects (i.e. 'first', 'rest', 'onProperty',
-                or 'someValuesFrom').
+            edges: A dictionary, keys are owl:Objects (i.e. 'first', 'rest', 'onProperty', or 'someValuesFrom').
+            class_dict: A nested dictionary. Outer keys are BNodes, inner keys are owl:ObjectProperty values.
 
         Returns:
             cleaned_classes: A list of tuples, where each tuple represents a class that had OWL semantics removed.
-            edges: A dictionary subset, where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty').
+            updated_edges: A dictionary subset, where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty').
         """
 
-        cleaned_classes: Set = {(node, RDFS.subClassOf, edges['subClassOf'])}
-        edges.pop('subClassOf', None)
+        if not isinstance(edges['subClassOf'], BNode):
+            cleaned_classes: Set = {(node, RDFS.subClassOf, edges['subClassOf'])}
+            updated_edges = {k: v for k, v in edges.items() if k != 'subClassOf'}
+        else:
+            cleaned_classes = set()
+            updated_edges = {**class_dict[edges['subClassOf']], **{k: v for k, v in edges.items() if k != 'subClassOf'}}
 
-        return cleaned_classes, edges
+        return cleaned_classes, updated_edges
 
     def parses_constructors(self, node: URIRef, edges: Dict, class_dict: Dict, relation: URIRef = None) \
             -> Tuple[Set, Optional[Dict]]:
@@ -529,41 +535,35 @@ class OwlNets(object):
 
         Args:
             node: An rdflib term of type URIRef or BNode that references an OWL-encoded class.
-            edges: A subset of dictionary where keys are owl:Objects (i.e. 'first', 'rest', 'onProperty',
-                or 'someValuesFrom').
-            class_dict: A nested dictionary. The outer dictionary keys are anonymous nodes and the inner keys
-                are owl:ObjectProperty values from each out edge triple that comes out of that anonymous node.
-            relation: An rdflib.URIRef object that defaults to None, but if provided by a user contains an
-                owl:onProperty relation.
+            edges: A dictionary, keys are owl:Objects (i.e. 'first', 'rest', 'onProperty', or 'someValuesFrom').
+            class_dict: A nested dictionary. Outer keys are BNodes, inner keys are owl:ObjectProperty values.
+            relation: An RDFLib URIRef object containing an owl:onProperty (defaults=None).
 
         Returns:
-            cleaned_classes: A list of tuples, where each tuple represents a class that had OWL semantics removed.
-            edge_batch: A dictionary subset, where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty').
+            cleaned: A list of tuples, where each tuple represents a class that had OWL semantics removed.
+            batch: A dictionary subset, where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty').
         """
 
-        cleaned_classes: Set = set()
+        cleaned: Set = set()
         if 'unionOf' in edges.keys() or 'intersectionOf' in edges.keys():
-            edge_batch = class_dict[edges['unionOf' if 'unionOf' in edges.keys() else 'intersectionOf']]
-        else: edge_batch = edges
+            batch = class_dict[edges['unionOf' if 'unionOf' in edges.keys() else 'intersectionOf']]
+        else: batch = edges
 
-        while edge_batch:
-            if ('first' in edge_batch.keys() and 'rest' in edge_batch.keys()) and 'type' not in edge_batch.keys():
-                if isinstance(edge_batch['first'], URIRef) and isinstance(edge_batch['rest'], BNode):
-                    obj_property = self.returns_object_property(node, edge_batch['first'], relation)
-                    if node != edge_batch['first']:
-                        cleaned_classes |= {(node, obj_property, edge_batch['first'])}
-                        edge_batch = class_dict[edge_batch['rest']] if 'rest' in edge_batch.keys() else None
-                    elif 'subClassOf' in edges.keys(): cleaned_classes, edge_batch = self.parses_subclasses(node, edges)
-                    else: edge_batch = class_dict[edge_batch['rest']]
-                elif isinstance(edge_batch['first'], URIRef) and isinstance(edge_batch['rest'], URIRef):
-                    obj_property = self.returns_object_property(node, edge_batch['first'], relation)
-                    cleaned_classes |= {(node, obj_property, edge_batch['first'])}
-                    if 'subClassOf' in edges.keys(): cleaned_classes, edge_batch = self.parses_subclasses(node, edges)
-                    else: edge_batch = None
-                else: edge_batch = self.parses_anonymous_axioms(edge_batch, class_dict)
+        while batch:
+            if ('first' in batch.keys() and 'rest' in batch.keys()) and 'type' not in batch.keys():
+                if isinstance(batch['first'], URIRef) and isinstance(batch['rest'], BNode):
+                    obj_property = self.returns_object_property(node, batch['first'], relation)
+                    if node != batch['first']:
+                        cleaned |= {(node, obj_property, batch['first'])}
+                        batch = class_dict[batch['rest']] if 'rest' in batch.keys() else None
+                    else: batch = class_dict[batch['rest']]
+                elif isinstance(batch['first'], URIRef) and isinstance(batch['rest'], URIRef):
+                    obj_property = self.returns_object_property(node, batch['first'], relation)
+                    cleaned |= {(node, obj_property, batch['first'])}; batch = None
+                else: batch = self.parses_anonymous_axioms(batch, class_dict)
             else: break
 
-        return cleaned_classes, edge_batch
+        return cleaned, batch
 
     def parses_restrictions(self, node: URIRef, edges: Dict, class_dict: Dict) -> Tuple[Set, Optional[Dict]]:
         """Parses a subset of a dictionary containing rdflib objects participating in a restriction and reconstructs the
@@ -582,38 +582,33 @@ class OwlNets(object):
 
         Args:
             node: An rdflib term of type URIRef or BNode that references an OWL-encoded class.
-            edges: A subset of dictionary where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty',
-                'onClass', or 'someValuesFrom').
-            class_dict: A nested dictionary. The outer dictionary keys are anonymous nodes and the inner keys
-                are owl:ObjectProperty values from each out edge triple that comes out of that anonymous node.
+            edges: A dictionary, keys are owl:Objects (i.e. 'first', 'rest', 'onProperty', or 'someValuesFrom').
+            class_dict: A nested dictionary. Outer keys are BNodes, inner keys are owl:ObjectProperty values.
 
         Returns:
-             cleaned_classes: A list of tuples, where each tuple represents a class with OWL semantics removed.
-             A subset of dictionary where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty', 'onClass',
-             or 'someValuesFrom', 'allValuesFrom).
+            cleaned: A list of tuples, where each tuple represents a class that had OWL semantics removed.
+            batch/axioms: A dictionary subset, where keys are owl:Objects (e.g. 'first', 'rest', 'onProperty').
         """
 
         prop_types = ['allValuesFrom', 'someValuesFrom', 'hasSelf', 'hasValue', 'onClass']  # can be extended
         restriction_components = ['type', 'first', 'rest', 'onProperty']
         object_type = [x for x in edges.keys() if x not in restriction_components and x in prop_types][0]
-        edge_batch = edges; cleaned_classes: Set = set()
+        batch = edges; cleaned: Set = set()
 
-        if isinstance(edge_batch[object_type], URIRef) or isinstance(edge_batch[object_type], Literal):
-            object_node = node if object_type == 'hasSelf' else edge_batch[object_type]
-            if len(edge_batch) == 3:
-                cleaned_classes |= {(node, edge_batch['onProperty'], object_node)}
-                return cleaned_classes, None
+        if isinstance(batch[object_type], URIRef) or isinstance(batch[object_type], Literal):
+            object_node = node if object_type == 'hasSelf' else batch[object_type]
+            if len(batch) == 3:
+                cleaned |= {(node, batch['onProperty'], object_node)}
+                return cleaned, None
             else:
-                cleaned_classes |= {(node, edge_batch['onProperty'], object_node)}
-                return cleaned_classes, self.parses_anonymous_axioms(edge_batch, class_dict)
+                cleaned |= {(node, batch['onProperty'], object_node)}
+                return cleaned, self.parses_anonymous_axioms(batch, class_dict)
         else:
-            axioms = class_dict[edge_batch[object_type]]
+            axioms = class_dict[batch[object_type]]
             if 'unionOf' in axioms.keys() or 'intersectionOf' in axioms.keys():
-                results = self.parses_constructors(node, axioms, class_dict, edge_batch['onProperty'])
-                cleaned_classes |= results[0]
-                return cleaned_classes, results[1]
-            else:
-                return cleaned_classes, axioms
+                results = self.parses_constructors(node, axioms, class_dict, batch['onProperty']); cleaned |= results[0]
+                return cleaned, results[1]
+            else: return cleaned, axioms
 
     def cleans_owl_encoded_classes(self) -> Graph:
         """Loops over a all owl:Class objects in a graph searching for edges that include owl:equivalentClass
@@ -627,40 +622,36 @@ class OwlNets(object):
 
         print('Decoding OWL Constructors and Restrictions'); logger.info('Decoding OWL Constructors and Restrictions')
 
-        decoded_graph: Graph = Graph(); cleaned_entities: Set = set()
-        pbar = tqdm(total=len(self.node_list))
+        decoded_graph: Graph = Graph(); cleaned_entities: Set = set(); pbar = tqdm(total=len(self.node_list))
         while self.node_list:
             pbar.update(1); node = self.node_list.pop(0)
             node_info = self.creates_edge_dictionary(node)
-            if node_info is not None:
-                self.captures_cardinality_axioms(node_info[2], node)
-                if self.detects_negation_axioms(node_info[1], node) is True: continue
-                if self.detects_complement_of_constructed_classes(node_info[1], node) is True: continue
             if node_info is not None and len(node_info[1]) != 0:
-                node, org_node = (node_info[0], node) if isinstance(node, BNode) else (node, node)
-                cleaned_entities |= {org_node}; cleaned_classes: Set = set()
-                for element in set(x for x in self.graph.objects(org_node, None) if isinstance(x, BNode)):
-                    edges = node_info[1][element]
-                    while edges:
-                        if 'unionOf' in edges.keys():
-                            results = self.parses_constructors(node, edges, node_info[1])
-                            cleaned_classes |= results[0]; edges = results[1]
-                        elif 'intersectionOf' in edges.keys():
-                            results = self.parses_constructors(node, edges, node_info[1])
-                            cleaned_classes |= results[0]; edges = results[1]
-                        elif 'type' in edges.keys() and 'Restriction' in edges['type']:
-                            results = self.parses_restrictions(node, edges, node_info[1])
-                            cleaned_classes |= results[0]; edges = results[1]
-                        elif 'subClassOf' in edges.keys():
-                            results = self.parses_subclasses(node, edges)
-                            cleaned_classes |= results[0]; edges = results[1]
-                        else:  # catch all other axioms -- only catching owl:onProperty
-                            misc_axioms = [x for x in edges.keys() if x not in ['type', 'first', 'rest', 'onProperty']]
-                            edges = None; self.owl_nets_dict['owl_nets']['misc'][node.n3()] = {tuple(misc_axioms)}
-                decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes), False)
-                self.owl_nets_dict['owl_nets']['decoded_classes'][node.n3()] = cleaned_classes
+                self.captures_cardinality_axioms(node_info[2], node)
+                not_neg = True if self.detects_negation_axioms(node_info[1], node) is True else None
+                not_comp = True if self.detects_complement_of_constructed_classes(node_info[1], node) is True else None
+                if not not_neg and not not_comp:
+                    node, org = (node_info[0], node) if isinstance(node, BNode) else (node, node)
+                    cleaned_entities |= {org}; cleaned_classes: Set = set()
+                    for element in set(x for x in self.graph.objects(org, None) if isinstance(x, BNode)):
+                        edges = node_info[1][element]
+                        while edges:
+                            if 'subClassOf' in edges.keys():
+                                results = self.parses_subclasses(node, edges, node_info[1])
+                                cleaned_classes |= results[0]; edges = results[1]
+                            elif 'intersectionOf' in edges.keys() or 'unionOf' in edges.keys():
+                                results = self.parses_constructors(node, edges, node_info[1])
+                                cleaned_classes |= results[0]; edges = results[1]
+                            elif 'type' in edges.keys() and 'Restriction' in edges['type']:
+                                results = self.parses_restrictions(node, edges, node_info[1])
+                                cleaned_classes |= results[0]; edges = results[1]
+                            else:  # catch all other axioms -- only catching owl:onProperty
+                                misc = [x for x in edges.keys() if x not in ['type', 'first', 'rest', 'onProperty']]
+                                edges = None; self.owl_nets_dict['owl_nets']['misc'][node.n3()] = {tuple(misc)}
+                    decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes), False)
+                    self.owl_nets_dict['owl_nets']['decoded_classes'][node.n3()] = cleaned_classes
         pbar.close()
-        str1 = 'Decoded {} owl-encoded classes. Note the following:\nPartially processed {} cardinality ' \
+        str1 = 'Decoded {} owl-encoded classes and axioms. Note the following:\nPartially processed {} cardinality ' \
                'elements\nIgnored: {} misc classes; {} classes constructed with owl:complementOf; ' \
                'and {} classes containing negation (e.g. pr#lacks_part, cl#has_not_completed).'
         stats_str = str1.format(
@@ -668,8 +659,13 @@ class OwlNets(object):
             len(self.owl_nets_dict['owl_nets']['misc'].keys()), len(self.owl_nets_dict['complementOf'].keys()),
             len(self.owl_nets_dict['negation'].keys()))
         print('=' * 155 + '\n' + stats_str + '\n' + '=' * 155); logger.info(stats_str)
-        self.graph = decoded_graph  # pass decoded classes through triple cleaner
-        cleaned_decoded_graph = self.removes_edges_with_owl_semantics()
+        self.graph = decoded_graph; cleaned_decoded_graph = self.removes_edges_with_owl_semantics()
+
+        # nde = BNode('N7c1e875c76be4b3f877b358f695fde8e')
+        # # triples = set(owl_nets.graph.triples((None, OWL.annotatedTarget, obo.UBERON_0002238)))
+        # triples = set(owl_nets.graph.triples((nde, None, None))) | set(owl_nets.graph.triples((None, None, nde)))
+        # for s, p, o in sorted(list(triples)):
+        #     print(s, p, o)
 
         return cleaned_decoded_graph
 
@@ -797,17 +793,33 @@ class OwlNets(object):
                 additional to being purified according to the kg_construct_approach.
         """
 
-        log_str = '*** Running OWL-NETS - Decoding OWL-Encoded Classes and Removing OWL Semantics ***'
-        print('\n' + log_str); logger.info(log_str)
+        log_str = '*** Running OWL-NETS ***'; print('\n' + log_str); logger.info(log_str)
+        # owl_nets = OwlNets(Graph().parse(''), 'resources/knowledge_graph', 'so_test.owl', 'subclass',
+        #                    'pkt_kg/libs/owl_tools')
+        # stats = derives_graph_statistics(owl_nets.graph); print(stats)
 
+        # STEP 1: Remove owl:disjointWith axioms
         self.removes_disjoint_with_axioms()
-        self.updates_pkt_namespace_identifiers()
-        self.node_list = list(gets_ontology_classes(self.graph)) + list(set(self.graph.subjects(RDF.type, OWL.Axiom)))
-        filtered_graph = self.removes_edges_with_owl_semantics()
-        decoded_graph = self.cleans_owl_encoded_classes()
-        self.graph = self.makes_graph_connected(filtered_graph + decoded_graph)
 
+        # STEP 2: Update pkt-namespaced nodes and pkt-namespaced bnodes
+        self.updates_pkt_namespace_identifiers()
+
+        # STEP 3: Remove semantic support triples
+        filtered_graph = self.removes_edges_with_owl_semantics()
+
+        # STEP 4: Decode owl-encoded classes and axioms
+        # get list of OWL:Class and OWL:Axioms (for classes) to decode
+        owl_classes = list(gets_ontology_classes(self.graph))
+        owl_axioms = [
+            x for x in set(self.graph.subjects(RDF.type, OWL.Axiom)) if
+            OWL.Class in set(self.graph.objects(list(self.graph.objects(x, OWL.annotatedSource))[0], RDF.type)) or
+            OWL.Class in set(self.graph.objects(list(self.graph.objects(x, OWL.annotatedTarget))[0], RDF.type))]
+        self.node_list = list(set(owl_classes) | set(owl_axioms))
+        decoded_graph = self.cleans_owl_encoded_classes()
+
+        # STEP 5: Post-process OWL-NETS output
         print('Processing OWL-NETS Graph Output'); logger.info('Processing OWL-NETS Graph Output')
+        self.graph = self.makes_graph_connected(filtered_graph + decoded_graph)
         if self.kg_construct_approach is not None:
             original_graph = Graph()
             for triple in tqdm(self.graph):

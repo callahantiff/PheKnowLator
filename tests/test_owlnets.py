@@ -459,14 +459,19 @@ class TestOwlNets(unittest.TestCase):
 
         # set-up input data
         node = obo.UBERON_0010757
-        edges = {'type': OWL.Class, 'subClassOf': obo.UBERON_0002238, 'intersectionOf': BNode('N070550')}
+        edges = {'type': OWL.Class, 'subClassOf': obo.UBERON_0002238, 'intersectionOf': BNode('N6add87')}
+        class_dict = {
+            BNode('N2af571'): {'first': BNode('N8a9450'), 'rest': RDF.nil},
+            BNode('N5fef06'): {'type': OWL.Class, 'subClassOf': obo.UBERON_0002238, 'intersectionOf': BNode('N6add87')},
+            BNode('N6add87'): {'first': obo.UBERON_0010757, 'rest': BNode('N2af571')},
+            BNode('N8a9450'): {'type': OWL.Restriction, 'onProperty': obo.BFO_0000050, 'someValuesFrom': obo.NCBI_9606}}
 
         # test method
-        results = self.owl_nets.parses_subclasses(node, edges)
+        results = self.owl_nets.parses_subclasses(node, edges, class_dict)
         self.assertIsInstance(results[0], set)
         self.assertIsInstance(results[1], dict)
         self.assertEqual(results[0], {(obo.UBERON_0010757, RDFS.subClassOf, obo.UBERON_0002238)})
-        self.assertEqual(results[1], {'type': OWL.Class, 'intersectionOf': BNode('N070550')})
+        self.assertEqual(results[1], {'type': OWL.Class, 'intersectionOf': BNode('N6add87')})
 
         return None
 
