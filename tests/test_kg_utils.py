@@ -236,43 +236,43 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
-    def test_nt_serializes_node_literal(self):
-        """Tests the nt_serializes_node method for a literal node."""
+    def test_n3(self):
+        """Tests the n3 method for a literal node."""
 
         node1 = Literal('http://orcid.org/0000-0001-7941-2961')
         node2 = Literal('GOC:go_curators', datatype=URIRef('http://www.w3.org/2001/XMLSchema#string'))
 
         # test node without schema
-        res1 = nt_serializes_node(node1)
+        res1 = n3(node1)
         self.assertIsInstance(res1, str)
         self.assertEqual(res1, '"http://orcid.org/0000-0001-7941-2961"')
 
         # test node with schema
-        res2 = nt_serializes_node(node2)
+        res2 = n3(node2)
         self.assertIsInstance(res2, str)
         self.assertEqual(res2, '"GOC:go_curators"^^<http://www.w3.org/2001/XMLSchema#string>')
 
         return None
 
-    def test_nt_serializes_node_bnode(self):
-        """Tests the nt_serializes_node method for a bnode node."""
+    def test_n3_bnode(self):
+        """Tests the n3 method for a bnode node."""
 
         node = BNode('Nb2859885c39248d4bdb82203ed1c51a6')
 
         # test node without schema
-        res = nt_serializes_node(node)
+        res = n3(node)
         self.assertIsInstance(res, str)
         self.assertEqual(res, '_:Nb2859885c39248d4bdb82203ed1c51a6')
 
         return None
 
-    def test_nt_serializes_node_uriref(self):
-        """Tests the nt_serializes_node method for a uriref node."""
+    def test_n3_uriref(self):
+        """Tests the n3 method for a uriref node."""
 
         node = URIRef('http://purl.obolibrary.org/obo/CHEBI_33241')
 
         # test node without schema
-        res = nt_serializes_node(node)
+        res = n3(node)
         self.assertIsInstance(res, str)
         self.assertEqual(res, '<http://purl.obolibrary.org/obo/CHEBI_33241>')
 
@@ -554,8 +554,22 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
-    def test_splits_knowledge_graph(self):
-        """Tests the splits_knowledge_graph method."""
+    def test_splits_knowledge_graph_true(self):
+        """Tests the splits_knowledge_graph method when a Graph() object should be returned."""
+
+        # generate testing data
+        graph = Graph().parse(self.dir_loc + '/so_with_imports.owl')
+
+        # test method
+        subsets = splits_knowledge_graph(graph, True)
+        self.assertIsInstance(subsets, Tuple)
+        self.assertIsInstance(subsets[0], Graph)
+        self.assertIsInstance(subsets[1], Graph)
+
+        return None
+
+    def test_splits_knowledge_graph_false(self):
+        """Tests the splits_knowledge_graph method when a set of triples should be returned."""
 
         # generate testing data
         graph = Graph().parse(self.dir_loc + '/so_with_imports.owl')
@@ -564,7 +578,7 @@ class TestKGUtils(unittest.TestCase):
         subsets = splits_knowledge_graph(graph)
         self.assertIsInstance(subsets, Tuple)
         self.assertIsInstance(subsets[0], Graph)
-        self.assertIsInstance(subsets[1], Graph)
+        self.assertIsInstance(subsets[1], Set)
 
         return None
 

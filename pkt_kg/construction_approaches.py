@@ -14,7 +14,7 @@ from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Tuple, Union
 
-from pkt_kg.utils import finds_node_type
+from pkt_kg.utils import *
 
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
@@ -140,9 +140,9 @@ class KGConstructionApproach(object):
             A list of tuples representing new edges to add to the knowledge graph.
         """
 
-        rel_core = node1.n3() + relation.n3() + node2.n3()
+        rel_core = n3(node1) + n3(relation) + n3(node2)
         u1 = URIRef(pkt + 'N' + hashlib.md5(rel_core.encode()).hexdigest())
-        u2 = URIRef(pkt_bnode + 'N' + hashlib.md5((rel_core + OWL.Restriction.n3()).encode()).hexdigest())
+        u2 = URIRef(pkt_bnode + 'N' + hashlib.md5((rel_core + n3(OWL.Restriction)).encode()).hexdigest())
 
         new_edge_inverse_rel: Tuple = tuple()
         new_edge_rel_only: Tuple = ((node1, RDF.type, OWL.Class),
@@ -155,9 +155,9 @@ class KGConstructionApproach(object):
                                     (u2, OWL.onProperty, relation),
                                     (relation, RDF.type, OWL.ObjectProperty))
         if inv_relation:
-            inv_rel_core = node2.n3() + inv_relation.n3() + node1.n3()
+            inv_rel_core = n3(node2) + n3(inv_relation) + n3(node1)
             u3 = URIRef(pkt + 'N' + hashlib.md5(inv_rel_core.encode()).hexdigest())
-            u4 = URIRef(pkt_bnode + 'N' + hashlib.md5((inv_rel_core + OWL.Restriction.n3()).encode()).hexdigest())
+            u4 = URIRef(pkt_bnode + 'N' + hashlib.md5((inv_rel_core + n3(OWL.Restriction)).encode()).hexdigest())
 
             new_edge_inverse_rel = ((node2, RDF.type, OWL.Class),
                                     (u3, RDFS.subClassOf, node2),
@@ -239,7 +239,7 @@ class KGConstructionApproach(object):
 
         # select hash relation - if rel and inv rel take first in alphabetical order else use rel
         rels = sorted([relation, inv_relation])[0] if inv_relation is not None else [relation][0]
-        rel_core = node1.n3() + rels.n3() + node2.n3()
+        rel_core = n3(node1) + n3(rels) + n3(node2)
         u1 = URIRef(pkt + 'N' + hashlib.md5((rel_core + 'subject').encode()).hexdigest())
         u2 = URIRef(pkt + 'N' + hashlib.md5((rel_core + 'object').encode()).hexdigest())
 
