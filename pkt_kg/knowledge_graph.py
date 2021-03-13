@@ -396,11 +396,11 @@ class PartialBuild(KGBuilder):
             self.node_dict = metadata.node_dict
 
         # STEP 4: CREATE GRAPH SUBSETS
-        print('*** Subsetting Graph ***'); logger.info('*** Subsetting Graph ***')
-        self.graph, annotation_graph = splits_knowledge_graph(self.graph)
+        print('*** Splitting Graph ***'); logger.info('*** Splitting Graph ***')
+        self.graph, annotation_triples = splits_knowledge_graph(self.graph)
         full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
-        annotation_graph.serialize(self.write_location + annot, format='nt'); del annotation_graph
+        appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
@@ -472,11 +472,11 @@ class PostClosureBuild(KGBuilder):
             self.node_dict = metadata.node_dict
 
         # STEP 4: CREATE GRAPH SUBSETS
-        print('*** Subsetting Graph ***'); logger.info('*** Subsetting Graph ***')
-        self.graph, annotation_graph = splits_knowledge_graph(self.graph)
+        print('*** Splitting Graph ***'); logger.info('*** Splitting Graph ***')
+        self.graph, annotation_triples = splits_knowledge_graph(self.graph)
         full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
-        annotation_graph.serialize(self.write_location + annot, format='nt'); del annotation_graph
+        appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
         # merge annotations with logic graph
         shutil.copy(self.write_location + annot, self.write_location + full)
@@ -498,7 +498,6 @@ class PostClosureBuild(KGBuilder):
         for graph in results:
             if isinstance(graph, Graph):
                 self.graph = graph
-                # map uris to integers
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
                 logger.info('Create Entity-Integer Map')
@@ -559,17 +558,12 @@ class FullBuild(KGBuilder):
             self.node_dict = metadata.node_dict
 
         # STEP 4: CREATE GRAPH SUBSETS
-        print('*** Subsetting Graph ***'); logger.info('*** Subsetting Graph ***')
-        self.graph, annotation_graph = splits_knowledge_graph(self.graph)
+        print('*** Splitting Graph ***'); logger.info('*** Splitting Graph ***')
+        self.graph, annotation_triples = splits_knowledge_graph(self.graph)
         full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
-
-        annotation_graph.serialize(kg.write_location + annot, format='nt'); del annotation_graph
+        appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
-        # import random
-        # for edge_type in tqdm(kg.edge_dict.keys()):
-        #     if edge_type != 'entity_namespaces' and len(kg.edge_dict[edge_type]['edge_list']) > 100:
-        #         kg.edge_dict[edge_type]['edge_list'] = random.sample(kg.edge_dict[edge_type]['edge_list'], 100)
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         print('\n*** Building Knowledge Graph Edges ***'); logger.info('*** Building Knowledge Graph Edges ***')
@@ -596,7 +590,6 @@ class FullBuild(KGBuilder):
         for graph in results:
             if isinstance(graph, Graph):
                 self.graph = graph
-                # map uris to integers
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integer_Identifier_Map.json'
                 logger.info('Create Entity-Integer Map')
@@ -607,6 +600,6 @@ class FullBuild(KGBuilder):
                 metadata.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map, self.graph)
 
-        del metadata, self.edge_dict, self.graph, self.inverse_relations_dict, self.node_dict, self.relations_dict
+        del metadata, self.edge_dict, self.graph, self.node_dict, owl_nets, self.relations_dict
 
         return None

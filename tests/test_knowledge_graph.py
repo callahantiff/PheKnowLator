@@ -17,7 +17,7 @@ from typing import Dict, List
 from pkt_kg.__version__ import __version__
 from pkt_kg.knowledge_graph import FullBuild, PartialBuild, PostClosureBuild
 from pkt_kg.metadata import Metadata
-from pkt_kg.utils import gets_object_properties, gets_ontology_classes
+from pkt_kg.utils import appends_to_existing_file, gets_ontology_classes, gets_object_properties, splits_knowledge_graph
 
 
 class TestKGBuilder(unittest.TestCase):
@@ -499,27 +499,36 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
-
         # make sure to not add node_metadata
         self.kg_subclass.node_dict, self.kg_subclass.node_data = None, None
         # initialize metadata class
         metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
                             self.kg_subclass.node_data, self.kg_subclass.node_dict)
         if self.kg_subclass.node_data:
-            metadata.node_metadata_processor()
-            metadata.extracts_class_metadata(self.kg_subclass.graph)
-        self.kg_subclass.node_dict = metadata.node_dict
+            metadata.node_metadata_processor(); metadata.extracts_class_metadata(self.kg_subclass.graph)
+            self.kg_subclass.node_dict = metadata.node_dict
+        # create graph subsets
+        self.kg_subclass.graph, annotation_triples = splits_knowledge_graph(self.kg_subclass.graph)
+        if self.kg_subclass.decode_owl == 'yes': full_kg_owl = self.kg_subclass.full_kg.replace('noOWL', 'OWL')
+        else: full_kg_owl = self.kg_subclass.full_kg
+        annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
+        appends_to_existing_file(annotation_triples, self.kg_subclass.write_location + annot, ' ')
 
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata,
-                                                       metadata.adds_ontology_annotations)
+        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        shutil.copy(self.kg_subclass.write_location + annot, self.kg_subclass.write_location + full)
+        appends_to_existing_file(set(self.kg_subclass.graph), self.kg_subclass.write_location + full, ' ')
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 42385)
+        self.assertEqual(len(self.kg_subclass.graph), 9796)
 
-        # check graph was saved
-        f_name = self.kg_subclass.full_kg.replace('_noOWL.owl', '_OWL.owl')
+        # check graph files were saved
+        f_name = full_kg_owl[:-4] + '_LogicOnly.owl'
+        self.assertTrue(os.path.exists(self.kg_subclass.write_location + f_name))
+        f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
+        self.assertTrue(os.path.exists(self.kg_subclass.write_location + f_name))
+        f_name = full_kg_owl[:-4] + '.nt'
         self.assertTrue(os.path.exists(self.kg_subclass.write_location + f_name))
 
         return None
@@ -540,14 +549,28 @@ class TestKGBuilder(unittest.TestCase):
             metadata.node_metadata_processor()
             metadata.extracts_class_metadata(self.kg_subclass.graph)
         self.kg_subclass.node_dict = metadata.node_dict
+        # create graph subsets
+        self.kg_subclass.graph, annotation_triples = splits_knowledge_graph(self.kg_subclass.graph)
+        if self.kg_subclass.decode_owl == 'yes': full_kg_owl = self.kg_subclass.full_kg.replace('noOWL', 'OWL')
+        else: full_kg_owl = self.kg_subclass.full_kg
+        annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
+        appends_to_existing_file(annotation_triples, self.kg_subclass.write_location + annot, ' ')
+
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata,
-                                                       metadata.adds_ontology_annotations)
+        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        shutil.copy(self.kg_subclass.write_location + annot, self.kg_subclass.write_location + full)
+        appends_to_existing_file(set(self.kg_subclass.graph), self.kg_subclass.write_location + full, ' ')
+
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 42455)
-        # check graph was saved
-        f_name = self.kg_subclass.full_kg.replace('_noOWL.owl', '_OWL.owl')
+        self.assertEqual(len(self.kg_subclass.graph), 9784)
+
+        # check graph files were saved
+        f_name = full_kg_owl[:-4] + '_LogicOnly.owl'
+        self.assertTrue(os.path.exists(self.kg_subclass.write_location + f_name))
+        f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
+        self.assertTrue(os.path.exists(self.kg_subclass.write_location + f_name))
+        f_name = full_kg_owl[:-4] + '.nt'
         self.assertTrue(os.path.exists(self.kg_subclass.write_location + f_name))
 
         return None
@@ -585,20 +608,31 @@ class TestKGBuilder(unittest.TestCase):
         metadata = Metadata(self.kg_instance.kg_version, self.kg_instance.write_location, self.kg_instance.full_kg,
                             self.kg_instance.node_data, self.kg_instance.node_dict)
         if self.kg_instance.node_data:
-            metadata.node_metadata_processor()
-            metadata.extracts_class_metadata(self.kg_instance.graph)
+            metadata.node_metadata_processor(); metadata.extracts_class_metadata(self.kg_instance.graph)
         self.kg_instance.node_dict = metadata.node_dict
+        # create graph subsets
+        self.kg_instance.graph, annotation_triples = splits_knowledge_graph(self.kg_instance.graph)
+        if self.kg_instance.decode_owl == 'yes': full_kg_owl = self.kg_instance.full_kg.replace('noOWL', 'OWL')
+        else: full_kg_owl = self.kg_instance.full_kg
+        annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
+        appends_to_existing_file(annotation_triples, self.kg_instance.write_location + annot, ' ')
 
         # test method
-        self.kg_instance.creates_knowledge_graph_edges(metadata.creates_node_metadata,
-                                                       metadata.adds_ontology_annotations)
+        self.kg_instance.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        shutil.copy(self.kg_instance.write_location + annot, self.kg_instance.write_location + full)
+        appends_to_existing_file(set(self.kg_instance.graph), self.kg_instance.write_location + full, ' ')
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance.graph) > 0)
-        self.assertEqual(len(self.kg_instance.graph), 138)
+        self.assertEqual(len(self.kg_instance.graph), 57)
 
-        # check graph was saved
-        self.assertTrue(os.path.exists(self.kg_instance.write_location + self.kg_instance.full_kg))
+        # check graph files were saved
+        f_name = full_kg_owl[:-4] + '_LogicOnly.owl'
+        self.assertTrue(os.path.exists(self.kg_instance.write_location + f_name))
+        f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
+        self.assertTrue(os.path.exists(self.kg_instance.write_location + f_name))
+        f_name = full_kg_owl[:-4] + '.nt'
+        self.assertTrue(os.path.exists(self.kg_instance.write_location + f_name))
 
         return None
 
@@ -607,28 +641,36 @@ class TestKGBuilder(unittest.TestCase):
         inverse relations."""
 
         self.kg_instance2.reverse_relation_processor()
-
         # make sure that kg is empty
         self.kg_instance2.graph = Graph()
-
         # initialize metadata class
         metadata = Metadata(self.kg_instance2.kg_version, self.kg_instance2.write_location, self.kg_instance2.full_kg,
                             self.kg_instance2.node_data, self.kg_instance2.node_dict)
         if self.kg_instance2.node_data:
-            metadata.node_metadata_processor()
-            metadata.extracts_class_metadata(self.kg_instance2.graph)
+            metadata.node_metadata_processor(); metadata.extracts_class_metadata(self.kg_instance2.graph)
         self.kg_instance2.node_dict = metadata.node_dict
+        # create graph subsets
+        self.kg_instance2.graph, annotation_triples = splits_knowledge_graph(self.kg_instance2.graph)
+        if self.kg_instance2.decode_owl == 'yes': full_kg_owl = self.kg_instance2.full_kg.replace('noOWL', 'OWL')
+        else: full_kg_owl = self.kg_instance2.full_kg
+        annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
+        appends_to_existing_file(annotation_triples, self.kg_instance2.write_location + annot, ' ')
 
         # test method
-        self.kg_instance2.creates_knowledge_graph_edges(metadata.creates_node_metadata,
-                                                        metadata.adds_ontology_annotations)
+        self.kg_instance2.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        shutil.copy(self.kg_instance2.write_location + annot, self.kg_instance2.write_location + full)
+        appends_to_existing_file(set(self.kg_instance2.graph), self.kg_instance2.write_location + full, ' ')
 
         # check that edges were added to the graph
         self.assertTrue(len(self.kg_instance2.graph) > 0)
-        self.assertEqual(len(self.kg_instance2.graph), 145)
+        self.assertEqual(len(self.kg_instance2.graph), 64)
 
-        # check graph was saved
-        f_name = self.kg_instance2.full_kg.replace('_noOWL.owl', '_OWL.owl')
+        # check graph files were saved
+        f_name = full_kg_owl[:-4] + '_LogicOnly.owl'
+        self.assertTrue(os.path.exists(self.kg_instance2.write_location + f_name))
+        f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
+        self.assertTrue(os.path.exists(self.kg_instance2.write_location + f_name))
+        f_name = full_kg_owl[:-4] + '.nt'
         self.assertTrue(os.path.exists(self.kg_instance2.write_location + f_name))
 
         return None
@@ -658,8 +700,7 @@ class TestKGBuilder(unittest.TestCase):
                                                                 ["8837", "6774"], ["8837", "8754"]]
 
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata,
-                                                       metadata.adds_ontology_annotations)
+        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata)
 
         # check that log file was written out
         log_file = '/construction_approach/subclass_map_missing_node_log.json'

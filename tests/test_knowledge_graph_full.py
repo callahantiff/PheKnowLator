@@ -128,10 +128,15 @@ class TestFullBuild(unittest.TestCase):
 
         # test out the build
         self.kg.construct_knowledge_graph()
+        full_kg_owl = self.kg.full_kg.replace('noOWL', 'OWL') if self.kg.decode_owl == 'yes' else self.kg.full_kg
 
         # check for output files
         # kg
-        f_name = self.kg.full_kg.replace('_noOWL.owl', '_OWL.owl')
+        f_name = full_kg_owl[:-4] + '_LogicOnly.owl'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
+        f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
+        f_name = full_kg_owl[:-4] + '.nt'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
 
         # kg - owl
