@@ -1,5 +1,3 @@
-nohup top -p 1956 -b &
-
 name: Build and Deploy to Google Compute Engine
 #on: push
 on:
