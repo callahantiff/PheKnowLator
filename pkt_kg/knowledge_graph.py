@@ -576,9 +576,9 @@ class FullBuild(KGBuilder):
         f_prefix = ('', '_' + self.construct_approach.upper() + '_purified') if len(results) == 2 else ('', '')
         for graph in results:
             if isinstance(graph, Graph):
-                triple_list_file = kg.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
+                triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = triple_list_file[:-5] + '_Identifier_Map.json'
-                node_int_map = maps_node_ids_to_integers(graph, kg.write_location, triple_list_file, triple_map)
+                node_int_map = maps_node_ids_to_integers(graph, self.write_location, triple_list_file, triple_map)
 
                 # STEP 8: EXTRACT AND WRITE NODE METADATA
                 log_str = '*** Processing Metadata ***'; print('\n' + log_str); logger.info(log_str)
