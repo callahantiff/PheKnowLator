@@ -62,27 +62,25 @@ class KGConstructionApproach(object):
 
         # EDGE_DICT
         if not isinstance(edge_dict, Dict):
-            logger.error('TypeError: edge_dict must be a dictionary.')
-            raise TypeError('edge_dict must be a dictionary.')
+            log_str = 'edge_dict must be a dictionary.'; logger.error('TypeError: ' + log_str); raise TypeError(log_str)
         elif len(edge_dict) == 0:
-            logger.error('TypeError: edge_dict is empty.')
-            raise TypeError('edge_dict is empty.')
+            log_str = 'edge_dict is empty.'; logger.error('TypeError: ' + log_str); raise TypeError(log_str)
         else: self.edge_dict = edge_dict
 
         # WRITE LOCATION
         if write_location is None:
-            logger.error('ValueError: write_location must contain a valid filepath, not None.')
-            raise ValueError('write_location must contain a valid filepath, not None')
+            log_str = 'write_location must contain a valid filepath, not None.'; logger.error('ValueError: ' + log_str)
+            raise ValueError(log_str)
         else: self.write_location = write_location
 
         # LOADING SUBCLASS DICTIONARY
         file_name = self.write_location + '/construction_*/*.pkl'
         if len(glob.glob(file_name)) == 0:
-            logger.error('OSError: {} does not exist!'.format('subclass_construction_map.pkl'))
-            raise OSError('{} does not exist!'.format('subclass_construction_map.pkl'))
+            log_str = 'subclass_construction_map.pkl does not exist!'; logger.error('OSError: ' + log_str)
+            raise OSError(log_str)
         elif os.stat(glob.glob(file_name)[0]).st_size == 0:
-            logger.error('TypeError: The input file: {} is empty'.format(glob.glob(file_name)[0]))
-            raise TypeError('The input file: {} is empty'.format(glob.glob(file_name)[0]))
+            log_str = 'The input file: {} is empty'.format(glob.glob(file_name)[0])
+            logger.error('TypeError: ' + log_str); raise TypeError(log_str)
         else:
             with open(glob.glob(file_name)[0], 'rb') as filepath:  # type: IO[Any]
                 self.subclass_dict = pickle.load(filepath, encoding='bytes')

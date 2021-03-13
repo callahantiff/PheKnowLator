@@ -77,8 +77,7 @@ class Metadata(object):
         """
 
         if self.node_data:
-            print('Loading and Processing Node Metadata')
-            logger.info('Loading and Processing Node Metadata')
+            log_str = 'Loading and Processing Node Metadata'; print(log_str); logger.info(log_str)
             with open(self.node_data[0], 'rb') as out:
                 self.node_dict = pickle.load(out, encoding="utf8")
 
@@ -99,7 +98,7 @@ class Metadata(object):
             None.
         """
 
-        print('\nExtracting Class and Relation Metadata'); logger.info('Extracting Class and Relation Metadata')
+        log_str = 'Extracting Class and Relation Metadata'; print('\n' + log_str); logger.info(log_str)
 
         if self.node_dict:
             domains = [
@@ -186,7 +185,7 @@ class Metadata(object):
             graph: An rdflib graph object with edited ontology annotations.
         """
 
-        print('\nAdding Ontology Annotations'); logger.info('Adding Ontology Annotations')
+        log_str = 'Adding Ontology Annotations'; print('\n' + log_str); logger.info(log_str)
 
         # set annotation variables
         authors = 'Authors: Tiffany J. Callahan, William A. Baumgartner, Ignacio Tripodi, Adrianne L. ' \
@@ -237,10 +236,9 @@ class Metadata(object):
         """
 
         if self.node_dict:
-            print('\nWriting Class Metadata'); logger.info('Writing Class Metadata')
+            log_str = 'Writing Class Metadata'; print('\n' + log_str); logger.info(log_str)
 
-            entities = set([i for j in tqdm(graph) for i in j])
-            filename = self.full_kg[:-4] + '_NodeLabels.txt'
+            entities = set([i for j in tqdm(graph) for i in j]); filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:
                 out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'entity_uri' + '\t' + 'label' + '\t' +
                           'description/definition' + '\t' + 'synonym' + '\n')
@@ -250,8 +248,7 @@ class Metadata(object):
                         etyp, meta = 'NODES', self.node_dict['nodes'][x]
                     elif x in self.node_dict['relations'].keys():
                         etyp, meta = 'RELATIONS', self.node_dict['relations'][x]
-                    else:
-                        meta, etyp, lab, dsc, syn = None, 'NA', 'NA', 'NA', 'NA'
+                    else: meta, etyp, lab, dsc, syn = None, 'NA', 'NA', 'NA', 'NA'
                     if meta is not None:
                         lab = meta['Label'] if meta['Label'] is not None else 'None'
                         dsc = meta['Description'] if meta['Description'] is not None else 'None'

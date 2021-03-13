@@ -1,6 +1,5 @@
 import glob
 import logging
-import networkx
 import os
 import shutil
 import unittest
@@ -272,7 +271,7 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_finds_bnode_uri(self):
+    def test_finds_uri(self):
         """Tests the finds_bnode_uri method."""
 
         # set-up testing data
@@ -287,7 +286,7 @@ class TestOwlNets(unittest.TestCase):
         self.owl_nets.graph = adds_edges_to_graph(Graph(), triples)
 
         # test method
-        node = self.owl_nets.finds_bnode_uri(BNode('N26cd7b2c'), obo.UBERON_0002373)
+        node = self.owl_nets.finds_uri(BNode('N26cd7b2c'), obo.UBERON_0002373)
         self.assertEqual(node, obo.UBERON_0010023)
 
         return None

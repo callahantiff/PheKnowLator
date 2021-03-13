@@ -29,7 +29,7 @@ Interacts with Knowledge Graphs
 
 Writes Triple Lists
 * maps_node_ids_to_integers
-* nt_serializes_node
+* n3
 * appends_to_existing_file
 
 File Type Conversion
@@ -40,7 +40,7 @@ File Type Conversion
 import glob
 import hashlib
 import json
-import networkx  # type: ignore
+import networkx as nx  # type: ignore
 import os
 import os.path
 import random
@@ -122,13 +122,10 @@ def gets_ontology_class_synonyms(graph: Graph) -> Tuple:
 
     Returns:
         A tuple of dictionaries:
-            synonyms: A dictionary where keys are string synonyms and values are ontology URIs. An example is shown
-                below:
+            synonyms: A dictionary where keys are string synonyms and values are ontology URIs. For example:
                     {'modified l selenocysteine': 'http://purl.obolibrary.org/obo/SO_0001402',
-                    'modified l-selenocysteine': 'http://purl.obolibrary.org/obo/SO_0001402',
                     'frameshift truncation': 'http://purl.obolibrary.org/obo/SO_0001910', ...}
-            synonym_type: A dictionary where keys are string synonyms and values are OWL synonym types. An example is
-                shown below:
+            synonym_type: A dictionary where keys are synonyms and values are OWL synonym types. for example:
                     {'susceptibility to herpesvirus': 'hasExactSynonym', 'full upper lip': 'hasExactSynonym'}
     """
 
@@ -140,11 +137,10 @@ def gets_ontology_class_synonyms(graph: Graph) -> Tuple:
 
 
 def gets_ontology_class_dbxrefs(graph: Graph):
-    """Queries a knowledge graph and returns a dictionary that contains all owl:Class objects and their database
-    cross references (dbxrefs) in the graph. This function will also include concepts that have been identified as
-    exact matches. The query returns a tuple of dictionaries where the first dictionary contains the dbxrefs and
-    exact matches (URIs and labels) and the second dictionary contains the dbxref/exactmatch uris and a string
-    indicating the type (i.e. dbxref or exact match).
+    """Queries a knowledge graph and returns a dictionary containing all owl:Class objects and their database
+    cross references (dbxref). Function also includes exact matches. A tuple of dictionaries: (1) contains dbxref and
+    exact matches (URIs and labels); and (2) contains dbxref/exactmatch uris and a string indicating the type (i.e.
+    dbxref or exact match).
 
     Assumption: That none of the hasdbxref ids overlap with any of the exactmatch ids.
 
@@ -152,31 +148,16 @@ def gets_ontology_class_dbxrefs(graph: Graph):
         graph: An rdflib Graph object.
 
     Returns:
-        dbxref: A dictionary where keys are dbxref strings and values are ontology URIs. An example is shown below:
-            {'loinc:LA6690-7': 'http://purl.obolibrary.org/obo/SO_1000002',
-             'RNAMOD:055': 'http://purl.obolibrary.org/obo/SO_0001347',
-             'RNAMOD:076': 'http://purl.obolibrary.org/obo/SO_0001368',
-             'loinc:LA6700-2': 'http://purl.obolibrary.org/obo/SO_0001590', ...}
-        dbxref_type: A dictionary where keys are dbxref/exact match uris and values are string indicating if the uri
-            is for a dbxref or an exact match. An example is shown below:
-                {
+        dbxref: A dictionary where keys are dbxref strings and values are ontology URIs.
+        dbxref_type: A dict where keys are dbxref/exact uris; values are str indicating if the uri is dbxref or exact.
     """
 
-    # dbxrefs
-    dbxref_res = [x for x in graph if 'hasdbxref' in str(x[1]).lower() if isinstance(x[0], URIRef)]
-    dbxref_uris = {str(x[2]).lower(): str(x[0]) for x in dbxref_res}
-    dbxref_type = {str(x[2]).lower(): 'DbXref' for x in dbxref_res}
+    dbx = [x for x in graph if 'hasdbxref' in str(x[1]).lower() if isinstance(x[0], URIRef)]
+    dbx_uris, dbx_type = {str(x[2]).lower(): str(x[0]) for x in dbx}, {str(x[2]).lower(): 'DbXref' for x in dbx}
+    ex = [x for x in graph if 'exactmatch' in str(x[1]).lower() if isinstance([0], URIRef)]
+    ex_uris, ex_type = {str(x[2]).lower(): str(x[0]) for x in ex}, {str(x[2]).lower(): 'ExactMatch' for x in ex}
 
-    # exact match
-    exact_res = [x for x in graph if 'exactmatch' in str(x[1]).lower() if isinstance([0], URIRef)]
-    exact_uris = {str(x[2]).lower(): str(x[0]) for x in exact_res}
-    exact_type = {str(x[2]).lower(): 'ExactMatch' for x in exact_res}
-
-    # combine dictionaries
-    uris = {**dbxref_uris, **exact_uris}
-    types = {**dbxref_type, **exact_type}
-
-    return uris, types
+    return {**dbx_uris, **ex_uris}, {**dbx_type, **ex_type}
 
 
 def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt_kg/libs/owltools') -> None:
@@ -200,7 +181,6 @@ def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt
     elif not os.path.exists(file_location): raise OSError('{} does not exist!'.format(file_location))
     elif os.stat(file_location).st_size == 0: raise ValueError('{} is empty'.format(file_location))
     else: output = subprocess.check_output([os.path.abspath(owltools_location), file_location, '--info'])
-    # print stats
     res = output.decode('utf-8').split('\n')[-5:]
     cls, axs, op, ind = res[0].split(':')[-1], res[3].split(':')[-1], res[2].split(':')[-1], res[1].split(':')[-1]
     sent = '\nThe knowledge graph contains {0} classes, {1} axioms, {2} object properties, and {3} individuals\n'
@@ -209,48 +189,42 @@ def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt
     return None
 
 
-def merges_ontologies(ontology_files: List[str], write_location: str, merged_ont_kg: str,
-                      owltools_location: str = os.path.abspath('./pkt_kg/libs/owltools')) -> Graph:
+def merges_ontologies(onts: List[str], loc: str, merged: str,
+                      owltools: str = os.path.abspath('./pkt_kg/libs/owltools')) -> Graph:
     """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into a
     master merged ontology file and saved locally to the provided file path via the merged_ontology attribute. The
     function assumes that the file is written to the directory specified by the write_location attribute.
 
     Args:
-        ontology_files: A list of ontology file paths.
-        write_location: A string pointing to a local directory for writing data.
-        merged_ont_kg: A string pointing to the location of the merged ontology file.
-        owltools_location: A string pointing to the location of the owl tools library.
+        onts: A list of ontology file paths.
+        loc: A string pointing to a local directory for writing data.
+        merged: A string pointing to the location of the merged ontology file.
+        owltools: A string pointing to the location of the owl tools library.
 
     Returns:
         None.
     """
 
-    if not ontology_files:
-        return None
+    if not onts: return None
     else:
-        if write_location + merged_ont_kg in glob.glob(write_location + '/*.owl'):
-            ont1, ont2 = ontology_files.pop(), write_location + merged_ont_kg
-        else:
-            ont1, ont2 = ontology_files.pop(), ontology_files.pop()
+        if loc + merged in glob.glob(loc + '/*.owl'): o1, o2 = onts.pop(), loc + merged
+        else: o1, o2 = onts.pop(), onts.pop()
         try:
-            print('Merging Ontologies: {ont1}, {ont2}'.format(ont1=ont1.split('/')[-1], ont2=ont2.split('/')[-1]))
-            subprocess.check_call([owltools_location, str(ont1), str(ont2), '--merge-support-ontologies',
-                                   '-o', write_location + merged_ont_kg])
-        except subprocess.CalledProcessError as error:
-            print(error.output)
+            print('Merging Ontologies: {ont1}, {ont2}'.format(ont1=o1.split('/')[-1], ont2=o2.split('/')[-1]))
+            subprocess.check_call([owltools, str(o1), str(o2), '--merge-support-ontologies', '-o', loc + merged])
+        except subprocess.CalledProcessError as error: print(error.output)
 
-        return merges_ontologies(ontology_files, write_location, merged_ont_kg, owltools_location)
+        return merges_ontologies(onts, loc, merged, owltools)
 
 
-def ontology_file_formatter(write_location: str, full_kg: str,
-                            owltools_location: str = os.path.abspath('./pkt_kg/libs/owltools')) -> None:
+def ontology_file_formatter(loc: str, full_kg: str, owltools: str = os.path.abspath('./pkt_kg/libs/owltools')) -> None:
     """Reformat an .owl file to be consistent with the formatting used by the OWL API. To do this, an ontology
     referenced by graph_location is read in and output to the same location via the OWLTools API.
 
     Args:
-        write_location: A string pointing to a local directory for writing data.
+        loc: A string pointing to a local directory for writing data.
         full_kg: A string containing the subdirectory and name of the the knowledge graph file.
-        owltools_location: A string pointing to the location of the owl tools library.
+        owltools: A string pointing to the location of the owl tools library.
 
     Returns:
         None.
@@ -263,37 +237,12 @@ def ontology_file_formatter(write_location: str, full_kg: str,
 
     print('Applying OWL API Formatting to Knowledge Graph OWL File')
 
-    graph_write_location = write_location + full_kg
+    graph_write_location = loc + full_kg
     if not os.path.exists(graph_write_location): raise IOError('{} does not exist!'.format(graph_write_location))
     elif os.stat(graph_write_location).st_size == 0: raise TypeError('{} is empty'.format(graph_write_location))
     else:
-        try:
-            subprocess.check_call([owltools_location, graph_write_location, '-o', graph_write_location])
-        except subprocess.CalledProcessError as error:
-            print(error.output)
-
-    return None
-
-
-def removes_annotation_assertions(filename: str,
-                                  owltools_location: str = os.path.abspath('./pkt_kg/libs/owltools')) -> None:
-    """Utilizes OWLTools to remove annotation assertions. The '--remove-annotation-assertions' method in OWLTools
-    removes annotation assertions to make a pure logic subset', which reduces the overall size of the knowledge
-    graph, while still being compatible with a reasoner.
-
-    Args:
-        filename: A string pointing to a filename and local directory for writing data to.
-        owltools_location: A string pointing to the location of the owl tools library.
-
-    Returns:
-        None.
-    """
-
-    try:
-        subprocess.check_call([owltools_location, filename, '--remove-annotation-assertions',
-                               '-o', filename[:-4] + '_NoAnnotationAssertions.owl'])
-    except subprocess.CalledProcessError as error:
-        print(error.output)
+        try: subprocess.check_call([owltools, graph_write_location, '-o', graph_write_location])
+        except subprocess.CalledProcessError as error: print(error.output)
 
     return None
 
@@ -312,8 +261,7 @@ def adds_edges_to_graph(graph: Graph, edge_list: Union[List, Set], progress_bar:
 
     edge_list_updated = set(edge_list) if isinstance(edge_list, List) else edge_list
     edge_set = tqdm(edge_list_updated) if progress_bar else edge_list_updated
-    for edge in edge_set:
-        graph.add(edge)
+    for edge in edge_set: graph.add(edge)
 
     return graph
 
@@ -354,8 +302,8 @@ def updates_graph_namespace(entity_namespace: str, graph: Graph, node: str) -> G
 
 
 def finds_node_type(edge_info: Dict) -> Dict:
-    """Takes a dictionary of edge information and parses the data type for each node in the edge. The function
-    returns either None or a string containing a particular node from the edge.
+    """Takes a dictionary of edge information and parses the data type for each node in the edge. Returns either None or
+    a string containing a particular node from the edge.
 
     Args:
         edge_info: A dict of information needed to add edge to graph, for example:
@@ -388,41 +336,32 @@ def finds_node_type(edge_info: Dict) -> Dict:
     return nodes
 
 
-def gets_entity_ancestors(graph: Graph, entity_uris: List[Union[URIRef, str]],
-                          rel: Union[URIRef, str] = RDFS.subClassOf, class_list: Optional[List] = None) -> List:
+def gets_entity_ancestors(graph: Graph, uris: List[Union[URIRef, str]], rel: Union[URIRef, str] = RDFS.subClassOf,
+                          cls_lst: Optional[List] = None) -> List:
     """A method that recursively searches an ontology hierarchy to pull all ancestor concepts for an input entity.
 
     Args:
         graph: An RDFLib graph object assumed to contain ontology data.
-        entity_uris: A list of at least one ontology RDFLib URIRef object or string.
+        uris: A list of at least one ontology RDFLib URIRef object or string.
         rel: A string or RDFLib URI object containing a predicate.
-        class_list: A list of URIs representing the ancestor classes found for the input class_uris.
+        cls_lst: A list of URIs representing the ancestor classes found for the input class_uris.
 
     Returns:
-        An ordered (ascending; root to leaf) list of ontology objects containing the input ancestor hierarchy for the
-            entity_uris. For example:
-                input: [URIRef('http://purl.obolibrary.org/obo/NCBITaxon_11157')]
-                output: [
-                    'http://purl.obolibrary.org/obo/NCBITaxon_10239',
-                    'http://purl.obolibrary.org/obo/NCBITaxon_2559587',
-                    'http://purl.obolibrary.org/obo/NCBITaxon_2497569',
-                    'http://purl.obolibrary.org/obo/NCBITaxon_11157'
-                    ]
+        An ordered (asc; root to leaf) list of ontology objects containing the input uris ancestor hierarchy. Example:
+            input: [URIRef('http://purl.obolibrary.org/NCBITaxon_11157')]
+            output: ['http://purl.obolibrary.org/NCBITaxon_10239', 'http://purl.obolibrary.org/NCBITaxon_2559587',
+                'http://purl.obolibrary.org/NCBITaxon_2497569', 'http://purl.obolibrary.org/NCBITaxon_11157']
     """
 
-    # instantiate list object if none passed to function
-    prop = rel if isinstance(rel, URIRef) else URIRef(rel)
-    class_list = [] if class_list is None else class_list
-    class_list = list(unique_everseen([x if isinstance(x, URIRef) else URIRef(obo + x) for x in class_list]))
-    # check class uris are formatted correctly and get their ancestors
-    entity_uris = list(unique_everseen([x if isinstance(x, URIRef) else URIRef(obo + x) for x in entity_uris]))
-    ancestors = list(unique_everseen([j for k in [graph.objects(x, prop) for x in entity_uris] for j in k]))
-    if len(ancestors) == 0 or len(set(ancestors).difference(set(class_list))) == 0:
-        return list(unique_everseen([str(x) for x in class_list]))
+    prop = rel if isinstance(rel, URIRef) else URIRef(rel); cls_lst = [] if cls_lst is None else cls_lst
+    cls_lst = list(unique_everseen([x if isinstance(x, URIRef) else URIRef(obo + x) for x in cls_lst]))
+    uris = list(unique_everseen([x if isinstance(x, URIRef) else URIRef(obo + x) for x in uris]))
+    ancs = list(unique_everseen([j for k in [graph.objects(x, prop) for x in uris] for j in k]))
+    if len(ancs) == 0 or len(set(ancs).difference(set(cls_lst))) == 0:
+        return list(unique_everseen([str(x) for x in cls_lst]))
     else:
-        entity_uris = [x for x in ancestors if x not in class_list]
-        class_list.insert(0, [x for x in entity_uris][0])
-        return gets_entity_ancestors(graph, entity_uris, prop, class_list)
+        uris = [x for x in ancs if x not in cls_lst]; cls_lst.insert(0, [x for x in uris][0])
+        return gets_entity_ancestors(graph, uris, prop, cls_lst)
 
 
 def connected_components(graph: Graph) -> List:
@@ -439,14 +378,11 @@ def connected_components(graph: Graph) -> List:
             containing the nodes for a given component.
     """
 
-    nx_mdg = networkx.MultiDiGraph()
+    nx_mdg = nx.MultiDiGraph()
     for s, p, o in tqdm(graph):
         nx_mdg.add_edge(s, o, **{'key': p})
-
-    # get connected components
     print('Calculating Connected Components')
-    components = list(networkx.connected_components(nx_mdg.to_undirected()))
-    component_dict = sorted(components, key=len, reverse=True)
+    comps = list(nx.connected_components(nx_mdg.to_undirected())); component_dict = sorted(comps, key=len, reverse=True)
 
     return component_dict
 
@@ -463,15 +399,13 @@ def removes_self_loops(graph: Graph) -> List:
     """
 
     self_loops: Set = set()
-
     for edge in tqdm(graph):
-        if edge[0] == edge[2]:
-            self_loops.add(edge)
+        if edge[0] == edge[2]: self_loops.add(edge)
 
     return list(self_loops)
 
 
-def derives_graph_statistics(graph: Union[Graph, networkx.MultiDiGraph]) -> str:
+def derives_graph_statistics(graph: Union[Graph, nx.MultiDiGraph]) -> str:
     """Derives statistics from an input knowledge graph and prints them to the console. Note that we are not
     converting each node to a string before deriving our counts. This is purposeful as the number of unique nodes is
     altered when you it converted to a string. For example, in the HPO when honoring the RDF type of each node
@@ -485,40 +419,28 @@ def derives_graph_statistics(graph: Union[Graph, networkx.MultiDiGraph]) -> str:
     """
 
     if isinstance(graph, Graph):
-        triples = len(graph)
-        nodes = len(set(list(graph.subjects()) + list(graph.objects())))
-        rels = set(list(graph.predicates()))
-        cls = set([x for x in graph.subjects(RDF.type, OWL.Class)])
+        triples = len(graph); nodes = len(set(list(graph.subjects()) + list(graph.objects())))
+        rels = set(list(graph.predicates())); cls = set([x for x in graph.subjects(RDF.type, OWL.Class)])
         inds = set([x for x in graph.subjects(RDF.type, OWL.NamedIndividual)])
         obj_prop = set([x for x in graph.subjects(RDF.type, OWL.ObjectProperty)])
         ant_prop = set([x for x in graph.subjects(RDF.type, OWL.AnnotationProperty)])
-        x = ' {} triples, {} nodes, {} predicates, {} classes, {} individuals, {} object properties, {} annotation ' \
-            'properties'
-        stats = 'Graph Stats:' + x.format(triples, nodes, len(rels), len(cls), len(inds), len(obj_prop), len(ant_prop))
+        x = ' {} triples, {} nodes, {} predicates, {} classes, {} individuals, {} object props, {} annotation props'
+        stat = 'Graph Stats:' + x.format(triples, nodes, len(rels), len(cls), len(inds), len(obj_prop), len(ant_prop))
     else:
         nx_graph_und = graph.to_undirected()
-        nodes = networkx.number_of_nodes(graph)
-        edges = networkx.number_of_edges(graph)
-        self_loops = networkx.number_of_selfloops(graph)
-        ce = sorted(Counter([str(x[2]) for x in graph.edges(keys=True)]).items(),  # type: ignore
-                    key=lambda x: x[1],  # type: ignore
-                    reverse=1)[:6]  # type: ignore
-        avg_degree = float(edges) / nodes
+        nodes = nx.number_of_nodes(graph); edges = nx.number_of_edges(graph); self_loops = nx.number_of_selfloops(graph)
+        conn = Counter([str(x[2]) for x in graph.edges(keys=True)])  # type: ignore
+        ce = sorted(conn.items(), key=lambda x: x[1], reverse=1)[:6]  # type: ignore
+        dens = nx.density(graph); avg_deg = float(edges) / nodes
         n_deg = sorted([(str(x[0]), x[1]) for x in graph.degree], key=lambda x: x[1], reverse=1)[:6]  # type: ignore
-        density = networkx.density(graph)
-        components = sorted(list(networkx.connected_components(nx_graph_und)), key=len, reverse=True)
-        # cc_sizes = {x: len(components[x]) for x in range(len(components))}
-        cc_content = {x: str(len(components[x])) + ' nodes: ' + ' | '.join(components[x]) if len(components[x]) < 500
-                      else len(components[x]) for x in range(len(components))}
+        c = sorted(list(nx.connected_components(nx_graph_und)), key=len, reverse=True)
+        cc = {x: str(len(c[x])) + ' nodes: ' + ' | '.join(c[x]) if len(c[x]) < 50 else len(c[x]) for x in range(len(c))}
         x = '{} nodes, {} edges, {} self-loops, 5 most most common edges: {}, average degree {}, 5 highest degree '\
             'nodes: {}, density: {}, {} component(s): {}'
-        stats = 'Graph Stats: ' + x.format(nodes, edges, self_loops,
-                                           ', '.join([x[0] + ':' + str(x[1]) for x in ce]),
-                                           avg_degree,
-                                           ', '.join([x[0] + ':' + str(x[1]) for x in n_deg]),
-                                           density, len(components), cc_content)
+        stat = 'Graph Stats: ' + x.format(nodes, edges, self_loops, ', '.join([x[0] + ':' + str(x[1]) for x in ce]),
+                                          avg_deg, ', '.join([x[0] + ':' + str(x[1]) for x in n_deg]), dens, len(c), cc)
 
-    return stats
+    return stat
 
 
 def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode) -> Graph:
@@ -532,7 +454,6 @@ def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode
          updated_graph: An RDFLib Graph object with updated BNodes.
     """
 
-    # get original bnodes
     print('Processing Original Nodes')
     all_triples = set(graph)
     sub_only_bnodes_org = {x for x in graph if isinstance(x[0], BNode) and not isinstance(x[2], BNode)}
@@ -540,16 +461,12 @@ def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode
     sub_and_obj_bnodes_org = {x for x in graph if isinstance(x[0], BNode) and isinstance(x[2], BNode)}
     graph_no_bnodes = all_triples - (sub_only_bnodes_org | obj_only_bnodes_org | sub_and_obj_bnodes_org)
     del all_triples, graph
-
-    # reformat original bnodes by converting them into namespaced-URIs
     print('Converting BNodes to Namespaced-URIs')
     ns_uri = ns if isinstance(ns, Namespace) else Namespace(ns)
     sub_fixed = {(URIRef(ns_uri + str(x[0])), x[1], x[2]) for x in sub_only_bnodes_org}
     obj_fixed = {(x[0], x[1], URIRef(ns_uri + str(x[2]))) for x in obj_only_bnodes_org}
     both_fixed = {(URIRef(ns_uri + str(x[0])), x[1], URIRef(ns_uri + str(x[2]))) for x in sub_and_obj_bnodes_org}
     del sub_only_bnodes_org, obj_only_bnodes_org, sub_and_obj_bnodes_org
-
-    # create graph from all non-bnode triples + reformatted bnodes triples
     print('Finalizing Updated Graph')
     updated_graph = Graph()
     for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed):
@@ -570,7 +487,6 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
         updated_graph: An RDFLib Graph object with bnode namespaces removed.
     """
 
-    # get original bnodes
     print('Processing Original Nodes')
     ns_uri = str(ns) if isinstance(ns, Namespace) else ns
     all_triples = set(graph)
@@ -579,15 +495,11 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
     sub_and_obj_bnodes_ns = {(s, p, o) for s, p, o in graph if str(s).startswith(ns_uri) and str(o).startswith(ns_uri)}
     graph_no_bnodes = all_triples - (sub_only_bnodes_ns | obj_only_bnodes_ns | sub_and_obj_bnodes_ns)
     del all_triples, graph
-
-    # reformat original bnodes by converting them into namespaced-URIs
     print('Removing Namespace from BNodes')
     sub_fixed = {(BNode(str(s).split('/')[-1]), p, o) for s, p, o in sub_only_bnodes_ns}
     obj_fixed = {(s, p, BNode(str(o).split('/')[-1])) for s, p, o in obj_only_bnodes_ns}
     both_fixed = {(BNode(str(s).split('/')[-1]), p, BNode(str(o).split('/')[-1])) for s, p, o in sub_and_obj_bnodes_ns}
     del sub_only_bnodes_ns, obj_only_bnodes_ns, sub_and_obj_bnodes_ns
-
-    # create graph from all non-namespaced-bnode triples + reformatted bnodes triples
     print('Finalizing Updated Graph')
     updated_graph = Graph()
     for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed):
@@ -605,8 +517,8 @@ def splits_knowledge_graph(graph: Graph, graph_output: bool = False) -> Tuple[Gr
 
     Args:
         graph: An RDFLib Graph object.
-        graph_output: A boolean value; if True: the annotation and logic graph are returned as RDFLib Graph objects, if
-            False: the logic_graph is returned as an RDFLib Graph object and the annotation subset is returned as a
+        graph_output: (Bool) if True, the annotation and logic graph are returned as RDFLib Graph objects, if False,
+            the logic_graph is returned as an RDFLib Graph and the annotation subset is returned as a
             set of triples (default=False).
 
     Returns:
@@ -651,12 +563,11 @@ def splits_knowledge_graph(graph: Graph, graph_output: bool = False) -> Tuple[Gr
 
 def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:
     """Loops over the knowledge graph in order to create three different types of files:
-        - Integers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
+        - Integers: tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
           subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
-        - Identifiers: a tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
+        - Identifiers: tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
           subject, predicate, object). Both the subject and object identifiers have not been mapped to integers.
-        - Identifier-Integer Map: a `.json` file containing a dictionary where the keys are node identifiers and
-          the values are integers.
+        - Identifier-Integer Map: JSON file containing a dict where keys are node identifiers and values are integers.
 
     Args:
         graph: An rdflib graph object.
@@ -671,39 +582,28 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         ValueError: If the length of the graph is not the same as the number of extracted triples.
     """
 
-    entity_map, output_triples, entity_counter = {}, 0, 0  # type: ignore
-    graph_len = len(graph)
-    # build graph from input file and set counter
-    out_ints = open(write_location + output_ints, 'w', encoding='utf-8')
-    out_ids = open(write_location + output_ints.replace('Integers', 'Identifiers'), 'w', encoding='utf-8')
-    out_ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
-    out_ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
-    for edge in tqdm(graph):
-        subj, pred, obj = n3(edge[0]), n3(edge[1]), n3(edge[2])
-        if subj not in entity_map:
-            entity_counter += 1
-            entity_map[subj] = entity_counter
-        if pred not in entity_map:
-            entity_counter += 1
-            entity_map[pred] = entity_counter
-        if obj not in entity_map:
-            entity_counter += 1
-            entity_map[obj] = entity_counter
-        # convert edge labels to ints
-        out_ints.write('%d' % entity_map[subj] + '\t' + '%d' % entity_map[pred] + '\t' + '%d' % entity_map[obj] + '\n')
-        try:
-            out_ids.write(subj + '\t' + pred + '\t' + obj + '\n')
-        except UnicodeEncodeError:
-            out_ids.write(edge[0].encode('utf-8').decode() + '\t' +
-                          edge[1].encode('utf-8').decode() + '\t' +
-                          edge[2].encode('utf-8').decode() + '\n')
-        # update counter and delete edge
-        output_triples += 1
-    out_ints.close(), out_ids.close()
+    print('Mapping Node and Relation Identifiers to Integers')
 
+    entity_map, output_triples, entity_counter = {}, 0, 0; graph_len = len(graph)  # type: ignore
+    # build graph from input file and set counter
+    ints = open(write_location + output_ints, 'w', encoding='utf-8')
+    ids = open(write_location + output_ints.replace('Integers', 'Identifiers'), 'w', encoding='utf-8')
+    ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
+    ids.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
+    for s, p, o in tqdm(graph):
+        subj, pred, obj = n3(s), n3(p), n3(o)
+        if subj not in entity_map: entity_counter += 1; entity_map[subj] = entity_counter
+        if pred not in entity_map: entity_counter += 1; entity_map[pred] = entity_counter
+        if obj not in entity_map: entity_counter += 1; entity_map[obj] = entity_counter
+        ints.write('%d' % entity_map[subj] + '\t' + '%d' % entity_map[pred] + '\t' + '%d' % entity_map[obj] + '\n')
+        try: ids.write(subj + '\t' + pred + '\t' + obj + '\n')
+        except UnicodeEncodeError:
+            s, p, o = s.encode('utf-8').decode(), p.encode('utf-8').decode(), o.encode('utf-8').decode()
+            ids.write(s + '\t' + p + '\t' + o + '\n')
+        output_triples += 1
+    ints.close(), ids.close()
     # CHECK - verify we get the number of edges that we would expect to get
-    if graph_len != output_triples:
-        raise ValueError('ERROR: The number of triples is incorrect!')
+    if graph_len != output_triples: raise ValueError('ERROR: The number of triples is incorrect!')
     else:
         with open(write_location + '/' + output_ints_map, 'w') as file_name:
             json.dump(entity_map, file_name)
@@ -759,23 +659,12 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     Source: https://networkx.org/documentation/stable/reference/classes/multidigraph.html
 
         Example:
-            Input: (URIRef('http://purl.obolibrary.org/obo/SO_0000288'),
-                    URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-                    URIRef('http://purl.obolibrary.org/obo/SO_0000287'))
+            Input: (obo.SO_0000288', RDFS.subClassOf', obo.SO_0000287')
             Output:
-                - node data: [
-                        (URIRef('http://purl.obolibrary.org/obo/SO_0000288'),
-                        {'key': 'http://purl.obolibrary.org/obo/SO_0000288'}),
-                        (URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-                        {'key': 'http://www.w3.org/2000/01/rdf-schema#subClassOf'}),
-                        (URIRef('http://purl.obolibrary.org/obo/SO_0000287'),
-                        {'key': 'http://purl.obolibrary.org/obo/SO_0000287'})
-                            ]
-                - edge data: [
-                        (URIRef('http://purl.obolibrary.org/obo/SO_0000288'),
-                         URIRef('http://purl.obolibrary.org/obo/SO_0000287'),
-                         {'predicate_key': '9cbd482627d217b38eb407d7eba48020', 'weight': 0.0})
-                            ]
+                - node data: [(obo.SO_0000288, {'key': 'http://purl.obolibrary.org/obo/SO_0000288'}),
+                              (RDFS.subClassOf', {'key': 'http://www.w3.org/2000/01/rdf-schema#subClassOf'}),
+                              (obo.SO_0000287, {'key': 'http://purl.obolibrary.org/obo/SO_0000287'})]
+                - edge data: [(obo.SO_0000288, obo.SO_0000287', {'predicate_key': '9cbd4826291e7b38eb', 'weight': 0.0})]
 
     Args:
         write_location: A string pointing to a local directory for writing data.
@@ -796,18 +685,14 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
         file_type = 'xml' if 'OWLNETS' not in full_kg else full_kg.split('.')[-1]
         ext = '.owl' if file_type == 'xml' else '.nt'
         graph = Graph().parse(write_location + full_kg + ext, format=file_type)
-
     # convert graph to networkx object
-    nx_mdg = networkx.MultiDiGraph()
+    nx_mdg = nx.MultiDiGraph()
     for s, p, o in tqdm(graph):
         pred_key = hashlib.md5('{}{}{}'.format(str(s), str(p), str(o)).encode()).hexdigest()
-        nx_mdg.add_node(s, key=str(s))
-        nx_mdg.add_node(o, key=str(o))
+        nx_mdg.add_node(s, key=str(s)); nx_mdg.add_node(o, key=str(o))
         nx_mdg.add_edge(s, o, **{'key': p, 'predicate_key': pred_key, 'weight': 0.0})
-
     # pickle networkx graph
-    print('Pickling MultiDiGraph -- For Large Networks Process Takes Several Minutes.')
-    networkx.write_gpickle(nx_mdg, write_location + full_kg + '_NetworkxMultiDiGraph.gpickle')
-    del nx_mdg   # clean up environment
+    print('Pickling MultiDiGraph')
+    nx.write_gpickle(nx_mdg, write_location + full_kg + '_NetworkxMultiDiGraph.gpickle'); del nx_mdg
 
     return None

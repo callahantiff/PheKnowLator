@@ -84,23 +84,21 @@ class CreatesEdgeList(object):
 
         df_with_header = pd.read_csv(file_path, header='infer', nrows=1, delimiter=delimiter, skiprows=skip_rows)
         df_without_header = pd.read_csv(file_path, header=None, nrows=1, delimiter=delimiter, skiprows=skip_rows)
-
         # calculate similarity between header and first row
         with_header_test = SequenceMatcher(None, '|'.join([str(x) for x in list(df_with_header.iloc[0])]),
                                            '|'.join([str(x) for x in list(df_with_header)])).ratio()
         without_header_test = SequenceMatcher(None, '|'.join([str(x) for x in list(df_without_header.iloc[0])]),
                                               '|'.join([str(x) for x in list(df_without_header)])).ratio()
-        # determine if header should be used
-        if abs(with_header_test-without_header_test) < 0.5: return 0
+        if abs(with_header_test-without_header_test) < 0.5: return 0  # determine if header should be used
         else: return None
 
-    def data_reader(self, file_path: str, delimiter: str = 't') -> pd.DataFrame:
+    def data_reader(self, file_path: str, delim: str = 't') -> pd.DataFrame:
         """Takes a filepath pointing to data source and reads it into a Pandas DataFrame using information in the file
         and line splitter variables.
 
         Args:
             file_path: A Filepath to data.
-            delimiter: A Character used to split rows into columns.
+            delim: A Character used to split rows into columns.
 
         Return:
             A Pandas DataFrame containing the data from the data_filepath.
@@ -114,11 +112,9 @@ class CreatesEdgeList(object):
         input_data_r.close()
 
         # clean up data to only keep valid rows (rows that are not empty space or metadata)
-        splitter = '\t' if 't' in delimiter else r"\s+" if '' in delimiter else delimiter
-        if delimiter == '' or delimiter == ' ':
-            skip = [row for row in range(0, len(data)) if delimiter not in data[row]]
-        else:
-            skip = [row for row in range(0, len(data)) if splitter not in data[row]]
+        splitter = '\t' if 't' in delim else r"\s+" if '' in delim else delim
+        if delim == '' or delim == ' ': skip = [row for row in range(0, len(data)) if delim not in data[row]]
+        else: skip = [row for row in range(0, len(data)) if splitter not in data[row]]
         # determine if file contains a header
         header = self.identify_header(file_path, splitter, skip)
         edge_data = pd.read_csv(file_path, header=header, delimiter=splitter, low_memory=False, skiprows=skip)
@@ -137,8 +133,7 @@ class CreatesEdgeList(object):
             A string where empty strings have been replaced with "None".
         """
 
-        if '(' in criteria:
-            return criteria
+        if '(' in criteria: return criteria
         else:
             # replace space with empty string and then replace empty strings at end of criteria with 'None'
             no_spaces = re.sub(r"\'\s+|\"\s+", '', criteria)
@@ -162,8 +157,7 @@ class CreatesEdgeList(object):
             Exception: If the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
         """
 
-        if filter_criteria == 'None' and evidence_criteria == 'None':
-            return edge_data
+        if filter_criteria == 'None' and evidence_criteria == 'None': return edge_data
         else:  # fix known errors when filtering empty cells
             map_filter_criteria = self.filter_fixer(filter_criteria) + '::' + self.filter_fixer(evidence_criteria)
             for crit in [x for x in map_filter_criteria.split('::') if x != 'None']:
@@ -359,34 +353,31 @@ class CreatesEdgeList(object):
         logger.info('*' * 10 + 'PKT STEP: GENERATING KNOWLEDGE GRAPH MASTER EDGE LIST' + '*' * 10)
 
         for edge_type in tqdm(self.source_info.keys()):
-            log_str = '### Processing Edge: {}'.format(edge_type)
-            print('\n\n' + log_str); logger.info(log_str)
+            log_str = '### Processing Edge: {}'.format(edge_type); print('\n\n' + log_str); logger.info(log_str)
 
             # STEP 1: Read Data
-            print('*** Reading Edge Data ***'); logger.info('*** Reading Edge Data ***')
+            log_str = '*** Reading Edge Data ***'; print(log_str); logger.info(log_str)
             edge_data = self.data_reader(self.data_files[edge_type], self.source_info[edge_type]['delimiter'])
 
             # STEP 2: Apply Filtering and Evidence Criteria
-            log_str = '*** Applying Filtering and/or Mapping Criteria to Edge Data ***'
-            print(log_str); logger.info(log_str)
-            edge_data = self.filter_data(edge_data,
-                                         self.source_info[edge_type]['filter_criteria'],
+            log_str = '*** Applying Filtering/Mapping Criteria to Edge Data ***'; print(log_str); logger.info(log_str)
+            edge_data = self.filter_data(edge_data, self.source_info[edge_type]['filter_criteria'],
                                          self.source_info[edge_type]['evidence_criteria'])
 
             # STEP 3: reduce data to specific columns, remove duplicates, and ensure proper formatting of column data
             edge_data = self.data_reducer(self.source_info[edge_type]['column_idx'], edge_data)
 
             # STEP 4: Update Node Column Values
-            print('*** Reformatting Node Values ***'); logger.info('*** Reformatting Node Values ***')
+            log_str = '*** Reformatting Node Values ***'; print(log_str); logger.info(log_str)
             edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
 
             # STEP 5: Rename Nodes
-            edge_data.rename(columns={list(edge_data)[0]: str(list(edge_data)[0]) + '-' + edge_type.split('-')[0],
-                                      list(edge_data)[1]: str(list(edge_data)[1]) + '-' + edge_type.split('-')[1]},
-                             inplace=True)
+            edge_data.rename(
+                columns={list(edge_data)[0]: str(list(edge_data)[0]) + '-' + edge_type.split('-')[0],
+                         list(edge_data)[1]: str(list(edge_data)[1]) + '-' + edge_type.split('-')[1]}, inplace=True)
 
             # STEP 6: Map Identifiers
-            print('*** Performing Identifier Mapping ***'); logger.info('*** Performing Identifier Mapping ***')
+            log_str = '*** Performing Identifier Mapping ***'; print(log_str); logger.info(log_str)
             mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'], edge_data)
             self.source_info[edge_type]['edge_list'] = [edge for edge in mapped_data if 'None' not in edge]
 
@@ -401,10 +392,8 @@ class CreatesEdgeList(object):
             logger.info(res_string.format(edge_type, edge_type.split('-')[0], len(unique_subjects),
                         edge_type.split('-')[1], len(unique_objects), len(unique_edges)))
 
-        # add source entity namespaces
+        # add source entity namespaces and save a copy of the final master edge list
         self.gets_entity_namespaces()
-
-        # save a copy of the final master edge list
         with open('/'.join(self.source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:
             json.dump(self.source_info, filepath)
 

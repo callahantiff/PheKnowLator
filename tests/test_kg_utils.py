@@ -84,9 +84,9 @@ class TestKGUtils(unittest.TestCase):
         self.assertRaises(TypeError, ontology_file_formatter, self.dir_loc, '/empty_hp_with_imports.owl', owltools)
 
         # make sure method runs on legitimate file
-        self.assertTrue(ontology_file_formatter(write_location=self.dir_loc,
-                                                full_kg='/so_with_imports.owl',
-                                                owltools_location=owltools) is None)
+        self.assertTrue(
+            ontology_file_formatter(loc=self.dir_loc, full_kg='/so_with_imports.owl', owltools=owltools) is None
+        )
 
         return None
 
@@ -489,7 +489,7 @@ class TestKGUtils(unittest.TestCase):
         # test method
         stats = derives_graph_statistics(graph)
         expected_stats = 'Graph Stats: 42237 triples, 20277 nodes, 39 predicates, 2793 classes, 0 individuals, ' \
-                         '50 object properties, 39 annotation properties'
+                         '50 object props, 39 annotation props'
         self.assertEqual(stats, expected_stats)
 
         return None
@@ -507,20 +507,6 @@ class TestKGUtils(unittest.TestCase):
         stats = derives_graph_statistics(nx_mdg)
         print(stats)
         self.assertTrue(len(stats) > 700)
-
-        return None
-
-    def test_removes_annotation_assertions(self):
-        """Tests the removes_annotation_assertions method."""
-
-        removes_annotation_assertions(self.good_ontology_file_location, self.owltools_location)
-
-        # check that annotations were removed
-        no_assert_loc = self.good_ontology_file_location[:-4] + '_NoAnnotationAssertions.owl'
-        self.assertTrue(os.path.exists(no_assert_loc))
-
-        # remove file
-        os.remove(no_assert_loc)
 
         return None
 

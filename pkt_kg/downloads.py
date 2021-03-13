@@ -59,34 +59,28 @@ class DataSource(object):
         logger.info('*' * 10 + 'PKT STEP: DOWNLOADING KNOWLEDGE GRAPH DATA' + '*' * 10)
         # DATA SOURCE FILE
         if not isinstance(data_path, str):
-            logger.error('TypeError: data_path must be type str.')
-            raise TypeError('data_path must be type str.')
+            log_str = 'data_path must be type str.'; logger.error('TypeError: ' + log_str); raise TypeError(log_str)
         elif not os.path.exists(data_path):
-            logger.error('OSError: {} does not exist!'.format(data_path))
-            raise OSError('{} does not exist!'.format(data_path))
+            log_str = '{} does not exist!'.format(data_path); logger.error('OSError: ' + log_str)
+            raise OSError(log_str)
         elif os.stat(data_path).st_size == 0:
-            logger.error('TypeError: {} is empty'.format(data_path))
-            raise TypeError('Input: {} is empty'.format(data_path))
-        else:
-            self.data_path: str = data_path
-            self.data_type: str = data_path.split('/')[-1].split('.')[0]
+            log_str = '{} is empty'.format(data_path); logger.error('TypeError: ' + log_str); raise TypeError(log_str)
+        else: self.data_path: str = data_path; self.data_type: str = data_path.split('/')[-1].split('.')[0]
 
         # RESOURCE INFO FILE
         resource_data_search = glob.glob('**/*resource**info*.txt', recursive=True)[0]
         self.resource_data: Optional[str] = resource_data_search if None else resource_data
         if not isinstance(self.resource_data, str):
-            logger.error('TypeError: resource_data must be type str.')
-            raise TypeError('resource_data must be type str.')
+            log_str = 'resource_data must be type str.'; logger.error('TypeError: ' + log_str); raise TypeError(log_str)
         elif not os.path.exists(self.resource_data):
-            logger.error('OSError: {} does not exist!'.format(self.resource_data))
-            raise OSError('{} does not exist!'.format(self.resource_data))
+            log_str = '{} does not exist!'.format(self.resource_data); logger.error('OSError: ' + log_str)
+            raise OSError(log_str)
         elif os.stat(self.resource_data).st_size == 0:
-            logger.error('TypeError: {} is empty'.format(self.resource_data))
-            raise TypeError('Input: {} is empty'.format(self.resource_data))
+            log_str = '{} is empty'.format(self.resource_data); logger.error('TypeError: ' + log_str)
+            raise TypeError(log_str)
         else:
             resource_data_file: TextIO = open(self.resource_data)
-            self.resource_info: List = resource_data_file.read().splitlines()
-            resource_data_file.close()
+            self.resource_info: List = resource_data_file.read().splitlines(); resource_data_file.close()
 
         self.resource_dict: Dict[str, List[str]] = {}
         self.source_list: Dict[str, str] = {}
@@ -201,10 +195,9 @@ class DataSource(object):
             None.
         """
 
-        print('\n*** Generating Metadata ***\n'); logger.info('*** Generating Metadata ***')
+        log_str = '*** Generating Metadata ***'; print('\n' + log_str + '\n'); logger.info(log_str)
 
         self.metadata.append(['#' + str(datetime.datetime.utcnow().strftime('%a %b %d %X UTC %Y')) + ' \n'])
-
         for i in tqdm(self.data_files.keys()):
             source = self.data_files[i]
             if '-' in source:
@@ -253,8 +246,8 @@ class OntData(DataSource):
         """
 
         if os.stat(self.data_path).st_size == 0:
-            logger.error('TypeError: input file: {} is empty'.format(self.data_path))
-            raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
+            log_str = 'input file: {} is empty'.format(self.data_path); logger.error('TypeError: ' + log_str)
+            raise TypeError('ERROR: ' + log_str)
         else:
             with open(self.data_path, 'r') as file_name:
                 self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
@@ -286,11 +279,9 @@ class OntData(DataSource):
         print('\n' + log_str + '\n'); logger.info(log_str)
 
         for i in tqdm(self.source_list.keys()):
-            source = self.source_list[i]
-            file_prefix = source.split('/')[-1].split('.')[0]
+            source = self.source_list[i]; file_prefix = source.split('/')[-1].split('.')[0]
             write_loc = file_loc + file_prefix
-            log_str = 'Downloading: {}'.format(str(file_prefix))
-            print('\n' + log_str); logger.info(log_str)
+            log_str = 'Downloading: {}'.format(str(file_prefix)); print('\n' + log_str); logger.info(log_str)
             # don't re-download ontologies
             if any(x for x in os.listdir(file_loc) if file_prefix == x.split('.')[0]):
                 self.data_files[i] = glob.glob(file_loc + '*' + file_prefix + '*')[0]
@@ -332,8 +323,8 @@ class LinkedData(DataSource):
         """
 
         if os.stat(self.data_path).st_size == 0:
-            logger.error('TypeError: input file: {} is empty'.format(self.data_path))
-            raise TypeError('ERROR: input file: {} is empty'.format(self.data_path))
+            log_str = 'input file: {} is empty'.format(self.data_path); logger.error('TypeError: ' + log_str)
+            raise TypeError('ERROR: ' + log_str)
         else:
             with open(self.data_path, 'r') as file_name:
                 self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
@@ -357,11 +348,9 @@ class LinkedData(DataSource):
         print('\n' + log_str + '\n'); logger.info(log_str)
 
         for i in tqdm(self.source_list.keys()):
-            source = self.source_list[i]
-            file_name = re.sub('.gz|.zip|\\?.*', '', source.split('/')[-1])
+            source = self.source_list[i]; file_name = re.sub('.gz|.zip|\\?.*', '', source.split('/')[-1])
             write_path = file_loc
-            print('\nEdge: {edge}'.format(edge=i))
-            logger.info('Edge: {edge}'.format(edge=i))
+            print('\nEdge: {edge}'.format(edge=i)); logger.info('Edge: {edge}'.format(edge=i))
             # if file has already been downloaded, rename it
             if any(x for x in os.listdir(write_path) if '_'.join(x.split('_')[1:]) == file_name):
                 self.data_files[i] = write_path + i + '_' + file_name
