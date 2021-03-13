@@ -84,10 +84,8 @@ def uploads_build_data(bucket, gcs_location) -> None:
     """
 
     # create variables to store source directory locations
-    resources_loc = 'resources/'
-    kg_loc = resources_loc + 'knowledge_graphs/'
-    metadata_loc = resources_loc + 'node_data/'
-    construct_app = resources_loc + 'construction_approach/'
+    resources_loc = 'resources/'; kg_loc = resources_loc + 'knowledge_graphs/'
+    metadata_loc = resources_loc + 'node_data/'; construct_app = resources_loc + 'construction_approach/'
 
     # move knowledge graph data
     for kg_file in [x for x in glob.glob(kg_loc + '*') if 'README.md' not in x]:
@@ -141,8 +139,7 @@ def main(app, rel, owl):
     # STEP 2 - CONSTRUCT KNOWLEDGE GRAPH
     log_str1 = 'STEP 2: CONSTRUCT KNOWLEDGE GRAPH'
     log_str2 = 'Knowledge Graph Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower())
-    print('\n' + log_str1); logger.info(log_str1)
-    print(log_str2); logger.info(log_str2)
+    print('\n' + log_str1); logger.info(log_str1); print(log_str2); logger.info(log_str2)
     ray.init()  # start daemon to continuously upload logs while the pkt main knowledge graph function runs
     background_task = PKTLogUploader.remote('pheknowlator', gcs_log_location, log_dir, 90)
     # run the pkt_kg main method
@@ -207,9 +204,7 @@ def main(app, rel, owl):
             print(log_str); logger.info(log_str)
             nx_local_file = downloads_data_from_gcs_bucket(bucket, None, gcs_current_loc, f.split('/')[-1], '')
             graph = networkx.read_gpickle(nx_local_file)
-            stats = derives_networkx_graph_statistics(graph)
-            print(stats)
-            logger.info(stats)
+            stats = derives_networkx_graph_statistics(graph); print(stats); logger.info(stats)
     except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
 
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket

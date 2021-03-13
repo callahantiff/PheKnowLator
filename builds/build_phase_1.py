@@ -43,9 +43,8 @@ def creates_build_directory_structure(bucket, release, build):
             current build.
     """
 
-    print('Creating Build Directory Structure'); logger.info('Creating Build Directory Structure')
+    log_str = 'Creating Build Directory Structure'; print(log_str); logger.info(log_str)
 
-    # set-up file names
     folder_list = [
         'archived_builds/{}/{}/data/original_data/'.format(release, build),
         'archived_builds/{}/{}/data/processed_data/'.format(release, build),
@@ -134,15 +133,14 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
         None.
     """
 
-    print('Downloading Build Data'); logger.info('Downloading Build Data')
+    log_str = 'Downloading Build Data'; print(log_str); logger.info(log_str)
 
     # check what data has already been downloaded
     gcs_original_path = '/'.join(gcs_url.split('/')[4:-1])
     downloaded_data = [file.name for file in bucket.list_blobs(prefix=gcs_original_path)]
     urls, metadata = [x.strip('\n') for x in open(file_loc, 'r').readlines() if not x.startswith('#') and x != '\n'], []
     for url in urls:
-        print('Downloading {}'.format(url))
-        logger.info('Downloading {}'.format(url))
+        log_str = 'Downloading {}'.format(url); print(log_str);logger.info(log_str)
         if url.startswith('http://purl.obolibrary.org/obo/'):
             ont_name = url.split('/')[-1][:-4] + '_with_imports.owl'
             file_path = temp_directory + '/' + ont_name
@@ -152,8 +150,8 @@ def downloads_build_data(bucket, original_data, gcs_url, temp_directory, file_lo
                 command_string = '{} {} --merge-import-closure -o {}'
                 return_code = os.system(command_string.format(owltools_location, url, file_path))
                 if return_code != 0:
-                    logger.error('ERROR: Unable to successfully download {}: {}'.format(url, return_code))
-                    raise Exception('ERROR: Unable to successfully download {}'.format(url))
+                    log_str = 'ERROR: Unable to successfully download {}'.format(url)
+                    logger.error(log_str + ': {}'.format(return_code)); raise Exception(log_str)
         else:
             filename, url = url.split(', ')
             file_path = temp_directory + '/' + re.sub('.zip|.gz', '', filename)

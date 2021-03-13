@@ -174,7 +174,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Logically Verifying Ontology'); logger.info('PKT: Logically Verifying Ontology')
+        log_str = 'Logically Verifying Ontology'; print(log_str); logger.info('PKT: ' + log_str)
 
         # save graph in order to run reasoner
         filename = self.temp_dir + '/' + self.ont_file_location
@@ -185,8 +185,8 @@ class OntologyCleaner(object):
             if isinstance(self.bucket, storage.bucket.Bucket):
                 uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
         else:
-            logger.error('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
-            raise Exception('ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code))
+            log_str = 'ERROR: Reasoner Finished with Errors - {}: {}'.format(filename, return_code)
+            logger.error(log_str); raise Exception(log_str)
 
         return None
 
@@ -197,14 +197,13 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Obtaining Ontology Statistics'); logger.info('Obtaining Ontology Statistics')
+        log_str = 'Obtaining Ontology Statistics'; print(log_str); logger.info(log_str)
 
         if isinstance(self.bucket, str):
-            gcs_org_url = '{}/{}'.format(self.temp_dir, self.original_data)
-            gcs_proc_url = gcs_org_url
+            gcs_org_url = '{}/{}'.format(self.temp_dir, self.original_data); gcs_proc_url = gcs_org_url
         else:
-            gcs_org_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(self.original_data)
-            gcs_proc_url = 'https://storage.googleapis.com/pheknowlator/{}'.format(self.processed_data)
+            bucket_str = 'https://storage.googleapis.com/pheknowlator/{}'
+            gcs_org_url = bucket_str.format(self.original_data); gcs_proc_url = bucket_str.format(self.processed_data)
 
         # write out statistics
         if 'Starting Statistics' not in self.ontology_info[self.ont_file_location].keys():
@@ -247,7 +246,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Finding Parsing Errors'); logger.info('Finding Parsing Errors')
+        log_str = 'Finding Parsing Errors'; print(log_str); logger.info(log_str)
 
         errors, error_key, key = self._finds_ontology_errors(), 'OwlReadyOntologyParsingError', self.ont_file_location
         if error_key in errors.keys():
@@ -256,8 +255,7 @@ class OntologyCleaner(object):
             bad_content = re.findall(r'(?<=>).*(?=<)', raw_data[line_num])[0]
             bad_triple = [x for x in self.ont_graph if bad_content in str(x[0]) or bad_content in str(x[2])]
             for e in bad_triple:  # repair bad triple -- assuming for now the errors are mis-typed string errors
-                self.ont_graph.add((e[0], e[1], Literal(str(e[2]), datatype=schema.string)))
-                self.ont_graph.remove(e)
+                self.ont_graph.add((e[0], e[1], Literal(str(e[2]), datatype=schema.string))); self.ont_graph.remove(e)
 
             self.ontology_info[key]['ValueErrors'] = errors[error_key]  # update ontology information dictionary
 
@@ -273,7 +271,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Fixing Identifier Errors'); logger.info('Fixing Identifier Errors')
+        log_str = 'Fixing Identifier Errors'; print(log_str); logger.info(log_str)
 
         known_errors = ['PRO', 'PR']  # known errors
         kg_classes, bad_cls, key = gets_ontology_classes(self.ont_graph), set(), self.ont_file_location
@@ -284,12 +282,10 @@ class OntologyCleaner(object):
         for edge in self.ont_graph:
             if 'http://purl.obolibrary.org/obo/{}_'.format(known_errors[0]) in str(edge[0]):
                 self.ont_graph.add((URIRef(str(edge[0]).replace(known_errors[0], known_errors[1])), edge[1], edge[2]))
-                self.ont_graph.remove(edge)
-                bad_cls.add(str(edge[0]))
+                self.ont_graph.remove(edge); bad_cls.add(str(edge[0]))
             if 'http://purl.obolibrary.org/obo/{}_'.format(known_errors[0]) in str(edge[2]):
                 self.ont_graph.add((edge[0], edge[1], URIRef(str(edge[2]).replace(known_errors[0], known_errors[1]))))
-                self.ont_graph.remove(edge)
-                bad_cls.add(str(edge[2]))
+                self.ont_graph.remove(edge); bad_cls.add(str(edge[2]))
 
             self.ontology_info[key]['IdentifierErrors'] = ', '.join(list(bad_cls)) if len(bad_cls) > 0 else 'None'
 
@@ -329,7 +325,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Removing Deprecated and Obsolete Classes'); logger.info('Removing Deprecated and Obsolete Classes')
+        log_str = 'Removing Deprecated and Obsolete Classes'; print(log_str); logger.info(log_str)
 
         ont, key = self.ont_file_location.split('/')[-1].split('_')[0], self.ont_file_location
         dep_cls = set(self.ont_graph.subjects(OWL.deprecated, None))
@@ -359,7 +355,7 @@ class OntologyCleaner(object):
              None.
         """
 
-        print('Resolving Punning Errors'); logger.info('Resolving Punning Errors')
+        log_str = 'Resolving Punning Errors'; print(log_str); logger.info(log_str)
 
         key, bad_cls, bad_obj = self.ont_file_location, set(), set()
         onts_entities = set([x[0] for x in tqdm(self.ont_graph)])
@@ -370,18 +366,15 @@ class OntologyCleaner(object):
                     # class + object properties --> remove object properties
                     class_prop, obj_prop = (x, RDF.type, OWL.Class), (x, RDF.type, OWL.ObjectProperty)
                     if class_prop in ent_types and obj_prop in ent_types and str(x) not in bad_cls:
-                        self.ont_graph.remove(obj_prop)
-                        bad_cls.add(str(x))
+                        self.ont_graph.remove(obj_prop); bad_cls.add(str(x))
                     # class + individual --> remove individual
                     class_prop, ind_prop = (x, RDF.type, OWL.Class), (x, RDF.type, OWL.NamedIndividual)
                     if class_prop in ent_types and ind_prop in ent_types and str(x) not in bad_cls:
-                        self.ont_graph.remove(ind_prop)
-                        bad_cls.add(str(x))
+                        self.ont_graph.remove(ind_prop); bad_cls.add(str(x))
                     # object property + annotation property --> remove annotation property
                     obj_prop, a_prop = (x, RDF.type, OWL.ObjectProperty), (x, RDF.type, OWL.AnnotationProperty)
                     if obj_prop in ent_types and a_prop in ent_types and str(x) not in bad_obj:
-                        self.ont_graph.remove(a_prop)
-                        bad_obj.add(str(x))
+                        self.ont_graph.remove(a_prop); bad_obj.add(str(x))
                         # check if the object property is used beyond definition -- if not, delete it
                         e = set(self.ont_graph.triples((x, None, None))) | set(self.ont_graph.triples((None, None, x)))
                         val_nodes = [i for i in e if len(
@@ -411,7 +404,7 @@ class OntologyCleaner(object):
              None.
         """
 
-        print('Normalizing Duplicate Concepts'); logger.info('Normalizing Duplicate Concepts')
+        log_str = 'Normalizing Duplicate Concepts'; print(log_str); logger.info(log_str)
 
         self.ont_graph.add((obo.OGG_0000000002, RDFS.subClassOf, obo.SO_0000704))  # fix gene class inconsistencies
         self.ont_graph.add((obo.PR_000000001, RDFS.subClassOf, obo.SO_0000104))  # fix protein class inconsistencies
@@ -444,7 +437,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        print('Normalizing Existing Classes'); logger.info('Normalizing Existing Classes')
+        log_str = 'Normalizing Existing Classes'; print(log_str); logger.info(log_str)
 
         ents, missing = None, []
         non_ont = set([x for x in gets_ontology_classes(self.ont_graph)])
@@ -470,16 +463,14 @@ class OntologyCleaner(object):
                     if isinstance(edge[0], URIRef) or isinstance(edge[2], URIRef):
                         if node in edge[0] and not (isinstance(edge[2], Literal) and ':' in str(edge[2])):
                             for i in ents:
-                                self.ont_graph.add((i, edge[1], edge[2]))
-                                self.ont_graph.remove(edge)
+                                self.ont_graph.add((i, edge[1], edge[2])); self.ont_graph.remove(edge)
                         elif node in edge[0] and (isinstance(edge[2], Literal) and ':' in str(edge[2])):
                             for i in ents:
                                 self.ont_graph.add((i, edge[1], Literal(nd.split('_')[-1], datatype=schema.string)))
                                 self.ont_graph.remove(edge)
                         elif node in edge[2]:
                             for i in ents:
-                                self.ont_graph.add((edge[0], edge[1], i))
-                                self.ont_graph.remove(edge)
+                                self.ont_graph.add((edge[0], edge[1], i)); self.ont_graph.remove(edge)
                         else: pass
 
         no_ont = len(non_ont) - len(hgnc)
@@ -522,8 +513,7 @@ class OntologyCleaner(object):
                     else: o.write('\t\t\t- {}\n'.format(x['Obsolete']))
                 o.write('\t- Punning Error:\n\t\t- Classes:\n')
                 if x['PunningErrors - Classes'] != 'None':
-                    for i in x['PunningErrors - Classes'].split(', '):
-                        o.write('\t\t\t- {}\n'.format(i))
+                    for i in x['PunningErrors - Classes'].split(', '): o.write('\t\t\t- {}\n'.format(i))
                 else: o.write('\t\t\t- {}\n'.format(x['PunningErrors - Classes']))
                 o.write('\t\t- ObjectProperties:\n')
                 if x['PunningErrors - ObjectProperty'] != 'None':
@@ -566,8 +556,7 @@ class OntologyCleaner(object):
             None.
         """
 
-        log_str = '*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***'
-        print(log_str); logger.info(log_str)
+        log_str = '*** CLEANING INDIVIDUAL ONTOLOGY DATA SOURCES ***'; print(log_str); logger.info(log_str)
 
         for ont in self.ontology_info.keys():
             if ont != self.merged_ontology_filename:
@@ -594,7 +583,7 @@ class OntologyCleaner(object):
         individual_ontologies = self.checks_for_downloaded_ontology_data()
         self.merge_ontologies(individual_ontologies, self.temp_dir + '/', self.ont_file_location)
         if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
-        print('\nLoading Merged Ontology'); logger.info('\nLoading Merged Ontology')
+        log_str = 'Loading Merged Ontology'; print('\n' + log_str); logger.info(log_str)
         self.ont_graph = Graph().parse(self.temp_dir + '/' + self.ont_file_location)
         self.updates_ontology_reporter()  # get starting statistics
         self.fixes_identifier_errors()
@@ -609,9 +598,7 @@ class OntologyCleaner(object):
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, self.ont_file_location)
         if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
-        log_str = '*** GENERATING ONTOLOGY CLEANING REPORT ***'
-        print('\n\n' + log_str); logger.info(log_str)
-
+        log_str = '*** GENERATING ONTOLOGY CLEANING REPORT ***'; print('\n\n' + log_str); logger.info(log_str)
         self.generates_ontology_report()
         if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 

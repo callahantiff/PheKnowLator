@@ -31,8 +31,7 @@ def main():
     start_time = datetime.now()
 
     # initialize Google Cloud Storage Bucket object and delete prior logs (if present) from current_build directory
-    bucket = storage.Client().get_bucket('pheknowlator')
-    gcs_log_loc = 'temp_build_inprogress/'
+    bucket = storage.Client().get_bucket('pheknowlator'); gcs_log_loc = 'temp_build_inprogress/'
     try: deletes_single_file(bucket, gcs_log_loc + '{}'.format(log))
     except NotFound: pass
 
@@ -57,8 +56,8 @@ def main():
 
     # print build statistics and upload logging for data preprocessing and ontology cleaning
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
-    print('\n\n' + '*' * 10 + ' COMPLETED BUILD PHASES 1-2: {} MINUTES '.format(runtime) + '*' * 10)
-    logger.info('COMPLETED BUILD PHASES 1-2: {} MINUTES'.format(runtime))  # don't delete needed for build monitoring
+    log_str = ' COMPLETED BUILD PHASES 1-2: {} MINUTES '.format(runtime)
+    print('\n\n' + '*' * 10 + log_str + '*' * 10); logger.info(log_str)  # don't delete needed for build monitoring
     logger.info('EXIT BUILD PHASES 1-2')  # don't delete needed for build monitoring
     uploads_data_to_gcs_bucket(bucket, gcs_log_loc, log_dir, log)
 
