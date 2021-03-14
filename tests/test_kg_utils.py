@@ -12,6 +12,9 @@ from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
 
 from pkt_kg.utils import *
 
+# set global attributes
+obo = Namespace('http://purl.obolibrary.org/obo/')
+
 
 class TestKGUtils(unittest.TestCase):
     """Class to test knowledge graph utility methods."""
@@ -139,8 +142,7 @@ class TestKGUtils(unittest.TestCase):
 
         map_vals1 = finds_node_type(edge_info1)
 
-        self.assertEqual({'cls1': None,
-                          'cls2': None,
+        self.assertEqual({'cls1': None, 'cls2': None,
                           'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
                           'ent2': 'https://www.ncbi.nlm.nih.gov/gene/3124'},
                          map_vals1)
@@ -151,8 +153,7 @@ class TestKGUtils(unittest.TestCase):
 
         map_vals2 = finds_node_type(edge_info2)
 
-        self.assertEqual({'cls1': None,
-                          'cls2': None,
+        self.assertEqual({'cls1': None, 'cls2': None,
                           'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
                           'ent2': 'https://www.ncbi.nlm.nih.gov/gene/3124'},
                          map_vals2)
@@ -163,10 +164,8 @@ class TestKGUtils(unittest.TestCase):
 
         map_vals3 = finds_node_type(edge_info3)
 
-        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_0110035',
-                          'cls2': None,
-                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
-                          'ent2': None},
+        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_0110035', 'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2', 'ent2': None},
                          map_vals3)
 
         # test condition for subclass-class
@@ -175,10 +174,8 @@ class TestKGUtils(unittest.TestCase):
 
         map_vals4 = finds_node_type(edge_info4)
 
-        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_0110035',
-                          'cls2': None,
-                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2',
-                          'ent2': None},
+        self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_0110035', 'cls2': None,
+                          'ent1': 'https://www.ncbi.nlm.nih.gov/gene/2', 'ent2': None},
                          map_vals4)
 
         # test condition for class-class
@@ -189,8 +186,7 @@ class TestKGUtils(unittest.TestCase):
 
         self.assertEqual({'cls1': 'http://purl.obolibrary.org/obo/DOID_162',
                           'cls2': 'http://purl.obolibrary.org/obo/DOID_0110035',
-                          'ent1': None,
-                          'ent2': None},
+                          'ent1': None, 'ent2': None},
                          map_vals5)
 
         return None
@@ -209,21 +205,46 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
-    def test_maps_node_ids_to_integers(self):
-        """Tests the maps_node_ids_to_integers method."""
+    def test_maps_ids_to_integers_graph(self):
+        """Tests the maps_ids_to_integers method when input is an RDFLib Graph object."""
 
         # set-up input variables
         graph = Graph().parse(self.good_ontology_file_location)
 
         # run method
-        mapped_dict = maps_node_ids_to_integers(graph=graph,
-                                                write_location=self.dir_loc,
-                                                output_ints='/so_with_imports_Triples_Integers.txt',
-                                                output_ints_map='/so_with_imports_Triples_Integer_Identifier_Map.json')
+        mapped_dict = maps_ids_to_integers(graph=graph,
+                                           write_location=self.dir_loc,
+                                           output_ints='/so_with_imports_Triples_Integers.txt',
+                                           output_ints_map='/so_with_imports_Triples_Integer_Identifier_Map.json')
 
         # check that a dictionary is returned
         self.assertIsInstance(mapped_dict, Dict)
+        # check that files were created
+        self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_Triples_Integers.txt'))
+        self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_Triples_Identifiers.txt'))
+        self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_Triples_Integer_Identifier_Map.json'))
 
+        # clean up the environment
+        os.remove(self.dir_loc + '/so_with_imports_Triples_Integers.txt')
+        os.remove(self.dir_loc + '/so_with_imports_Triples_Identifiers.txt')
+        os.remove(self.dir_loc + '/so_with_imports_Triples_Integer_Identifier_Map.json')
+
+        return None
+
+    def test_maps_ids_to_integers_set(self):
+        """Tests the maps_ids_to_integers method when input is a set of RDFLib Graph object triples."""
+
+        # set-up input variables
+        graph = Graph().parse(self.good_ontology_file_location)
+
+        # run method
+        mapped_dict = maps_ids_to_integers(graph=set(graph),
+                                           write_location=self.dir_loc,
+                                           output_ints='/so_with_imports_Triples_Integers.txt',
+                                           output_ints_map='/so_with_imports_Triples_Integer_Identifier_Map.json')
+
+        # check that a dictionary is returned
+        self.assertIsInstance(mapped_dict, Dict)
         # check that files were created
         self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_Triples_Integers.txt'))
         self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_Triples_Identifiers.txt'))
@@ -278,19 +299,17 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
-    def test_converts_rdflib_to_networkx(self):
-        """Tests the converts_rdflib_to_networkx method."""
+    def test_convert_to_networkx(self):
+        """Tests the convert_to_networkx method."""
 
         # check that files were created
-        converts_rdflib_to_networkx(write_location=self.dir_loc, full_kg='/so_with_imports', graph=None)
+        convert_to_networkx(write_location=self.dir_loc, full_kg='/so_with_imports', graph=None)
         self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle'))
 
         # load graph and check structure
-        s = URIRef('http://purl.obolibrary.org/obo/SO_0000288')
-        o = URIRef('http://purl.obolibrary.org/obo/SO_0000287')
-        p = URIRef('http://www.w3.org/2000/01/rdf-schema#subClassOf')
+        s = obo.SO_0000288; o = obo.SO_0000287; p = RDFS.subClassOf
         graph = nx.read_gpickle(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle')
-        self.assertEqual(graph[s][o][p], {'predicate_key': '9cbd482627d217b38eb407d7eba48020', 'weight': 0.0})
+        self.assertEqual(graph[s][o][p], {'predicate_key': '72908c671b9244c1a1dc2b36e4708f15', 'weight': 0.0})
 
         # clean up the environment
         os.remove(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle')

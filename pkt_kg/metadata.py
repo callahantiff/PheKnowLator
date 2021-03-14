@@ -67,7 +67,7 @@ class Metadata(object):
         self.node_data = node_data
         self.node_dict = node_dict
 
-    def node_metadata_processor(self) -> None:
+    def metadata_processor(self) -> None:
         """Loads a directory of node and relations data. The dictionary is nested with the outer keys corresponding
         to the metadata type (i.e. "nodes" or "relations") and the values containing dictionaries keyed by URI and
         values containing a dictionary of metadata.
@@ -83,7 +83,7 @@ class Metadata(object):
 
         return None
 
-    def extracts_class_metadata(self, graph: Graph) -> None:
+    def extract_metadata(self, graph: Graph) -> None:
         """Functions queries the knowledge graph to obtain labels, definitions/descriptions, and synonyms for all
         owl:Class, owl:NamedIndividual, and owl:ObjectProperty objects. This information is then added to the existing
         self.node_dict dictionary under the key of "nodes" (for owl:Class and owl:NamedIndividual) or "relations" (for
@@ -217,7 +217,7 @@ class Metadata(object):
 
         return graph
 
-    def output_knowledge_graph_metadata(self, node_integer_map: Dict, graph: Graph) -> None:
+    def output_metadata(self, node_integer_map: Dict, graph: Union[Set, Graph]) -> None:
         """Loops over the self.node_dict dictionary and writes out the data to a file locally. The data is stored as
         a tab-delimited '.txt' file with four columns: (1) node identifier; (2) node label; (3) node description or
         definition; and (4) node synonym.
@@ -229,7 +229,7 @@ class Metadata(object):
 
         Args:
             node_integer_map: A dictionary where keys are integers and values are node and relation identifiers.
-            graph: An RDFLib Graph object.
+            graph: A set of RDFLib Graph object triples or an RDFLib Graph.
 
         Returns:
             None.
@@ -237,7 +237,6 @@ class Metadata(object):
 
         if self.node_dict:
             log_str = 'Writing Class Metadata'; print('\n' + log_str); logger.info(log_str)
-
             entities = set([i for j in tqdm(graph) for i in j]); filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:
                 out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'entity_uri' + '\t' + 'label' + '\t' +

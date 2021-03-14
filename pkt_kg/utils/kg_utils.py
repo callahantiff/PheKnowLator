@@ -27,12 +27,12 @@ Interacts with Knowledge Graphs
 * splits_knowledge_graph
 
 Writes Triple Lists
-* maps_node_ids_to_integers
+* maps_ids_to_integers
 * n3
 * appends_to_existing_file
 
 File Type Conversion
-* converts_rdflib_to_networkx
+* convert_to_networkx
 """
 
 # import needed libraries
@@ -560,7 +560,7 @@ def splits_knowledge_graph(graph: Graph, graph_output: bool = False) -> Tuple[Gr
     else: raise ValueError('Error: Graph Subsetting was Unsuccessful!')
 
 
-def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: str, output_ints_map: str) -> Dict:
+def maps_ids_to_integers(graph: Union[Graph, Set], write_location: str, output_ints: str, output_ints_map: str) -> Dict:
     """Loops over the knowledge graph in order to create three different types of files:
         - Integers: tab-delimited `.txt` file containing three columns, one for each part of a triple (i.e.
           subject, predicate, object). The subject, predicate, and object identifiers have been mapped to integers.
@@ -569,7 +569,7 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
         - Identifier-Integer Map: JSON file containing a dict where keys are node identifiers and values are integers.
 
     Args:
-        graph: An rdflib graph object.
+        graph: A set of RDFLib Graph object triples or an RDFLib Graph.
         write_location: A string pointing to a local directory for writing data.
         output_ints: the name and file path to write out results.
         output_ints_map: the name and file path to write out results.
@@ -584,7 +584,6 @@ def maps_node_ids_to_integers(graph: Graph, write_location: str, output_ints: st
     print('Mapping Node and Relation Identifiers to Integers')
 
     entity_map, output_triples, entity_counter = {}, 0, 0; graph_len = len(graph)  # type: ignore
-    # build graph from input file and set counter
     ints = open(write_location + output_ints, 'w', encoding='utf-8')
     ids = open(write_location + output_ints.replace('Integers', 'Identifiers'), 'w', encoding='utf-8')
     ints.write('subject' + '\t' + 'predicate' + '\t' + 'object' + '\n')
@@ -649,7 +648,7 @@ def appends_to_existing_file(edges: Union[List, Set], filepath: str, sep: str) -
     return None
 
 
-def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:
+def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:
     """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally. Each node is provided a
     key that is the URI identifier and each edge is given a key which is an md5 hash of the triple and a weight of
     0.0. An example of the output is shown below. The md5 hash is meant to store a unique key that represents that

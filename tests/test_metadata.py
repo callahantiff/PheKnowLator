@@ -40,19 +40,19 @@ class TestMetadata(unittest.TestCase):
                                  node_dict=dict())
 
         # load dictionary
-        self.metadata.node_metadata_processor()
+        self.metadata.metadata_processor()
 
         return None
 
-    def test_node_metadata_processor(self):
-        """Tests the node_metadata_processor method."""
+    def test_metadata_processor(self):
+        """Tests the metadata_processor method."""
 
         # set-up input arguments
         self.metadata = Metadata(kg_version='v2.0.0', write_location=self.dir_loc,
                                  kg_location=self.dir_loc + '/ontologies/so_with_imports.owl',
                                  node_data=glob.glob(self.dir_loc + '/node_data/*dict.pkl'),
                                  node_dict=dict())
-        self.metadata.node_metadata_processor()  # load dictionary
+        self.metadata.metadata_processor()  # load dictionary
 
         # make sure that the dictionary has the "schtuff"
         self.assertIsInstance(self.metadata.node_dict, Dict)
@@ -81,7 +81,7 @@ class TestMetadata(unittest.TestCase):
         """Tests the creates_node_metadata method."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
-        self.metadata.extracts_class_metadata(self.graph)
+        self.metadata.extract_metadata(self.graph)
 
         # test when the node has metadata
         updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
@@ -119,7 +119,7 @@ class TestMetadata(unittest.TestCase):
         """Tests the creates_node_metadata method."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
-        self.metadata.extracts_class_metadata(self.graph)
+        self.metadata.extract_metadata(self.graph)
 
         # test when the node has metadata
         updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002310'],
@@ -142,7 +142,7 @@ class TestMetadata(unittest.TestCase):
         """Tests the creates_node_metadata method when node_dict is None."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
-        self.metadata.extracts_class_metadata(self.graph)
+        self.metadata.extract_metadata(self.graph)
         self.metadata.node_dict = None
 
         # relations -- with valid input
@@ -169,14 +169,14 @@ class TestMetadata(unittest.TestCase):
 
         return None
 
-    def test_extracts_class_metadata(self):
-        """Tests the extracts_class_metadata data."""
+    def test_extract_metadata(self):
+        """Tests the extract_metadata data."""
 
         org_file_size = os.path.getsize(self.metadata.node_data[0])
 
         # extract metadata
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
-        self.metadata.extracts_class_metadata(graph=self.graph)
+        self.metadata.extract_metadata(graph=self.graph)
 
         # check that it worked
         # nodes
@@ -197,20 +197,46 @@ class TestMetadata(unittest.TestCase):
 
         return None
 
-    def test_output_knowledge_graph_metadata(self):
-        """Tests the output_knowledge_graph_metadata method."""
+    def test_output_metadata_graph(self):
+        """Tests the output_metadata method when input is an RDFLib Graph object."""
 
         self.metadata.write_location = ''  # update environment var
-        self.metadata.node_metadata_processor()  # load dictionary
+        self.metadata.metadata_processor()  # load dictionary
         graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')  # load graph
         filename = self.dir_loc + '/ontologies/'
 
         # get node integer map
-        node_ints = maps_node_ids_to_integers(graph, filename, 'SO_Triples_Integers.txt',
-                                              'SO_Triples_Integer_Identifier_Map.json')
+        node_ints = maps_ids_to_integers(graph, filename, 'SO_Triples_Integers.txt',
+                                         'SO_Triples_Integer_Identifier_Map.json')
 
         # run function
-        self.metadata.output_knowledge_graph_metadata(node_ints, graph)
+        self.metadata.output_metadata(node_ints, graph)
+
+        # make sure that node data wrote out
+        self.assertTrue(os.path.exists(self.dir_loc + '/ontologies/so_with_imports_NodeLabels.txt'))
+
+        # remove file
+        os.remove(self.dir_loc + '/ontologies/so_with_imports_NodeLabels.txt')
+        os.remove(filename + 'SO_Triples_Integers.txt')
+        os.remove(filename + 'SO_Triples_Identifiers.txt')
+        os.remove(filename + 'SO_Triples_Integer_Identifier_Map.json')
+
+        return None
+
+    def test_output_metadata_graph_set(self):
+        """Tests the output_metadata method when input is a set of RDFLib Graph object triples."""
+
+        self.metadata.write_location = ''  # update environment var
+        self.metadata.metadata_processor()  # load dictionary
+        graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')  # load graph
+        filename = self.dir_loc + '/ontologies/'
+
+        # get node integer map
+        node_ints = maps_ids_to_integers(graph, filename, 'SO_Triples_Integers.txt',
+                                         'SO_Triples_Integer_Identifier_Map.json')
+
+        # run function
+        self.metadata.output_metadata(node_ints, set(graph))
 
         # make sure that node data wrote out
         self.assertTrue(os.path.exists(self.dir_loc + '/ontologies/so_with_imports_NodeLabels.txt'))
