@@ -44,8 +44,7 @@ def main():
     ont = OntData(data_path=args.onts, resource_data=args.res)
     # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='resources/resource_info.txt')
     ont.downloads_data_from_url()
-    end = time.time()
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    end = time.time(); timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nPKT: TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
 
     # STEP 4: DOWNLOAD EDGE DATA SOURCES
@@ -54,8 +53,7 @@ def main():
     ent = LinkedData(data_path=args.edg, resource_data=args.res)
     # ent = LinkedData(data_path='resources/edge_source_list.txt', resource_data='resources/resource_info.txt')
     ent.downloads_data_from_url()
-    end = time.time()
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    end = time.time(); timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nPKT: TOTAL SECONDS TO DOWNLOAD NON-ONTOLOGY DATA: {} @ {}'.format(end - start, timestamp))
 
     #####################
@@ -68,8 +66,7 @@ def main():
     master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='resources/resource_info.txt')
     master_edges.creates_knowledge_graph_edges()
-    end = time.time()
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    end = time.time(); timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nPKT: TOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
 
     #########################
@@ -99,8 +96,7 @@ def main():
                        write_location=args.out)
     kg.construct_knowledge_graph()
 
-    end = time.time()
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    end = time.time(); timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nPKT: TOTAL SECONDS TO CONSTRUCT A KG: {} @ {}'.format(end - start, timestamp))
 
 
