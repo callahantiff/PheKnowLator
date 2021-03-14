@@ -12,7 +12,6 @@ Interacts with OWL Tools API
 * gets_ontology_class_synonyms
 * merges_ontologies
 * ontology_file_formatter
-* removes_annotation_assertions
 * adds_annotation_assertions
 
 Interacts with Knowledge Graphs
@@ -347,7 +346,7 @@ def gets_entity_ancestors(graph: Graph, uris: List[Union[URIRef, str]], rel: Uni
         cls_lst: A list of URIs representing the ancestor classes found for the input class_uris.
 
     Returns:
-        An ordered (asc; root to leaf) list of ontology objects containing the input uris ancestor hierarchy. Example:
+        An ordered (desc; root to leaf) list of ontology objects containing the input uris ancestor hierarchy. Example:
             input: [URIRef('http://purl.obolibrary.org/NCBITaxon_11157')]
             output: ['http://purl.obolibrary.org/NCBITaxon_10239', 'http://purl.obolibrary.org/NCBITaxon_2559587',
                 'http://purl.obolibrary.org/NCBITaxon_2497569', 'http://purl.obolibrary.org/NCBITaxon_11157']
@@ -688,8 +687,8 @@ def converts_rdflib_to_networkx(write_location: str, full_kg: str, graph: Option
     # convert graph to networkx object
     nx_mdg = nx.MultiDiGraph()
     for s, p, o in tqdm(graph):
-        pred_key = hashlib.md5('{}{}{}'.format(str(s), str(p), str(o)).encode()).hexdigest()
-        nx_mdg.add_node(s, key=str(s)); nx_mdg.add_node(o, key=str(o))
+        pred_key = hashlib.md5('{}{}{}'.format(n3(s), n3(p), n3(o)).encode()).hexdigest()
+        nx_mdg.add_node(s, key=n3(s)); nx_mdg.add_node(o, key=n3(o))
         nx_mdg.add_edge(s, o, **{'key': p, 'predicate_key': pred_key, 'weight': 0.0})
     # pickle networkx graph
     print('Pickling MultiDiGraph')
