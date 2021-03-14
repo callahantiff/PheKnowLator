@@ -273,7 +273,7 @@ class KGBuilder(object):
 
         return None
 
-    def creates_knowledge_graph_edges(self, node_metadata_func: Callable) -> None:
+    def creates_new_edges(self, node_metadata_func: Callable) -> None:
         """Takes a nested dictionary of edge lists and adds them to an existing knowledge graph by their edge_type (
         e.g. chemical-gene). Once the knowledge graph is complete, it is written out as an `.owl` file to the
         write_location  directory.
@@ -287,6 +287,7 @@ class KGBuilder(object):
 
         full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         master_meta, annotation_location = set(), self.write_location + full_kg_owl[:-4] + '_AnnotationsOnly.nt'
+        kg_location = full_kg_owl[:-4] + '_LogicOnly.owl'
         kg_bld = KGConstructionApproach(self.edge_dict, self.res_dir)  # initialize construction approaches
         for edge_type in [x for x in self.edge_dict.keys() if x != 'entity_namespaces']:
             edge_results: List = []; edge_list = self.edge_dict[edge_type]['edge_list']
@@ -310,8 +311,8 @@ class KGBuilder(object):
                         if len(new_meta) > 0: appends_to_existing_file(new_meta, annotation_location, ' ')
             self.gets_edge_statistics(edge_type, invrel, edge_results)
         print('\nSerializing Knowledge Graph'); logger.info('Serializing Knowledge Graph')
-        self.graph.serialize(self.write_location + full_kg_owl[:-4] + '_LogicOnly.owl', format='xml')
-        ontology_file_formatter(self.write_location, full_kg_owl[:-4] + '_LogicOnly.owl', self.owl_tools)
+        self.graph.serialize(self.write_location + kg_location, format='xml')
+        ontology_file_formatter(self.write_location, kg_location, self.owl_tools)
 
         # output error logs
         if len(kg_bld.subclass_error.keys()) > 0:
@@ -382,10 +383,8 @@ class PartialBuild(KGBuilder):
 
         # STEP 3: PROCESS NODE METADATA
         log_str = '*** Loading Node Metadata Data ***'; print(log_str); logger.info(log_str)
-        metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data:
-            metadata.node_metadata_processor(); metadata.extracts_class_metadata(self.graph)
-            self.node_dict = metadata.node_dict
+        meta = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
+        if self.node_data: meta.metadata_processor(); meta.extract_metadata(self.graph); self.node_dict = meta.node_dict
 
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
@@ -398,13 +397,13 @@ class PartialBuild(KGBuilder):
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         log_str = '*** Building Knowledge Graph Edges ***'; print(log_str); logger.info(log_str)
         self.ont_classes = gets_ontology_classes(self.graph); self.obj_properties = gets_object_properties(self.graph)
-        self.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        self.creates_new_edges(meta.creates_node_metadata)
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
         # merge annotations with logic graph
         shutil.copy(self.write_location + annot, self.write_location + full)
         appends_to_existing_file(set(self.graph), self.write_location + full, ' ')
 
-        del metadata, self.edge_dict, self.graph, self.node_dict, self.relations_dict
+        del meta, self.edge_dict, self.graph, self.node_dict, self.relations_dict
 
         return None
 
@@ -443,11 +442,10 @@ class PostClosureBuild(KGBuilder):
         # STEP 2: LOAD CLOSED KNOWLEDGE GRAPH
         closed_kg_location = glob.glob(self.write_location + '/*.owl')
         if len(closed_kg_location) == 0:
-            logger.error('OSError: The closed KG file does not exist!')
-            raise OSError('The closed KG file does not exist!')
+            log_str = 'The closed KG file does not exist!'; logger.error('OSError: ' + log_str); raise OSError(log_str)
         elif os.stat(closed_kg_location[0]).st_size == 0:
-            logger.error('TypeError: {} is empty'.format(closed_kg_location))
-            raise TypeError('input file: {} is empty'.format(closed_kg_location))
+            log_str = '{} is empty'.format(closed_kg_location)
+            logger.error('TypeError: ' + log_str); raise TypeError(log_str)
         else:
             log_str = '*** Loading Closed Knowledge Graph ***'; print(log_str); logger.info(log_str)
             os.rename(closed_kg_location[0], self.write_location + self.full_kg)  # rename closed kg file
@@ -456,10 +454,8 @@ class PostClosureBuild(KGBuilder):
 
         # STEP 3: PROCESS NODE METADATA
         log_str = '*** Loading Node Metadata Data ***'; print(log_str); logger.info(log_str)
-        metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data:
-            metadata.node_metadata_processor(); metadata.extracts_class_metadata(self.graph)
-            self.node_dict = metadata.node_dict
+        meta = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
+        if self.node_data: meta.metadata_processor(); meta.extract_metadata(self.graph); self.node_dict = meta.node_dict
 
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
@@ -478,25 +474,25 @@ class PostClosureBuild(KGBuilder):
             owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
             results = owl_nets.run_owl_nets()
         else:
-            results = tuple([self.graph, None])
             logger.info('*** Converting Knowledge Graph to Networkx MultiDiGraph ***')
-            converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
+            convert_to_networkx(self.write_location, self.full_kg[:-4], self.graph); results = tuple([set(self.graph)])
 
         # STEP 6: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         log_str = '*** Building Knowledge Graph Edges ***'; print(log_str); logger.info(log_str)
         f_prefix = ('', '_' + self.construct_approach.upper() + '_purified') if len(results) == 2 else ('', '')
         for graph in results:
-            if isinstance(graph, Graph):
+            if graph is not None:
+                print('OWL-NETS Graph') if results.index(graph) == 0 else print('Purified OWL-NETS Graph')
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = triple_list_file[:-5] + '_Identifier_Map.json'
-                node_int_map = maps_node_ids_to_integers(graph, self.write_location, triple_list_file, triple_map)
+                node_int_map = maps_ids_to_integers(graph, self.write_location, triple_list_file, triple_map)
 
                 # STEP 8: EXTRACT AND WRITE NODE METADATA
                 log_str = '*** Processing Metadata ***'; print('\n' + log_str); logger.info(log_str)
-                metadata.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
-                if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map, graph)
+                meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
+                if self.node_data: meta.output_metadata(node_int_map, graph)
 
-        del metadata, self.edge_dict, self.graph, self.node_dict, owl_nets, self.relations_dict
+        del meta, self.edge_dict, self.graph, self.node_dict, owl_nets, self.relations_dict, results
 
         return None
 
@@ -532,17 +528,14 @@ class FullBuild(KGBuilder):
             self.graph = Graph().parse(self.merged_ont_kg, format='xml')
         else:
             log_str = '*** Merging Ontology Data ***'; print(log_str); logger.info(log_str)
-            merged_ontology_location = self.merged_ont_kg.split('/')[-1]
-            merges_ontologies(self.ontologies, merged_ontology_location, self.owl_tools)
+            merges_ontologies(self.ontologies, self.merged_ont_kg.split('/')[-1], self.owl_tools)
             self.graph.parse(self.merged_ont_kg, format='xml')  # load the merged ontology
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
 
         # STEP 3: PROCESS NODE METADATA
         log_str = '*** Loading Node Metadata Data ***'; print(log_str); logger.info(log_str)
-        metadata = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data:
-            metadata.node_metadata_processor(); metadata.extracts_class_metadata(self.graph)
-            self.node_dict = metadata.node_dict
+        meta = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
+        if self.node_data: meta.metadata_processor(); meta.extract_metadata(self.graph); self.node_dict = meta.node_dict
 
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
@@ -555,36 +548,37 @@ class FullBuild(KGBuilder):
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         log_str = '*** Building Knowledge Graph Edges ***'; print('\n' + log_str); logger.info(log_str)
         self.ont_classes = gets_ontology_classes(self.graph); self.obj_properties = gets_object_properties(self.graph)
-        self.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        self.creates_new_edges(meta.creates_node_metadata)
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
         # merge annotations with logic graph
         shutil.copy(self.write_location + annot, self.write_location + full)
         appends_to_existing_file(set(self.graph), self.write_location + full, ' ')
 
         # STEP 6: DECODE OWL SEMANTICS
-        results = tuple([self.graph, None])
         if self.decode_owl:
             log_str = '*** Running OWL-NETS ***'; print('\n' + log_str); logger.info(log_str)
             owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
             results = owl_nets.run_owl_nets()
         else:
             logger.info('*** Converting Knowledge Graph to Networkx MultiDiGraph ***')
-            converts_rdflib_to_networkx(self.write_location, self.full_kg[:-4], self.graph)
+            convert_to_networkx(self.write_location, self.full_kg[:-4], self.graph); results = tuple([set(self.graph)])
 
         # STEP 7: WRITE OUT KNOWLEDGE GRAPH METADATA AND CREATE EDGE LISTS
         log_str = '*** Writing Knowledge Graph Edge Lists ***'; print('\n' + log_str); logger.info(log_str)
         f_prefix = ('', '_' + self.construct_approach.upper() + '_purified') if len(results) == 2 else ('', '')
         for graph in results:
-            if isinstance(graph, Graph):
+            if graph is not None:
+                print('OWL-NETS Graph') if results.index(graph) == 0 else print('Purified OWL-NETS Graph')
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = triple_list_file[:-5] + '_Identifier_Map.json'
-                node_int_map = maps_node_ids_to_integers(graph, self.write_location, triple_list_file, triple_map)
+                node_int_map = maps_ids_to_integers(graph, self.write_location, triple_list_file, triple_map)
 
                 # STEP 8: EXTRACT AND WRITE NODE METADATA
                 log_str = '*** Processing Metadata ***'; print('\n' + log_str); logger.info(log_str)
-                metadata.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
-                if self.node_data: metadata.output_knowledge_graph_metadata(node_int_map, graph)
+                log_str = '*** Processing Metadata ***'; print('\n' + log_str)
+                meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
+                if self.node_data: meta.output_metadata(node_int_map, graph)
 
-        del metadata, self.edge_dict, self.graph, self.node_dict, owl_nets, self.relations_dict
+        del meta, self.edge_dict, self.graph, self.node_dict, owl_nets, self.relations_dict, results
 
         return None

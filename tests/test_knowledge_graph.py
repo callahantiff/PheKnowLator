@@ -227,8 +227,7 @@ class TestKGBuilder(unittest.TestCase):
         # remove relations and inverse relations data
         rel_loc = self.dir_loc_resources + '/relations_data/RELATIONS_LABELS.txt'
         invrel_loc = self.dir_loc_resources + '/relations_data/INVERSE_RELATIONS.txt'
-        os.remove(rel_loc)
-        os.remove(invrel_loc)
+        os.remove(rel_loc); os.remove(invrel_loc)
         self.assertRaises(TypeError, FullBuild, 'subclass', 'yes', 'yes', 'yes', self.write_location)
 
         # add back deleted data
@@ -276,7 +275,6 @@ class TestKGBuilder(unittest.TestCase):
 
         # run test
         self.kg_subclass = FullBuild('subclass', 'yes', 'yes', 'yes', self.write_location)
-
         # check that there is 1 ontology file
         self.assertIsInstance(self.kg_subclass.ontologies, List)
         self.assertTrue(len(self.kg_subclass.ontologies) == 1)
@@ -491,22 +489,26 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    def test_creates_knowledge_graph_edges_not_adding_metadata_to_kg(self):
-        """Tests the creates_knowledge_graph_edges method without adding node metadata to the KG."""
+    def test_creates_new_edges_not_adding_metadata_to_kg(self):
+        """Tests the creates_new_edges method without adding node metadata to the KG."""
 
         self.kg_subclass.reverse_relation_processor()
+
         # make sure that kg is empty
         self.kg_subclass.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.kg_subclass.obj_properties = gets_object_properties(self.kg_subclass.graph)
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
+
         # make sure to not add node_metadata
         self.kg_subclass.node_dict, self.kg_subclass.node_data = None, None
+
         # initialize metadata class
-        metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
-                            self.kg_subclass.node_data, self.kg_subclass.node_dict)
+        meta = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
+                        self.kg_subclass.node_data, self.kg_subclass.node_dict)
         if self.kg_subclass.node_data:
-            metadata.node_metadata_processor(); metadata.extracts_class_metadata(self.kg_subclass.graph)
-            self.kg_subclass.node_dict = metadata.node_dict
+            meta.metadata_processor(); meta.extract_metadata(self.kg_subclass.graph)
+            self.kg_subclass.node_dict = meta.node_dict
+
         # create graph subsets
         self.kg_subclass.graph, annotation_triples = splits_knowledge_graph(self.kg_subclass.graph)
         if self.kg_subclass.decode_owl == 'yes': full_kg_owl = self.kg_subclass.full_kg.replace('noOWL', 'OWL')
@@ -515,7 +517,7 @@ class TestKGBuilder(unittest.TestCase):
         appends_to_existing_file(annotation_triples, self.kg_subclass.write_location + annot, ' ')
 
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        self.kg_subclass.creates_new_edges(meta.creates_node_metadata)
         shutil.copy(self.kg_subclass.write_location + annot, self.kg_subclass.write_location + full)
         appends_to_existing_file(set(self.kg_subclass.graph), self.kg_subclass.write_location + full, ' ')
 
@@ -533,8 +535,8 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    def test_creates_knowledge_graph_edges_adding_metadata_to_kg(self):
-        """Tests the creates_knowledge_graph_edges method and adds node metadata to the KG."""
+    def test_creates_new_edges_adding_metadata_to_kg(self):
+        """Tests the creates_new_edges method and adds node metadata to the KG."""
 
         self.kg_subclass.reverse_relation_processor()
         # make sure that kg is empty
@@ -543,12 +545,12 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
         # make sure to add node_metadata
-        metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
-                            self.kg_subclass.node_data, self.kg_subclass.node_dict)
+        meta = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
+                        self.kg_subclass.node_data, self.kg_subclass.node_dict)
         if self.kg_subclass.node_data:
-            metadata.node_metadata_processor()
-            metadata.extracts_class_metadata(self.kg_subclass.graph)
-        self.kg_subclass.node_dict = metadata.node_dict
+            meta.metadata_processor(); meta.extract_metadata(self.kg_subclass.graph)
+            self.kg_subclass.node_dict = meta.node_dict
+
         # create graph subsets
         self.kg_subclass.graph, annotation_triples = splits_knowledge_graph(self.kg_subclass.graph)
         if self.kg_subclass.decode_owl == 'yes': full_kg_owl = self.kg_subclass.full_kg.replace('noOWL', 'OWL')
@@ -557,7 +559,7 @@ class TestKGBuilder(unittest.TestCase):
         appends_to_existing_file(annotation_triples, self.kg_subclass.write_location + annot, ' ')
 
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        self.kg_subclass.creates_new_edges(meta.creates_node_metadata)
         shutil.copy(self.kg_subclass.write_location + annot, self.kg_subclass.write_location + full)
         appends_to_existing_file(set(self.kg_subclass.graph), self.kg_subclass.write_location + full, ' ')
 
@@ -595,8 +597,8 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    def test_creates_knowledge_graph_edges_instance_no_inverse(self):
-        """Tests the creates_knowledge_graph_edges method when applied to a kg with instance-based construction
+    def test_creates_new_edges_instance_no_inverse(self):
+        """Tests the creates_new_edges method when applied to a kg with instance-based construction
         without inverse relations."""
 
         self.kg_instance.reverse_relation_processor()
@@ -605,11 +607,12 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_instance.graph = Graph()
 
         # initialize metadata class
-        metadata = Metadata(self.kg_instance.kg_version, self.kg_instance.write_location, self.kg_instance.full_kg,
-                            self.kg_instance.node_data, self.kg_instance.node_dict)
+        meta = Metadata(self.kg_instance.kg_version, self.kg_instance.write_location, self.kg_instance.full_kg,
+                        self.kg_instance.node_data, self.kg_instance.node_dict)
         if self.kg_instance.node_data:
-            metadata.node_metadata_processor(); metadata.extracts_class_metadata(self.kg_instance.graph)
-        self.kg_instance.node_dict = metadata.node_dict
+            meta.metadata_processor(); meta.extract_metadata(self.kg_instance.graph)
+        self.kg_instance.node_dict = meta.node_dict
+
         # create graph subsets
         self.kg_instance.graph, annotation_triples = splits_knowledge_graph(self.kg_instance.graph)
         if self.kg_instance.decode_owl == 'yes': full_kg_owl = self.kg_instance.full_kg.replace('noOWL', 'OWL')
@@ -618,7 +621,7 @@ class TestKGBuilder(unittest.TestCase):
         appends_to_existing_file(annotation_triples, self.kg_instance.write_location + annot, ' ')
 
         # test method
-        self.kg_instance.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        self.kg_instance.creates_new_edges(meta.creates_node_metadata)
         shutil.copy(self.kg_instance.write_location + annot, self.kg_instance.write_location + full)
         appends_to_existing_file(set(self.kg_instance.graph), self.kg_instance.write_location + full, ' ')
 
@@ -636,19 +639,22 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    def test_creates_knowledge_graph_edges_instance_inverse(self):
-        """Tests the creates_knowledge_graph_edges method when applied to a kg with instance-based construction with
+    def test_creates_new_edges_instance_inverse(self):
+        """Tests the creates_new_edges method when applied to a kg with instance-based construction with
         inverse relations."""
 
         self.kg_instance2.reverse_relation_processor()
+
         # make sure that kg is empty
         self.kg_instance2.graph = Graph()
+
         # initialize metadata class
-        metadata = Metadata(self.kg_instance2.kg_version, self.kg_instance2.write_location, self.kg_instance2.full_kg,
-                            self.kg_instance2.node_data, self.kg_instance2.node_dict)
+        meta = Metadata(self.kg_instance2.kg_version, self.kg_instance2.write_location, self.kg_instance2.full_kg,
+                        self.kg_instance2.node_data, self.kg_instance2.node_dict)
         if self.kg_instance2.node_data:
-            metadata.node_metadata_processor(); metadata.extracts_class_metadata(self.kg_instance2.graph)
-        self.kg_instance2.node_dict = metadata.node_dict
+            meta.metadata_processor(); meta.extract_metadata(self.kg_instance2.graph)
+        self.kg_instance2.node_dict = meta.node_dict
+
         # create graph subsets
         self.kg_instance2.graph, annotation_triples = splits_knowledge_graph(self.kg_instance2.graph)
         if self.kg_instance2.decode_owl == 'yes': full_kg_owl = self.kg_instance2.full_kg.replace('noOWL', 'OWL')
@@ -657,7 +663,7 @@ class TestKGBuilder(unittest.TestCase):
         appends_to_existing_file(annotation_triples, self.kg_instance2.write_location + annot, ' ')
 
         # test method
-        self.kg_instance2.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        self.kg_instance2.creates_new_edges(meta.creates_node_metadata)
         shutil.copy(self.kg_instance2.write_location + annot, self.kg_instance2.write_location + full)
         appends_to_existing_file(set(self.kg_instance2.graph), self.kg_instance2.write_location + full, ' ')
 
@@ -675,8 +681,8 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
-    def test_creates_knowledge_graph_edges_adding_metadata_to_kg_bad(self):
-        """Tests the creates_knowledge_graph_edges method and adds node metadata to the KG, but also makes sure that a
+    def test_creates_new_edges_adding_metadata_to_kg_bad(self):
+        """Tests the creates_new_edges method and adds node metadata to the KG, but also makes sure that a
         log file is written for genes that are not in the subclass_map."""
 
         self.kg_subclass.reverse_relation_processor()
@@ -687,12 +693,11 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.ont_classes = gets_ontology_classes(self.kg_subclass.graph)
 
         # initialize metadata class
-        metadata = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
-                            self.kg_subclass.node_data, self.kg_subclass.node_dict)
+        meta = Metadata(self.kg_subclass.kg_version, self.kg_subclass.write_location, self.kg_subclass.full_kg,
+                        self.kg_subclass.node_data, self.kg_subclass.node_dict)
         if self.kg_subclass.node_data:
-            metadata.node_metadata_processor()
-            metadata.extracts_class_metadata(self.kg_subclass.graph)
-        self.kg_subclass.node_dict = metadata.node_dict
+            meta.metadata_processor(); meta.extract_metadata(self.kg_subclass.graph)
+            self.kg_subclass.node_dict = meta.node_dict
 
         # alter gene list - adding genes not in the subclass_map dictionary
         self.kg_subclass.edge_dict['gene-gene']['edge_list'] = [["1", "1080"], ["1", "4267"], ["4800", "10190"],
@@ -700,7 +705,7 @@ class TestKGBuilder(unittest.TestCase):
                                                                 ["8837", "6774"], ["8837", "8754"]]
 
         # test method
-        self.kg_subclass.creates_knowledge_graph_edges(metadata.creates_node_metadata)
+        self.kg_subclass.creates_new_edges(meta.creates_node_metadata)
 
         # check that log file was written out
         log_file = '/construction_approach/subclass_map_missing_node_log.json'
