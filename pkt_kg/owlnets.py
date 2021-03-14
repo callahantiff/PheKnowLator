@@ -166,14 +166,14 @@ class OwlNets(object):
         owl:ObjectProperty and not an owl:AnnotationProperty. For example:
 
             REMOVE - edges needed to support owl semantics (not biologically meaningful):
-                subject: http://purl.obolibrary.org/obo/CLO_0037294
+                subject: obo:CLO_0037294
                 predicate: owl:AnnotationProperty
                 object: rdf:about="http://purl.obolibrary.org/obo/CLO_0037294"
 
             KEEP - biologically meaningful edges:
-                subject: http://purl.obolibrary.org/obo/CHEBI_16130
-                predicate: http://purl.obolibrary.org/obo/RO_0002606
-                object: http://purl.obolibrary.org/obo/HP_0000832
+                subject: obo:CHEBI_16130
+                predicate: obo:RO_0002606
+                object: obo:HP_0000832
 
         Returns:
             filtered_graph: An RDFLib graph that contains only clinically and biologically meaningful triples.
@@ -660,14 +660,19 @@ class OwlNets(object):
 
         if not str(common_ancestor).startswith('http'): raise ValueError('Error: common_ancestor must be a valid URL')
         else:
-            anc_node = common_ancestor if isinstance(common_ancestor, URIRef) else URIRef(common_ancestor)
+            anc_node, roots = common_ancestor if isinstance(common_ancestor, URIRef) else URIRef(common_ancestor), set()
             nodes = set([x for x in list(graph.subjects()) + list(graph.objects()) if isinstance(x, URIRef)])
-            start_size = len(graph)
             for x in tqdm(nodes):
                 ancs = gets_entity_ancestors(graph, [x], RDFS.subClassOf)
-                if str(anc_node) not in ancs and len(ancs) != 0: graph.add((URIRef(ancs[0]), RDFS.subClassOf, anc_node))
-                else: graph.add((x, RDFS.subClassOf, anc_node))
-            print('{} triples added to ensure graph is connected.'.format(len(graph) - start_size))
+                if len(ancs) == 0:
+                    nbhd = set(graph.subjects(None, x)) | set(graph.objects(x, None))
+                    ancs = [x for y in [gets_entity_ancestors(graph, [i], RDFS.subClassOf) for i in nbhd] for x in y]
+                    if len(ancs) > 0: ancs = sorted(Counter(ancs).items(), key=lambda x: x[1], reverse=1)[0][0]
+                    else: ancs = [x]
+                roots |= {ancs[0]} if len(ancs) > 0 else {x}
+            needed_triples = set((URIRef(x), RDFS.subClassOf, anc_node) for x in roots if x != anc_node)
+            graph = adds_edges_to_graph(graph, needed_triples)
+            print('{} triples added to ensure graph is connected.'.format(len(needed_triples)))
 
             return graph
 
@@ -755,6 +760,9 @@ class OwlNets(object):
 
         log_str = '*** Running OWL-NETS ***'; print('\n' + log_str); logger.info(log_str)
 
+        # owl_nets = OwlNets(Graph().parse('resources/ontologies/vo_with_imports.owl'), 'resources/knowledge_graphs',
+        #                    'test.owl', None, './pkt_kg/libs/owltools')
+
         # STEP 1: Remove owl:disjointWith axioms
         self.removes_disjoint_with_axioms()
 
@@ -764,9 +772,17 @@ class OwlNets(object):
         # STEP 3: Remove semantic support triples
         filtered_graph = self.removes_edges_with_owl_semantics()
 
+        # nodes = set(i for j in [x[0::2] for x in decoded_graph] for i in j)
+        # node_ids = ['/'.join(str(x.strip('<').strip('>')).split('/')[-2:]) for x in nodes]
+        # # node_id_updates = [x.replace(':', '_') if ':' in x and x.split('/')[0] == 'obo' else x for x in node_ids]
+        # node_prefixes = set([re.findall(r'.*(?=\_)', x.split('/')[-1])[0] if '_' in x else x.split('/')[0] for x in
+        #                      node_ids])
+        # for i in nodes:
+        #     if not i.startswith(str(obo)):
+        #         print(i)
+
         # STEP 4: Decode owl-encoded classes and axioms
-        owl_classes = list(gets_ontology_classes(self.graph))
-        owl_axioms = []
+        owl_classes = list(gets_ontology_classes(owl_nets.graph)); owl_axioms = []
         for x in set(self.graph.subjects(RDF.type, OWL.Axiom)):
             src = set(self.graph.objects(list(self.graph.objects(x, OWL.annotatedSource))[0], RDF.type))
             tgt = set(self.graph.objects(list(self.graph.objects(x, OWL.annotatedTarget))[0], RDF.type))
