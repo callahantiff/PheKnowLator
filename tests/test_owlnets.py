@@ -570,7 +570,7 @@ class TestOwlNets(unittest.TestCase):
         """Tests the cleans_owl_encoded_classes method"""
 
         # set-up inputs
-        self.owl_nets.node_list = [URIRef('http://purl.obolibrary.org/obo/SO_0000822')]
+        self.owl_nets.node_list = [obo.SO_0000822]
 
         # test method
         decoded_graph = self.owl_nets.cleans_owl_encoded_classes()
@@ -658,9 +658,8 @@ class TestOwlNets(unittest.TestCase):
         self.owl_nets.kg_construct_approach = None
         owl_nets_graph = self.owl_nets.run_owl_nets()
         self.assertIsInstance(owl_nets_graph, Tuple)
-        self.assertIsInstance(owl_nets_graph[0], Graph)
+        self.assertIsInstance(owl_nets_graph[0], Set)
         self.assertEqual(owl_nets_graph[1], None)
-        self.assertEqual(len(owl_nets_graph[0]), 5173)
 
         # make sure files are written locally
         nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
@@ -677,10 +676,9 @@ class TestOwlNets(unittest.TestCase):
         self.owl_nets.kg_construct_approach = "subclass"
         owl_nets_graph = self.owl_nets.run_owl_nets()
         self.assertIsInstance(owl_nets_graph, Tuple)
-        self.assertIsInstance(owl_nets_graph[0], Graph)
-        self.assertEqual(len(owl_nets_graph[0]), 5173)
-        self.assertIsInstance(owl_nets_graph[1], Graph)
-        self.assertEqual(len(owl_nets_graph[0]), len(owl_nets_graph[1]))
+        self.assertIsInstance(owl_nets_graph[0], Set)
+        self.assertIsInstance(owl_nets_graph[1], Set)
+        self.assertTrue(len(owl_nets_graph[1]) >= len(owl_nets_graph[0]))
 
         # make sure files are written locally for each graph
         # purified
@@ -704,9 +702,8 @@ class TestOwlNets(unittest.TestCase):
 
         owl_nets_graph = self.owl_nets2.run_owl_nets()
         self.assertIsInstance(owl_nets_graph, Tuple)
-        self.assertIsInstance(owl_nets_graph[0], Graph)
-        self.assertEqual(len(owl_nets_graph[0]), 5173)
-        self.assertIsInstance(owl_nets_graph[1], Graph)
+        self.assertIsInstance(owl_nets_graph[0], Set)
+        self.assertIsInstance(owl_nets_graph[1], Set)
         self.assertTrue(len(owl_nets_graph[1]) > len(owl_nets_graph[0]))
 
         # make sure files are written locally for each graph
