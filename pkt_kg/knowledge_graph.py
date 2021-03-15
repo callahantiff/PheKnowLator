@@ -575,7 +575,6 @@ class FullBuild(KGBuilder):
 
                 # STEP 8: EXTRACT AND WRITE NODE METADATA
                 log_str = '*** Processing Metadata ***'; print('\n' + log_str); logger.info(log_str)
-                log_str = '*** Processing Metadata ***'; print('\n' + log_str)
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
 

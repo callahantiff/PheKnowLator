@@ -468,8 +468,7 @@ def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode
     del sub_only_bnodes_org, obj_only_bnodes_org, sub_and_obj_bnodes_org
     print('Finalizing Updated Graph')
     updated_graph = Graph()
-    for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed):
-        updated_graph.add((s, p, o))
+    for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
 
     return updated_graph
 
@@ -501,8 +500,7 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
     del sub_only_bnodes_ns, obj_only_bnodes_ns, sub_and_obj_bnodes_ns
     print('Finalizing Updated Graph')
     updated_graph = Graph()
-    for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed):
-        updated_graph.add((s, p, o))
+    for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
 
     return updated_graph
 
@@ -526,7 +524,7 @@ def splits_knowledge_graph(graph: Graph, graph_output: bool = False) -> Tuple[Gr
             assertions.
     """
 
-    print('Creating Logic and Annotation Graph Subsets')
+    print('Creating Logic and Annotation Subsets of Graph')
 
     graph = adds_namespace_to_bnodes(graph)
 
