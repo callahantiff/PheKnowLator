@@ -664,7 +664,7 @@ class OwlNets(object):
             for x in tqdm(nodes):
                 ancs = gets_entity_ancestors(graph, [x], RDFS.subClassOf)
                 if len(ancs) == 0:
-                    nbhd = set(graph.subjects(None, x)) | set(graph.objects(x, None))
+                    nbhd = set(graph.objects(x, None))
                     ancs = [x for y in [gets_entity_ancestors(graph, [i], RDFS.subClassOf) for i in nbhd] for x in y]
                     if len(ancs) == 0: ancs = [x]
                     else:
