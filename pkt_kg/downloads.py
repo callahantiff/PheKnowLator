@@ -286,7 +286,7 @@ class OntData(DataSource):
             if any(x for x in os.listdir(file_loc) if file_prefix == x.split('.')[0]):
                 self.data_files[i] = glob.glob(file_loc + '*' + file_prefix + '*')[0]
             else:
-                if 'purl' in source:
+                if 'purl' in source and 'https://storage.googleapis.com/pheknowlator' not in source:
                     try:
                         subprocess.check_call([owltools_location, str(source), '--merge-import-closure',
                                                '-o', str(write_loc) + '_with_imports.owl'])
@@ -297,7 +297,7 @@ class OntData(DataSource):
                 else:
                     data_downloader(source, file_loc, str(file_prefix) + '_with_imports.owl')
                     self.data_files[i] = file_loc + str(file_prefix) + '_with_imports.owl'
-            gets_ontology_statistics(file_loc + str(file_prefix) + '_with_imports.owl', owltools_location)
+            gets_ontology_statistics(self.data_files[i], owltools_location)
         self.generates_source_metadata()
 
         return None
