@@ -71,7 +71,11 @@ def url_download(url: str, write_location: str, filename: str) -> None:
 
     r = requests.get(url, allow_redirects=True, verify=False)
     with open(write_location + '{filename}'.format(filename=filename), 'wb') as outfile:
-        outfile.write(r.content)
+        try: outfile.write(r.content)
+        except OSError:
+            block_size = 1000000000
+            for i in range(0, len(r.content), block_size):
+                outfile.write(r.content[i:i + block_size])
     outfile.close()
 
     return None
@@ -118,15 +122,12 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> No
     write_loc = write_location + '{filename}'.format(filename=file)
     print('Downloading Gzipped data from FTP Server: {}'.format(url))
     with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
-        ftp.login()
-        ftp.cwd(directory)
-        ftp.retrbinary('RETR {}'.format(file), fid.write)
+        ftp.login(); ftp.cwd(directory); ftp.retrbinary('RETR {}'.format(file), fid.write)
     print('Decompressing and Writing Gzipped Data to File')
     with gzip.open(write_loc, 'rb') as fid_in:
         with open(write_loc.replace('.gz', ''), 'wb') as file_loc:
             file_loc.write(fid_in.read())
     # change filename and remove gzipped and original files
-
     if filename != '': os.rename(re.sub(zip_pat, '', write_loc), write_location + filename)
     os.remove(write_loc)  # remove compressed file
 
@@ -151,7 +152,6 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
         with ZipFile(BytesIO(zip_data.content)) as zip_file:
             zip_file.extractall(write_location[:-1])
     zip_data.close()
-
     if filename != '': os.rename(write_location + re.sub(zip_pat, '', url.split('/')[-1]), write_location + filename)
 
     return None
