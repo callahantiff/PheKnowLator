@@ -354,11 +354,9 @@ class LinkedData(DataSource):
             # if file has already been downloaded, rename it
             if any(x for x in os.listdir(write_path) if '_'.join(x.split('_')[1:]) == file_name):
                 self.data_files[i] = write_path + i + '_' + file_name
-                try:
-                    shutil.copy(glob.glob(write_path + '*' + file_name)[0], write_path + i + '_' + file_name)
+                try: shutil.copy(glob.glob(write_path + '*' + file_name)[0], write_path + i + '_' + file_name)
                 except shutil.SameFileError:
-                    logger.error('{}'.format(shutil.SameFileError))
-                    pass
+                    logger.error('{}'.format(shutil.SameFileError)); pass
             else:
                 self.data_files[i] = write_path + i + '_' + file_name
                 data_downloader(source, write_path, i + '_' + file_name)
