@@ -107,25 +107,14 @@ class TestKGConstructionApproach(unittest.TestCase):
             pickle.dump(subcls_map, f, protocol=4)
 
         # instantiate class
-        self.kg_builder = KGConstructionApproach(self.edge_dict, self.dir_loc_resources)
-
-        return None
-
-    def test_class_initialization_parameters_edge_dict(self):
-        """Tests the class initialization parameters for edge_dict."""
-
-        # if input edge_dict is not type dict
-        self.assertRaises(TypeError, KGConstructionApproach, list(), self.dir_loc_resources)
-
-        # if input edge_dict is empty
-        self.assertRaises(TypeError, KGConstructionApproach, dict(), self.dir_loc_resources)
+        self.kg_builder = KGConstructionApproach(self.dir_loc_resources)
 
         return None
 
     def test_class_initialization_parameters_write_location(self):
         """Tests the class initialization parameters for write location."""
 
-        self.assertRaises(ValueError, KGConstructionApproach, self.edge_dict, None)
+        self.assertRaises(ValueError, KGConstructionApproach, None)
 
         return None
 
@@ -133,7 +122,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         """Tests the class initialization parameters for subclass_dict."""
 
         # test when path does not exist
-        self.assertRaises(OSError, KGConstructionApproach, self.edge_dict, self.dir_loc)
+        self.assertRaises(OSError, KGConstructionApproach, self.dir_loc)
 
         # move files around for test
         os.remove(self.dir_loc_resources + '/construction_approach/subclass_construction_map.pkl')
@@ -141,7 +130,7 @@ class TestKGConstructionApproach(unittest.TestCase):
                         self.dir_loc_resources + '/construction_approach/subclass_construction_map_empty.pkl')
 
         # run tests
-        self.assertRaises(TypeError, KGConstructionApproach, self.edge_dict, self.dir_loc_resources)
+        self.assertRaises(TypeError, KGConstructionApproach, self.dir_loc_resources)
 
         # clean up environment
         os.remove(self.dir_loc_resources + '/construction_approach/subclass_construction_map_empty.pkl')
@@ -153,10 +142,6 @@ class TestKGConstructionApproach(unittest.TestCase):
 
         # check write_location
         self.assertIsInstance(self.kg_builder.write_location, str)
-
-        # edge dict
-        self.assertIsInstance(self.kg_builder.edge_dict, Dict)
-        self.assertTrue(len(self.kg_builder.edge_dict) == 3)
 
         # subclass dict
         self.assertIsInstance(self.kg_builder.subclass_dict, Dict)
@@ -178,11 +163,8 @@ class TestKGConstructionApproach(unittest.TestCase):
         # test when entity not in subclass_dict
         # update subclass dict to remove an entry
         del self.kg_builder.subclass_dict['2']
-        edge_list_length = len(self.kg_builder.edge_dict['gene-phenotype']['edge_list'])
         result = self.kg_builder.maps_node_to_class('gene-phenotype', '2', ['2', 'HP_0002511'])
-
         self.assertEqual(None, result)
-        self.assertTrue(edge_list_length > len(self.kg_builder.edge_dict['gene-phenotype']['edge_list']))
 
         return None
 
