@@ -108,14 +108,14 @@ class CreatesEdgeList(object):
         """
 
         with open(file_path, 'r') as input_data_r:  # type: IO[Any]
-            data = input_data_r.read().splitlines()
+            try: data = input_data_r.read().splitlines()
+            except OSError: data = [line.split('\n') for line in input_data_r]
         input_data_r.close()
 
         # clean up data to only keep valid rows (rows that are not empty space or metadata)
         splitter = '\t' if 't' in delim else r"\s+" if '' in delim else delim
         if delim == '' or delim == ' ': skip = [row for row in range(0, len(data)) if delim not in data[row]]
         else: skip = [row for row in range(0, len(data)) if splitter not in data[row]]
-        # determine if file contains a header
         header = self.identify_header(file_path, splitter, skip)
         edge_data = pd.read_csv(file_path, header=header, delimiter=splitter, low_memory=False, skiprows=skip)
         # clean environment and return verified data
