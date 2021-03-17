@@ -54,7 +54,9 @@ class TestKGUtils(unittest.TestCase):
         self.assertRaises(ValueError, gets_ontology_statistics, self.empty_ontology_file_location)
 
         # test good file
-        self.assertIsNone(gets_ontology_statistics(self.good_ontology_file_location, self.owltools_location))
+        stats = gets_ontology_statistics(self.good_ontology_file_location, self.owltools_location)
+        expected = 'The knowledge graph contains 2573 classes, 23512 axioms, 50 object properties, and 0 individuals'
+        self.assertEqual(stats, expected)
 
         return None
 

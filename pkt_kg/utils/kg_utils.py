@@ -159,7 +159,7 @@ def gets_ontology_class_dbxrefs(graph: Graph):
     return {**dbx_uris, **ex_uris}, {**dbx_type, **ex_type}
 
 
-def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt_kg/libs/owltools') -> None:
+def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt_kg/libs/owltools') -> str:
     """Uses the OWL Tools API to generate summary statistics (i.e. counts of axioms, classes, object properties, and
     individuals).
 
@@ -168,7 +168,7 @@ def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt
         owltools_location: A string pointing to the location of the owl tools library.
 
     Returns:
-        None.
+        stats: A formatted string containing descriptive statistics.
 
     Raises:
         TypeError: If the file_location is not type str.
@@ -182,10 +182,10 @@ def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt
     else: output = subprocess.check_output([os.path.abspath(owltools_location), file_location, '--info'])
     res = output.decode('utf-8').split('\n')[-5:]
     cls, axs, op, ind = res[0].split(':')[-1], res[3].split(':')[-1], res[2].split(':')[-1], res[1].split(':')[-1]
-    sent = '\nThe knowledge graph contains {0} classes, {1} axioms, {2} object properties, and {3} individuals\n'
-    print(sent.format(cls, axs, op, ind))
+    sent = 'The knowledge graph contains {0} classes, {1} axioms, {2} object properties, and {3} individuals'
+    stats = sent.format(cls, axs, op, ind)
 
-    return None
+    return stats
 
 
 def merges_ontologies(onts: List[str], loc: str, merged: str,
