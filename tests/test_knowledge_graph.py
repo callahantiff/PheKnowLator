@@ -582,8 +582,10 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the gets_edge_statistics method."""
 
         # no inverse edges
-        self.kg_subclass.gets_edge_statistics('gene-gene', set(x for x in range(0, 100)), [{1, 2, 3}, {1, 2, 3}])
-        mock_print.assert_called_with('Edges: 100; Nodes: 3 gene(s), 3 gene(s)')
+        edges = [(1, 2, 3), (3, 2, 5), (4, 6, 7)]
+        self.kg_subclass.gets_edge_statistics('gene-gene', edges, [{1, 2, 3}, {1, 2, 3}, 8])
+        expected_str = '3 OWL Edges, 8 Original Edges; 5 OWL Nodes, Original Nodes: 3 gene(s), 3 gene(s)'
+        mock_print.assert_called_with(expected_str)
 
         return None
 
@@ -592,8 +594,10 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the gets_edge_statistics method when including inverse relations."""
 
         # no inverse edges
-        self.kg_subclass.gets_edge_statistics('drug-gene', set(x for x in range(0, 100)), [{1, 2, 3}, {1, 2, 3}])
-        mock_print.assert_called_with('Edges: 100; Nodes: 3 drug(s), 3 gene(s)')
+        edges = [(1, 2, 3), (3, 2, 5), (4, 6, 7)]
+        self.kg_subclass.gets_edge_statistics('drug-gene', edges, [{1, 2, 3}, {1, 2, 3}, 8])
+        expected_str = '3 OWL Edges, 8 Original Edges; 5 OWL Nodes, Original Nodes: 3 drug(s), 3 gene(s)'
+        mock_print.assert_called_with(expected_str)
 
         return None
 

@@ -246,22 +246,25 @@ class KGBuilder(object):
         return inverse_rel
 
     @staticmethod
-    def gets_edge_statistics(edge_type: str, results: Set, nodes: List) -> None:
+    def gets_edge_statistics(edge_type: str, results: Set, entity_info: List) -> None:
         """Calculates the number of nodes and edges created from the build process.
 
         Args:
             edge_type: A string point to a specific edge type (e.g. 'chemical-disease).
             results: A set of tuples representing the complete set of triples generated from the construction process.
-            nodes: A list of sets of tuples containing the raw node identifiers.
+            entity_info: A list of three items. Items 1-2 are sets of tuples containing the raw node identifiers and
+                item 3 is an integer representing the total count of non-OWL edges.
 
         Returns:
             None
         """
 
         n1, n2 = edge_type.split('-')[0], edge_type.split('-')[1]
-        stats = [len(set(results)), len(nodes[0]), n1, len(nodes[1]), n2]
-        stats_str = 'Edges: {}; Nodes: {} {}(s), {} {}(s)'.format(stats[0], stats[1], stats[2], stats[3], stats[4])
-        print(stats_str); logger.info(stats_str)
+        owl_nodes = set(i for j in [x[0::2] for x in results] for i in j)
+        stats = [len(set(results)), entity_info[2], len(owl_nodes), len(entity_info[0]), n1, len(entity_info[1]), n2]
+        stats_str = '{} OWL Edges, {} Original Edges; {} OWL Nodes, Original Nodes: {} {}(s), {} {}(s)'
+        formatted_str = stats_str.format(stats[0], stats[1], stats[2], stats[3], stats[4], stats[5], stats[6])
+        print(formatted_str); logger.info(formatted_str)
 
         return None
 
@@ -282,7 +285,7 @@ class KGBuilder(object):
         kg_bld = KGConstructionApproach(self.res_dir); master_meta: Set = set()
         for edge_type in [x for x in self.edge_dict.keys() if x != 'entity_namespaces']:
             edge_list = self.edge_dict[edge_type]['edge_list']; del self.edge_dict[edge_type]['edge_list']
-            s_type, o_type = self.edge_dict[edge_type]['data_type'].split('-'); node1, node2 = set(), set()
+            s_type, o_type = self.edge_dict[edge_type]['data_type'].split('-'); node1, node2, rels = set(), set(), 0
             rel, uri = self.edge_dict[edge_type]['edge_relation'], self.edge_dict[edge_type]['uri']
             invrel = self.checks_for_inverse_relations(rel, edge_list) if self.inverse_relations is not None else None
             p = 'Creating {} ({}-{}) Edges'.format(edge_type.upper(), s_type, o_type); print('\n' + p); logger.info(p)
@@ -298,11 +301,11 @@ class KGBuilder(object):
                     if self.construct_approach == 'subclass': edges = kg_bld.subclass_constructor(edge_info, edge_type)
                     else: edges = kg_bld.instance_constructor(edge_info, edge_type)
                     self.graph = adds_edges_to_graph(self.graph, edges, False); res |= set(edges)
-                    node1 |= {edge[0]}; node2 |= {edge[1]}
+                    node1 |= {edge[0]}; node2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
                     if meta is not None:
                         new_meta = {x for x in meta if x not in master_meta}; master_meta |= new_meta
                         if len(new_meta) > 0: appends_to_existing_file(new_meta, annot_loc, ' ')
-            pbar.close(); self.gets_edge_statistics(edge_type, res, [node1, node2]); del [node1, node2]
+            pbar.close(); self.gets_edge_statistics(edge_type, res, [node1, node2, rels]); del [node1, node2, rels]
         print('\nSerializing Knowledge Graph'); logger.info('Serializing Knowledge Graph')
         self.graph.serialize(self.write_location + df); ontology_file_formatter(self.write_location, df, self.owl_tools)
         if len(kg_bld.subclass_error.keys()) > 0:  # output error logs
