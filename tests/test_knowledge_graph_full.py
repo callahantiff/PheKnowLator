@@ -168,7 +168,7 @@ class TestFullBuild(unittest.TestCase):
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + int_map))
 
         # build dict
-        build_log = 'subclass_map_missing_node_log.json'
+        build_log = 'subclass_map_log.json'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/construction_approach/' + build_log))
 
         return None

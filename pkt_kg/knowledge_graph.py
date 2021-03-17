@@ -215,14 +215,14 @@ class KGBuilder(object):
 
         return class_found
 
-    def checks_for_inverse_relations(self, relation: str, edge_list: List[List[str]]) -> Optional[str]:
+    def checks_for_inverse_relations(self, relation: str, edge_list: Union[List, Set]) -> Optional[str]:
         """Checks a relation to determine whether or not edges for an inverse relation should be created and added to
         the knowledge graph. The function also verifies that input relation and its inverse (if it exists) are both an
         existing owl:ObjectProperty in the knowledge graph.
 
         Args:
             relation: A string that contains the relation assigned to edge in resource_info.txt (e.g. 'RO_0000056').
-            edge_list: A list of knowledge graph edges. For example: [["8837", "4283"], ["8837", "839"]]
+            edge_list: A list or set of knowledge graph edges. For example: {["8837", "4283"], ["8837", "839"]}
 
         Returns:
             inverse_rel: A string containing an ontology identifier (e.g. "RO_0000056) or None.
@@ -233,43 +233,35 @@ class KGBuilder(object):
                     - None, assuming the prior listed conditions are not met
         """
 
+        edge_list = set(tuple(x) for x in edge_list) if isinstance(edge_list, List) else edge_list
         if self.inverse_relations is not None:
             if self.inverse_relations_dict is not None and relation in self.inverse_relations_dict.keys():
                 self.verifies_object_property(URIRef(obo + self.inverse_relations_dict[relation]))
                 inverse_rel = self.inverse_relations_dict[relation]
             elif relation in self.relations_dict.keys() and 'interact' in self.relations_dict[relation]:
-                inverse_rel = None
-                for x in edge_list:
-                    if x[-1::-1] not in edge_list:
-                        inverse_rel = relation
-                        break
+                inverse_rel = None if len([x for x in edge_list if x[-1::-1] not in edge_list]) == 0 else relation
             else: inverse_rel = None
         else: inverse_rel = None
 
         return inverse_rel
 
-    def gets_edge_statistics(self, edge_type: str, invrel: Optional[str], results: List) -> None:
+    @staticmethod
+    def gets_edge_statistics(edge_type: str, results: Set, nodes: List) -> None:
         """Calculates the number of nodes and edges created from the build process.
 
         Args:
             edge_type: A string point to a specific edge type (e.g. 'chemical-disease).
-            invrel: A string if there are inverse edges or None.
-            results: A list of tuples representing the complete set of triples generated from the construction process.
+            results: A set of tuples representing the complete set of triples generated from the construction process.
+            nodes: A list of sets of tuples containing the raw node identifiers.
 
         Returns:
             None
         """
 
-        n1, n2, edges = edge_type.split('-')[0], edge_type.split('-')[1], self.edge_dict[edge_type]['edge_list']
-        print('Total OWL Edges: {}'.format(len(set(results))))
-        print('Unique Non-OWL Edges: {}'.format(len(edges) * 2 if invrel else len(edges)))
-        print('Unique {}(s): {}'.format(n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']]))))
-        print('Unique {}(s): {}'.format(n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
-        # log statistics
-        res_string = '{} Edge Statistics: {} OWL Edges, {} Non-OWL Edges, {} {} Nodes and {} {} Nodes'
-        logger.info(res_string.format(edge_type.upper(), len(set(results)), len(edges) * 2 if invrel else len(edges),
-                                      n1, len(set([x[0] for x in self.edge_dict[edge_type]['edge_list']])),
-                                      n2, len(set([x[1] for x in self.edge_dict[edge_type]['edge_list']]))))
+        n1, n2 = edge_type.split('-')[0], edge_type.split('-')[1]
+        stats = [len(set(results)), len(nodes[0]), n1, len(nodes[1]), n2]
+        stats_str = 'Edges: {}; Nodes: {} {}(s), {} {}(s)'.format(stats[0], stats[1], stats[2], stats[3], stats[4])
+        print(stats_str); logger.info(stats_str)
 
         return None
 
@@ -285,18 +277,18 @@ class KGBuilder(object):
             None.
         """
 
-        full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        master_meta, annotation_location = set(), self.write_location + full_kg_owl[:-4] + '_AnnotationsOnly.nt'
-        kg_location = full_kg_owl[:-4] + '_LogicOnly.owl'
-        kg_bld = KGConstructionApproach(self.edge_dict, self.res_dir)  # initialize construction approaches
+        kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
+        annot_loc, df = self.write_location + kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.owl'
+        kg_bld = KGConstructionApproach(self.res_dir); master_meta: Set = set()
         for edge_type in [x for x in self.edge_dict.keys() if x != 'entity_namespaces']:
-            edge_results: List = []; edge_list = self.edge_dict[edge_type]['edge_list']
-            s_type, o_type = self.edge_dict[edge_type]['data_type'].split('-')
+            edge_list = self.edge_dict[edge_type]['edge_list']; del self.edge_dict[edge_type]['edge_list']
+            s_type, o_type = self.edge_dict[edge_type]['data_type'].split('-'); node1, node2 = set(), set()
             rel, uri = self.edge_dict[edge_type]['edge_relation'], self.edge_dict[edge_type]['uri']
-            if self.inverse_relations is not None: invrel = self.checks_for_inverse_relations(rel, edge_list)
-            else: invrel = self.inverse_relations
-            s = 'Creating {} ({}-{}) Edges'.format(edge_type.upper(), s_type, o_type); print('\n' + s); logger.info(s)
-            for edge in tqdm(edge_list):
+            invrel = self.checks_for_inverse_relations(rel, edge_list) if self.inverse_relations is not None else None
+            p = 'Creating {} ({}-{}) Edges'.format(edge_type.upper(), s_type, o_type); print('\n' + p); logger.info(p)
+            pbar = tqdm(total=len(edge_list)); res = set()
+            while len(edge_list) > 0:
+                pbar.update(1); edge = edge_list.pop(0)
                 edge_info = {'n1': s_type, 'n2': o_type, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
                 meta = node_metadata_func(ent=[''.join(x) for x in list(zip(uri, edge))], e_type=[s_type, o_type])
                 meta_logic = [True if (self.node_data is None and meta is None)
@@ -305,18 +297,16 @@ class KGBuilder(object):
                 if self.check_ontology_class_nodes(edge_info) and meta_logic:  # ensure ont classes are in kg
                     if self.construct_approach == 'subclass': edges = kg_bld.subclass_constructor(edge_info, edge_type)
                     else: edges = kg_bld.instance_constructor(edge_info, edge_type)
-                    self.graph = adds_edges_to_graph(self.graph, edges, False); edge_results += edges
+                    self.graph = adds_edges_to_graph(self.graph, edges, False); res |= set(edges)
+                    node1 |= {edge[0]}; node2 |= {edge[1]}
                     if meta is not None:
                         new_meta = {x for x in meta if x not in master_meta}; master_meta |= new_meta
-                        if len(new_meta) > 0: appends_to_existing_file(new_meta, annotation_location, ' ')
-            self.gets_edge_statistics(edge_type, invrel, edge_results)
+                        if len(new_meta) > 0: appends_to_existing_file(new_meta, annot_loc, ' ')
+            pbar.close(); self.gets_edge_statistics(edge_type, res, [node1, node2]); del [node1, node2]
         print('\nSerializing Knowledge Graph'); logger.info('Serializing Knowledge Graph')
-        self.graph.serialize(self.write_location + kg_location, format='xml')
-        ontology_file_formatter(self.write_location, kg_location, self.owl_tools)
-
-        # output error logs
-        if len(kg_bld.subclass_error.keys()) > 0:
-            log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_missing_node_log.json'
+        self.graph.serialize(self.write_location + df); ontology_file_formatter(self.write_location, df, self.owl_tools)
+        if len(kg_bld.subclass_error.keys()) > 0:  # output error logs
+            log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('Some edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
             outputs_dictionary_data(kg_bld.subclass_error, log_file)
 

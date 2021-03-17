@@ -478,12 +478,12 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.reverse_relation_processor()
 
         # test 1
-        edge_list1 = self.kg_subclass.edge_dict['gene-phenotype']['edge_list']
+        edge_list1 = set(tuple(x) for x in self.kg_subclass.edge_dict['gene-phenotype']['edge_list'])
         rel1_check = self.kg_subclass.checks_for_inverse_relations('RO_0003302', edge_list1)
         self.assertIsNone(rel1_check)
 
         # test 2
-        edge_list2 = self.kg_subclass.edge_dict['gene-gene']['edge_list']
+        edge_list2 = set(tuple(x) for x in self.kg_subclass.edge_dict['gene-gene']['edge_list'])
         rel2_check = self.kg_subclass.checks_for_inverse_relations('RO_0002435', edge_list2)
         self.assertEqual(rel2_check, 'RO_0002435')
 
@@ -582,8 +582,8 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the gets_edge_statistics method."""
 
         # no inverse edges
-        self.kg_subclass.gets_edge_statistics('gene-gene', None, [x for x in range(0, 100)])
-        mock_print.assert_called_with('Unique gene(s): 8')
+        self.kg_subclass.gets_edge_statistics('gene-gene', set(x for x in range(0, 100)), [{1, 2, 3}, {1, 2, 3}])
+        mock_print.assert_called_with('Edges: 100; Nodes: 3 gene(s), 3 gene(s)')
 
         return None
 
@@ -592,14 +592,14 @@ class TestKGBuilder(unittest.TestCase):
         """Tests the gets_edge_statistics method when including inverse relations."""
 
         # no inverse edges
-        self.kg_subclass.gets_edge_statistics('gene-gene', 'RO_0000000', [x for x in range(0, 100)])
-        mock_print.assert_called_with('Unique gene(s): 8')
+        self.kg_subclass.gets_edge_statistics('drug-gene', set(x for x in range(0, 100)), [{1, 2, 3}, {1, 2, 3}])
+        mock_print.assert_called_with('Edges: 100; Nodes: 3 drug(s), 3 gene(s)')
 
         return None
 
     def test_creates_new_edges_instance_no_inverse(self):
-        """Tests the creates_new_edges method when applied to a kg with instance-based construction
-        without inverse relations."""
+        """Tests the creates_new_edges method when applied to a kg with instance-based construction without inverse
+        relations."""
 
         self.kg_instance.reverse_relation_processor()
 
@@ -708,7 +708,7 @@ class TestKGBuilder(unittest.TestCase):
         self.kg_subclass.creates_new_edges(meta.creates_node_metadata)
 
         # check that log file was written out
-        log_file = '/construction_approach/subclass_map_missing_node_log.json'
+        log_file = '/construction_approach/subclass_map_log.json'
         self.assertTrue(os.path.exists(self.dir_loc_resources + log_file))
 
         return None
