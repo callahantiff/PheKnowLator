@@ -38,7 +38,7 @@ def main():
     # see the 'Data_Preparation.ipynb' and 'Ontology_Cleaning.ipynb' file for examples and guidelines
 
     # STEP 3: DOWNLOAD ONTOLOGIES
-    print('\n' + '=' * 33 + '\nPKT: DOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 33 + '\n')
+    print('\n' + '=' * 40 + '\nPKT: DOWNLOADING DATA: ONTOLOGY DATA\n' + '=' * 40 + '\n')
     start = time.time()
     ont = OntData(data_path=args.onts, resource_data=args.res)
     # ont = OntData(data_path='resources/ontology_source_list.txt', resource_data='resources/resource_info.txt')
@@ -47,7 +47,7 @@ def main():
     print('\nPKT: TOTAL SECONDS TO DOWNLOAD ONTOLOGIES: {} @ {}'.format(end - start, timestamp))
 
     # STEP 4: DOWNLOAD EDGE DATA SOURCES
-    print('\n' + '=' * 33 + '\nPKT: DOWNLOADING DATA: CLASS DATA\n' + '=' * 33 + '\n')
+    print('\n' + '=' * 37 + '\nPKT: DOWNLOADING DATA: CLASS DATA\n' + '=' * 37 + '\n')
     start = time.time()
     ent = LinkedData(data_path=args.edg, resource_data=args.res)
     # ent = LinkedData(data_path='resources/edge_source_list.txt', resource_data='resources/resource_info.txt')
@@ -59,7 +59,7 @@ def main():
     # CREATE EDGE LISTS #
     #####################
 
-    print('\n' + '=' * 33 + '\nPKT: PROCESSING EDGE DATA\n' + '=' * 33 + '\n')
+    print('\n' + '=' * 28 + '\nPKT: CONSTRUCT EDGE LISTS\n' + '=' * 28 + '\n')
     start = time.time()
     combined_edges = dict(ent.data_files, **ont.data_files)
     master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
