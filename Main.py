@@ -25,7 +25,6 @@ def main():
     parser.add_argument('-s', '--owl', help='yes/no - removing OWL Semantics from knowledge graph', required=True)
     parser.add_argument('-m', '--nde', help='yes/no - adding node metadata to knowledge graph', required=True)
     parser.add_argument('-o', '--out', help='name/path to directory where to write knowledge graph', required=True)
-
     args = parser.parse_args()
 
     ######################
@@ -68,6 +67,8 @@ def main():
     master_edges.creates_knowledge_graph_edges()
     end = time.time(); timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nPKT: TOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
+
+    del ont, ent, master_edges  # clean up environment before build knowledge graph
 
     #########################
     # BUILD KNOWLEDGE GRAPH #
