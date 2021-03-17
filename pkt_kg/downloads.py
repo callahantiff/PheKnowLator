@@ -297,7 +297,7 @@ class OntData(DataSource):
                 else:
                     data_downloader(source, file_loc, str(file_prefix) + '_with_imports.owl')
                     self.data_files[i] = file_loc + str(file_prefix) + '_with_imports.owl'
-            gets_ontology_statistics(self.data_files[i], owltools_location)
+            stats = gets_ontology_statistics(self.data_files[i], owltools_location); print(stats); logger.info(stats)
         self.generates_source_metadata()
 
         return None
