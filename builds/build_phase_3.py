@@ -94,7 +94,7 @@ def uploads_build_data(bucket, gcs_location) -> None:
     uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc + 'edge_data/', 'edge_source_metadata.txt')
     uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc + 'ontologies/', 'ontology_source_metadata.txt')
     uploads_data_to_gcs_bucket(bucket, gcs_location, metadata_loc, 'node_metadata_dict.pkl')
-    uploads_data_to_gcs_bucket(bucket, gcs_location, construct_app, 'subclass_map_missing_node_log.json')
+    uploads_data_to_gcs_bucket(bucket, gcs_location, construct_app, 'subclass_map_log.json')
 
     return None
 
