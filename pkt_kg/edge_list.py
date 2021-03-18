@@ -171,7 +171,8 @@ class CreatesEdgeList(object):
                     col = list(edge_data)[int(crit.split(';')[0])]
                     try:
                         if type(float(crit.split(';')[2])) is float or type(int(crit.split(';')[2])) is int:
-                            edge_data[col] = edge_data[col].apply(lambda x: 0 if x == 'None' else x)
+                            # edge_data[col] = edge_data[col].apply(lambda x: 0 if x == 'None' else x)
+                            edge_data = edge_data[edge_data[col].apply(lambda x: x != 'None')]
                             if type(float(crit.split(';')[2])) is float: edge_data[col] = edge_data[col].astype(float)
                             else: edge_data[col] = edge_data[col].astype(int)
                             exp = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2])
@@ -387,7 +388,7 @@ class CreatesEdgeList(object):
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(unique_subjects)))
             print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(unique_objects)))
             print('Total Unique Edge Count: {}'.format(len(unique_edges)))
-            res_string = 'Finished Edge: {} - ({} = {} unique nodes, {} = {} unique nodes) and {} unique edges'
+            res_string = 'Finished Edge: {} ({} = {} unique nodes, {} = {} unique nodes); {} unique edges'
             logger.info(res_string.format(edge_type, edge_type.split('-')[0], len(unique_subjects),
                         edge_type.split('-')[1], len(unique_objects), len(unique_edges)))
 
