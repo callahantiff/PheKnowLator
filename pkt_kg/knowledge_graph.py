@@ -371,7 +371,7 @@ class PartialBuild(KGBuilder):
             log_str = '*** Merging Ontology Data ***'; print(log_str); logger.info(log_str)
             merged_ontology_location = self.merged_ont_kg.split('/')[-1]
             merges_ontologies(self.ontologies, merged_ontology_location, self.owl_tools)
-            self.graph.parse(self.merged_ont_kg, format='xml')  # load the merged ontology
+            self.graph.parse(self.merged_ont_kg, format='xml')
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
 
         # STEP 3: PROCESS NODE METADATA
@@ -522,7 +522,7 @@ class FullBuild(KGBuilder):
         else:
             log_str = '*** Merging Ontology Data ***'; print(log_str); logger.info(log_str)
             merges_ontologies(self.ontologies, self.merged_ont_kg.split('/')[-1], self.owl_tools)
-            self.graph.parse(self.merged_ont_kg, format='xml')  # load the merged ontology
+            self.graph.parse(self.merged_ont_kg, format='xml')
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
 
         # STEP 3: PROCESS NODE METADATA
@@ -545,7 +545,7 @@ class FullBuild(KGBuilder):
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
         # merge annotations with logic graph
         shutil.copy(self.write_location + annot, self.write_location + full)
-        appends_to_existing_file(set(self.graph), self.write_location + full, ' ')
+        appends_to_existing_file(self.graph, self.write_location + full, ' ')
 
         # STEP 6: DECODE OWL SEMANTICS
         if self.decode_owl:
