@@ -626,11 +626,11 @@ def n3(node: Union[URIRef, BNode, Literal]) -> str:
     return serialized_node
 
 
-def appends_to_existing_file(edges: Union[List, Set], filepath: str, sep: str) -> None:
+def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep: str) -> None:
     """Method adds data to the end of an existing file. Assumes that it is adding data to the end of a n-triples file.
 
     Args:
-        edges: A tuple of 3 RDFLib terms.
+        edges: A list or set of tuple, where each tuple is a triple. Or an RDFLib Graph object.
         filepath: A string specifying a path to an existing file.
         sep: A string containing a separator (e.g. '\t', ',').
 
