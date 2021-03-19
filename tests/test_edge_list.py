@@ -303,13 +303,14 @@ class TestCreatesEdgeList(unittest.TestCase):
     def tests_gets_entity_namespaces(self):
         """Tests gets_entity_namespaces method."""
 
-        self.master_edge_list.gets_entity_namespaces()
+        x = 'gene-disease'
+        self.master_edge_list.gets_entity_namespaces(x)
 
         # verify results
-        self.assertIn('entity_namespaces', self.master_edge_list.source_info.keys())
-        self.assertIn('gene', self.master_edge_list.source_info['entity_namespaces'].keys())
+        self.assertIn('entity_namespaces', self.master_edge_list.source_info[x].keys())
+        self.assertIn('gene', self.master_edge_list.source_info[x]['entity_namespaces'].keys())
         self.assertEqual('http://purl.uniprot.org/geneid/',
-                         self.master_edge_list.source_info['entity_namespaces']['gene'])
+                         self.master_edge_list.source_info[x]['entity_namespaces']['gene'])
 
         return None
 
