@@ -78,6 +78,7 @@ setup(
                       'openpyxl>=3.0.3',
                       'pandas>=1.0.5',
                       'python-json-logger',
+                      'ray',
                       'rdflib',
                       'reactome2py',
                       'requests==2.22.0',
