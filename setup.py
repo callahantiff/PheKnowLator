@@ -82,9 +82,9 @@ setup(
                       'ray',
                       'rdflib',
                       'reactome2py',
-                      'requests==2.22.0',
+                      'requests',
                       'responses==0.10.12',
                       'tqdm',
-                      'urllib3<1.26'],
+                      'urllib3'],
     extras_require=extras,
 )
