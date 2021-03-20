@@ -30,31 +30,26 @@ from pkt_kg.utils import *
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
 # logging
-log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+log_dir, f_log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
 try:
     if not os.path.exists(log_dir): os.mkdir(log_dir)
 except FileNotFoundError:
     log_dir, log_config = '../builds/logs', glob.glob('../builds/logging.ini', recursive=True)
     if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
-logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + f_log})
 
 
 class KGBuilder(object):
-    """Class creates a semantic knowledge graph (KG). The class is designed to facilitate two KG construction
-    approaches and three build types. The class handles two types of construction approaches and three types of builds:
-      - Two Construction Approaches: (1) Instance-based: Adds edge data that is not from an ontology by connecting
-        each non-ontology data node to an instances of existing ontology class; and (2) Subclass-based: Adds edge data
-        that is not from an ontology by connecting each non-ontology data node to an existing ontology class.
-      - Three Build Types: (1) Full: Runs all build steps in the algorithm; (2) Partial: Runs all of the build steps
-        through adding new edges. Designed for running a reasoner; and (3) Post-Closure: Runs the remaining build steps
-        over a closed knowledge graph.
+    """Class creates a semantic knowledge graph. The class currently facilitates two construction approaches and three
+    build types. The current construction approaches are Instance-based and Subclass-based. The three build types are
+    (1) Full (i.e. runs all build steps in the algorithm); (2) Partial (i.e. runs all of the build steps through
+    adding new edges); and (3) Post-Closure: Runs the remaining build steps over a closed knowledge graph.
 
     Attributes:
-        construction: A string that indicates what type of construction approach to use (i.e. instance or subclass).
-        node_data: A string containing "yes" or "no" indicating whether or not to add node data to the knowledge graph.
-        inverse_relations: A string containing "yes" or "no" indicating whether or not to add inverse relations to the
-            knowledge graph.
+        construction: A string indicating the construction approach (i.e. instance or subclass).
+        node_data: A string ("yes" or "no") indicating whether or not to add node data to the knowledge graph.
+        inverse_relations: A string ("yes" or "no") indicating whether or not to add inverse edge relations.
         decode_owl: A string containing "yes" or "no" indicating whether owl semantics should be removed.
         write_location: An optional string passed to specify the primary directory to write to.
 
@@ -86,39 +81,33 @@ class KGBuilder(object):
         self.merged_ont_kg: str = self.write_location + '/PheKnowLator_MergedOntologies.owl'
 
         # ONTOLOGIES DATA DIRECTORY
-        ontologies = glob.glob(self.res_dir + '/ontologies/*.owl')
+        onts = glob.glob(self.res_dir + '/ontologies/*.owl')
         if not os.path.exists(self.res_dir + '/ontologies'):
-            log_str = "Can't find 'ontologies/' directory"; logger.error("OSError: " + log_str); raise OSError(log_str)
-        elif len(ontologies) == 0:
-            log_str = 'Ontologies directory is empty'; logger.error('TypeError: ' + log_str); raise TypeError(log_str)
-        else: self.ontologies: List[str] = ontologies
+            log = "Can't find 'ontologies/' directory"; logger.error("OSError: " + log); raise OSError(log)
+        elif len(onts) == 0: log = 'Ontologies dir is empty'; logger.error('TypeError: ' + log); raise TypeError(log)
+        else: self.ontologies: List[str] = onts
 
         # CONSTRUCTION APPROACH
         const = construction.lower() if isinstance(construction, str) else str(construction).lower()
         if const not in ['subclass', 'instance']:
-            log_str = 'Construction must be "instance" or "subclass"'; logger.error('ValueError: ' + log_str)
-            raise ValueError(log_str)
+            log = 'construction not "instance" or "subclass"'; logger.error('ValueError: ' + log); raise ValueError(log)
         else: self.construct_approach: str = const
 
         # GRAPH EDGE DATA
         edge_data = self.res_dir + '/Master_Edge_List_Dict.json'
         if not os.path.exists(edge_data):
-            log_str = '{} file does not exist!'.format(edge_data); logger.error('OSError: ' + log_str)
-            raise OSError(log_str)
+            log = '{} file does not exist!'.format(edge_data); logger.error('OSError: ' + log); raise OSError(log)
         elif os.stat(edge_data).st_size == 0:
-            log_str = 'The input file {} is empty'.format(edge_data); logger.error('TypeError: ' + log_str)
-            raise TypeError(log_str)
+            log = '{} is empty'.format(edge_data); logger.error('TypeError: ' + log); raise TypeError(log)
         else:
             with(open(edge_data, 'r')) as _file: self.edge_dict: Dict = json.load(_file)
 
         # RELATIONS DATA
         inv, rel_dir = str(inverse_relations).lower(), glob.glob(self.res_dir + '/relations_data/*.txt')
         if inv not in ['yes', 'no']:
-            log_str = 'inverse_relations must be "no" or "yes"'; logger.error('ValueError: ' + log_str)
-            raise ValueError(log_str)
+            log = 'inverse_relations not "no" or "yes"'; logger.error('ValueError: ' + log); raise ValueError(log)
         elif len(rel_dir) == 0:
-            log_str = 'relations_data directory is empty'; logger.error('TypeError: ' + log_str)
-            raise TypeError(log_str)
+            log = 'relations_data dir is empty'; logger.error('TypeError: ' + log); raise TypeError(log)
         elif inv == 'yes':
             self.inverse_relations: Optional[List] = rel_dir; self.inverse_relations_dict: Optional[Dict] = {}
             rel = '_inverseRelations'
@@ -127,9 +116,9 @@ class KGBuilder(object):
         # NODE METADATA
         node_data, node_dir = str(node_data).lower(), glob.glob(self.res_dir + '/node_data/*.pkl')
         if node_data not in ['yes', 'no']:
-            log_str = 'node_data not "no" or "yes"'; logger.error('ValueError: ' + log_str); raise ValueError(log_str)
+            log = 'node_data not "no" or "yes"'; logger.error('ValueError: ' + log); raise ValueError(log)
         elif node_data == 'yes' and len(node_dir) == 0:
-            log_str = 'node_data directory is empty'; logger.error('TypeError: ' + log_str); raise TypeError(log_str)
+            log = 'node_data dir is empty'; logger.error('TypeError: ' + log); raise TypeError(log)
         elif node_data == 'yes' and len(node_dir) != 0:
             self.node_data: Optional[List] = node_dir; self.node_dict: Optional[Dict] = dict()
         else: self.node_data, self.node_dict = None, None
@@ -137,18 +126,16 @@ class KGBuilder(object):
         # OWL SEMANTICS
         decode_owl = str(decode_owl).lower()
         if decode_owl not in ['yes', 'no']:
-            log_str = 'decode_semantics not "no" or "yes"'; logger.error('ValueError: ' + log_str)
-            raise ValueError(log_str)
-        elif decode_owl == 'yes':
-            self.decode_owl: Optional[str] = decode_owl; owl_kg = '_noOWL'
+            log = 'decode_semantics not "no" or "yes"'; logger.error('ValueError: ' + log); raise ValueError(log)
+        elif decode_owl == 'yes': self.decode_owl: Optional[str] = decode_owl; owl_kg = '_noOWL'
         else: self.decode_owl, owl_kg = None, '_OWL'
 
         # KG FILE NAME
         self.full_kg: str = '/PheKnowLator_' + self.kg_version + '_' + self.build + '_' + const + rel + owl_kg + '.owl'
 
     def reverse_relation_processor(self) -> None:
-        """Creates and converts a Pandas DataFrame to a specific dictionary depending on whether it contains
-        inverse relation data or relation data identifiers and labels. Examples of each dictionary are provided below:
+        """Creates and converts a Pandas DataFrame to a specific dictionary depending on whether it contains inverse
+        relation data or relation data identifiers and labels. Examples of each dictionary are provided below:
             relations_dict: {'RO_0002551': 'has skeleton', 'RO_0002442': 'mutualistically interacts with}
             inverse_relations_dict: {'RO_0000056': 'RO_0000057', 'RO_0000079': 'RO_0000085'}
 
@@ -167,8 +154,7 @@ class KGBuilder(object):
         return None
 
     def verifies_object_property(self, object_property: URIRef) -> None:
-        """Takes a string that contains an object property, representing a relation between two nodes, and adds it to
-        the knowledge graph.
+        """Adds an object property to a knowledge graph.
 
         Args:
             object_property: A string containing an obo ontology object property.
@@ -181,8 +167,7 @@ class KGBuilder(object):
         """
 
         if not isinstance(object_property, URIRef):
-            log_str = 'object_property must be type rdflib.term.URIRef'; logger.error('TypeError: ' + log_str)
-            raise TypeError(log_str)
+            log = 'object_property not rdflib.term.URIRef'; logger.error('TypeError: ' + log); raise TypeError(log)
         else:
             if object_property not in self.obj_properties:
                 self.graph.add((object_property, RDF.type, OWL.ObjectProperty))
@@ -207,53 +192,45 @@ class KGBuilder(object):
             False - if the edge contains at least 1 ontology class that is not present in the knowledge graph.
         """
 
-        if edge_info['n1'] != 'class' and edge_info['n2'] != 'class': class_found = True
+        if edge_info['n1'] != 'class' and edge_info['n2'] != 'class': return True
         elif edge_info['n1'] == 'class' and edge_info['n2'] == 'class':
             n1, n2 = URIRef(obo + edge_info['edges'][0]), URIRef(obo + edge_info['edges'][1])
-            class_found = n1 in self.ont_classes and n2 in self.ont_classes
-        else: class_found = URIRef(finds_node_type(edge_info)['cls1']) in self.ont_classes
-
-        return class_found
+            return n1 in self.ont_classes and n2 in self.ont_classes
+        else: return URIRef(finds_node_type(edge_info)['cls1']) in self.ont_classes
 
     def checks_for_inverse_relations(self, relation: str, edge_list: Union[List, Set]) -> Optional[str]:
-        """Checks a relation to determine whether or not edges for an inverse relation should be created and added to
-        the knowledge graph. The function also verifies that input relation and its inverse (if it exists) are both an
-        existing owl:ObjectProperty in the knowledge graph.
+        """Determines whether or not an inverse relation should be created and added to the graph and verifies that a
+        relation and its inverse (if it exists) are both an existing owl:ObjectProperty in the graph.
 
         Args:
             relation: A string that contains the relation assigned to edge in resource_info.txt (e.g. 'RO_0000056').
             edge_list: A list or set of knowledge graph edges. For example: {["8837", "4283"], ["8837", "839"]}
 
         Returns:
-            inverse_rel: A string containing an ontology identifier (e.g. "RO_0000056) or None.
-                The value depends on a set of conditions:
-                    - inverse relation, if the stored relation has an inverse relation in inverse_relations
-                    - current relation, if the stored relation string includes 'interact' and there is an equal count of
-                      each node type (i.e., this is checking for symmetry in interaction-based edge types)
-                    - None, assuming the prior listed conditions are not met
+            A string containing an ontology identifier (e.g. "RO_0000056) or None. Value depends on:
+                - inverse relation, if the stored relation has an inverse relation
+                - current relation, if the stored relation is an interaction and the edge count is symmetric
+                - None, assuming the prior listed conditions are not met
         """
 
         edge_list = set(tuple(x) for x in edge_list) if isinstance(edge_list, List) else edge_list
         if self.inverse_relations is not None:
             if self.inverse_relations_dict is not None and relation in self.inverse_relations_dict.keys():
                 self.verifies_object_property(URIRef(obo + self.inverse_relations_dict[relation]))
-                inverse_rel = self.inverse_relations_dict[relation]
+                return self.inverse_relations_dict[relation]
             elif relation in self.relations_dict.keys() and 'interact' in self.relations_dict[relation]:
-                inverse_rel = None if len([x for x in edge_list if x[-1::-1] not in edge_list]) == 0 else relation
-            else: inverse_rel = None
-        else: inverse_rel = None
-
-        return inverse_rel
+                return None if len([x for x in edge_list if x[-1::-1] not in edge_list]) == 0 else relation
+            else: return None
+        else: return None
 
     @staticmethod
     def gets_edge_statistics(edge_type: str, results: Set, entity_info: List) -> None:
-        """Calculates the number of nodes and edges created from the build process.
+        """Calculates the number of nodes and edges involved in constructing an edge type.
 
         Args:
             edge_type: A string point to a specific edge type (e.g. 'chemical-disease).
             results: A set of tuples representing the complete set of triples generated from the construction process.
-            entity_info: A list of three items. Items 1-2 are sets of tuples containing the raw node identifiers and
-                item 3 is an integer representing the total count of non-OWL edges.
+            entity_info: 3 items: 1-2 are sets of node tuples and 3 is the total count of non-OWL edges.
 
         Returns:
             None
