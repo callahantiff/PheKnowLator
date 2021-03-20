@@ -77,6 +77,7 @@ setup(
                       'numpy>=1.18.1',
                       'openpyxl>=3.0.3',
                       'pandas>=1.0.5',
+                      'psutil',
                       'python-json-logger',
                       'ray',
                       'rdflib',
