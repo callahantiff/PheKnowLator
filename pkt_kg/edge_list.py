@@ -382,7 +382,7 @@ class CreatesEdgeList(object):
         return None
 
     @staticmethod
-    def constructs_edge_list(source_file: str, data_files: str, cpus: int = 1) -> None:
+    def constructs_edge_list(source_file: str, data_files: Dict, cpus: int = 1) -> None:
         """Method facilitates the parallel processing, using whatever cpus are available, of the master edge list
         construction.
 
@@ -397,13 +397,13 @@ class CreatesEdgeList(object):
 
         logger.info('*' * 10 + 'PKT STEP: GENERATING KNOWLEDGE GRAPH MASTER EDGE LIST' + '*' * 10)
 
-        actors = [ray.remote(CreatesEdgeList).remote(data_files, source_file) for _ in range(cpus)]
-        edge_types = [x for x in data_files.keys() if '-' in x]  # type: ignore
+        actors = [ray.remote(CreatesEdgeList).remote(data_files, source_file) for _ in range(cpus)]  # type: ignore
+        edge_types = [x for x in data_files.keys() if '-' in x]
         for i in range(0, len(edge_types)):
             actors[i % cpus].creates_knowledge_graph_edges.remote(edge_types[i])  # type: ignore
 
         # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
-        results = ray.get([edge.gets_source_info.remote() for edge in actors]); del actors  # clean up actors
+        results = ray.get([x.gets_source_info.remote() for x in actors]); del actors  # type: ignore
         actor_result_dicts = [{k: v for k, v in x.items() if len(v['edge_list']) > 0} for x in results]
         with open('/'.join(source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:
             json.dump(dict(ChainMap(*actor_result_dicts)), filepath)
