@@ -157,13 +157,13 @@ class TestKGConstructionApproach(unittest.TestCase):
         """Tests the maps_node_to_class method"""
 
         # test when entity in subclass_dict
-        result = self.kg_builder.maps_node_to_class('gene-phenotype', '2', ['2', 'HP_0002511'])
+        result = self.kg_builder.maps_node_to_class('gene-phenotype', '2')
         self.assertEqual(['SO_0001217'], result)
 
         # test when entity not in subclass_dict
         # update subclass dict to remove an entry
         del self.kg_builder.subclass_dict['2']
-        result = self.kg_builder.maps_node_to_class('gene-phenotype', '2', ['2', 'HP_0002511'])
+        result = self.kg_builder.maps_node_to_class('gene-phenotype', '2')
         self.assertEqual(None, result)
 
         return None
