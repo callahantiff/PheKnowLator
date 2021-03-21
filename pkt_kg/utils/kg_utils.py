@@ -453,6 +453,7 @@ def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode
          updated_graph: An RDFLib Graph object with updated BNodes.
     """
 
+    print('*** Adding Namespace to BNodes ***')
     print('Processing Original Nodes')
     all_triples = set(graph)
     sub_only_bnodes_org = {x for x in graph if isinstance(x[0], BNode) and not isinstance(x[2], BNode)}
@@ -485,6 +486,7 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
         updated_graph: An RDFLib Graph object with bnode namespaces removed.
     """
 
+    print('*** Removing Namespace from BNodes ***')
     print('Processing Original Nodes')
     ns_uri = str(ns) if isinstance(ns, Namespace) else ns
     all_triples = set(graph)
@@ -524,10 +526,9 @@ def splits_knowledge_graph(graph: Graph, graph_output: bool = False) -> Tuple[Gr
             assertions.
     """
 
-    print('Creating Logic and Annotation Subsets of Graph')
-
     graph = adds_namespace_to_bnodes(graph)
 
+    print('Creating Logic and Annotation Subsets of Graph')
     # get information needed to find annotation assertions
     annot_props = set([x for x in graph.subjects(RDF.type, OWL.AnnotationProperty) if x != RDF.type])
     core_annot_props = {OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget}
