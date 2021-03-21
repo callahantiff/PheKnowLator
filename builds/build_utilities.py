@@ -5,6 +5,7 @@
 import fnmatch
 import os
 
+from google.api_core.exceptions import GoogleAPICallError  # type: ignore
 from google.cloud import storage  # type: ignore
 
 
@@ -65,7 +66,6 @@ def downloads_data_from_gcs_bucket(bucket, original_data, processed_data, filena
                 if not os.path.exists(data_file):  # only download if file has not yet been downloaded
                     bucket.blob(org_file).download_to_filename(temp_directory + '/' + org_file.split('/')[-1])
             except IndexError:
-                logger.error('Cannot find {} in the GCS directories of the current build'.format(filename))
                 raise ValueError('Cannot find {} in the GCS directories of the current build'.format(filename))
         return data_file
     else: return None
@@ -110,22 +110,33 @@ def deletes_bucket_files(bucket, gcs_directory):
     return None
 
 
-def copies_data_between_gcs_bucket_directories(bucket, source_directory, destination_directory, source_data_files):
-    """Method copies files between Google Cloud Storage bucket directories.
+def copies_data_between_gcs_bucket_directories(bucket, src_directory, dest_directory, src_data_files):
+    """Method copies files between Google Cloud Storage bucket directories. Method initially tries to copy data using
+    copy.blob, but if the timeout threshold is reached it switches to using the blob.rewrite method, the recommended
+    method to use when copying large files.
+
+    SOURCE: https://stackoverflow.com/questions/60658799/gcp-python-copy-large-files-between-buckets
 
     Args:
         bucket: A storage bucket object specifying a Google Cloud Storage bucket.
-        source_directory: A Google CLoud Storage Bucket directory to copy from.
-        destination_directory: A Google CLoud Storage Bucket directory to copy to.
-        source_data_files: A list of Google Cloud Storage Bucket paths, including filenames that need to be copied.
+        src_directory: A Google CLoud Storage Bucket directory to copy from.
+        dest_directory: A Google Cloud Storage Bucket directory to copy to.
+        src_data_files: A list of Google Cloud Storage Bucket paths, including filenames that need to be copied.
 
     Returns:
         None.
     """
 
-    for data_file in source_data_files:
-        source_data_file = bucket.blob(source_directory + data_file)
-        destination_data_file = destination_directory + data_file
-        _ = bucket.copy_blob(source_data_file, bucket, destination_data_file)
+    for data_file in src_data_files:
+        try:
+            src_blob = bucket.blob(src_directory + data_file); dest_blob = dest_directory + data_file
+            _ = bucket.copy_blob(src_blob, bucket, dest_blob)
+        except GoogleAPICallError:
+            src_blob = bucket.get_blob(src_directory + data_file); dest_blob = bucket.blob(dest_directory + data_file)
+            dest_blob.rewrite(src_blob); rewrite_token = False
+            while True:
+                rewrite_token, bytes_rewritten, bytes_to_rewrite = dest_blob.rewrite(src_blob, token=rewrite_token)
+                logs = 'Progress {}: {}/{} bytes.'.format(data_file, bytes_rewritten, bytes_to_rewrite); print(logs)
+                if not rewrite_token: break
 
     return None
