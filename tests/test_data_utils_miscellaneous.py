@@ -80,6 +80,40 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         return None
 
+    def test_deduplicates_file_content(self):
+        """Tests the deduplicates_file_content method."""
+
+        data_dir = os.path.dirname(__file__)
+        src_filepath = data_dir + '/data/test_file.nt'
+        dest_filepath = data_dir + '/data/test_file_cleaned.nt'
+        deduplicates_file_content(src_filepath, dest_filepath)
+
+        # test method
+        with open(dest_filepath) as f: data = f.readlines()
+        self.assertTrue(len(data) == 4)
+
+        # clean up environment
+        if os.path.exists(dest_filepath): os.remove(dest_filepath)
+
+        return None
+
+    def test_deduplicates_file_content_only_src(self):
+        """Tests the deduplicates_file_content method when a destination location is not provided."""
+
+        data_dir = os.path.dirname(__file__)
+        src_filepath = data_dir + '/data/test_file_2.nt'
+        shutil.copy(data_dir + '/data/test_file.nt', src_filepath)
+        deduplicates_file_content(src_filepath)
+
+        # test method
+        with open(src_filepath) as f: data = f.readlines()
+        self.assertTrue(len(data) == 4)
+
+        # clean up environment
+        if os.path.exists(src_filepath): os.remove(src_filepath)
+
+        return None
+
     def tearDown(self):
 
         # remove temp directory

@@ -627,26 +627,6 @@ def n3(node: Union[URIRef, BNode, Literal]) -> str:
     return serialized_node
 
 
-def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep: str) -> None:
-    """Method adds data to the end of an existing file. Assumes that it is adding data to the end of a n-triples file.
-
-    Args:
-        edges: A list or set of tuple, where each tuple is a triple. Or an RDFLib Graph object.
-        filepath: A string specifying a path to an existing file.
-        sep: A string containing a separator (e.g. '\t', ',').
-
-    Returns:
-        None.
-    """
-
-    with open(filepath, 'a', newline='') as out:
-        for edge in edges:
-            out.write(n3(edge[0]) + sep + n3(edge[1]) + sep + n3(edge[2]) + ' .\n')
-    out.close()
-
-    return None
-
-
 def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:
     """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally. Each node is provided a
     key that is the URI identifier and each edge is given a key which is an md5 hash of the triple and a weight of
@@ -691,5 +671,25 @@ def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph
     # pickle networkx graph
     print('Pickling MultiDiGraph')
     nx.write_gpickle(nx_mdg, write_location + full_kg + '_NetworkxMultiDiGraph.gpickle'); del nx_mdg
+
+    return None
+
+
+def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep: str = ' ') -> None:
+    """Method adds data to the end of an existing file. Assumes that it is adding data to the end of a n-triples file.
+
+    Args:
+        edges: A list or set of tuple, where each tuple is a triple. Or an RDFLib Graph object.
+        filepath: A string specifying a path to an existing file.
+        sep: A string containing a separator e.g. '\t', ',' (default=' ').
+
+    Returns:
+        None.
+    """
+
+    with open(filepath, 'a', newline='') as out:
+        for edge in edges:
+            out.write(n3(edge[0]) + sep + n3(edge[1]) + sep + n3(edge[2]) + ' .\n')
+    out.close()
 
     return None
