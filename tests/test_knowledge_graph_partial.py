@@ -5,6 +5,7 @@ import os
 import os.path
 import pandas
 import pickle
+import ray
 import shutil
 import unittest
 
@@ -101,7 +102,7 @@ class TestPartialBuild(unittest.TestCase):
         self.write_location = self.dir_loc_resources + '/knowledge_graphs'
 
         # instantiate class
-        self.kg = PartialBuild('subclass', 'yes', 'yes', 'yes', self.write_location)
+        self.kg = PartialBuild('subclass', 'yes', 'yes', 'yes', 1, self.write_location)
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
@@ -123,12 +124,11 @@ class TestPartialBuild(unittest.TestCase):
         """Tests the construct_knowledge_graph method."""
 
         # test out the build
+        ray.init(local_mode=True)
         self.kg.construct_knowledge_graph()
         full_kg_owl = self.kg.full_kg.replace('noOWL', 'OWL') if self.kg.decode_owl == 'yes' else self.kg.full_kg
 
         # check for output files
-        f_name = full_kg_owl[:-4] + '_LogicOnly.owl'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '.nt'
