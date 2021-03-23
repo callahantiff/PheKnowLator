@@ -99,11 +99,19 @@ class TestOwlNets(unittest.TestCase):
 
         # verify input graph object - when wrong data type
         self.assertRaises(TypeError, OwlNets,
-                          kg_construct_approach='subclass', graph=list(),
+                          kg_construct_approach='subclass', graph=1,
                           write_location=self.write_location, filename=self.kg_filename)
 
         # verify input graph object - when graph file is empty
-        self.assertRaises(ValueError, OwlNets, kg_construct_approach='subclass', graph=Graph(),
+        self.assertRaises(ValueError, OwlNets,
+                          kg_construct_approach='subclass', graph=list(),
+                          write_location=self.write_location, filename=self.kg_filename)
+        self.assertRaises(ValueError, OwlNets, kg_construct_approach='subclass', graph=[],
+                          write_location=self.write_location, filename=self.kg_filename)
+
+        # verify input graph object points to a file that does not exist
+        self.assertRaises(OSError, OwlNets, kg_construct_approach='subclass',
+                          graph=self.dir_loc_resources + '/knowledge_graphs/so_with_import_FAKE.owl',
                           write_location=self.write_location, filename=self.kg_filename)
 
         return None
@@ -656,7 +664,7 @@ class TestOwlNets(unittest.TestCase):
         """Tests the write_out_results method."""
 
         self.owl_nets.kg_construct_approach = None
-        owl_nets_graph = self.owl_nets.run_owl_nets()
+        owl_nets_graph = self.owl_nets.owl_nets()
         self.assertIsInstance(owl_nets_graph, Tuple)
         self.assertIsInstance(owl_nets_graph[0], Set)
         self.assertEqual(owl_nets_graph[1], None)
@@ -671,10 +679,10 @@ class TestOwlNets(unittest.TestCase):
         return None
 
     def test_write_out_results_subclass_purified(self):
-        """Tests the run_owl_nets method."""
+        """Tests the owl_nets method."""
 
         self.owl_nets.kg_construct_approach = "subclass"
-        owl_nets_graph = self.owl_nets.run_owl_nets()
+        owl_nets_graph = self.owl_nets.owl_nets()
         self.assertIsInstance(owl_nets_graph, Tuple)
         self.assertIsInstance(owl_nets_graph[0], Set)
         self.assertIsInstance(owl_nets_graph[1], Set)
@@ -698,9 +706,9 @@ class TestOwlNets(unittest.TestCase):
         return None
 
     def test_write_out_results_instance_purified(self):
-        """Tests the run_owl_nets method."""
+        """Tests the owl_nets method."""
 
-        owl_nets_graph = self.owl_nets2.run_owl_nets()
+        owl_nets_graph = self.owl_nets2.owl_nets()
         self.assertIsInstance(owl_nets_graph, Tuple)
         self.assertIsInstance(owl_nets_graph[0], Set)
         self.assertIsInstance(owl_nets_graph[1], Set)
