@@ -539,12 +539,12 @@ class TestKGBuilder(unittest.TestCase):
         edges = [x for x in self.kg_subclass.edge_dict.keys()]
         ray.init(local_mode=True, ignore_reinit_error=True)
         actors = [ray.remote(self.kg_subclass.EdgeConstructor).remote(args) for _ in range(self.kg_subclass.cpus)]
-        for i in range(0, len(edges)): actors[i % self.kg_subclass.cpus].creates_new_edges.remote([edges[i]])
+        for i in range(0, len(edges)): actors[i % self.kg_subclass.cpus].creates_new_edges.remote(edges[i])
         graphs = [self.kg_subclass.graph] + ray.get([x.graph_getter.remote() for x in actors])
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
 
         # check that edges were added to the graph
-        self.kg_subclass.graph = graphs[0] + graphs[1]
+        self.kg_subclass.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_subclass.graph) > 0)
         self.assertEqual(len(self.kg_subclass.graph), 9796)
         self.assertIsInstance(error_dicts, Dict)
@@ -585,12 +585,12 @@ class TestKGBuilder(unittest.TestCase):
         edges = [x for x in self.kg_subclass.edge_dict.keys()]
         ray.init(local_mode=True, ignore_reinit_error=True)
         actors = [ray.remote(self.kg_subclass.EdgeConstructor).remote(args) for _ in range(self.kg_subclass.cpus)]
-        for i in range(0, len(edges)): actors[i % self.kg_subclass.cpus].creates_new_edges.remote([edges[i]])
+        for i in range(0, len(edges)): actors[i % self.kg_subclass.cpus].creates_new_edges.remote(edges[i])
         graphs = [self.kg_subclass.graph] + ray.get([x.graph_getter.remote() for x in actors])
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
 
         # check that edges were added to the graph
-        self.kg_subclass.graph = graphs[0] + graphs[1]
+        self.kg_subclass.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_subclass.graph) > 0)
         self.assertEqual(len(self.kg_subclass.graph), 9784)
         self.assertIsInstance(error_dicts, Dict)
@@ -654,12 +654,12 @@ class TestKGBuilder(unittest.TestCase):
         edges = [x for x in self.kg_instance.edge_dict.keys()]
         ray.init(local_mode=True, ignore_reinit_error=True)
         actors = [ray.remote(self.kg_instance.EdgeConstructor).remote(args) for _ in range(self.kg_instance.cpus)]
-        for i in range(0, len(edges)): actors[i % self.kg_instance.cpus].creates_new_edges.remote([edges[i]])
+        for i in range(0, len(edges)): actors[i % self.kg_instance.cpus].creates_new_edges.remote(edges[i])
         graphs = [self.kg_instance.graph] + ray.get([x.graph_getter.remote() for x in actors])
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
 
         # check that edges were added to the graph
-        self.kg_instance.graph = graphs[0] + graphs[1]
+        self.kg_instance.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_instance.graph) > 0)
         self.assertEqual(len(self.kg_instance.graph), 57)
         self.assertIsInstance(error_dicts, Dict)
@@ -701,12 +701,12 @@ class TestKGBuilder(unittest.TestCase):
         edges = [x for x in self.kg_instance2.edge_dict.keys()]
         ray.init(local_mode=True, ignore_reinit_error=True)
         actors = [ray.remote(self.kg_instance2.EdgeConstructor).remote(args) for _ in range(self.kg_instance2.cpus)]
-        for i in range(0, len(edges)): actors[i % self.kg_instance2.cpus].creates_new_edges.remote([edges[i]])
+        for i in range(0, len(edges)): actors[i % self.kg_instance2.cpus].creates_new_edges.remote(edges[i])
         graphs = [self.kg_instance2.graph] + ray.get([x.graph_getter.remote() for x in actors])
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
 
         # check that edges were added to the graph
-        self.kg_instance2.graph = graphs[0] + graphs[1]
+        self.kg_instance2.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_instance2.graph) > 0)
         self.assertEqual(len(self.kg_instance2.graph), 64)
         self.assertIsInstance(error_dicts, Dict)
@@ -744,7 +744,7 @@ class TestKGBuilder(unittest.TestCase):
         edges = [x for x in self.kg_subclass.edge_dict.keys()]
         ray.init(local_mode=True, ignore_reinit_error=True)
         actors = [ray.remote(self.kg_subclass.EdgeConstructor).remote(args) for _ in range(self.kg_subclass.cpus)]
-        for i in range(0, len(edges)): actors[i % self.kg_subclass.cpus].creates_new_edges.remote([edges[i]])
+        for i in range(0, len(edges)): actors[i % self.kg_subclass.cpus].creates_new_edges.remote(edges[i])
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
 
         # check that log file was written out
