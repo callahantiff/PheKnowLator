@@ -382,7 +382,7 @@ class CreatesEdgeList(object):
         return None
 
     @staticmethod
-    def constructs_edge_list(source_file: str, data_files: Dict, cpus: int = 1) -> None:
+    def runs_creates_knowledge_graph_edges(source_file: str, data_files: Dict, cpus: int = 1) -> None:
         """Method facilitates the parallel processing, using whatever cpus are available, of the master edge list
         construction.
 

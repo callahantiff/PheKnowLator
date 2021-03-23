@@ -354,7 +354,9 @@ class TestCreatesEdgeList(unittest.TestCase):
 
         # test method
         ray.init(local_mode=True)
-        self.master_edge_list.constructs_edge_list(self.dir_loc + '/resource_info.txt', self.edge_data_files, cpus=1)
+        self.master_edge_list.runs_creates_knowledge_graph_edges(self.dir_loc + '/resource_info.txt',
+                                                                 self.edge_data_files,
+                                                                 cpus=1)
         ray.shutdown()
         self.assertTrue(os.path.exists(self.dir_loc + '/Master_Edge_List_Dict.json'))
 
