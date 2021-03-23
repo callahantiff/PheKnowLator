@@ -411,6 +411,8 @@ def deduplicates_file_content(src_filepath: str, dest_filepath: Optional[str] = 
          None.
     """
 
+    print('Depduplicating File: {}'.format(src_filepath))
+
     temp_data = None
     if dest_filepath is None:
         temp_data = '/'.join(src_filepath.split('/')[:-1]) + '/test.nt'
