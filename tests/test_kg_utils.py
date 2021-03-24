@@ -515,6 +515,20 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
+    def test_derives_graph_statistics_set(self):
+        """Tests the derives_graph_statistics method for list."""
+
+        # generate stats from existing ontology
+        graph = Graph().parse(self.dir_loc + '/so_with_imports.owl')
+
+        # test method
+        stats = derives_graph_statistics(set(graph))
+        expected_stats = 'Graph Stats: 42237 triples, 20277 nodes, 39 predicates, 2793 classes, 0 individuals, ' \
+                         '50 object props, 39 annotation props'
+        self.assertEqual(stats, expected_stats)
+
+        return None
+
     def test_derives_graph_statistics_nx(self):
         """Tests the derives_graph_statistics method for networkx multidigraph."""
 

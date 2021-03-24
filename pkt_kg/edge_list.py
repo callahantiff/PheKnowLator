@@ -405,7 +405,7 @@ class CreatesEdgeList(object):
             actors[i % cpus].creates_knowledge_graph_edges.remote(edge_types[i])  # type: ignore
 
         # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
-        _ = ray.wait([x.gets_source_info.remote() for x in actors], num_returns=len(actors))
+        _ = ray.wait([x.gets_source_info.remote() for x in actors], num_returns=len(actors))  # type: ignore
         results = ray.get([x.gets_source_info.remote() for x in actors]); del actors  # type: ignore
         actor_result_dicts = [{k: v for k, v in x.items() if len(v['edge_list']) > 0} for x in results]
         with open('/'.join(source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:
