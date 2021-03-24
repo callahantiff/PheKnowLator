@@ -397,12 +397,15 @@ class CreatesEdgeList(object):
 
         logger.info('*' * 10 + 'PKT STEP: GENERATING KNOWLEDGE GRAPH MASTER EDGE LIST' + '*' * 10)
 
+        try: ray.init()
+        except RuntimeError: pass
         actors = [ray.remote(CreatesEdgeList).remote(data_files, source_file) for _ in range(cpus)]  # type: ignore
         edge_types = [x for x in data_files.keys() if '-' in x]
         for i in range(0, len(edge_types)):
             actors[i % cpus].creates_knowledge_graph_edges.remote(edge_types[i])  # type: ignore
 
         # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
+        _ = ray.wait([x.gets_source_info.remote() for x in actors], num_returns=len(actors))
         results = ray.get([x.gets_source_info.remote() for x in actors]); del actors  # type: ignore
         actor_result_dicts = [{k: v for k, v in x.items() if len(v['edge_list']) > 0} for x in results]
         with open('/'.join(source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:
