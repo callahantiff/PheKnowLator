@@ -694,6 +694,7 @@ def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep:
         None.
     """
 
+    if not os.path.exists(filepath): os.system('touch {}'.format(filepath))
     with open(filepath, 'a', newline='') as out:
         for edge in edges:
             out.write(n3(edge[0]) + sep + n3(edge[1]) + sep + n3(edge[2]) + ' .\n')
