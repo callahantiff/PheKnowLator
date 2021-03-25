@@ -18,7 +18,7 @@ def main():
     parser = argparse.ArgumentParser(description=('PheKnowLator: This program builds a biomedical knowledge graph using'
                                                   ' Open Biomedical Ontologies and linked open data. The program takes '
                                                   'the following arguments:'))
-    parser.add_argument('-p', '--cpus', help='# workers to sue', default=None)
+    parser.add_argument('-p', '--cpus', help='# workers to use; defaults to use all available cores', default=None)
     parser.add_argument('-g', '--onts', help='name/path to text file containing ontologies', required=True)
     parser.add_argument('-e', '--edg', help='name/path to text file containing edge sources', required=True)
     parser.add_argument('-a', '--app', help='construction approach to use (i.e. instance or subclass)', required=True)
