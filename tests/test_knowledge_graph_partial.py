@@ -5,9 +5,9 @@ import os
 import os.path
 import pandas
 import pickle
-import ray
 import shutil
 import unittest
+import warnings
 
 
 from pkt_kg.knowledge_graph import PartialBuild
@@ -17,6 +17,8 @@ class TestPartialBuild(unittest.TestCase):
     """Class to test the partialBuild class from the knowledge graph script."""
 
     def setUp(self):
+        warnings.simplefilter('ignore', ResourceWarning)
+
         # initialize file location
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
@@ -124,7 +126,6 @@ class TestPartialBuild(unittest.TestCase):
         """Tests the construct_knowledge_graph method."""
 
         # test out the build
-        ray.init(local_mode=True)
         self.kg.construct_knowledge_graph()
         full_kg_owl = self.kg.full_kg.replace('noOWL', 'OWL') if self.kg.decode_owl == 'yes' else self.kg.full_kg
 
@@ -139,6 +140,7 @@ class TestPartialBuild(unittest.TestCase):
         return None
 
     def tearDown(self):
+        warnings.simplefilter('default', ResourceWarning)
 
         # remove resource directory
         shutil.rmtree(self.dir_loc_resources)

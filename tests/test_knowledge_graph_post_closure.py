@@ -5,9 +5,9 @@ import os
 import os.path
 import pandas
 import pickle
-import ray
 import shutil
 import unittest
+import warnings
 
 from rdflib import Graph
 from typing import Dict, List
@@ -19,6 +19,8 @@ class TestPostClosureBuild(unittest.TestCase):
     """Class to test the PostClosureBuild class from the knowledge graph script."""
 
     def setUp(self):
+        warnings.simplefilter('ignore', ResourceWarning)
+
         # initialize file location
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
@@ -169,6 +171,7 @@ class TestPostClosureBuild(unittest.TestCase):
         return None
 
     def tearDown(self):
+        warnings.simplefilter('default', ResourceWarning)
 
         # remove resource directory
         shutil.rmtree(self.dir_loc_resources)
