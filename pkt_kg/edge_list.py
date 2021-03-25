@@ -8,8 +8,10 @@ import json
 import logging.config
 import os
 import pandas as pd  # type: ignore
+import ray  # type: ignore
 import re
 
+from collections import ChainMap
 from difflib import SequenceMatcher
 from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, TextIO, Tuple, Union
@@ -26,7 +28,6 @@ logging.config.fileConfig(log_config[0], disable_existing_loggers=False, default
 
 # TODO:
 #  (1) using eval() to handle filtering of downloaded data, should consider replacing this in a future release.
-#  (2) modify data_reader to stream/chunk large data files
 
 
 class CreatesEdgeList(object):
@@ -64,8 +65,11 @@ class CreatesEdgeList(object):
                 self.source_info[key]['evidence_criteria'] = cols[9].strip('"').strip("'")
                 self.source_info[key]['filter_criteria'] = cols[10].strip('"').strip("'")
                 self.source_info[key]['edge_list'] = []
-
         source_file_data.close()
+
+    def gets_source_info(self):
+        """Getter method to return the source_info edge dict."""
+        return self.source_info
 
     @staticmethod
     def identify_header(file_path: str, delimiter: str, skip_rows: List[int]) -> Optional[int]:
@@ -140,40 +144,40 @@ class CreatesEdgeList(object):
 
             return fix_string
 
-    def filter_data(self, edge_data: pd.DataFrame, filter_criteria: str, evidence_criteria: str) -> pd.DataFrame:
+    def filter_data(self, df: pd.DataFrame, filter_criteria: str, evidence_criteria: str) -> pd.DataFrame:
         """Applies a set of filtering and/or evidence criteria to specific columns in a Pandas DataFrame and returns a
         filtered data frame.
 
         Args:
-            edge_data: A Pandas DataFrame.
+            df: A Pandas DataFrame.
             filter_criteria: A '::' delimited string; each delimited item is a set of filtering criteria.
             evidence_criteria: A '::' delimited string; each delimited item is a set of mapping criteria.
 
         Returns:
-            edge_data: A filtered Pandas DataFrame.
+            df: A filtered Pandas DataFrame.
 
         Raises:
             Exception: If the Pandas DataFrame does not contain at least 2 columns and more than 10 rows.
         """
 
-        if filter_criteria == 'None' and evidence_criteria == 'None': return edge_data
+        if filter_criteria == 'None' and evidence_criteria == 'None': return df
         else:  # fix known errors when filtering empty cells
             map_filter_criteria = self.filter_fixer(filter_criteria) + '::' + self.filter_fixer(evidence_criteria)
-            for crit in [x for x in map_filter_criteria.split('::') if x != 'None']:
-                # check if argument is to deduplicate data
+            criteria = [x for x in map_filter_criteria.split('::') if x != 'None']
+            for crit in criteria:
                 if crit.split(';')[1] == 'dedup':
-                    sort_col = list(edge_data)[int(crit.split(';')[0].split('-')[0])]
-                    filter_col = list(edge_data)[int(crit.split(';')[0].split('-')[1])]
+                    sort_col = list(df)[int(crit.split(';')[0].split('-')[0])]
+                    filter_col = list(df)[int(crit.split(';')[0].split('-')[1])]
                     sort_dir = [True if crit.split(';')[-1].lower() == 'asc' else False][0]
-                    edge_data.sort_values(sort_col, ascending=sort_dir, inplace=True)
-                    edge_data.drop_duplicates(subset=filter_col, keep='first', inplace=True)
+                    df.sort_values(sort_col, ascending=sort_dir, inplace=True)
+                    df.drop_duplicates(subset=filter_col, keep='first', inplace=True)
                 else:
-                    col = list(edge_data)[int(crit.split(';')[0])]
+                    col = list(df)[int(crit.split(';')[0])]
                     try:
                         if type(float(crit.split(';')[2])) is float or type(int(crit.split(';')[2])) is int:
-                            edge_data[col] = edge_data[col].apply(lambda x: 0 if x == 'None' else x)
-                            if type(float(crit.split(';')[2])) is float: edge_data[col] = edge_data[col].astype(float)
-                            else: edge_data[col] = edge_data[col].astype(int)
+                            df = df[df.loc[:, col].apply(lambda x: x != 'None')].copy()
+                            if type(float(crit.split(';')[2])) is float: df.loc[:, col] = df[col].astype(float)
+                            else: df.loc[:, col] = df[col].astype(int)
                             exp = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2])
                     except ValueError:
                         if crit.split(';')[2] == '' and '(' in crit.split(';')[1]:
@@ -182,9 +186,9 @@ class CreatesEdgeList(object):
                             exp = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
                         else:
                             exp = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
-                    edge_data = edge_data.loc[edge_data[col].apply(lambda x: eval(exp))]
+                    df = df[df.loc[:, col].apply(lambda x: eval(exp))].copy()
 
-            return edge_data
+            return df
 
     @staticmethod
     def data_reducer(cols: str, edge_data: pd.DataFrame) -> pd.DataFrame:
@@ -298,7 +302,6 @@ class CreatesEdgeList(object):
             edge_data = edge_data.astype(str)
             return tuple(zip(list(edge_data[list(edge_data)[0]]), list(edge_data[list(edge_data)[1]])))
         else:
-            # merge edge data with referenced mapping data
             maps = [self.data_merger(node, mapping_data, edge_data) for node in range(2)]
             # merge mapping data merge result DataFrames
             merged_cols = list(set(maps[0][1]).intersection(set(maps[1][1])))
@@ -310,7 +313,7 @@ class CreatesEdgeList(object):
 
             return tuple(zip(list(merged_data[maps[0][0]]), list(merged_data[maps[1][0]])))
 
-    def gets_entity_namespaces(self) -> None:
+    def gets_entity_namespaces(self, x: str) -> None:
         """Identifies namespaces for all non-ontology entities. This is achieved by adding an entity_namespace key to
         the source_info dictionary, which contains a sub-dictionary keyed by edge entity with it's associated URL as
         the value. For example:
@@ -319,26 +322,33 @@ class CreatesEdgeList(object):
                                                'rna': 'https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=',
                                                'variant': 'https://www.ncbi.nlm.nih.gov/snp/'}
 
+        Args:
+            x: A string containing an edge type (e.g. "gene-gene").
+
         Returns:
             None.
         """
 
-        self.source_info['entity_namespaces'] = {}
-        for key in [x for x in self.source_info.keys() if x != 'entity_namespaces']:
-            data_type, uri = self.source_info[key]['data_type'].split('-'), self.source_info[key]['uri']
-            if data_type != ['class', 'class']:
-                entities = [key.split('-')[data_type.index(x)] for x in data_type if x == 'entity']
-                namespaces = [uri[data_type.index(x)] for x in data_type if x == 'entity']
-                for x in zip(entities, namespaces):
-                    self.source_info['entity_namespaces'][x[0]] = x[1]
+        self.source_info[x]['entity_namespaces'] = {}
+        data_type, uri = self.source_info[x]['data_type'].split('-'), self.source_info[x]['uri']
+        if data_type != ['class', 'class']:
+            entities = [x.split('-')[data_type.index(i)] for i in data_type if i == 'entity']
+            namespaces = [uri[data_type.index(x)] for x in data_type if x == 'entity']
+            for i in zip(entities, namespaces): self.source_info[x]['entity_namespaces'][i[0]] = i[1]
+        else:
+            entities = x.split('-'); namespaces = self.source_info[x]['uri']
+            for i in zip(entities, namespaces): self.source_info[x]['entity_namespaces'][i[0]] = i[1]
 
         return None
 
-    def creates_knowledge_graph_edges(self) -> None:
+    def creates_knowledge_graph_edges(self, x: str) -> None:
         """Generates edge lists for each edge type in an input dictionary. In order to generate the edge list,
-        the function performs six steps: (1) read in data; (2) apply filtering and evidence criteria; (3) reduce data
-        to specific columns, remove duplicates, and ensure proper formatting of column data; (4) update node column
-        values; (5) rename nodes; and (6) map identifiers.
+        the function performs three steps: (1) read in data, apply filtering and evidence criteria, and reduce data
+        to specific columns, remove duplicates, and ensure proper formatting of column data; (2) update node column
+        values and rename nodes; and (3) map identifiers.
+
+        Args:
+            x: A string containing an edge type (e.g. "gene-gene").
 
         Returns:
             source_info: A dictionary that contains all of the master information for each edge type resource. For
@@ -349,51 +359,57 @@ class CreatesEdgeList(object):
                                                'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...]}}
         """
 
+        # STEP 1: Apply filtering/evidence criteria, reduce columns, remove duplicates, and ensure proper formatting
+        df = self.data_reader(self.data_files[x], self.source_info[x]['delimiter']); n1, n2 = x.split('-')
+        df = self.filter_data(df, self.source_info[x]['filter_criteria'], self.source_info[x]['evidence_criteria'])
+        df = self.data_reducer(self.source_info[x]['column_idx'], df)
+
+        # STEP 2: Update node column values and rename columns
+        df = self.label_formatter(df, self.source_info[x]['source_labels'])
+        df = df.rename(columns={list(df)[0]: str(list(df)[0]) + '-' + n1, list(df)[1]: str(list(df)[1]) + '-' + n2})
+
+        # STEP 3: Map identifiers and get namespace
+        mapped_data = self.process_mapping_data(self.source_info[x]['identifier_maps'], df)
+        self.source_info[x]['edge_list'] = [edge for edge in mapped_data if 'None' not in edge]
+        self.gets_entity_namespaces(x)
+
+        # print edge statistics
+        edges = self.source_info[x]['edge_list']
+        e = [list(y) for y in set([tuple(x) for x in edges])]; s, o = set([x[0] for x in e]), set([x[1] for x in e])
+        res = 'Finished Edge: {} ({} = {}, {} = {}); {} unique edges'.format(x, n1, len(s), n2, len(o), len(e))
+        print(res); logger.info(res)
+
+        return None
+
+    @staticmethod
+    def runs_creates_knowledge_graph_edges(source_file: str, data_files: Dict, cpus: int = 1) -> None:
+        """Method facilitates the parallel processing, using whatever cpus are available, of the master edge list
+        construction.
+
+        Args:
+            data_files: A list that contains the full file path and name of each downloaded data source.
+            source_file: A string containing the filepath to resource information.
+            cpus: An integer specifying the number of cores to use when processing the edge data (default=1).
+
+        Returns:
+             None.
+        """
+
         logger.info('*' * 10 + 'PKT STEP: GENERATING KNOWLEDGE GRAPH MASTER EDGE LIST' + '*' * 10)
 
-        for edge_type in tqdm(self.source_info.keys()):
-            log_str = '### Processing Edge: {}'.format(edge_type); print('\n\n' + log_str); logger.info(log_str)
+        try: ray.init()
+        except RuntimeError: pass
+        actors = [ray.remote(CreatesEdgeList).remote(data_files, source_file) for _ in range(cpus)]  # type: ignore
+        edge_types = [x for x in data_files.keys() if '-' in x]
+        for i in range(0, len(edge_types)):
+            actors[i % cpus].creates_knowledge_graph_edges.remote(edge_types[i])  # type: ignore
 
-            # STEP 1: Read Data
-            log_str = '*** Reading Edge Data ***'; print(log_str); logger.info(log_str)
-            edge_data = self.data_reader(self.data_files[edge_type], self.source_info[edge_type]['delimiter'])
-
-            # STEP 2: Apply Filtering and Evidence Criteria
-            log_str = '*** Applying Filtering/Mapping Criteria to Edge Data ***'; print(log_str); logger.info(log_str)
-            edge_data = self.filter_data(edge_data, self.source_info[edge_type]['filter_criteria'],
-                                         self.source_info[edge_type]['evidence_criteria'])
-
-            # STEP 3: reduce data to specific columns, remove duplicates, and ensure proper formatting of column data
-            edge_data = self.data_reducer(self.source_info[edge_type]['column_idx'], edge_data)
-
-            # STEP 4: Update Node Column Values
-            log_str = '*** Reformatting Node Values ***'; print(log_str); logger.info(log_str)
-            edge_data = self.label_formatter(edge_data, self.source_info[edge_type]['source_labels'])
-
-            # STEP 5: Rename Nodes
-            edge_data.rename(
-                columns={list(edge_data)[0]: str(list(edge_data)[0]) + '-' + edge_type.split('-')[0],
-                         list(edge_data)[1]: str(list(edge_data)[1]) + '-' + edge_type.split('-')[1]}, inplace=True)
-
-            # STEP 6: Map Identifiers
-            log_str = '*** Performing Identifier Mapping ***'; print(log_str); logger.info(log_str)
-            mapped_data = self.process_mapping_data(self.source_info[edge_type]['identifier_maps'], edge_data)
-            self.source_info[edge_type]['edge_list'] = [edge for edge in mapped_data if 'None' not in edge]
-
-            # print Edge Statistics
-            unique_edges = [list(y) for y in set([tuple(x) for x in self.source_info[edge_type]['edge_list']])]
-            unique_subjects, unique_objects = set([x[0] for x in unique_edges]), set([x[1] for x in unique_edges])
-            print('\nPROCESSED EDGE: {}'.format(edge_type))
-            print('{}: Unique Node Count = {}'.format(edge_type.split('-')[0], len(unique_subjects)))
-            print('{}: Unique Node Count = {}'.format(edge_type.split('-')[1], len(unique_objects)))
-            print('Total Unique Edge Count: {}'.format(len(unique_edges)))
-            res_string = 'Finished Edge: {} - ({} = {} unique nodes, {} = {} unique nodes) and {} unique edges'
-            logger.info(res_string.format(edge_type, edge_type.split('-')[0], len(unique_subjects),
-                        edge_type.split('-')[1], len(unique_objects), len(unique_edges)))
-
-        # add source entity namespaces and save a copy of the final master edge list
-        self.gets_entity_namespaces()
-        with open('/'.join(self.source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:
-            json.dump(self.source_info, filepath)
+        # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
+        _ = ray.wait([x.gets_source_info.remote() for x in actors], num_returns=len(actors))  # type: ignore
+        results = ray.get([x.gets_source_info.remote() for x in actors]); del actors  # type: ignore
+        actor_result_dicts = [{k: v for k, v in x.items() if len(v['edge_list']) > 0} for x in results]
+        with open('/'.join(source_file.split('/')[:-1]) + '/Master_Edge_List_Dict.json', 'w') as filepath:
+            json.dump(dict(ChainMap(*actor_result_dicts)), filepath)
+        filepath.close()
 
         return None

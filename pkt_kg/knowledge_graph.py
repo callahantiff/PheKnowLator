@@ -7,15 +7,17 @@ import glob
 import json
 import logging.config
 import networkx  # type: ignore
+import numpy as np  # type: ignore
 import os
 import os.path
 import pandas  # type: ignore
 import pickle
+import ray  # type: ignore
 import shutil
 import subprocess
 
 from abc import ABCMeta, abstractmethod
-from collections import Counter  # type: ignore
+from collections import ChainMap, Counter  # type: ignore
 from rdflib import Graph, Namespace, URIRef, BNode  # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
@@ -29,33 +31,30 @@ from pkt_kg.utils import *
 
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
+
 # logging
-log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
+log_dir, f_log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
 try:
     if not os.path.exists(log_dir): os.mkdir(log_dir)
 except FileNotFoundError:
     log_dir, log_config = '../builds/logs', glob.glob('../builds/logging.ini', recursive=True)
     if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
-logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
+logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + f_log})
 
 
 class KGBuilder(object):
-    """Class creates a semantic knowledge graph (KG). The class is designed to facilitate two KG construction
-    approaches and three build types. The class handles two types of construction approaches and three types of builds:
-      - Two Construction Approaches: (1) Instance-based: Adds edge data that is not from an ontology by connecting
-        each non-ontology data node to an instances of existing ontology class; and (2) Subclass-based: Adds edge data
-        that is not from an ontology by connecting each non-ontology data node to an existing ontology class.
-      - Three Build Types: (1) Full: Runs all build steps in the algorithm; (2) Partial: Runs all of the build steps
-        through adding new edges. Designed for running a reasoner; and (3) Post-Closure: Runs the remaining build steps
-        over a closed knowledge graph.
+    """Class creates a semantic knowledge graph. The class currently facilitates two construction approaches and three
+    build types. The current construction approaches are Instance-based and Subclass-based. The three build types are
+    (1) Full (i.e. runs all build steps in the algorithm); (2) Partial (i.e. runs all of the build steps through
+    adding new edges); and (3) Post-Closure: Runs the remaining build steps over a closed knowledge graph.
 
     Attributes:
-        construction: A string that indicates what type of construction approach to use (i.e. instance or subclass).
-        node_data: A string containing "yes" or "no" indicating whether or not to add node data to the knowledge graph.
-        inverse_relations: A string containing "yes" or "no" indicating whether or not to add inverse relations to the
-            knowledge graph.
+        construction: A string indicating the construction approach (i.e. instance or subclass).
+        node_data: A string ("yes" or "no") indicating whether or not to add node data to the knowledge graph.
+        inverse_relations: A string ("yes" or "no") indicating whether or not to add inverse edge relations.
         decode_owl: A string containing "yes" or "no" indicating whether owl semantics should be removed.
+        cpus: An integer indicating the number of workers to use.
         write_location: An optional string passed to specify the primary directory to write to.
 
     Raises:
@@ -71,9 +70,10 @@ class KGBuilder(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, construction: str, node_data: str, inverse_relations: str, decode_owl: str,
+    def __init__(self, construction: str, node_data: str, inverse_relations: str, decode_owl: str, cpus: int = 1,
                  write_location: str = os.path.abspath('./resources/knowledge_graphs')) -> None:
 
+        self.cpus: int = cpus
         self.build: str = self.gets_build_type().lower().split()[0]
         self.graph: Graph = Graph()
         self.kg_version: str = 'v' + __version__
@@ -85,40 +85,34 @@ class KGBuilder(object):
         self.res_dir: str = os.path.abspath('/'.join(self.write_location.split('/')[:-1]))
         self.merged_ont_kg: str = self.write_location + '/PheKnowLator_MergedOntologies.owl'
 
-        # ONTOLOGIES DATA DIRECTORY
-        ontologies = glob.glob(self.res_dir + '/ontologies/*.owl')
-        if not os.path.exists(self.res_dir + '/ontologies'):
-            log_str = "Can't find 'ontologies/' directory"; logger.error("OSError: " + log_str); raise OSError(log_str)
-        elif len(ontologies) == 0:
-            log_str = 'Ontologies directory is empty'; logger.error('TypeError: ' + log_str); raise TypeError(log_str)
-        else: self.ontologies: List[str] = ontologies
-
         # CONSTRUCTION APPROACH
         const = construction.lower() if isinstance(construction, str) else str(construction).lower()
         if const not in ['subclass', 'instance']:
-            log_str = 'Construction must be "instance" or "subclass"'; logger.error('ValueError: ' + log_str)
-            raise ValueError(log_str)
+            log = 'construction not "instance" or "subclass"'; logger.error('ValueError: ' + log); raise ValueError(log)
         else: self.construct_approach: str = const
+
+        # ONTOLOGIES DATA DIRECTORY
+        onts = glob.glob(self.res_dir + '/ontologies/*.owl')
+        if not os.path.exists(self.res_dir + '/ontologies'):
+            log = "Can't find 'ontologies/' directory"; logger.error("OSError: " + log); raise OSError(log)
+        elif len(onts) == 0: log = 'Ontologies dir is empty'; logger.error('TypeError: ' + log); raise TypeError(log)
+        else: self.ontologies: List[str] = onts
 
         # GRAPH EDGE DATA
         edge_data = self.res_dir + '/Master_Edge_List_Dict.json'
         if not os.path.exists(edge_data):
-            log_str = '{} file does not exist!'.format(edge_data); logger.error('OSError: ' + log_str)
-            raise OSError(log_str)
+            log = '{} file does not exist!'.format(edge_data); logger.error('OSError: ' + log); raise OSError(log)
         elif os.stat(edge_data).st_size == 0:
-            log_str = 'The input file {} is empty'.format(edge_data); logger.error('TypeError: ' + log_str)
-            raise TypeError(log_str)
+            log = '{} is empty'.format(edge_data); logger.error('TypeError: ' + log); raise TypeError(log)
         else:
             with(open(edge_data, 'r')) as _file: self.edge_dict: Dict = json.load(_file)
 
         # RELATIONS DATA
         inv, rel_dir = str(inverse_relations).lower(), glob.glob(self.res_dir + '/relations_data/*.txt')
         if inv not in ['yes', 'no']:
-            log_str = 'inverse_relations must be "no" or "yes"'; logger.error('ValueError: ' + log_str)
-            raise ValueError(log_str)
+            log = 'inverse_relations not "no" or "yes"'; logger.error('ValueError: ' + log); raise ValueError(log)
         elif len(rel_dir) == 0:
-            log_str = 'relations_data directory is empty'; logger.error('TypeError: ' + log_str)
-            raise TypeError(log_str)
+            log = 'relations_data dir is empty'; logger.error('TypeError: ' + log); raise TypeError(log)
         elif inv == 'yes':
             self.inverse_relations: Optional[List] = rel_dir; self.inverse_relations_dict: Optional[Dict] = {}
             rel = '_inverseRelations'
@@ -127,9 +121,9 @@ class KGBuilder(object):
         # NODE METADATA
         node_data, node_dir = str(node_data).lower(), glob.glob(self.res_dir + '/node_data/*.pkl')
         if node_data not in ['yes', 'no']:
-            log_str = 'node_data not "no" or "yes"'; logger.error('ValueError: ' + log_str); raise ValueError(log_str)
+            log = 'node_data not "no" or "yes"'; logger.error('ValueError: ' + log); raise ValueError(log)
         elif node_data == 'yes' and len(node_dir) == 0:
-            log_str = 'node_data directory is empty'; logger.error('TypeError: ' + log_str); raise TypeError(log_str)
+            log = 'node_data dir is empty'; logger.error('TypeError: ' + log); raise TypeError(log)
         elif node_data == 'yes' and len(node_dir) != 0:
             self.node_data: Optional[List] = node_dir; self.node_dict: Optional[Dict] = dict()
         else: self.node_data, self.node_dict = None, None
@@ -137,18 +131,16 @@ class KGBuilder(object):
         # OWL SEMANTICS
         decode_owl = str(decode_owl).lower()
         if decode_owl not in ['yes', 'no']:
-            log_str = 'decode_semantics not "no" or "yes"'; logger.error('ValueError: ' + log_str)
-            raise ValueError(log_str)
-        elif decode_owl == 'yes':
-            self.decode_owl: Optional[str] = decode_owl; owl_kg = '_noOWL'
+            log = 'decode_semantics not "no" or "yes"'; logger.error('ValueError: ' + log); raise ValueError(log)
+        elif decode_owl == 'yes': self.decode_owl: Optional[str] = decode_owl; owl_kg = '_noOWL'
         else: self.decode_owl, owl_kg = None, '_OWL'
 
         # KG FILE NAME
         self.full_kg: str = '/PheKnowLator_' + self.kg_version + '_' + self.build + '_' + const + rel + owl_kg + '.owl'
 
     def reverse_relation_processor(self) -> None:
-        """Creates and converts a Pandas DataFrame to a specific dictionary depending on whether it contains
-        inverse relation data or relation data identifiers and labels. Examples of each dictionary are provided below:
+        """Creates and converts a Pandas DataFrame to a specific dictionary depending on whether it contains inverse
+        relation data or relation data identifiers and labels. Examples of each dictionary are provided below:
             relations_dict: {'RO_0002551': 'has skeleton', 'RO_0002442': 'mutualistically interacts with}
             inverse_relations_dict: {'RO_0000056': 'RO_0000057', 'RO_0000079': 'RO_0000085'}
 
@@ -163,155 +155,6 @@ class KGBuilder(object):
                     rel_data = [x.strip('\n').split('\t') for x in f.readlines()[1:]]  # assumes header
                     if 'inverse' in data.lower(): self.inverse_relations_dict = {x[0]: x[1] for x in rel_data}
                     else: self.relations_dict = {x[1].split('/')[-1]: x[0] for x in rel_data}
-
-        return None
-
-    def verifies_object_property(self, object_property: URIRef) -> None:
-        """Takes a string that contains an object property, representing a relation between two nodes, and adds it to
-        the knowledge graph.
-
-        Args:
-            object_property: A string containing an obo ontology object property.
-
-        Returns:
-            None.
-
-        Raises:
-            TypeError: If the object_property is not type rdflib.term.URIRef
-        """
-
-        if not isinstance(object_property, URIRef):
-            log_str = 'object_property must be type rdflib.term.URIRef'; logger.error('TypeError: ' + log_str)
-            raise TypeError(log_str)
-        else:
-            if object_property not in self.obj_properties:
-                self.graph.add((object_property, RDF.type, OWL.ObjectProperty))
-                self.obj_properties = gets_object_properties(self.graph)  # refresh list of object properties
-            else:
-                pass
-
-        return None
-
-    def check_ontology_class_nodes(self, edge_info) -> bool:
-        """Determines whether or not an edge is safe to add to the knowledge graph by making sure that any ontology
-        class nodes are also present in the current list of classes from the merged ontologies knowledge graph.
-
-        Args:
-            edge_info: A dict of information needed to add edge to graph, for example:
-                {'n1': 'class', 'n2': 'class','rel': 'RO_0002606', 'inv_rel': 'RO_0002615',
-                 'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
-                 'edges': ['CHEBI_81395', 'DOID_12858']}
-
-        Returns:
-            True - if the class node is already in the knowledge graph.
-            False - if the edge contains at least 1 ontology class that is not present in the knowledge graph.
-        """
-
-        if edge_info['n1'] != 'class' and edge_info['n2'] != 'class': class_found = True
-        elif edge_info['n1'] == 'class' and edge_info['n2'] == 'class':
-            n1, n2 = URIRef(obo + edge_info['edges'][0]), URIRef(obo + edge_info['edges'][1])
-            class_found = n1 in self.ont_classes and n2 in self.ont_classes
-        else: class_found = URIRef(finds_node_type(edge_info)['cls1']) in self.ont_classes
-
-        return class_found
-
-    def checks_for_inverse_relations(self, relation: str, edge_list: Union[List, Set]) -> Optional[str]:
-        """Checks a relation to determine whether or not edges for an inverse relation should be created and added to
-        the knowledge graph. The function also verifies that input relation and its inverse (if it exists) are both an
-        existing owl:ObjectProperty in the knowledge graph.
-
-        Args:
-            relation: A string that contains the relation assigned to edge in resource_info.txt (e.g. 'RO_0000056').
-            edge_list: A list or set of knowledge graph edges. For example: {["8837", "4283"], ["8837", "839"]}
-
-        Returns:
-            inverse_rel: A string containing an ontology identifier (e.g. "RO_0000056) or None.
-                The value depends on a set of conditions:
-                    - inverse relation, if the stored relation has an inverse relation in inverse_relations
-                    - current relation, if the stored relation string includes 'interact' and there is an equal count of
-                      each node type (i.e., this is checking for symmetry in interaction-based edge types)
-                    - None, assuming the prior listed conditions are not met
-        """
-
-        edge_list = set(tuple(x) for x in edge_list) if isinstance(edge_list, List) else edge_list
-        if self.inverse_relations is not None:
-            if self.inverse_relations_dict is not None and relation in self.inverse_relations_dict.keys():
-                self.verifies_object_property(URIRef(obo + self.inverse_relations_dict[relation]))
-                inverse_rel = self.inverse_relations_dict[relation]
-            elif relation in self.relations_dict.keys() and 'interact' in self.relations_dict[relation]:
-                inverse_rel = None if len([x for x in edge_list if x[-1::-1] not in edge_list]) == 0 else relation
-            else: inverse_rel = None
-        else: inverse_rel = None
-
-        return inverse_rel
-
-    @staticmethod
-    def gets_edge_statistics(edge_type: str, results: Set, entity_info: List) -> None:
-        """Calculates the number of nodes and edges created from the build process.
-
-        Args:
-            edge_type: A string point to a specific edge type (e.g. 'chemical-disease).
-            results: A set of tuples representing the complete set of triples generated from the construction process.
-            entity_info: A list of three items. Items 1-2 are sets of tuples containing the raw node identifiers and
-                item 3 is an integer representing the total count of non-OWL edges.
-
-        Returns:
-            None
-        """
-
-        n1, n2 = edge_type.split('-')[0], edge_type.split('-')[1]
-        owl_nodes = set(i for j in [x[0::2] for x in results] for i in j)
-        stats = [len(set(results)), entity_info[2], len(owl_nodes), len(entity_info[0]), n1, len(entity_info[1]), n2]
-        stats_str = '{} OWL Edges, {} Original Edges; {} OWL Nodes, Original Nodes: {} {}(s), {} {}(s)'
-        formatted_str = stats_str.format(stats[0], stats[1], stats[2], stats[3], stats[4], stats[5], stats[6])
-        print(formatted_str); logger.info(formatted_str)
-
-        return None
-
-    def creates_new_edges(self, node_metadata_func: Callable) -> None:
-        """Takes a nested dictionary of edge lists and adds them to an existing knowledge graph by their edge_type (
-        e.g. chemical-gene). Once the knowledge graph is complete, it is written out as an `.owl` file to the
-        write_location  directory.
-
-        Args:
-            node_metadata_func: A function that adds metadata for non-ontology classes to a knowledge graph.
-
-        Returns:
-            None.
-        """
-
-        kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        annot_loc, df = self.write_location + kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.owl'
-        kg_bld = KGConstructionApproach(self.res_dir); master_meta: Set = set()
-        for edge_type in [x for x in self.edge_dict.keys() if x != 'entity_namespaces']:
-            edge_list = self.edge_dict[edge_type]['edge_list']; del self.edge_dict[edge_type]['edge_list']
-            s_type, o_type = self.edge_dict[edge_type]['data_type'].split('-'); node1, node2, rels = set(), set(), 0
-            rel, uri = self.edge_dict[edge_type]['edge_relation'], self.edge_dict[edge_type]['uri']
-            invrel = self.checks_for_inverse_relations(rel, edge_list) if self.inverse_relations is not None else None
-            p = 'Creating {} ({}-{}) Edges'.format(edge_type.upper(), s_type, o_type); print('\n' + p); logger.info(p)
-            pbar = tqdm(total=len(edge_list)); res = set()
-            while len(edge_list) > 0:
-                pbar.update(1); edge = edge_list.pop(0)
-                edge_info = {'n1': s_type, 'n2': o_type, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
-                meta = node_metadata_func(ent=[''.join(x) for x in list(zip(uri, edge))], e_type=[s_type, o_type])
-                meta_logic = [True if (self.node_data is None and meta is None)
-                              or [s_type, o_type] == ['class', 'class']
-                              or (self.node_data is not None and meta is not None) else False][0]
-                if self.check_ontology_class_nodes(edge_info) and meta_logic:  # ensure ont classes are in kg
-                    if self.construct_approach == 'subclass': edges = kg_bld.subclass_constructor(edge_info, edge_type)
-                    else: edges = kg_bld.instance_constructor(edge_info, edge_type)
-                    self.graph = adds_edges_to_graph(self.graph, edges, False); res |= set(edges)
-                    node1 |= {edge[0]}; node2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
-                    if meta is not None:
-                        new_meta = {x for x in meta if x not in master_meta}; master_meta |= new_meta
-                        if len(new_meta) > 0: appends_to_existing_file(new_meta, annot_loc, ' ')
-            pbar.close(); self.gets_edge_statistics(edge_type, res, [node1, node2, rels]); del [node1, node2, rels]
-        print('\nSerializing Knowledge Graph'); logger.info('Serializing Knowledge Graph')
-        self.graph.serialize(self.write_location + df); ontology_file_formatter(self.write_location, df, self.owl_tools)
-        if len(kg_bld.subclass_error.keys()) > 0:  # output error logs
-            log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
-            logger.info('Some edge lists nodes were missing from the subclass_dict, see log: {}'.format(log_file))
-            outputs_dictionary_data(kg_bld.subclass_error, log_file)
 
         return None
 
@@ -334,6 +177,174 @@ class KGBuilder(object):
         """"A string representing the type of knowledge graph build."""
 
         pass
+
+    class EdgeConstructor(object):
+        """Inner class object used to facilitate ray parallelization.
+
+        Attributes:
+            construction: A string indicating the construction approach (i.e. instance or subclass).
+            edge_data: A nested dictionary keyed by edge type that contains all information needed to construct an edge.
+            kg_owl: A string containing a filename.
+            rel_dict: A dictionary keyed by URI containing all relations for constructing an edge set.
+            inverse_dict: A dictionary keyed by URI containing all relations and their inverse relation.
+            node_data: A string ("yes" or "no") indicating whether or not to add node data to the knowledge graph.
+            metadata: An instance of the metadata class with bound method needed for created edge metadata.
+            ont_cls: A set of RDFLib URIRef terms representing all classes in the core merged ontologies.
+            obj_props: A set of RDFLib URIRef terms representing all object properties in the core merged ontologies.
+            write_loc: An string passed specifying the primary directory to write to.
+        """
+
+        def __init__(self, params) -> None:
+
+            self.construction: str = params.get('construction')
+            self.edge_dict: dict = params.get('edge_dict')
+            self.kg_owl = params.get('kg_owl')
+            self.inverse_relations_dict: Optional[Dict] = params.get('inverse_dict')
+            self.node_data: Optional[str] = 'yes' if params.get('node_data') is not None else None
+            self.node_metadata_func: Callable = params.get('metadata')
+            self.obj_properties: Set = params.get('obj_props')
+            self.ont_classes: Set = params.get('ont_cls')
+            self.relations_dict: Optional[Dict] = params.get('rel_dict')
+            self.write_location: str = params.get('write_loc')
+            self.error_dict: Dict = dict()
+            self.graph: Graph = Graph()
+            self.res_dir: str = os.path.abspath('/'.join(params.get('write_loc').split('/')[:-1]))
+
+        def graph_getter(self) -> Graph:
+            """Methods returns inner class RDFLib Graph object."""
+
+            return self.graph
+
+        def error_dict_getter(self) -> Dict:
+            """Methods returns inner class subclass error dict object."""
+
+            return self.error_dict
+
+        def verifies_object_property(self, object_property: URIRef) -> None:
+            """Adds an object property to a knowledge graph.
+
+            Args:
+                object_property: A string containing an obo ontology object property.
+
+            Returns:
+                None.
+
+            Raises:
+                TypeError: If the object_property is not type rdflib.term.URIRef
+            """
+
+            if not isinstance(object_property, URIRef):
+                log = 'object not rdflib.term.URIRef'; logger.error('TypeError: ' + log); raise TypeError(log)
+            else:
+                if object_property not in self.obj_properties:
+                    self.graph.add((object_property, RDF.type, OWL.ObjectProperty))
+                    self.obj_properties = gets_object_properties(self.graph)
+
+            return None
+
+        def checks_classes(self, edge_info) -> bool:
+            """Determines whether or not an edge is safe to add to the knowledge graph by making sure that any ontology
+            class nodes are also present in the current list of classes from the merged ontologies graph.
+
+            Args:
+                edge_info: A dict of information needed to add edge to graph, for example:
+                    {'n1': 'class', 'n2': 'class','rel': 'RO_0002606', 'inv_rel': 'RO_0002615',
+                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
+                     'edges': ['CHEBI_81395', 'DOID_12858']}
+
+            Returns:
+                True - if the class node is already in the graph or nodes are both non-class entities.
+                False - if the edge contains at least 1 ontology class that is not present in the graph.
+            """
+
+            if edge_info['n1'] != 'class' and edge_info['n2'] != 'class': return True
+            elif edge_info['n1'] == 'class' and edge_info['n2'] == 'class':
+                n1, n2 = URIRef(obo + edge_info['edges'][0]), URIRef(obo + edge_info['edges'][1])
+                return n1 in self.ont_classes and n2 in self.ont_classes
+            else: return URIRef(finds_node_type(edge_info)['cls1']) in self.ont_classes
+
+        def checks_relations(self, relation: str, edge_list: Union[List, Set]) -> Optional[str]:
+            """Determines whether or not an inverse relation should be created and added to the graph and verifies
+            that a
+            relation and its inverse (if it exists) are both an existing owl:ObjectProperty in the graph.
+
+            Args:
+                relation: A string that contains the relation assigned to edge in resource_info.txt (e.g. 'RO_0000056').
+                edge_list: A list or set of knowledge graph edges. For example: {["8837", "4283"], ["8837", "839"]}
+
+            Returns:
+                A string containing an ontology identifier (e.g. "RO_0000056) or None. Value depends on:
+                    - inverse relation, if the stored relation has an inverse relation
+                    - current relation, if the stored relation is an interaction and the edge count is symmetric
+                    - None, assuming the prior listed conditions are not met
+            """
+
+            edge_list = set(tuple(x) for x in edge_list) if isinstance(edge_list, List) else edge_list
+            if self.inverse_relations_dict is not None and relation in self.inverse_relations_dict.keys():
+                self.verifies_object_property(URIRef(obo + self.inverse_relations_dict[relation]))
+                return self.inverse_relations_dict[relation]
+            elif self.relations_dict is not None:
+                if relation in self.relations_dict.keys() and 'interact' in self.relations_dict[relation]:
+                    return None if len([x for x in edge_list if x[-1::-1] not in edge_list]) == 0 else relation
+                else: return None
+            else: return None
+
+        @staticmethod
+        def gets_edge_statistics(edge_type: str, results: Set, entity_info: List) -> str:
+            """Calculates the number of nodes and edges involved in constructing an edge type.
+
+            Args:
+                edge_type: A string point to a specific edge type (e.g. 'chemical-disease).
+                results: A set of tuples representing the complete set of triples generated from the construction
+                process.
+                entity_info: 3 items: 1-2 are sets of node tuples and 3 is the total count of non-OWL edges.
+
+            Returns:
+                formatted_str: A string containing edge statistics.
+            """
+
+            n1, n2 = edge_type.split('-')[0], edge_type.split('-')[1]
+            owl_nodes = set(i for j in [x[0::2] for x in results] for i in j)
+            stats = [len(results), entity_info[2], len(owl_nodes), len(entity_info[0]), n1, len(entity_info[1]), n2]
+            stats_str = '{} OWL Edges, {} Original Edges; {} OWL Nodes, Original Nodes: {} {}(s), {} {}(s)'
+            formatted_str = stats_str.format(stats[0], stats[1], stats[2], stats[3], stats[4], stats[5], stats[6])
+
+            return formatted_str
+
+        def creates_new_edges(self, edge_type: str) -> Graph:
+            """Takes a dictionary of information needed to construct and edge creates the associated triples.
+
+            Args:
+                edge_type: A list of strings representing the types of edges to build.
+
+            Returns:
+                graph: An RDFLib Graph object.
+            """
+
+            kg_bld = KGConstructionApproach(self.res_dir); f_name = self.write_location + self.kg_owl
+            anot = f_name[:-4] + '_AnnotationsOnly.nt'; logic = f_name[:-4] + '_LogicOnly.nt'; kg = f_name[:-4] + '.nt'
+            edge_list = self.edge_dict[edge_type]['edge_list']; s, o = self.edge_dict[edge_type]['data_type'].split('-')
+            rel, uri = self.edge_dict[edge_type]['edge_relation'], self.edge_dict[edge_type]['uri']
+            invrel = self.checks_relations(rel, edge_list) if self.inverse_relations_dict is not None else None
+            pbar = tqdm(total=len(edge_list)); n1, n2, rels = set(), set(), 0; res: Set = set()
+            while len(edge_list) > 0:
+                pbar.update(1); edge = edge_list.pop(0)
+                edge_info = {'n1': s, 'n2': o, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
+                meta = self.node_metadata_func(ent=[''.join(x) for x in list(zip(uri, edge))], e_type=[s, o])
+                meta_logic = [True if (self.node_data is None and meta is None) or [s, o] == ['class', 'class']
+                              or (self.node_data is not None and meta is not None) else False][0]
+                if self.checks_classes(edge_info) and meta_logic:
+                    if self.construction == 'subclass': edges = set(kg_bld.subclass_constructor(edge_info, edge_type))
+                    else: edges = set(kg_bld.instance_constructor(edge_info, edge_type))
+                    self.graph = adds_edges_to_graph(self.graph, edges, False)
+                    res |= edges; n1 |= {edge[0]}; n2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
+                    appends_to_existing_file(edges, logic); appends_to_existing_file(edges, kg)
+                    if meta is not None: appends_to_existing_file(meta, anot); appends_to_existing_file(meta, kg)
+            pbar.close(); stat = self.gets_edge_statistics(edge_type, res, [n1, n2, rels]); del [n1, n2, rels], res
+            p = 'Created {} ({}-{}) Edges: {}'.format(edge_type.upper(), s, o, stat); print('\n' + p); logger.info(p)
+            if len(kg_bld.subclass_error.keys()) > 0: self.error_dict = kg_bld.subclass_error
+
+            return None
 
 
 class PartialBuild(KGBuilder):
@@ -369,34 +380,45 @@ class PartialBuild(KGBuilder):
             self.graph = Graph().parse(self.merged_ont_kg, format='xml')
         else:
             log_str = '*** Merging Ontology Data ***'; print(log_str); logger.info(log_str)
-            merged_ontology_location = self.merged_ont_kg.split('/')[-1]
-            merges_ontologies(self.ontologies, merged_ontology_location, self.owl_tools)
-            self.graph.parse(self.merged_ont_kg, format='xml')  # load the merged ontology
+            merges_ontologies(self.ontologies, self.merged_ont_kg.split('/')[-1], self.owl_tools)
+            self.graph.parse(self.merged_ont_kg, format='xml')
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
 
         # STEP 3: PROCESS NODE METADATA
         log_str = '*** Loading Node Metadata Data ***'; print(log_str); logger.info(log_str)
         meta = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data: meta.metadata_processor(); meta.extract_metadata(self.graph); self.node_dict = meta.node_dict
+        if self.node_data: meta.metadata_processor(); meta.extract_metadata(self.graph)
 
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
-        self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
-        appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
+        f = self.write_location; self.graph, annotation_triples = splits_knowledge_graph(self.graph)
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
+        kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
+        annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
+        appends_to_existing_file(annotation_triples, f + annot); appends_to_existing_file(self.graph, f + logic)
+        shutil.copy(f + annot, f + full); appends_to_existing_file(self.graph, f + full); del annotation_triples
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         log_str = '*** Building Knowledge Graph Edges ***'; print(log_str); logger.info(log_str)
         self.ont_classes = gets_ontology_classes(self.graph); self.obj_properties = gets_object_properties(self.graph)
-        self.creates_new_edges(meta.creates_node_metadata)
-        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
-        # merge annotations with logic graph
-        shutil.copy(self.write_location + annot, self.write_location + full)
-        appends_to_existing_file(set(self.graph), self.write_location + full, ' ')
+        # instantiate inner class to construct edge sets
+        try: ray.init()
+        except RuntimeError: pass
+        args = {'construction': self.construct_approach, 'edge_dict': self.edge_dict, 'write_loc': self.write_location,
+                'rel_dict': self.relations_dict, 'inverse_dict': self.inverse_relations_dict, 'kg_owl': kg_owl,
+                'node_data': self.node_data, 'ont_cls': self.ont_classes, 'metadata': meta.creates_node_metadata,
+                'obj_props': self.obj_properties}; edges = [x for x in self.edge_dict.keys()]
+        actors = [ray.remote(self.EdgeConstructor).remote(args) for _ in range(self.cpus)]  # type: ignore
+        for i in range(0, len(edges)): actors[i % self.cpus].creates_new_edges.remote(edges[i])  # type: ignore
+        # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
+        _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
+        error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
+        if len(error_dicts.keys()) > 0:  # output error logs
+            log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
+            logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
 
-        del meta, self.edge_dict, self.graph, self.node_dict, self.relations_dict
+        deduplicates_file(f + annot); deduplicates_file(f + logic); deduplicates_file(f + full)
+        del meta, self.relations_dict
 
         return None
 
@@ -433,42 +455,39 @@ class PostClosureBuild(KGBuilder):
         self.reverse_relation_processor()
 
         # STEP 2: LOAD CLOSED KNOWLEDGE GRAPH
-        closed_kg_location = glob.glob(self.write_location + '/*.owl')
-        if len(closed_kg_location) == 0:
-            log_str = 'The closed KG file does not exist!'; logger.error('OSError: ' + log_str); raise OSError(log_str)
-        elif os.stat(closed_kg_location[0]).st_size == 0:
-            log_str = '{} is empty'.format(closed_kg_location)
-            logger.error('TypeError: ' + log_str); raise TypeError(log_str)
+        closed_kg = glob.glob(self.write_location + '/*.owl')
+        if len(closed_kg) == 0: logs = 'KG file does not exist!'; logger.error('OSError: ' + logs); raise OSError(logs)
+        elif os.stat(closed_kg[0]).st_size == 0:
+            logs = '{} is empty'.format(closed_kg); logger.error('TypeError: ' + logs); raise TypeError(logs)
         else:
             log_str = '*** Loading Closed Knowledge Graph ***'; print(log_str); logger.info(log_str)
-            os.rename(closed_kg_location[0], self.write_location + self.full_kg)  # rename closed kg file
+            os.rename(closed_kg[0], self.write_location + self.full_kg)  # rename closed kg file
             self.graph = Graph().parse(self.write_location + self.full_kg, format='xml')
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
 
         # STEP 3: PROCESS NODE METADATA
         log_str = '*** Loading Node Metadata Data ***'; print(log_str); logger.info(log_str)
         meta = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data: meta.metadata_processor(); meta.extract_metadata(self.graph); self.node_dict = meta.node_dict
+        if self.node_data: meta.metadata_processor(); meta.extract_metadata(self.graph)
 
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
-        self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
-        appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
+        _ = self.write_location; self.graph, annotation_triples = splits_knowledge_graph(self.graph)
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
-        # merge annotations with logic graph
-        shutil.copy(self.write_location + annot, self.write_location + full)
-        appends_to_existing_file(set(self.graph), self.write_location + full, ' ')
+        kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
+        annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
+        appends_to_existing_file(annotation_triples, _ + annot); appends_to_existing_file(self.graph, _ + logic)
+        shutil.copy(_ + annot, _ + full); appends_to_existing_file(self.graph, _ + full); del annotation_triples
+        deduplicates_file(_ + annot); deduplicates_file(_ + logic); deduplicates_file(_ + full)
 
         # STEP 5: DECODE OWL SEMANTICS
         if self.decode_owl:
             log_str = '*** Running OWL-NETS ***'; print('\n' + log_str); logger.info(log_str)
-            owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
-            results = owl_nets.run_owl_nets()
+            owlnets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
+            results = owlnets.runs_owl_nets(self.cpus)
         else:
             logger.info('*** Converting Knowledge Graph to Networkx MultiDiGraph ***')
-            convert_to_networkx(self.write_location, self.full_kg[:-4], self.graph); results = tuple([set(self.graph)])
+            results = tuple(self.graph,); convert_to_networkx(self.write_location, self.full_kg[:-4], results[0])
 
         # STEP 6: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         log_str = '*** Building Knowledge Graph Edges ***'; print(log_str); logger.info(log_str)
@@ -485,7 +504,7 @@ class PostClosureBuild(KGBuilder):
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
 
-        del meta, self.edge_dict, self.graph, self.node_dict, owl_nets, self.relations_dict, results
+        del meta, self.edge_dict, self.graph, owlnets, self.relations_dict, results
 
         return None
 
@@ -522,39 +541,53 @@ class FullBuild(KGBuilder):
         else:
             log_str = '*** Merging Ontology Data ***'; print(log_str); logger.info(log_str)
             merges_ontologies(self.ontologies, self.merged_ont_kg.split('/')[-1], self.owl_tools)
-            self.graph.parse(self.merged_ont_kg, format='xml')  # load the merged ontology
+            self.graph.parse(self.merged_ont_kg, format='xml')
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
 
         # STEP 3: PROCESS NODE METADATA
         log_str = '*** Loading Node Metadata Data ***'; print(log_str); logger.info(log_str)
         meta = Metadata(self.kg_version, self.write_location, self.full_kg, self.node_data, self.node_dict)
-        if self.node_data: meta.metadata_processor(); meta.extract_metadata(self.graph); self.node_dict = meta.node_dict
+        if self.node_data: meta.metadata_processor(); meta.extract_metadata(self.graph)
 
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
-        self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
-        appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
+        f = self.write_location; self.graph, annotation_triples = splits_knowledge_graph(self.graph)
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
+        kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
+        annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
+        appends_to_existing_file(annotation_triples, f + annot); appends_to_existing_file(self.graph, f + logic)
+        shutil.copy(f + annot, f + full); appends_to_existing_file(self.graph, f + full); del annotation_triples
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         log_str = '*** Building Knowledge Graph Edges ***'; print('\n' + log_str); logger.info(log_str)
         self.ont_classes = gets_ontology_classes(self.graph); self.obj_properties = gets_object_properties(self.graph)
-        self.creates_new_edges(meta.creates_node_metadata)
-        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
-        # merge annotations with logic graph
-        shutil.copy(self.write_location + annot, self.write_location + full)
-        appends_to_existing_file(set(self.graph), self.write_location + full, ' ')
+        # instantiate inner class to construct edge sets
+        try: ray.init()
+        except RuntimeError: pass
+        args = {'construction': self.construct_approach, 'edge_dict': self.edge_dict, 'node_data': self.node_data,
+                'rel_dict': self.relations_dict, 'inverse_dict': self.inverse_relations_dict, 'kg_owl': kg_owl,
+                'ont_cls': self.ont_classes, 'obj_props': self.obj_properties, 'metadata': meta.creates_node_metadata,
+                'write_loc': self.write_location}; edges = [x for x in self.edge_dict.keys()]
+        actors = [ray.remote(self.EdgeConstructor).remote(args) for _ in range(self.cpus)]  # type: ignore
+        for i in range(0, len(edges)): actors[i % self.cpus].creates_new_edges.remote(edges[i])  # type: ignore
+        # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
+        _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
+        graphs = [self.graph] + ray.get([x.graph_getter.remote() for x in actors]); del self.edge_dict, self.graph
+        error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
+        if len(error_dicts.keys()) > 0:  # output error logs
+            log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
+            logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
+        deduplicates_file(f + annot); deduplicates_file(f + logic); deduplicates_file(f + full)
 
         # STEP 6: DECODE OWL SEMANTICS
         if self.decode_owl:
             log_str = '*** Running OWL-NETS ***'; print('\n' + log_str); logger.info(log_str)
-            owl_nets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
-            results = owl_nets.run_owl_nets()
+            owlnets = OwlNets(graphs, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
+            results = owlnets.runs_owl_nets(self.cpus)
         else:
             logger.info('*** Converting Knowledge Graph to Networkx MultiDiGraph ***')
-            convert_to_networkx(self.write_location, self.full_kg[:-4], self.graph); results = tuple([set(self.graph)])
+            results = tuple([set(x for y in [set(x) for x in graphs] for x in y)])
+            convert_to_networkx(self.write_location, self.full_kg[:-4], results[0])
 
         # STEP 7: WRITE OUT KNOWLEDGE GRAPH METADATA AND CREATE EDGE LISTS
         log_str = '*** Writing Knowledge Graph Edge Lists ***'; print('\n' + log_str); logger.info(log_str)
@@ -571,6 +604,6 @@ class FullBuild(KGBuilder):
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
 
-        del meta, self.edge_dict, self.graph, self.node_dict, owl_nets, self.relations_dict, results
+        del meta, owlnets, self.relations_dict, results
 
         return None

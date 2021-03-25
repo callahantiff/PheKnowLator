@@ -2,8 +2,11 @@ import glob
 import logging
 import os.path
 import pandas
+import ray
 import re
+import shutil
 import unittest
+import warnings
 
 from typing import List, Tuple
 
@@ -14,6 +17,8 @@ class TestCreatesEdgeList(unittest.TestCase):
     """Class to test functions used when processing edge data sources."""
 
     def setUp(self):
+        warnings.simplefilter('ignore', ResourceWarning)
+
         logging.disable(logging.CRITICAL)
         # initialize file location
         current_directory = os.path.dirname(__file__)
@@ -303,29 +308,67 @@ class TestCreatesEdgeList(unittest.TestCase):
     def tests_gets_entity_namespaces(self):
         """Tests gets_entity_namespaces method."""
 
-        self.master_edge_list.gets_entity_namespaces()
+        x = 'gene-disease'
+        self.master_edge_list.gets_entity_namespaces(x)
 
         # verify results
-        self.assertIn('entity_namespaces', self.master_edge_list.source_info.keys())
-        self.assertIn('gene', self.master_edge_list.source_info['entity_namespaces'].keys())
+        self.assertIn('entity_namespaces', self.master_edge_list.source_info[x].keys())
+        self.assertIn('gene', self.master_edge_list.source_info[x]['entity_namespaces'].keys())
         self.assertEqual('http://purl.uniprot.org/geneid/',
-                         self.master_edge_list.source_info['entity_namespaces']['gene'])
+                         self.master_edge_list.source_info[x]['entity_namespaces']['gene'])
+
+        return None
+
+    def tests_gets_source_info(self):
+        """Tests gets_source_info method."""
+
+        results = self.master_edge_list.gets_source_info()
+
+        # verify results
+        self.assertIsInstance(results, dict)
+        self.assertIn('gene-disease', results.keys())
 
         return None
 
     def tests_creates_knowledge_graph_edges(self):
         """Tests creates_knowledge_graph_edges method."""
 
-        self.master_edge_list.creates_knowledge_graph_edges()
-
         # edge type 1
+        self.master_edge_list.creates_knowledge_graph_edges('chemical-disease')
         self.assertIsInstance(self.master_edge_list.source_info['chemical-disease']['edge_list'], List)
         self.assertEqual(0, len(self.master_edge_list.source_info['chemical-disease']['edge_list']))
 
         # edge type 2
+        self.master_edge_list.creates_knowledge_graph_edges('gene-disease')
         self.assertIsInstance(self.master_edge_list.source_info['gene-disease']['edge_list'], List)
         self.assertIsInstance(self.master_edge_list.source_info['gene-disease']['edge_list'][0], Tuple)
         self.assertEqual(5, len(self.master_edge_list.source_info['gene-disease']['edge_list']))
         self.assertIn(('19', 'DOID_1936'), self.master_edge_list.source_info['gene-disease']['edge_list'])
+
+        return None
+
+    def tests_constructs_edge_list(self):
+        """Tests the constructs_edge_list method."""
+
+        # create input data
+        file_loc1 = self.dir_loc + '/edge_data/chemical-disease_CTD_chemicals_diseases.tsv'
+        file_loc2 = self.dir_loc + '/edge_data/gene-disease_curated_gene_disease_associations.tsv'
+        self.edge_data_files = {'chemical-disease': file_loc1, 'gene-disease': file_loc2}
+
+        # test method
+        ray.init(local_mode=True)
+        self.master_edge_list.runs_creates_knowledge_graph_edges(self.dir_loc + '/resource_info.txt',
+                                                                 self.edge_data_files,
+                                                                 cpus=1)
+        ray.shutdown()
+        self.assertTrue(os.path.exists(self.dir_loc + '/Master_Edge_List_Dict.json'))
+
+        return None
+
+    def tearDown(self):
+        warnings.simplefilter('default', ResourceWarning)
+
+        shutil.copyfile(self.dir_loc + '/edge_data/Master_Edge_List_Dict.json',
+                        self.dir_loc + '/Master_Edge_List_Dict.json')
 
         return None

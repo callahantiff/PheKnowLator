@@ -56,7 +56,7 @@ class KGConstructionApproach(object):
 
         # WRITE LOCATION
         if write_location is None:
-            log_str = 'write_location must contain a valid filepath, not None.'; logger.error('ValueError: ' + log_str)
+            log_str = 'write_location must contain a valid filepath.'; logger.error('ValueError: ' + log_str)
             raise ValueError(log_str)
         else: self.write_location = write_location
 
@@ -72,7 +72,7 @@ class KGConstructionApproach(object):
             with open(glob.glob(file_name)[0], 'rb') as filepath:  # type: IO[Any]
                 self.subclass_dict = pickle.load(filepath, encoding='bytes')
 
-    def maps_node_to_class(self, edge_type: str, entity: str, edge: List) -> Optional[List]:
+    def maps_node_to_class(self, edge_type: str, entity: str) -> Optional[List]:
         """Takes an entity and checks whether or not it exists in a dictionary of subclass content, such that keys
         are non-class entity identifiers (e.g. Reactome identifiers) and values are sets of ontology class identifiers
         mapped to that non-class entity. For example:
@@ -86,7 +86,6 @@ class KGConstructionApproach(object):
         Args:
             edge_type: A string containing the edge_type (e.g. "gene-pathway").
             entity: A string containing a node identifier (e.g. "R-HSA-5601843").
-            edge: An edge list containing two nodes (e.g. ["R-HSA-5601843", "GO_1234567"]).
 
         Returns:
             None if the non-class entity is not in the subclass_dict, otherwise a list of mappings between the
@@ -181,15 +180,15 @@ class KGConstructionApproach(object):
             edges = list(self.subclass_core_constructor(URIRef(res['cls1']), URIRef(res['cls2']), rel, irel))
         elif res['cls1'] and res['ent1']:  # entity-class/class-entity edges
             x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
-            mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
+            mapped_node = self.maps_node_to_class(edge_type, x)
             if mapped_node:  # get entity mappings to current classes from subclass_construction_map
                 edges = [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + i)),) +
                                      ((URIRef(obo + i), RDF.type, OWL.Class),) for i in mapped_node] for x in y]
                 ent_order = ['cls1', 'ent1'] if edge_info['n1'] == 'class' else ['ent1', 'cls1']  # determine node order
                 edges += self.subclass_core_constructor(URIRef(res[ent_order[0]]), URIRef(res[ent_order[1]]), rel, irel)
         else:  # entity-entity edges
-            mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''), edge_info['edges'])
-            mapped_node2 = self.maps_node_to_class(edge_type, res['ent2'].replace(uri2, ''), edge_info['edges'])
+            mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''))
+            mapped_node2 = self.maps_node_to_class(edge_type, res['ent2'].replace(uri2, ''))
             if mapped_node1 and mapped_node2:  # get entity mappings to current classes from subclass_construction_map
                 edges += [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + i)),) +
                                       ((URIRef(obo + i), RDF.type, OWL.Class),) for i in mapped_node1] for x in y]
@@ -224,7 +223,6 @@ class KGConstructionApproach(object):
         rel_core = n3(node1) + n3(rels) + n3(node2)
         u1 = URIRef(pkt + 'N' + hashlib.md5((rel_core + 'subject').encode()).hexdigest())
         u2 = URIRef(pkt + 'N' + hashlib.md5((rel_core + 'object').encode()).hexdigest())
-
         new_edge_inverse_rel: Tuple = tuple()
         new_edge_rel_only: Tuple = ((u1, RDF.type, node1), (u1, RDF.type, OWL.NamedIndividual),
                                     (u2, RDF.type, node2), (u2, RDF.type, OWL.NamedIndividual),
@@ -256,7 +254,7 @@ class KGConstructionApproach(object):
             edges = list(self.instance_core_constructor(URIRef(res['cls1']), URIRef(res['cls2']), rel, irel))
         elif res['cls1'] and res['ent1']:  # class-entity/entity-class edges
             x = res['ent1'].replace(uri2, '') if edge_info['n1'] == 'class' else res['ent1'].replace(uri1, '')
-            mapped_node = self.maps_node_to_class(edge_type, x, edge_info['edges'])
+            mapped_node = self.maps_node_to_class(edge_type, x)
             if mapped_node:  # get entity mappings to current classes from subclass_construction_map
                 edges = [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + i)),) +
                                      ((URIRef(obo + i), RDF.type, OWL.Class),) +
@@ -264,8 +262,8 @@ class KGConstructionApproach(object):
                 ent_order = ['cls1', 'ent1'] if edge_info['n1'] == 'class' else ['ent1', 'cls1']  # determine node order
                 edges += self.instance_core_constructor(URIRef(res[ent_order[0]]), URIRef(res[ent_order[1]]), rel, irel)
         else:  # entity-entity edges
-            mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''), edge_info['edges'])
-            mapped_node2 = self.maps_node_to_class(edge_type, res['ent2'].replace(uri2, ''), edge_info['edges'])
+            mapped_node1 = self.maps_node_to_class(edge_type, res['ent1'].replace(uri1, ''))
+            mapped_node2 = self.maps_node_to_class(edge_type, res['ent2'].replace(uri2, ''))
             if mapped_node1 and mapped_node2:  # get entity mappings to current classes from subclass_construction_map
                 edges += [x for y in [((URIRef(res['ent1']), RDFS.subClassOf, URIRef(obo + i)),) +
                                       ((URIRef(obo + i), RDF.type, OWL.Class),) +

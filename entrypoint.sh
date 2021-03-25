@@ -8,5 +8,6 @@ python Main.py \
             --onts resources/ontology_source_list.txt \
             --edg resources/edge_source_list.txt \
             --res resources/resource_info.txt \
+            --cpus None \
             --out resources/knowledge_graphs \
             "$@"

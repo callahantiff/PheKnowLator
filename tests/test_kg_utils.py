@@ -515,6 +515,20 @@ class TestKGUtils(unittest.TestCase):
 
         return None
 
+    def test_derives_graph_statistics_set(self):
+        """Tests the derives_graph_statistics method for list."""
+
+        # generate stats from existing ontology
+        graph = Graph().parse(self.dir_loc + '/so_with_imports.owl')
+
+        # test method
+        stats = derives_graph_statistics(set(graph))
+        expected_stats = 'Graph Stats: 42237 triples, 20277 nodes, 39 predicates, 2793 classes, 0 individuals, ' \
+                         '50 object props, 39 annotation props'
+        self.assertEqual(stats, expected_stats)
+
+        return None
+
     def test_derives_graph_statistics_nx(self):
         """Tests the derives_graph_statistics method for networkx multidigraph."""
 
@@ -603,6 +617,24 @@ class TestKGUtils(unittest.TestCase):
         appends_to_existing_file(edge2, filepath, ' ')
         graph = Graph().parse(filepath, format='nt')
         self.assertEqual(len(graph), 2)
+
+        # clean up environment
+        if os.path.exists(filepath): os.remove(filepath)
+
+        return None
+
+    def test_appends_to_existing_file_new_file(self):
+        """Tests the appends_to_existing_file method"""
+
+        # create test data and write it locally
+        filepath = self.dir_loc + '/TEST_Annotations.nt'
+        graph = Graph(); graph.add((BNode('Nf72db1a3dc964ce3b0cd2ea4c7142af5'), RDF.type, OWL.Class))
+        self.assertFalse(os.path.exists(filepath))
+
+        # test method when adding a new edge
+        appends_to_existing_file(graph, filepath, ' ')
+        graph = Graph().parse(filepath, format='nt')
+        self.assertEqual(len(graph), 1)
 
         # clean up environment
         if os.path.exists(filepath): os.remove(filepath)

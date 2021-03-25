@@ -44,15 +44,13 @@ Important Updates and Notifications
 
   - New Jupyter Notebooks:
 
-    - Applying ``OWL-NETS``: `OWLNETS_Example_Application.ipynb <https://github
-    .com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb>`_
+    - Applying ``OWL-NETS``: `OWLNETS_Example_Application.ipynb <https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb>`__
 
-    - Exploring ``pkt_kg`` knowledge graphs and other ontologies: `RDF_Graph_Processing_Example.ipynb <https://github
-    .com/callahantiff/PheKnowLator/blob/master/notebooks/RDF_Graph_Processing_Example.ipynb>`_
+    - Exploring ``pkt_kg`` knowledge graphs and other ontologies: `RDF_Graph_Processing_Example.ipynb <https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/RDF_Graph_Processing_Example.ipynb>`__
 
 Releases
 =========
-All data and output for each release are free to download from our dedicated Google Cloud Storage Bucket (GCS). All data can be downloaded from the `PheKnowLator GCS Bucket <https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator>`__, which is organized by release and build..
+All data and output for each release are free to download from our dedicated Google Cloud Storage Bucket (GCS). All data can be downloaded from the `PheKnowLator GCS Bucket <https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator>`__, which is organized by release and build.
 
 Current Release
 ----------------
@@ -148,14 +146,13 @@ For assistance in creating these documents, please run the following from the ro
 
     python3 generates_dependency_documents.py
 
-Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created or downloaded for an existing build from the `PheKnowLator GCS Bucket <https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator>`__. To generate these data yourself, please see the `Data_Preparation.ipynb`_ Jupyter Notebook for detailed examples
-of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
+Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created or downloaded for an existing build from the `PheKnowLator GCS Bucket <https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator>`__. To generate these data yourself, please see the `Data_Preparation.ipynb`_ Jupyter Notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
 
 *Note.* To ensure reproducibility, after downloading data, a metadata file is output for the ontologies (`ontology_source_metadata.txt`_) and edge data sources (`edge_source_metadata.txt`_).
 
 *CONSTRUCT KNOWLEDGE GRAPH*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process (please see the knowledge graph `README`_ for more information). Please make sure the documents listed below are presented in the specified location prior to constructing a knowledge graph. Click on each document for additional information. Note, that cloning this library will include a version of these documents that points to the current build. If you use this versoin then there is no need to download anything prior to running the program.
+The `KG Construction`_ Wiki page provides a detailed description of the knowledge construction process (please see the knowledge graph `README`_ for more information). Please make sure the documents listed below are presented in the specified location prior to constructing a knowledge graph. Click on each document for additional information. Note, that cloning this library will include a version of these documents that points to the current build. If you use this version then there is no need to download anything prior to running the program.
 
 * `resources/construction_approach/subclass_construction_map.pkl`_
 * `resources/Master_Edge_List_Dict.json`_ ➞ *automatically created after edge list construction*
@@ -180,7 +177,9 @@ The program can be run locally using the `main.py`_ script or using the `main.ip
 
 .. code:: python
 
+ import ray
  from pkt import downloads, edge_list, knowledge_graph
+ ray.init()
 
  # DOWNLOAD DATA
  # ontology data
@@ -197,8 +196,10 @@ The program can be run locally using the `main.py`_ script or using the `main.ip
  combined_edges = dict(edges.data_files, **ont.data_files)
 
  # initialize edge dictionary class
- master_edges = pkt.CreatesEdgeList(combined_edges, './resources/resource_info.txt')
- master_edges.creates_knowledge_graph_edges()
+ master_edges = pkt.CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
+ master_edges.runs_creates_knowledge_graph_edges(source_file'./resources/resource_info.txt',
+                                                 data_files=combined_edges,
+                                                 cpus=1)
 
  # BUILD KNOWLEDGE GRAPH
  # full build, subclass construction approach, with inverse relations and node metadata, and decode owl
@@ -207,9 +208,11 @@ The program can be run locally using the `main.py`_ script or using the `main.ip
                    construction='subclass,
                    node_data='yes,
                    inverse_relations='yes',
+                   cpus=1,
                    decode_owl='yes')
 
  kg.construct_knowledge_graph()
+ ray.shutdown()
 
 ``main.py``
 -----------
@@ -218,13 +221,14 @@ The example below provides the details needed to run ``pkt_kg`` using ``./main.p
 .. code:: bash
 
     python3 main.py -h
-    usage: main.py [-h] -g ONTS -e EDG -a APP -t RES -b KG -o OUT -n NDE -r REL -s OWL -m KGM
+    usage: main.py [-h] [-p CPUS] -g ONTS -e EDG -a APP -t RES -b KG -o OUT -n NDE -r REL -s OWL -m KGM
 
     PheKnowLator: This program builds a biomedical knowledge graph using Open Biomedical Ontologies
     and linked open data. The program takes the following arguments:
 
     optional arguments:
     -h, --help            show this help message and exit
+    -p CPUS, --cpus CPUS  # workers to use; defaults to use all available cores
     -g ONTS, --onts ONTS  name/path to text file containing ontologies
     -e EDG,  --edg EDG    name/path to text file containing edge sources
     -a APP,  --app APP    construction approach to use (i.e. instance or subclass
@@ -251,7 +255,7 @@ Obtaining a Container
 ----------------------
 *Obtain Pre-Built Containiner:* A pre-built containers can be obtained directly from `DockerHub <https://hub.docker.com/repository/docker/callahantiff/pheknowlator/general>`__.
 
-*Build Container:* To build the ``pkt_kg`` download a stable release of this repository (or fork/clone it repository). Once downloaded, you will have everything needed to build the conatiner, including the ``./Dockerfile`` and ``./dockerignore``. The code shown below builds the container. Make sure to relace ``[VERSION]`` with the current ``pkt_kg`` version before running the code.
+*Build Container:* To build the ``pkt_kg`` download a stable release of this repository (or fork/clone it repository). Once downloaded, you will have everything needed to build the container, including the ``./Dockerfile`` and ``./dockerignore``. The code shown below builds the container. Make sure to replace ``[VERSION]`` with the current ``pkt_kg`` version before running the code.
 
 .. code:: bash
 

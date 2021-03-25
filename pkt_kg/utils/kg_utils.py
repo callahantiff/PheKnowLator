@@ -404,7 +404,7 @@ def removes_self_loops(graph: Graph) -> List:
     return list(self_loops)
 
 
-def derives_graph_statistics(graph: Union[Graph, nx.MultiDiGraph]) -> str:
+def derives_graph_statistics(graph: Union[Graph, Set, nx.MultiDiGraph]) -> str:
     """Derives statistics from an input knowledge graph and prints them to the console. Note that we are not
     converting each node to a string before deriving our counts. This is purposeful as the number of unique nodes is
     altered when you it converted to a string. For example, in the HPO when honoring the RDF type of each node
@@ -423,6 +423,15 @@ def derives_graph_statistics(graph: Union[Graph, nx.MultiDiGraph]) -> str:
         inds = set([x for x in graph.subjects(RDF.type, OWL.NamedIndividual)])
         obj_prop = set([x for x in graph.subjects(RDF.type, OWL.ObjectProperty)])
         ant_prop = set([x for x in graph.subjects(RDF.type, OWL.AnnotationProperty)])
+        x = ' {} triples, {} nodes, {} predicates, {} classes, {} individuals, {} object props, {} annotation props'
+        stat = 'Graph Stats:' + x.format(triples, nodes, len(rels), len(cls), len(inds), len(obj_prop), len(ant_prop))
+    elif isinstance(graph, Set):
+        triples = len(graph); nodes = len(set(i for j in [[s, o] for s, p, o in graph] for i in j))
+        rels = set([p for s, p, o in graph])
+        cls = set(s for s, p, o in graph if p == RDF.type and o == OWL.Class)
+        inds = set(s for s, p, o in graph if p == RDF.type and o == OWL.NamedIndividual)
+        obj_prop = set(s for s, p, o in graph if p == RDF.type and o == OWL.ObjectProperty)
+        ant_prop = set(s for s, p, o in graph if p == RDF.type and o == OWL.AnnotationProperty)
         x = ' {} triples, {} nodes, {} predicates, {} classes, {} individuals, {} object props, {} annotation props'
         stat = 'Graph Stats:' + x.format(triples, nodes, len(rels), len(cls), len(inds), len(obj_prop), len(ant_prop))
     else:
@@ -453,22 +462,23 @@ def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode
          updated_graph: An RDFLib Graph object with updated BNodes.
     """
 
-    print('Processing Original Nodes')
+    print('Adding Namespace to BNodes')
+    # print('Processing Original Nodes')
     all_triples = set(graph)
     sub_only_bnodes_org = {x for x in graph if isinstance(x[0], BNode) and not isinstance(x[2], BNode)}
     obj_only_bnodes_org = {x for x in graph if isinstance(x[2], BNode) and not isinstance(x[0], BNode)}
     sub_and_obj_bnodes_org = {x for x in graph if isinstance(x[0], BNode) and isinstance(x[2], BNode)}
     graph_no_bnodes = all_triples - (sub_only_bnodes_org | obj_only_bnodes_org | sub_and_obj_bnodes_org)
     del all_triples, graph
-    print('Converting BNodes to Namespaced-URIs')
+    # print('Converting BNodes to Namespaced-URIs')
     ns_uri = ns if isinstance(ns, Namespace) else Namespace(ns)
     sub_fixed = {(URIRef(ns_uri + str(x[0])), x[1], x[2]) for x in sub_only_bnodes_org}
     obj_fixed = {(x[0], x[1], URIRef(ns_uri + str(x[2]))) for x in obj_only_bnodes_org}
     both_fixed = {(URIRef(ns_uri + str(x[0])), x[1], URIRef(ns_uri + str(x[2]))) for x in sub_and_obj_bnodes_org}
     del sub_only_bnodes_org, obj_only_bnodes_org, sub_and_obj_bnodes_org
-    print('Finalizing Updated Graph')
+    # print('Finalizing Updated Graph')
     updated_graph = Graph()
-    for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
+    for s, p, o in (graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
 
     return updated_graph
 
@@ -485,7 +495,8 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
         updated_graph: An RDFLib Graph object with bnode namespaces removed.
     """
 
-    print('Processing Original Nodes')
+    print('Removing Namespace from BNodes')
+    # print('Processing Original Nodes')
     ns_uri = str(ns) if isinstance(ns, Namespace) else ns
     all_triples = set(graph)
     sub_only_bnodes_ns = {(s, p, o) for s, p, o in graph if str(s).startswith(ns_uri) and not str(o).startswith(ns_uri)}
@@ -493,14 +504,14 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
     sub_and_obj_bnodes_ns = {(s, p, o) for s, p, o in graph if str(s).startswith(ns_uri) and str(o).startswith(ns_uri)}
     graph_no_bnodes = all_triples - (sub_only_bnodes_ns | obj_only_bnodes_ns | sub_and_obj_bnodes_ns)
     del all_triples, graph
-    print('Removing Namespace from BNodes')
+    # print('Removing Namespace from BNodes')
     sub_fixed = {(BNode(str(s).split('/')[-1]), p, o) for s, p, o in sub_only_bnodes_ns}
     obj_fixed = {(s, p, BNode(str(o).split('/')[-1])) for s, p, o in obj_only_bnodes_ns}
     both_fixed = {(BNode(str(s).split('/')[-1]), p, BNode(str(o).split('/')[-1])) for s, p, o in sub_and_obj_bnodes_ns}
     del sub_only_bnodes_ns, obj_only_bnodes_ns, sub_and_obj_bnodes_ns
-    print('Finalizing Updated Graph')
+    # print('Finalizing Updated Graph')
     updated_graph = Graph()
-    for s, p, o in tqdm(graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
+    for s, p, o in (graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
 
     return updated_graph
 
@@ -524,10 +535,9 @@ def splits_knowledge_graph(graph: Graph, graph_output: bool = False) -> Tuple[Gr
             assertions.
     """
 
-    print('Creating Logic and Annotation Subsets of Graph')
-
     graph = adds_namespace_to_bnodes(graph)
 
+    print('Creating Logic and Annotation Subsets of Graph')
     # get information needed to find annotation assertions
     annot_props = set([x for x in graph.subjects(RDF.type, OWL.AnnotationProperty) if x != RDF.type])
     core_annot_props = {OWL.annotatedSource, OWL.annotatedProperty, OWL.annotatedTarget}
@@ -626,27 +636,7 @@ def n3(node: Union[URIRef, BNode, Literal]) -> str:
     return serialized_node
 
 
-def appends_to_existing_file(edges: Union[List, Set], filepath: str, sep: str) -> None:
-    """Method adds data to the end of an existing file. Assumes that it is adding data to the end of a n-triples file.
-
-    Args:
-        edges: A tuple of 3 RDFLib terms.
-        filepath: A string specifying a path to an existing file.
-        sep: A string containing a separator (e.g. '\t', ',').
-
-    Returns:
-        None.
-    """
-
-    with open(filepath, 'a', newline='') as out:
-        for edge in edges:
-            out.write(n3(edge[0]) + sep + n3(edge[1]) + sep + n3(edge[2]) + ' .\n')
-    out.close()
-
-    return None
-
-
-def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph] = None) -> None:
+def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Union[Graph, Set]] = None) -> None:
     """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally. Each node is provided a
     key that is the URI identifier and each edge is given a key which is an md5 hash of the triple and a weight of
     0.0. An example of the output is shown below. The md5 hash is meant to store a unique key that represents that
@@ -654,18 +644,18 @@ def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph
 
     Source: https://networkx.org/documentation/stable/reference/classes/multidigraph.html
 
-        Example:
-            Input: (obo.SO_0000288', RDFS.subClassOf', obo.SO_0000287')
-            Output:
-                - node data: [(obo.SO_0000288, {'key': 'http://purl.obolibrary.org/obo/SO_0000288'}),
-                              (RDFS.subClassOf', {'key': 'http://www.w3.org/2000/01/rdf-schema#subClassOf'}),
-                              (obo.SO_0000287, {'key': 'http://purl.obolibrary.org/obo/SO_0000287'})]
-                - edge data: [(obo.SO_0000288, obo.SO_0000287', {'predicate_key': '9cbd4826291e7b38eb', 'weight': 0.0})]
+    Example:
+        Input: (obo.SO_0000288', RDFS.subClassOf', obo.SO_0000287')
+        Output:
+            - node data: [(obo.SO_0000288, {'key': 'http://purl.obolibrary.org/obo/SO_0000288'}),
+                          (RDFS.subClassOf', {'key': 'http://www.w3.org/2000/01/rdf-schema#subClassOf'}),
+                          (obo.SO_0000287, {'key': 'http://purl.obolibrary.org/obo/SO_0000287'})]
+            - edge data: [(obo.SO_0000288, obo.SO_0000287', {'predicate_key': '9cbd4826291e7b38eb', 'weight': 0.0})]
 
     Args:
         write_location: A string pointing to a local directory for writing data.
         full_kg: A string containing the subdirectory and name of the the knowledge graph file.
-        graph: An rdflib graph object.
+        graph: An RDFLib Graph object or set of RDFLib Graph triples.
 
     Returns:
         None.
@@ -676,19 +666,38 @@ def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Graph
 
     print('Converting Knowledge Graph to MultiDiGraph')
 
-    # read in knowledge graph if class graph attribute is not present
-    if not isinstance(graph, Graph):
+    if graph is None:
         file_type = 'xml' if 'OWLNETS' not in full_kg else full_kg.split('.')[-1]
         ext = '.owl' if file_type == 'xml' else '.nt'
         graph = Graph().parse(write_location + full_kg + ext, format=file_type)
-    # convert graph to networkx object
+
     nx_mdg = nx.MultiDiGraph()
     for s, p, o in tqdm(graph):
         pred_key = hashlib.md5('{}{}{}'.format(n3(s), n3(p), n3(o)).encode()).hexdigest()
         nx_mdg.add_node(s, key=n3(s)); nx_mdg.add_node(o, key=n3(o))
         nx_mdg.add_edge(s, o, **{'key': p, 'predicate_key': pred_key, 'weight': 0.0})
-    # pickle networkx graph
     print('Pickling MultiDiGraph')
     nx.write_gpickle(nx_mdg, write_location + full_kg + '_NetworkxMultiDiGraph.gpickle'); del nx_mdg
+
+    return None
+
+
+def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep: str = ' ') -> None:
+    """Method adds data to the end of an existing file. Assumes that it is adding data to the end of a n-triples file.
+
+    Args:
+        edges: A list or set of tuple, where each tuple is a triple. Or an RDFLib Graph object.
+        filepath: A string specifying a path to an existing file.
+        sep: A string containing a separator e.g. '\t', ',' (default=' ').
+
+    Returns:
+        None.
+    """
+
+    if not os.path.exists(filepath): os.system('touch {}'.format(filepath))
+    with open(filepath, 'a', newline='') as out:
+        for edge in edges:
+            out.write(n3(edge[0]) + sep + n3(edge[1]) + sep + n3(edge[2]) + ' .\n')
+    out.close()
 
     return None

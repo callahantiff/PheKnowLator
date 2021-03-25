@@ -7,6 +7,7 @@ import pandas
 import pickle
 import shutil
 import unittest
+import warnings
 
 from rdflib import Graph
 from typing import Dict, List
@@ -18,6 +19,8 @@ class TestPostClosureBuild(unittest.TestCase):
     """Class to test the PostClosureBuild class from the knowledge graph script."""
 
     def setUp(self):
+        warnings.simplefilter('ignore', ResourceWarning)
+
         # initialize file location
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
@@ -104,7 +107,7 @@ class TestPostClosureBuild(unittest.TestCase):
         self.write_location = self.dir_loc_resources + '/knowledge_graphs'
 
         # build knowledge graph
-        self.kg = PostClosureBuild('subclass', 'yes', 'yes', 'yes', self.write_location)
+        self.kg = PostClosureBuild('subclass', 'yes', 'yes', 'yes', 1, self.write_location)
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
@@ -130,6 +133,8 @@ class TestPostClosureBuild(unittest.TestCase):
         full_kg_owl = self.kg.full_kg.replace('noOWL', 'OWL') if self.kg.decode_owl == 'yes' else self.kg.full_kg
 
         # check for output files
+        f_name = full_kg_owl[:-4] + '_LogicOnly.nt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '.nt'
@@ -166,6 +171,7 @@ class TestPostClosureBuild(unittest.TestCase):
         return None
 
     def tearDown(self):
+        warnings.simplefilter('default', ResourceWarning)
 
         # remove resource directory
         shutil.rmtree(self.dir_loc_resources)

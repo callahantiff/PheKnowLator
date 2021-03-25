@@ -7,6 +7,7 @@ import pandas
 import pickle
 import shutil
 import unittest
+import warnings
 
 from pkt_kg.knowledge_graph import FullBuild
 
@@ -15,6 +16,8 @@ class TestFullBuild(unittest.TestCase):
     """Class to test the FullBuild class from the knowledge graph script."""
 
     def setUp(self):
+        warnings.simplefilter('ignore', ResourceWarning)
+
         # initialize file location
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
@@ -132,14 +135,14 @@ class TestFullBuild(unittest.TestCase):
 
         # check for output files
         # kg
-        f_name = full_kg_owl[:-4] + '_LogicOnly.owl'
+        f_name = full_kg_owl[:-4] + '_LogicOnly.nt'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '.nt'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
 
-        # kg - owl
+        # kg - owlnets
         kg_owl = self.kg.full_kg.replace('.owl', '_OWLNETS.nt')
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + kg_owl))
 
@@ -174,6 +177,8 @@ class TestFullBuild(unittest.TestCase):
         return None
 
     def tearDown(self):
+        warnings.simplefilter('default', ResourceWarning)
+
         # remove resource directory
         shutil.rmtree(self.dir_loc_resources)
 

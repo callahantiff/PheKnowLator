@@ -20,6 +20,7 @@ Generates Metadata
 Miscellaneous data Processing Methods
 * explodes_data
 * genomic_id_mapper
+* deduplicates_file
 
 Outputs data
 * outputs_dictionary_data
@@ -395,5 +396,30 @@ def outputs_dictionary_data(dict_object: Optional[Dict], filename: str) -> None:
         with open(filename, 'w') as file_name:
             json.dump(dict_object, file_name)
         file_name.close()
+
+    return None
+
+
+def deduplicates_file(src_filepath: str, dest_filepath: Optional[str] = None) -> None:
+    """Removes duplicates from a file.
+
+    Args:
+        src_filepath: A string specifying a path to an existing file.
+        dest_filepath: A string specifying a path to write deduplicated file to (default=src_filepath).
+
+    Returns:
+         None.
+    """
+
+    print('Depduplicating File: {}'.format(src_filepath))
+
+    temp_data = None
+    if dest_filepath is None:
+        temp_data = '/'.join(src_filepath.split('/')[:-1]) + '/test.nt'
+        os.rename(src_filepath, temp_data)
+        dest_filepath, src_filepath = src_filepath, temp_data
+
+    os.system('sort {} | uniq > {}'.format(src_filepath, dest_filepath))
+    if temp_data and os.path.exists(temp_data): os.remove(temp_data)
 
     return None

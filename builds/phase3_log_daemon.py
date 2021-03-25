@@ -31,7 +31,7 @@ class PKTLogUploader(object):
         self.gcs_bucket_location: str = gcs_bucket_location
         self.log_directory: str = log_directory
         self.sleep: int = sleep_interval
-        self.kill_time: int = 43200  # 12 hours
+        self.kill_time: int = 172800  # 48 hours
 
         # START BACKGROUND PROCESS
         self._thread: threading.Thread = threading.Thread(target=self._run, daemon=True)
