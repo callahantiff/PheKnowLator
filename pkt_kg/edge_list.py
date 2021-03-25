@@ -8,7 +8,7 @@ import json
 import logging.config
 import os
 import pandas as pd  # type: ignore
-import ray
+import ray  # type: ignore
 import re
 
 from collections import ChainMap

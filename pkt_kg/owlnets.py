@@ -8,7 +8,7 @@ import networkx  # type: ignore
 import os
 import os.path
 import pickle
-import ray
+import ray  # type: ignore
 import re
 
 from collections import ChainMap  # type: ignore

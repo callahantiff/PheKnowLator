@@ -12,7 +12,7 @@ import os
 import os.path
 import pandas  # type: ignore
 import pickle
-import ray
+import ray  # type: ignore
 import shutil
 import subprocess
 
