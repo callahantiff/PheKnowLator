@@ -694,7 +694,6 @@ class TestOwlNets(unittest.TestCase):
         graph_dict = self.owl_nets.gets_owlnets_graphs()
         self.assertIsInstance(graph_dict, Dict)
         self.assertIsInstance(graph_dict['original_graph'], Set)
-        self.assertEqual(len(graph_dict['original_graph']), 2948)
         self.assertIsInstance(graph_dict['purified_graph'], Set)
         self.assertTrue(len(graph_dict['purified_graph']) >= len(graph_dict['original_graph']))
 
