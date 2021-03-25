@@ -321,9 +321,8 @@ class KGBuilder(object):
                 graph: An RDFLib Graph object.
             """
 
-            kg_bld = KGConstructionApproach(self.res_dir)
-            anot = self.write_location + self.kg_owl[:-4] + '_AnnotationsOnly.nt'
-            kg = self.write_location + self.kg_owl[:-4] + '.nt'
+            kg_bld = KGConstructionApproach(self.res_dir); f_name = self.write_location + self.kg_owl
+            anot = f_name[:-4] + '_AnnotationsOnly.nt'; logic = f_name[:-4] + '_LogicOnly.nt'; kg = f_name[:-4] + '.nt'
             edge_list = self.edge_dict[edge_type]['edge_list']; s, o = self.edge_dict[edge_type]['data_type'].split('-')
             rel, uri = self.edge_dict[edge_type]['edge_relation'], self.edge_dict[edge_type]['uri']
             invrel = self.checks_relations(rel, edge_list) if self.inverse_relations_dict is not None else None
@@ -337,8 +336,9 @@ class KGBuilder(object):
                 if self.checks_classes(edge_info) and meta_logic:
                     if self.construction == 'subclass': edges = set(kg_bld.subclass_constructor(edge_info, edge_type))
                     else: edges = set(kg_bld.instance_constructor(edge_info, edge_type))
-                    self.graph = adds_edges_to_graph(self.graph, edges, False); appends_to_existing_file(edges, kg)
+                    self.graph = adds_edges_to_graph(self.graph, edges, False)
                     res |= edges; n1 |= {edge[0]}; n2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
+                    appends_to_existing_file(edges, logic); appends_to_existing_file(edges, kg)
                     if meta is not None: appends_to_existing_file(meta, anot); appends_to_existing_file(meta, kg)
             pbar.close(); stat = self.gets_edge_statistics(edge_type, res, [n1, n2, rels]); del [n1, n2, rels], res
             p = 'Created {} ({}-{}) Edges: {}'.format(edge_type.upper(), s, o, stat); print('\n' + p); logger.info(p)
@@ -392,12 +392,13 @@ class PartialBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         self.graph, annotation_triples = splits_knowledge_graph(self.graph)
+        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
         kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
+        appends_to_existing_file(self.graph, self.write_location + logic, ' ')
         shutil.copy(self.write_location + annot, self.write_location + full)
         appends_to_existing_file(self.graph, self.write_location + full, ' ')
-        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         log_str = '*** Building Knowledge Graph Edges ***'; print(log_str); logger.info(log_str)
@@ -413,9 +414,7 @@ class PartialBuild(KGBuilder):
         for i in range(0, len(edges)): actors[i % self.cpus].creates_new_edges.remote(edges[i])  # type: ignore
         # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
         _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
-        graphs = [self.graph] + ray.get([x.graph_getter.remote() for x in actors]); del self.edge_dict, self.graph
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
-        for g in graphs: appends_to_existing_file(g, self.write_location + logic, ' ')  # writes logic only file out
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
@@ -478,13 +477,13 @@ class PostClosureBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         self.graph, annotation_triples = splits_knowledge_graph(self.graph)
+        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
         kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
-        appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
+        appends_to_existing_file(annotation_triples, self.write_location + annot); del annotation_triples
+        appends_to_existing_file(self.graph, self.write_location + logic)
         shutil.copy(self.write_location + annot, self.write_location + full)
-        appends_to_existing_file(set(self.graph), self.write_location + full, ' ')
-        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
-        appends_to_existing_file(self.graph, self.write_location + logic, ' ')
+        appends_to_existing_file(set(self.graph), self.write_location + full)
 
         # STEP 5: DECODE OWL SEMANTICS
         if self.decode_owl:
@@ -558,10 +557,11 @@ class FullBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         self.graph, annotation_triples = splits_knowledge_graph(self.graph)
+        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
         kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
-        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
+        appends_to_existing_file(self.graph, self.write_location + logic, ' ')
         # merge annotations with graph edges
         shutil.copy(self.write_location + annot, self.write_location + full)
         appends_to_existing_file(self.graph, self.write_location + full, ' ')
@@ -581,7 +581,6 @@ class FullBuild(KGBuilder):
         # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
         _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
         graphs = [self.graph] + ray.get([x.graph_getter.remote() for x in actors]); del self.edge_dict, self.graph
-        for g in graphs: appends_to_existing_file(g, self.write_location + logic, ' ')  # writes logic only files out
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
