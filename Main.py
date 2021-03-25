@@ -5,6 +5,8 @@
 import argparse
 import datetime
 import os
+import psutil  # type: ignore
+import ray
 import time
 
 from pkt_kg.downloads import OntData, LinkedData
@@ -16,6 +18,7 @@ def main():
     parser = argparse.ArgumentParser(description=('PheKnowLator: This program builds a biomedical knowledge graph using'
                                                   ' Open Biomedical Ontologies and linked open data. The program takes '
                                                   'the following arguments:'))
+    parser.add_argument('-p', '--cpus', help='# workers, leave blank to use all available cpus', required=True)
     parser.add_argument('-g', '--onts', help='name/path to text file containing ontologies', required=True)
     parser.add_argument('-e', '--edg', help='name/path to text file containing edge sources', required=True)
     parser.add_argument('-a', '--app', help='construction approach to use (i.e. instance or subclass)', required=True)
@@ -59,12 +62,16 @@ def main():
     # CREATE EDGE LISTS #
     #####################
 
+    # set-up environment
+    cpus = psutil.cpu_count(logical=False) if args.cpus != 1 else 1
+    ray.init(ignore_reinit_error=True)  # ignored for build to prevent clobbering ray-based logging daemon
+
     print('\n' + '=' * 28 + '\nPKT: CONSTRUCT EDGE LISTS\n' + '=' * 28 + '\n')
     start = time.time()
     combined_edges = dict(ent.data_files, **ont.data_files)
-    master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='resources/resource_info.txt')
-    master_edges.creates_knowledge_graph_edges()
+    master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
+    master_edges.runs_creates_knowledge_graph_edges(args.res, combined_edges, cpus=cpus)
     end = time.time(); timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nPKT: TOTAL SECONDS TO BUILD THE MASTER EDGE LIST: {} @ {}'.format(end - start, timestamp))
 
@@ -82,21 +89,25 @@ def main():
                           node_data=args.nde,
                           inverse_relations=args.rel,
                           decode_owl=args.owl,
+                          cpus=args.cpus,
                           write_location=args.out)
     elif args.kg == 'post-closure':
         kg = PostClosureBuild(construction=args.app,
                               node_data=args.nde,
                               inverse_relations=args.rel,
                               decode_owl=args.owl,
+                              cpus=args.cpus,
                               write_location=args.out)
     else:
         kg = FullBuild(construction=args.app,
                        node_data=args.nde,
                        inverse_relations=args.rel,
                        decode_owl=args.owl,
+                       cpus=args.cpus,
                        write_location=args.out)
     kg.construct_knowledge_graph()
 
+    # ray.shutdown()  # uncomment if running this independently of the CI/CD builds
     end = time.time(); timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print('\nPKT: TOTAL SECONDS TO CONSTRUCT A KG: {} @ {}'.format(end - start, timestamp))
 
