@@ -1,8 +1,10 @@
 import glob
 import logging
 import os
+import ray
 import shutil
 import unittest
+import warnings
 
 from rdflib import Graph, BNode, Literal, Namespace, URIRef
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
@@ -19,6 +21,8 @@ class TestOwlNets(unittest.TestCase):
     """Class to test the OwlNets class from the owlnets script."""
 
     def setUp(self):
+        warnings.simplefilter('ignore', ResourceWarning)
+
         # initialize file location
         current_directory = os.path.dirname(__file__)
         dir_loc = os.path.join(current_directory, 'data')
@@ -676,6 +680,7 @@ class TestOwlNets(unittest.TestCase):
         """Tests the write_out_results method."""
 
         self.owl_nets.runs_owl_nets()
+        ray.shutdown()
 
         # make sure files are written locally
         nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
@@ -704,6 +709,7 @@ class TestOwlNets(unittest.TestCase):
 
         self.owl_nets.kg_construct_approach = 'subclass'
         self.owl_nets.runs_owl_nets()
+        ray.shutdown()
 
         # make sure files are written locally for each graph
         # purified
@@ -738,6 +744,7 @@ class TestOwlNets(unittest.TestCase):
         """Tests the owl_nets method."""
 
         self.owl_nets2.runs_owl_nets()
+        ray.shutdown()
 
         # make sure files are written locally for each graph
         # purified
@@ -781,6 +788,8 @@ class TestOwlNets(unittest.TestCase):
         return None
 
     def tearDown(self):
+        warnings.simplefilter('default', ResourceWarning)
+
         # remove resource directory
         shutil.rmtree(self.dir_loc_resources)
 

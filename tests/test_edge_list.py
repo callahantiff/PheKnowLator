@@ -6,6 +6,7 @@ import ray
 import re
 import shutil
 import unittest
+import warnings
 
 from typing import List, Tuple
 
@@ -16,6 +17,8 @@ class TestCreatesEdgeList(unittest.TestCase):
     """Class to test functions used when processing edge data sources."""
 
     def setUp(self):
+        warnings.simplefilter('ignore', ResourceWarning)
+
         logging.disable(logging.CRITICAL)
         # initialize file location
         current_directory = os.path.dirname(__file__)
@@ -363,6 +366,7 @@ class TestCreatesEdgeList(unittest.TestCase):
         return None
 
     def tearDown(self):
+        warnings.simplefilter('default', ResourceWarning)
 
         shutil.copyfile(self.dir_loc + '/edge_data/Master_Edge_List_Dict.json',
                         self.dir_loc + '/Master_Edge_List_Dict.json')
