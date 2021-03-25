@@ -5,6 +5,7 @@ import os
 import os.path
 import pandas
 import pickle
+import ray
 import shutil
 import unittest
 
@@ -104,7 +105,7 @@ class TestPostClosureBuild(unittest.TestCase):
         self.write_location = self.dir_loc_resources + '/knowledge_graphs'
 
         # build knowledge graph
-        self.kg = PostClosureBuild('subclass', 'yes', 'yes', 'yes', self.write_location)
+        self.kg = PostClosureBuild('subclass', 'yes', 'yes', 'yes', 1, self.write_location)
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')

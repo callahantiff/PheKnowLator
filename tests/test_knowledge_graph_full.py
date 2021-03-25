@@ -132,8 +132,8 @@ class TestFullBuild(unittest.TestCase):
 
         # check for output files
         # kg
-        f_name = full_kg_owl[:-4] + '_LogicOnly.owl'
-        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
+        # f_name = full_kg_owl[:-4] + '_LogicOnly.owl'
+        # self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '.nt'
