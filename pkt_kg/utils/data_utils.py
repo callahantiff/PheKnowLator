@@ -20,7 +20,7 @@ Generates Metadata
 Miscellaneous data Processing Methods
 * explodes_data
 * genomic_id_mapper
-* deduplicates_file_content
+* deduplicates_file
 
 Outputs data
 * outputs_dictionary_data
@@ -400,7 +400,7 @@ def outputs_dictionary_data(dict_object: Optional[Dict], filename: str) -> None:
     return None
 
 
-def deduplicates_file_content(src_filepath: str, dest_filepath: Optional[str] = None) -> None:
+def deduplicates_file(src_filepath: str, dest_filepath: Optional[str] = None) -> None:
     """Removes duplicates from a file.
 
     Args:

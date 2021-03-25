@@ -14,4 +14,4 @@ __all__ = ['url_download', 'ftp_url_download', 'gzipped_ftp_url_download', 'zipp
            'ontology_file_formatter', 'adds_edges_to_graph', 'remove_edges_from_graph', 'gets_entity_ancestors',
            'connected_components', 'removes_self_loops', 'derives_graph_statistics', 'splits_knowledge_graph',
            'adds_namespace_to_bnodes', 'removes_namespace_from_bnodes', 'finds_node_type', 'updates_graph_namespace',
-           'maps_ids_to_integers', 'n3', 'appends_to_existing_file', 'deduplicates_file_content', 'convert_to_networkx']
+           'maps_ids_to_integers', 'n3', 'appends_to_existing_file', 'deduplicates_file', 'convert_to_networkx']
