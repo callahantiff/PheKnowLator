@@ -131,6 +131,8 @@ class TestPostClosureBuild(unittest.TestCase):
         full_kg_owl = self.kg.full_kg.replace('noOWL', 'OWL') if self.kg.decode_owl == 'yes' else self.kg.full_kg
 
         # check for output files
+        f_name = full_kg_owl[:-4] + '_LogicOnly.nt'
+        self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + f_name))
         f_name = full_kg_owl[:-4] + '.nt'

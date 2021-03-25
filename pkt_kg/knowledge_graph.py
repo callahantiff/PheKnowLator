@@ -392,8 +392,8 @@ class PartialBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
+        kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
+        annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
         shutil.copy(self.write_location + annot, self.write_location + full)
         appends_to_existing_file(self.graph, self.write_location + full, ' ')
@@ -406,20 +406,24 @@ class PartialBuild(KGBuilder):
         try: ray.init()
         except RuntimeError: pass
         args = {'construction': self.construct_approach, 'edge_dict': self.edge_dict, 'write_loc': self.write_location,
-                'rel_dict': self.relations_dict, 'inverse_dict': self.inverse_relations_dict, 'kg_owl': full_kg_owl,
+                'rel_dict': self.relations_dict, 'inverse_dict': self.inverse_relations_dict, 'kg_owl': kg_owl,
                 'node_data': self.node_data, 'ont_cls': self.ont_classes, 'metadata': meta.creates_node_metadata,
                 'obj_props': self.obj_properties}; edges = [x for x in self.edge_dict.keys()]
         actors = [ray.remote(self.EdgeConstructor).remote(args) for _ in range(self.cpus)]  # type: ignore
         for i in range(0, len(edges)): actors[i % self.cpus].creates_new_edges.remote(edges[i])  # type: ignore
         # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
         _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
+        graphs = [self.graph] + ray.get([x.graph_getter.remote() for x in actors]); del self.edge_dict, self.graph
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
+        for g in graphs: appends_to_existing_file(g, self.write_location + logic, ' ')  # writes logic only file out
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
-        deduplicates_file_content(self.write_location + annot); deduplicates_file_content(self.write_location + full)
+        deduplicates_file_content(self.write_location + annot)
+        deduplicates_file_content(self.write_location + logic)
+        deduplicates_file_content(self.write_location + full)
 
-        del meta, self.edge_dict, self.graph, self.relations_dict
+        del meta, self.relations_dict
 
         return None
 
@@ -474,12 +478,13 @@ class PostClosureBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        full_kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
+        kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
+        annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
         shutil.copy(self.write_location + annot, self.write_location + full)
         appends_to_existing_file(set(self.graph), self.write_location + full, ' ')
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
+        appends_to_existing_file(self.graph, self.write_location + logic, ' ')
 
         # STEP 5: DECODE OWL SEMANTICS
         if self.decode_owl:
@@ -554,7 +559,7 @@ class FullBuild(KGBuilder):
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         self.graph, annotation_triples = splits_knowledge_graph(self.graph)
         kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
-        annot, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '.nt'
+        annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, self.write_location + annot, ' '); del annotation_triples
         stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
         # merge annotations with graph edges
@@ -576,11 +581,14 @@ class FullBuild(KGBuilder):
         # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
         _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
         graphs = [self.graph] + ray.get([x.graph_getter.remote() for x in actors]); del self.edge_dict, self.graph
+        for g in graphs: appends_to_existing_file(g, self.write_location + logic, ' ')  # writes logic only files out
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
-        deduplicates_file_content(self.write_location + annot); deduplicates_file_content(self.write_location + full)
+        deduplicates_file_content(self.write_location + annot)
+        deduplicates_file_content(self.write_location + logic)
+        deduplicates_file_content(self.write_location + full)
 
         # STEP 6: DECODE OWL SEMANTICS
         if self.decode_owl:
