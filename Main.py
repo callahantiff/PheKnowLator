@@ -18,7 +18,7 @@ def main():
     parser = argparse.ArgumentParser(description=('PheKnowLator: This program builds a biomedical knowledge graph using'
                                                   ' Open Biomedical Ontologies and linked open data. The program takes '
                                                   'the following arguments:'))
-    parser.add_argument('-p', '--cpus', help='# workers, leave blank to use all available cpus', required=True)
+    parser.add_argument('-p', '--cpus', help='# workers to sue', default=None)
     parser.add_argument('-g', '--onts', help='name/path to text file containing ontologies', required=True)
     parser.add_argument('-e', '--edg', help='name/path to text file containing edge sources', required=True)
     parser.add_argument('-a', '--app', help='construction approach to use (i.e. instance or subclass)', required=True)
@@ -63,8 +63,8 @@ def main():
     #####################
 
     # set-up environment
-    cpus = psutil.cpu_count(logical=False) if args.cpus != 1 else 1
-    ray.init(ignore_reinit_error=True)  # ignored for build to prevent clobbering ray-based logging daemon
+    cpus = psutil.cpu_count(logical=False) if args.cpus is None else args.cpus
+    ray.init(ignore_reinit_error=True)  # preventing clobbering background ray processes
 
     print('\n' + '=' * 28 + '\nPKT: CONSTRUCT EDGE LISTS\n' + '=' * 28 + '\n')
     start = time.time()
