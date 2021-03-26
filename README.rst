@@ -177,9 +177,15 @@ The program can be run locally using the `main.py`_ script or using the `main.ip
 
 .. code:: python
 
+ import psutil
  import ray
  from pkt import downloads, edge_list, knowledge_graph
+
+ # initialize ray
  ray.init()
+
+ # determine number of cpus available
+ available_cpus = psutil.cpu_count(logical=False)
 
  # DOWNLOAD DATA
  # ontology data
@@ -199,7 +205,7 @@ The program can be run locally using the `main.py`_ script or using the `main.ip
  master_edges = pkt.CreatesEdgeList(data_files=combined_edges, source_file='./resources/resource_info.txt')
  master_edges.runs_creates_knowledge_graph_edges(source_file'./resources/resource_info.txt',
                                                  data_files=combined_edges,
-                                                 cpus=1)
+                                                 cpus=available_cpus)
 
  # BUILD KNOWLEDGE GRAPH
  # full build, subclass construction approach, with inverse relations and node metadata, and decode owl
@@ -208,7 +214,7 @@ The program can be run locally using the `main.py`_ script or using the `main.ip
                    construction='subclass,
                    node_data='yes,
                    inverse_relations='yes',
-                   cpus=1,
+                   cpus=available_cpus,
                    decode_owl='yes')
 
  kg.construct_knowledge_graph()
