@@ -89,21 +89,21 @@ def main():
                           node_data=args.nde,
                           inverse_relations=args.rel,
                           decode_owl=args.owl,
-                          cpus=args.cpus,
+                          cpus=cpus,
                           write_location=args.out)
     elif args.kg == 'post-closure':
         kg = PostClosureBuild(construction=args.app,
                               node_data=args.nde,
                               inverse_relations=args.rel,
                               decode_owl=args.owl,
-                              cpus=args.cpus,
+                              cpus=cpus,
                               write_location=args.out)
     else:
         kg = FullBuild(construction=args.app,
                        node_data=args.nde,
                        inverse_relations=args.rel,
                        decode_owl=args.owl,
-                       cpus=args.cpus,
+                       cpus=cpus,
                        write_location=args.out)
     kg.construct_knowledge_graph()
 
