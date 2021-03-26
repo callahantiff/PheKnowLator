@@ -326,9 +326,10 @@ class KGBuilder(object):
             edge_list = self.edge_dict[edge_type]['edge_list']; s, o = self.edge_dict[edge_type]['data_type'].split('-')
             rel, uri = self.edge_dict[edge_type]['edge_relation'], self.edge_dict[edge_type]['uri']
             invrel = self.checks_relations(rel, edge_list) if self.inverse_relations_dict is not None else None
-            pbar = tqdm(total=len(edge_list)); n1, n2, rels = set(), set(), 0; res: Set = set()
+            n1, n2, rels = set(), set(), 0; res: Set = set()  # ; pbar = tqdm(total=len(edge_list))
             while len(edge_list) > 0:
-                pbar.update(1); edge = edge_list.pop(0)
+                # pbar.update(1)
+                edge = edge_list.pop(0)
                 edge_info = {'n1': s, 'n2': o, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
                 meta = self.node_metadata_func(ent=[''.join(x) for x in list(zip(uri, edge))], e_type=[s, o])
                 meta_logic = [True if (self.node_data is None and meta is None) or [s, o] == ['class', 'class']
@@ -340,7 +341,8 @@ class KGBuilder(object):
                     res |= edges; n1 |= {edge[0]}; n2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
                     appends_to_existing_file(edges, logic); appends_to_existing_file(edges, kg)
                     if meta is not None: appends_to_existing_file(meta, anot); appends_to_existing_file(meta, kg)
-            pbar.close(); stat = self.gets_edge_statistics(edge_type, res, [n1, n2, rels]); del [n1, n2, rels], res
+            # pbar.close()
+            stat = self.gets_edge_statistics(edge_type, res, [n1, n2, rels]); del [n1, n2, rels], res
             p = 'Created {} ({}-{}) Edges: {}'.format(edge_type.upper(), s, o, stat); print('\n' + p); logger.info(p)
             if len(kg_bld.subclass_error.keys()) > 0: self.error_dict = kg_bld.subclass_error
 

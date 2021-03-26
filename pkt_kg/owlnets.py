@@ -16,7 +16,7 @@ from random import sample
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from statistics import mode, StatisticsError
-from tqdm import tqdm  # type: ignore
+# from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple, Union
 
 from pkt_kg.utils import *
@@ -156,7 +156,7 @@ class OwlNets(object):
                        and (str(x[0]).startswith(str(pkt) + 'N') and x[2] not in [OWL.NamedIndividual, OWL.Class])}
         if len(pkt_ns_dict) > 0:
             remove_edges: Set = set()  # update triples containing BNodes with original ontology class
-            for node in tqdm(pkt_ns_dict.keys()):
+            for node in pkt_ns_dict.keys():
                 triples = list(self.graph.triples((node, None, None))) + list(self.graph.triples((None, None, node)))
                 for edge in triples:
                     sub = pkt_ns_dict[edge[0]] if edge[0] in pkt_ns_dict.keys() else edge[0]
@@ -196,7 +196,7 @@ class OwlNets(object):
 
         keep_predicates, filtered_triples = set(), set()
         exclude = self.top_level_ontologies + self.relations_ontologies + self.support_ontologies
-        for x in tqdm(self.graph):
+        for x in self.graph:
             if isinstance(x[0], URIRef) and isinstance(x[1], URIRef) and isinstance(x[2], URIRef):
                 # handle top-level, relation, and support ontologies (top/rel can only be rel; remove support onts)
                 subj = not any(i for i in exclude if str(x[0]).split('/')[-1].startswith(i + '_'))
@@ -239,7 +239,7 @@ class OwlNets(object):
 
         keep_predicates, filtered_triples = set(), set()
         exclude = self.top_level_ontologies + self.relations_ontologies + self.support_ontologies
-        for x in tqdm(self.graph):
+        for x in self.graph:
             if isinstance(x[0], URIRef) and isinstance(x[1], URIRef) and isinstance(x[2], URIRef):
                 # handle top-level, relation, and support ontologies (top/rel can only be rel; remove support onts)
                 subj = not any(i for i in exclude if str(x[0]).split('/')[-1].startswith(i + '_'))
@@ -634,9 +634,10 @@ class OwlNets(object):
 
         log_str = 'Decoding OWL Classes and Axioms'; logger.info(log_str); print(log_str)
 
-        decoded_graph: Graph = Graph(); cleaned_entities: Set = set(); pbar = tqdm(total=len(self.node_list))
+        decoded_graph: Graph = Graph(); cleaned_entities: Set = set()  # ; pbar = tqdm(total=len(self.node_list))
         while self.node_list:
-            pbar.update(1); node = self.node_list.pop(0); node_info = self.creates_edge_dictionary(node)
+            # pbar.update(1);
+            node = self.node_list.pop(0); node_info = self.creates_edge_dictionary(node)
             if node_info is not None and len(node_info[1]) != 0:
                 self.captures_cardinality_axioms(node_info[2], node)
                 neg = True if self.detects_negation_axioms(node_info[1], node) is True else False
@@ -662,7 +663,7 @@ class OwlNets(object):
                                 edges = None; self.owl_nets_dict['misc'][n3(node)] = {tuple(misc)}
                     decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes), False)
                     self.owl_nets_dict['decoded_classes'][n3(node)] = cleaned_classes
-        pbar.close(); self.graph = decoded_graph; cleaned_decoded_graph = self.cleans_decoded_graph()
+        self.graph = decoded_graph; cleaned_decoded_graph = self.cleans_decoded_graph()  # ; pbar.close()
 
         return cleaned_decoded_graph
 
@@ -688,7 +689,7 @@ class OwlNets(object):
         else:
             anc_node, roots = common_ancestor if isinstance(common_ancestor, URIRef) else URIRef(common_ancestor), set()
             nodes = set([x for x in list(graph.subjects()) + list(graph.objects()) if isinstance(x, URIRef)])
-            for x in tqdm(nodes):
+            for x in nodes:
                 ancs = gets_entity_ancestors(graph, [x], RDFS.subClassOf)
                 if len(ancs) == 0:
                     nbhd = set(graph.objects(x, None))
@@ -720,7 +721,7 @@ class OwlNets(object):
         org_rel = RDF.type if self.kg_construct_approach == 'subclass' else RDFS.subClassOf
         pure_rel = RDFS.subClassOf if org_rel == RDF.type else RDF.type
         dirty_edges = list(graph.triples((None, org_rel, None)))
-        for edge in tqdm(dirty_edges):
+        for edge in dirty_edges:
             graph.add((edge[0], pure_rel, edge[2])); graph.remove(edge)
             o_ancs = gets_entity_ancestors(graph, [edge[2]], RDFS.subClassOf, [edge[2]])
             ancs_filter = tuple([x for x in o_ancs if x.startswith('http') and URIRef(x) != edge[2]])
