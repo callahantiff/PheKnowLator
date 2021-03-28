@@ -42,7 +42,11 @@ class TestDataUtilsMisc(unittest.TestCase):
         self.genomic_id_dict = {"ensembl_gene_id_ENSG00000000003": ["entrez_id_7105",
                                                                     "gene_type_update_protein-coding"],
                                 "ensembl_gene_id_ENSG00000000457": ["entrez_id_57147",
-                                                                    "gene_type_update_protein-coding"]
+                                                                    "gene_type_update_protein-coding"],
+                                "entrez_id_57147": ["ensembl_gene_id_ENSG00000000457",
+                                                    "gene_type_update_protein-coding"],
+                                "entrez_id_7105": ["ensembl_gene_id_ENSG00000000003",
+                                                   "gene_type_update_protein-coding"]
                                 }
 
         return None
@@ -66,7 +70,10 @@ class TestDataUtilsMisc(unittest.TestCase):
         # write location
         write_location = self.dir_loc + '/genomic_maps.txt'
 
-        genomic_id_mapper(self.genomic_id_dict, write_location, 'ensembl_gene_id', 'entrez_id', 'gene_type_update')
+        genomic_id_mapper(self.genomic_id_dict, write_location,
+                          'ensembl_gene_id', 'entrez_id',
+                          'ensembl_gene_type', 'entrez_gene_type',
+                          'gene_type_update', 'gene_type_update')
         self.assertTrue(os.path.exists(write_location))
 
         return None
