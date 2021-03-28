@@ -328,9 +328,10 @@ def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: s
         return explodes_data(res, lst_cols, splitter)
 
 
-def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, genomic2: str, genomic_type: Optional[str],
-                      genomic_type_value: Optional[Union[str, List]], node: Optional[str], prefix1: bool = False,
-                      prefix2: bool = False) -> None:
+def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, genomic2: str,
+                      src_genomic_type: Optional[str],
+                      tgt_genomic_type: Optional[str], src_update: Optional[str], tgt_update: Optional[str],
+                      prefix1: bool = False, prefix2: bool = False) -> None:
     """Searches a dictionary of genomic identifier mappings and processes them, writing out
 
     Args:
@@ -341,9 +342,10 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
             entrez_id, hgnc_id, symbol).
         genomic2: A string indicating a genomic identifier type (i.e. transcript_stable_id, ensembl_gene_id,
             entrez_id, hgnc_id, symbol).
-        genomic_type: A string indicating whether or not to save the gene or transcript type.
-        genomic_type_value: A string containing the
-        node: A string specifying if genomic_type is applied to the source (i.e. genomic1) or target (i.e. genomic2).
+        src_genomic_type: A string indicating the prefix for the source genomic_type.
+        tgt_genomic_type: A string indicating the prefix for the target genomic_type.
+        src_update: A string indicating the prefix for the source genomic_type; protein-coding or NOT.
+        tgt_update: A string indicating the prefix for the target genomic_type; protein-coding or NOT.
         prefix1: A flag indicating whether or not genomic identifier 1's prefix should be saved or removed from the
             dictionary string value.
         prefix2: A flag indicating whether or not genomic identifier 2's prefix should be saved or removed from the
@@ -353,35 +355,36 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
         None.
     """
 
-    results = []
-    keys = set(x for x in id_dict.keys() if x.startswith(genomic1))
+    results = set(); keys = set(x for x in id_dict.keys() if x.startswith(genomic1))
     for key in tqdm(keys):
         source, targets = key, [x for x in id_dict[key] if x.startswith(genomic2)]
+        if src_genomic_type is not None:
+            src = [x for x in id_dict[key] if x.startswith(src_genomic_type)]
+            source_type = src[0].split('_')[-1] if len(src) > 0 else 'None'
+        else: source_type = 'None'
+        if src_update is not None:
+            src2 = [x for x in id_dict[key] if x.startswith(src_update)]
+            source_type_update = src2[0].split('_')[-1] if len(src2) > 0 else 'None'
+        else: source_type_update = 'None'
         for target in targets:
-            if node is None or genomic_type is None: type_update = 'None'
-            else:
-                node_ent = source if node == 'source' else target
-                typ = [x.split('_')[-1] for x in id_dict[node_ent] if x.startswith(genomic_type)]
-                if genomic_type_value is not None:
-                    type_update = [x for x in typ if x in genomic_type_value]
-                    type_update = genomic_type_value if len(type_update) > 0 else None
-                else:
-                    type_update = [x for x in typ if x is not None]
-                    type_update = type_update[0] if len(type_update) > 0 else None
-            if len(target) > 0 and type_update is not None:
-                if prefix1 and prefix2:
-                    res1 = '_'.join(source.split('_')[-2:]); res2 = '_'.join(target.split('_')[-2:])
-                elif not prefix1 and prefix2:
-                    res1 = source.split('_')[-1]; res2 = '_'.join(target.split('_')[-2:])
-                elif prefix1 and not prefix2:
-                    res1 = '_'.join(source.split('_')[-2:]); res2 = target.split('_')[-1]
-                else:
-                    res1 = source.split('_')[-1]; res2 = target.split('_')[-1]
-                results += [(res1, res2, type_update)]
+            if tgt_genomic_type is not None:
+                tgt = [x for x in id_dict[target] if x.startswith(tgt_genomic_type)]
+                target_type = tgt[0].split('_')[-1] if len(tgt) > 0 else 'None'
+            else: target_type = 'None'
+            if tgt_update is not None:
+                tgt2 = [x for x in id_dict[target] if x.startswith(tgt_update)]
+                target_type_update = tgt2[0].split('_')[-1] if len(tgt2) > 0 else 'None'
+            else: target_type_update = 'None'
+            if prefix1 and prefix2: res1 = '_'.join(source.split('_')[-2:]); res2 = '_'.join(target.split('_')[-2:])
+            elif not prefix1 and prefix2: res1 = source.split('_')[-1]; res2 = '_'.join(target.split('_')[-2:])
+            elif prefix1 and not prefix2: res1 = '_'.join(source.split('_')[-2:]); res2 = target.split('_')[-1]
+            else: res1 = source.split('_')[-1]; res2 = target.split('_')[-1]
+            results |= {(res1, res2, source_type, target_type, source_type_update, target_type_update)}
 
     # write results locally
     with open(filename, 'w') as outfile:
-        for row in results: outfile.write(row[0] + '\t' + row[1] + '\t' + row[2] + '\n')
+        for row in results: outfile.write(
+            row[0] + '\t' + row[1] + '\t' + row[2] + '\t' + row[3] + '\t' + row[4] + '\t' + row[5] + '\n')
     outfile.close()
 
     return None
