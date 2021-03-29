@@ -347,11 +347,10 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
         None.
     """
 
-    prots = ['uniprot_id', 'pro_id', 'protein_stable_id']; ent_types = genomic1 not in prots and genomic2 not in prots
+    prots = ['uniprot_id', 'pro_id', 'protein_stable_id']; prot_types = genomic1 in prots and genomic2 in prots
     results = set(); keys = set(x for x in id_dict.keys() if x.startswith(genomic1))
     for key in tqdm(keys):
         source, targets = key, [x for x in id_dict[key] if x.startswith(genomic2)]
-        # determine genomic type of source
         src_type = 'None'; src_type_update = 'None'
         if src_genomic_type is not None:
             src = [x for x in id_dict[key] if x.startswith(src_genomic_type)]
@@ -360,7 +359,6 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
             src2 = [x for x in id_dict[key] if x.startswith(src_update)]
             src_type_update = src2[0].replace(src_update + '_', '') if len(src2) > 0 else 'None'
         for target in targets:
-            # determine genomic type of target
             tgt_type = 'None'; tgt_type_update = 'None'
             if tgt_genomic_type is not None:
                 tgt = [x for x in id_dict[target] if x.startswith(tgt_genomic_type)]
@@ -371,10 +369,15 @@ def genomic_id_mapper(id_dict: Dict[str, str], filename: str, genomic1: str, gen
             # format source and target entities
             res1 = source.replace(genomic1 + '_', ''); res2 = target.replace(genomic2 + '_', '')
             # write out protein entities -- they have no genomic type
-            if not ent_types: results |= {(res1, res2, src_type, tgt_type, src_type_update, tgt_type_update)}
+            if prot_types: results |= {(res1, res2, src_type, tgt_type, src_type_update, tgt_type_update)}
             # if gene or transcript, only write out entities with a genomic type
-            if ent_types and (src_type_update != 'None' and tgt_type_update != 'None'):
+            elif (genomic1 in prots and genomic2 not in prots) and ('None' not in [tgt_type_update, tgt_type]):
                 results |= {(res1, res2, src_type, tgt_type, src_type_update, tgt_type_update)}
+            elif (genomic1 not in prots and genomic2 in prots) and ('None' not in [src_type_update, src_type]):
+                results |= {(res1, res2, src_type, tgt_type, src_type_update, tgt_type_update)}
+            else:
+                if 'None' not in [src_type_update, tgt_type_update, tgt_type, src_type]:
+                    results |= {(res1, res2, src_type, tgt_type, src_type_update, tgt_type_update)}
 
     with open(filename, 'w') as outfile:
         for row in results: outfile.write(
