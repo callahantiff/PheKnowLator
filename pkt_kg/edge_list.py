@@ -185,7 +185,10 @@ class CreatesEdgeList(object):
                         elif '(' in crit.split(';')[2] or '[' in crit.split(';')[2]:
                             exp = '{} {} {}'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
                         else:
-                            exp = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
+                            if crit.endswith('x'):
+                                exp = '"{}" {}'.format(crit.split(';')[1], crit.split(';')[2].replace("'", ''))
+                            else:
+                                exp = '{} {} "{}"'.format('x', crit.split(';')[1], crit.split(';')[2].replace("'", ''))
                     df = df[df.loc[:, col].apply(lambda x: eval(exp))].copy()
 
             return df
