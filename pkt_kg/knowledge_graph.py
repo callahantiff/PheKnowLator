@@ -339,8 +339,6 @@ class KGBuilder(object):
                     else: edges = set(kg_bld.instance_constructor(edge_info, edge_type))
                     self.graph = adds_edges_to_graph(self.graph, edges, False)
                     res |= edges; n1 |= {edge[0]}; n2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
-                    n1 |= {edge[0]} if invrel is None else {edge[0], edge[1]}
-                    n2 |= {edge[1]} if invrel is None else {edge[1], edge[0]}
                     appends_to_existing_file(edges, logic); appends_to_existing_file(edges, kg)
                     if meta is not None: appends_to_existing_file(meta, anot); appends_to_existing_file(meta, kg)
             # pbar.close()
