@@ -47,6 +47,7 @@ RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/proce
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt && mv ENSEMBL_GENE_ENTREZ_GENE_MAP.txt resources/processed_data/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt && mv ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt resources/processed_data/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt && mv GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt resources/processed_data/
+RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt && mv ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt resources/processed_data/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt && mv HPA_GTEx_TISSUE_CELL_MAP.txt resources/processed_data/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/MESH_CHEBI_MAP.txt && mv MESH_CHEBI_MAP.txt resources/processed_data/
 RUN curl -O https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/PHENOTYPE_HPO_MAP.txt && mv PHENOTYPE_HPO_MAP.txt resources/processed_data/
