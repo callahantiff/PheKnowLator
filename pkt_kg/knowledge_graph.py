@@ -420,9 +420,8 @@ class PartialBuild(KGBuilder):
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
-
+        
         deduplicates_file(f + annot); deduplicates_file(f + logic); deduplicates_file(f + full)
-        del meta, self.relations_dict
 
         return None
 
@@ -482,7 +481,6 @@ class PostClosureBuild(KGBuilder):
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, _ + annot); appends_to_existing_file(self.graph, _ + logic)
         shutil.copy(_ + annot, _ + full); appends_to_existing_file(self.graph, _ + full); del annotation_triples
-        deduplicates_file(_ + annot); deduplicates_file(_ + logic); deduplicates_file(_ + full)
 
         # STEP 5: DECODE OWL SEMANTICS
         if self.decode_owl:
@@ -507,8 +505,6 @@ class PostClosureBuild(KGBuilder):
                 log_str = '*** Processing Metadata ***'; print('\n' + log_str); logger.info(log_str)
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
-
-        del meta, self.edge_dict, self.graph, owlnets, self.relations_dict, results
 
         return None
 
@@ -581,7 +577,6 @@ class FullBuild(KGBuilder):
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
-        deduplicates_file(f + annot); deduplicates_file(f + logic); deduplicates_file(f + full)
 
         # STEP 6: DECODE OWL SEMANTICS
         if self.decode_owl:
@@ -608,6 +603,6 @@ class FullBuild(KGBuilder):
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
 
-        del meta, owlnets, self.relations_dict, results
+        deduplicates_file(f + annot); deduplicates_file(f + logic); deduplicates_file(f + full)
 
         return None
