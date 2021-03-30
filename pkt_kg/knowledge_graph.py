@@ -482,7 +482,6 @@ class PostClosureBuild(KGBuilder):
 
         # STEP 5: DECODE OWL SEMANTICS
         if self.decode_owl:
-            log_str = '*** Running OWL-NETS ***'; print('\n' + log_str); logger.info(log_str)
             owlnets = OwlNets(self.graph, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
             results = owlnets.runs_owl_nets(self.cpus)
         else:
@@ -578,7 +577,6 @@ class FullBuild(KGBuilder):
 
         # STEP 6: DECODE OWL SEMANTICS
         if self.decode_owl:
-            log_str = '*** Running OWL-NETS ***'; print('\n' + log_str); logger.info(log_str)
             owlnets = OwlNets(graphs, self.write_location, self.full_kg, self.construct_approach, self.owl_tools)
             results = owlnets.runs_owl_nets(self.cpus)
         else:
