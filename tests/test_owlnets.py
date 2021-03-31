@@ -154,23 +154,13 @@ class TestOwlNets(unittest.TestCase):
         """Tests the class initialization state for owl_nets_dict."""
 
         self.assertIsInstance(self.owl_nets.owl_nets_dict, Dict)
-        self.assertIn('decoded_classes', self.owl_nets.owl_nets_dict.keys())
+        self.assertIn('decoded_entities', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('cardinality', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('misc', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('negation', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('complementOf', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('disjointWith', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('filtered_triples', self.owl_nets.owl_nets_dict.keys())
-        self.assertIn('{}_approach_purified'.format(self.owl_nets.kg_construct_approach),
-                      self.owl_nets.owl_nets_dict.keys())
-
-        return None
-
-    def test_initialization_node_list(self):
-        """Tests the class initialization state for node_list."""
-
-        self.assertIsInstance(self.owl_nets.node_list, List)
-        self.assertEqual(len(self.owl_nets.node_list), 0)
 
         return None
 
@@ -529,24 +519,18 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_cleans_owl_encoded_classes(self):
-        """Tests the cleans_owl_encoded_classes method"""
-
-        # set-up inputs
-        self.owl_nets.node_list = [obo.SO_0000822]
+    def test_cleans_owl_encoded_entities(self):
+        """Tests the cleans_owl_encoded_entities method"""
 
         # test method
-        decoded_graph = self.owl_nets.cleans_owl_encoded_classes()
-        self.assertIsInstance(decoded_graph, Graph)
-        self.assertEqual(len(decoded_graph), 2)
-
-        self.assertEqual(sorted([str(x) for y in list(decoded_graph.triples((None, None, None))) for x in y]),
-                         ['http://purl.obolibrary.org/obo/SO_0000340',
-                          'http://purl.obolibrary.org/obo/SO_0000746',
-                          'http://purl.obolibrary.org/obo/SO_0000822',
-                          'http://purl.obolibrary.org/obo/SO_0000822',
-                          'http://purl.obolibrary.org/obo/so#has_origin',
-                          'http://www.w3.org/2000/01/rdf-schema#subClassOf'])
+        self.owl_nets.cleans_owl_encoded_entities([obo.SO_0000822])
+        self.assertIsInstance(self.owl_nets.graph, Graph)
+        self.assertEqual(len(self.owl_nets.graph), 2)
+        self.assertEqual(
+            sorted([str(x) for y in list(self.owl_nets.graph.triples((None, None, None))) for x in y]),
+            ['http://purl.obolibrary.org/obo/SO_0000340', 'http://purl.obolibrary.org/obo/SO_0000746',
+             'http://purl.obolibrary.org/obo/SO_0000822', 'http://purl.obolibrary.org/obo/SO_0000822',
+             'http://purl.obolibrary.org/obo/so#has_origin', 'http://www.w3.org/2000/01/rdf-schema#subClassOf'])
 
         return None
 
@@ -582,8 +566,7 @@ class TestOwlNets(unittest.TestCase):
 
         # test method
         self.graph = owl_nets.purifies_graph_build(self.graph)
-        dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
-        self.assertTrue(len(dict_keys), 0)
+        self.assertTrue(len(self.graph), 3054)
 
         return None
 
@@ -596,8 +579,7 @@ class TestOwlNets(unittest.TestCase):
 
         # test method
         self.graph = owl_nets.purifies_graph_build(self.graph)
-        dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
-        self.assertTrue(len(dict_keys), 3054)
+        self.assertTrue(len(self.graph), 3054)
 
         return None
 
@@ -610,28 +592,19 @@ class TestOwlNets(unittest.TestCase):
 
         # test method
         self.graph = owl_nets.purifies_graph_build(self.graph)
-        dict_keys = owl_nets.owl_nets_dict['{}_approach_purified'.format(owl_nets.kg_construct_approach)]
-        self.assertTrue(len(dict_keys), 6616)
-
-        return None
-
-    def test_owlnets_regular(self):
-        """Tests the write_out_results method."""
-
-        self.owl_nets.kg_construct_approach = None
-        self.owl_nets.owl_nets(self.owl_nets.graph)
-        graph_dict = self.owl_nets.gets_owlnets_graphs()
-        self.assertIsInstance(graph_dict, Dict)
-        self.assertIsInstance(graph_dict['original_graph'], Set)
-        self.assertEqual(len(graph_dict['purified_graph']), 0)
+        self.assertTrue(len(self.graph), 3054)
 
         return None
 
     def test_write_out_results_regular(self):
         """Tests the write_out_results method."""
 
-        self.owl_nets.runs_owl_nets()
-        ray.shutdown()
+        self.owl_nets.kg_construct_approach = None
+        graph1, graph2 = self.owl_nets.runs_owl_nets(); ray.shutdown()
+
+        # test graph output
+        self.assertIsInstance(graph1, Graph)
+        self.assertEqual(graph2, None)
 
         # make sure files are written locally
         nx_mdg_file = 'so_with_imports_OWLNETS_NetworkxMultiDiGraph.gpickle'
@@ -642,25 +615,15 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_subclass_purified(self):
-        """Tests the owl_nets method."""
-
-        self.owl_nets.kg_construct_approach = 'subclass'
-        self.owl_nets.owl_nets(self.owl_nets.graph)
-        graph_dict = self.owl_nets.gets_owlnets_graphs()
-        self.assertIsInstance(graph_dict, Dict)
-        self.assertIsInstance(graph_dict['original_graph'], Set)
-        self.assertIsInstance(graph_dict['purified_graph'], Set)
-        self.assertTrue(len(graph_dict['purified_graph']) >= len(graph_dict['original_graph']))
-
-        return None
-
     def test_write_out_results_subclass_purified(self):
         """Tests the owl_nets method."""
 
         self.owl_nets.kg_construct_approach = 'subclass'
-        self.owl_nets.runs_owl_nets()
-        ray.shutdown()
+        graph1, graph2 = self.owl_nets.runs_owl_nets(); ray.shutdown()
+
+        # test graph output
+        self.assertIsInstance(graph1, Graph)
+        self.assertIsInstance(graph2, Graph)
 
         # make sure files are written locally for each graph
         # purified
@@ -679,23 +642,14 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def test_instance_purified(self):
-        """Tests the owl_nets method."""
-
-        self.owl_nets2.owl_nets(self.owl_nets2.graph)
-        graph_dict = self.owl_nets2.gets_owlnets_graphs()
-        self.assertIsInstance(graph_dict, Dict)
-        self.assertIsInstance(graph_dict['original_graph'], Set)
-        self.assertIsInstance(graph_dict['purified_graph'], Set)
-        self.assertTrue(len(graph_dict['purified_graph']) >= len(graph_dict['original_graph']))
-
-        return None
-
     def test_write_out_results_instance_purified(self):
         """Tests the owl_nets method."""
 
-        self.owl_nets2.runs_owl_nets()
-        ray.shutdown()
+        graph1, graph2 = self.owl_nets2.runs_owl_nets(); ray.shutdown()
+
+        # test graph output
+        self.assertIsInstance(graph1, Graph)
+        self.assertIsInstance(graph2, Graph)
 
         # make sure files are written locally for each graph
         # purified
@@ -724,17 +678,13 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
-    def tests_gets_owlnets_graphs(self):
+    def tests_gets_owlnets_graph(self):
         """Tests gets_owlnets_graphs method."""
 
-        graphs = self.owl_nets.gets_owlnets_graphs()
+        graphs = self.owl_nets.gets_owlnets_graph()
 
         # verify results
-        self.assertIsInstance(graphs, Dict)
-        self.assertIn('original_graph', graphs.keys())
-        self.assertIsInstance(graphs['original_graph'], set)
-        self.assertIn('purified_graph', graphs.keys())
-        self.assertIsInstance(graphs['purified_graph'], set)
+        self.assertIsInstance(graphs, Graph)
 
         return None
 
