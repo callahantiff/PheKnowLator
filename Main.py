@@ -63,8 +63,7 @@ def main():
     #####################
 
     # set-up environment
-    cpus = psutil.cpu_count(logical=True) if args.cpus is None else args.cpus
-    ray.init(ignore_reinit_error=True)  # preventing clobbering background ray processes
+    cpus = psutil.cpu_count(logical=True) if args.cpus is None else args.cpus; ray.init(ignore_reinit_error=True)
 
     print('\n' + '=' * 28 + '\nPKT: CONSTRUCT EDGE LISTS\n' + '=' * 28 + '\n')
     start = time.time()
