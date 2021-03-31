@@ -551,7 +551,6 @@ class TestKGBuilder(unittest.TestCase):
         # check that edges were added to the graph
         self.kg_subclass.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 9796)
         self.assertIsInstance(error_dicts, Dict)
         # check graph files were saved
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
@@ -598,7 +597,6 @@ class TestKGBuilder(unittest.TestCase):
         # check that edges were added to the graph
         self.kg_subclass.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_subclass.graph) > 0)
-        self.assertEqual(len(self.kg_subclass.graph), 9784)
         self.assertIsInstance(error_dicts, Dict)
         # check graph files were saved
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
@@ -668,7 +666,7 @@ class TestKGBuilder(unittest.TestCase):
         # check that edges were added to the graph
         self.kg_instance.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_instance.graph) > 0)
-        self.assertEqual(len(self.kg_instance.graph), 57)
+        self.assertEqual(len(self.kg_instance.graph), 29)
         self.assertIsInstance(error_dicts, Dict)
         # check graph files were saved
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
@@ -716,7 +714,7 @@ class TestKGBuilder(unittest.TestCase):
         # check that edges were added to the graph
         self.kg_instance2.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_instance2.graph) > 0)
-        self.assertEqual(len(self.kg_instance2.graph), 64)
+        self.assertEqual(len(self.kg_instance2.graph), 36)
         self.assertIsInstance(error_dicts, Dict)
         # check graph files were saved
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'

@@ -720,7 +720,7 @@ class OwlNets(object):
 
         return None
 
-    def runs_owl_nets(self, cpus: int = 1) -> Tuple:
+    def runs_owlnets(self, cpus: int = 1) -> Tuple:
         """Method facilitates the parallel processing of OWL-NETS over a list of n RDFLib Graph objects.
 
         Args:

@@ -600,7 +600,7 @@ class TestOwlNets(unittest.TestCase):
         """Tests the write_out_results method."""
 
         self.owl_nets.kg_construct_approach = None
-        graph1, graph2 = self.owl_nets.runs_owl_nets(); ray.shutdown()
+        graph1, graph2 = self.owl_nets.runs_owlnets(); ray.shutdown()
 
         # test graph output
         self.assertIsInstance(graph1, Graph)
@@ -619,7 +619,7 @@ class TestOwlNets(unittest.TestCase):
         """Tests the owl_nets method."""
 
         self.owl_nets.kg_construct_approach = 'subclass'
-        graph1, graph2 = self.owl_nets.runs_owl_nets(); ray.shutdown()
+        graph1, graph2 = self.owl_nets.runs_owlnets(); ray.shutdown()
 
         # test graph output
         self.assertIsInstance(graph1, Graph)
@@ -645,7 +645,7 @@ class TestOwlNets(unittest.TestCase):
     def test_write_out_results_instance_purified(self):
         """Tests the owl_nets method."""
 
-        graph1, graph2 = self.owl_nets2.runs_owl_nets(); ray.shutdown()
+        graph1, graph2 = self.owl_nets2.runs_owlnets(); ray.shutdown()
 
         # test graph output
         self.assertIsInstance(graph1, Graph)
