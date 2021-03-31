@@ -24,6 +24,7 @@ Interacts with Knowledge Graphs
 * derives_graph_statistics
 * adds_namespace_to_bnodes
 * removes_namespace_from_bnodes
+* updates_pkt_namespace_identifiers
 * splits_knowledge_graph
 
 Writes Triple Lists
@@ -58,6 +59,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 obo = Namespace('http://purl.obolibrary.org/obo/')
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 schema = Namespace('http://www.w3.org/2001/XMLSchema#')
+pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
 pkt_bnode = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
 
 
@@ -514,6 +516,50 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
     for s, p, o in (graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
 
     return updated_graph
+
+
+def updates_pkt_namespace_identifiers(graph: Graph, kg_construct_approach: str) -> Graph:
+    """Iterates over all entities in a pkt knowledge graph that were constructed using the instance- and
+    subclass-based construction approaches and converts pkt-namespaced BNodes back to the original ontology
+    class identifier. A new edge for each triple, containing an instance of a class is updated with the original
+    ontology identifier, is added to the graph.
+
+    Assumptions: (1) all instances/classes of a BNode identifier contain the pkt namespace
+                 (2) all relations used when adding new edges to a graph are part of the OBO namespace
+
+    Args:
+        graph: An RDFLib Graph object containing pkt-namespacing.
+        kg_construct_approach: A string containing the type of construction approach used to build the knowledge graph.
+
+    Returns:
+         graph: An RDFLib Graph object with updated bnode namespacing.
+    """
+
+    print('Post-processing pkt-kg-Namespaced Anonymous Nodes')
+
+    # STEP 1: check for pkt-namespaced bnodes (pkt-added bnodes) and remove them if present
+    pred = RDF.type if kg_construct_approach == 'instance' else RDFS.subClassOf
+    pkt_ns_dict = {x[0]: x[2] for x in list(graph.triples((None, pred, None))) if isinstance(x[2], URIRef)
+                   and (str(x[0]).startswith(str(pkt) + 'N') and x[2] not in [OWL.NamedIndividual, OWL.Class])}
+    if len(pkt_ns_dict) > 0:
+        remove_edges: Set = set()  # update triples containing BNodes with original ontology class
+        for node in pkt_ns_dict.keys():
+            triples = list(graph.triples((node, None, None))) + list(graph.triples((None, None, node)))
+            for edge in triples:
+                sub = pkt_ns_dict[edge[0]] if edge[0] in pkt_ns_dict.keys() else edge[0]
+                obj = pkt_ns_dict[edge[2]] if edge[2] in pkt_ns_dict.keys() else edge[2]
+                if sub != obj: graph.add((sub, edge[1], obj))  # ensures we are not adding self-loops
+            # verify that updating node doesn't introduce punning (i.e. node is not NamedIndividual and Class)
+            node_types = list(graph.triples((pkt_ns_dict[node], RDF.type, None)))
+            if len(node_types) > 1: triples += [tuple(x) for x in node_types if x[2] == OWL.NamedIndividual]
+            remove_edges |= set(triples)
+        graph = remove_edges_from_graph(graph, list(remove_edges))
+
+    # STEP 2: check for pkt-namespaced bnodes (original bnodes) and remove them if present
+    ns_bnodes = {x for x in graph if str(x[0]).startswith(pkt_bnode) or str(x[2]).startswith(pkt_bnode)}
+    if len(ns_bnodes) > 0: graph = removes_namespace_from_bnodes(graph)
+
+    return graph
 
 
 def splits_knowledge_graph(graph: Graph, graph_output: bool = False) -> Tuple[Graph, Union[Graph, Set]]:

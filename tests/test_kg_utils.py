@@ -640,3 +640,52 @@ class TestKGUtils(unittest.TestCase):
         if os.path.exists(filepath): os.remove(filepath)
 
         return None
+
+    def test_updates_pkt_namespace_identifiers_instance(self):
+        """Tests the updates_pkt_namespace_identifiers method for an instance-based construction approach."""
+
+        # update graph
+        edges = [(URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
+                 RDF.type, obo.CHEBI_2504),
+                 (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
+                 RDF.type, OWL.NamedIndividual), (obo.CHEBI_2504, RDF.type, OWL.Class),
+                 (URIRef('https://www.ncbi.nlm.nih.gov/gene/55847'), RDF.type, OWL.NamedIndividual),
+                 (URIRef('https://www.ncbi.nlm.nih.gov/gene/55847'), RDF.type, obo.SO_0001217),
+                 (obo.SO_0001217, RDF.type, OWL.Class),
+                 (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nc07cdd6d483027110022e6e4364a83f1'),
+                 obo.RO_0002434, URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),
+                 (obo.RO_0002434, RDF.type, OWL.ObjectProperty)]
+        graph = adds_edges_to_graph(Graph(), edges)
+
+        # run method to roll back to re-map instances of classes
+        result_graph = updates_pkt_namespace_identifiers(graph, 'instance')
+        self.assertEqual(len(result_graph), 6)
+        self.assertIn((URIRef('http://purl.obolibrary.org/obo/CHEBI_2504'),
+                       URIRef('http://purl.obolibrary.org/obo/RO_0002434'),
+                       URIRef('https://www.ncbi.nlm.nih.gov/gene/55847')),
+                      result_graph)
+
+        return None
+
+    def test_updates_pkt_namespace_identifiers_subclass(self):
+        """Tests the updates_pkt_namespace_identifiers method for a subclass-based construction approach."""
+
+        # update graph
+        edges = [(URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                 RDFS.subClassOf, obo.DOID_3075),
+                 (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                 RDF.type, OWL.Class), (obo.DOID_3075, RDF.type, OWL.Class),
+                 (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                 RDFS.subClassOf, BNode('N4ba9c')), (BNode('N4ba9c'), RDF.type, OWL.Restriction),
+                 (BNode('N4ba9c'), OWL.onProperty, obo.RO_0003302),
+                 (BNode('N4ba9c'), OWL.someValuesFrom, obo.DOID_1080),
+                 (obo.DOID_1080, RDF.type, OWL.Class), (obo.RO_0003302, RDF.type, OWL.ObjectProperty)]
+        graph = adds_edges_to_graph(Graph(), edges)
+
+        # run method to roll back to re-map instances of classes
+        result_graph = updates_pkt_namespace_identifiers(graph, 'subclass')
+        self.assertEqual(len(result_graph), 7)
+        self.assertTrue(((URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Nf1f6ce0f4e4eddb81d48e89115facef2'),
+                          RDFS.subClassOf, obo.DOID_3075)) not in result_graph)
+
+        return None

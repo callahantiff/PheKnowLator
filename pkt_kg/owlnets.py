@@ -16,15 +16,15 @@ from random import sample
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from statistics import mode, StatisticsError
-# from tqdm import tqdm  # type: ignore
+from tqdm import tqdm  # type: ignore
 from typing import Any, Dict, IO, List, Optional, Set, Tuple, Union
 
 from pkt_kg.utils import *
 
 # add global variables
 obo = Namespace('http://purl.obolibrary.org/obo/')
-pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
-pkt_bnode = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
+# pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
+# pkt_bnode = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
 
 # logging
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
@@ -132,45 +132,6 @@ class OwlNets(object):
         self.graph = remove_edges_from_graph(self.graph, triples)
 
         self.owl_nets_dict['disjointWith'] |= set(triples)
-
-        return None
-
-    def updates_pkt_namespace_identifiers(self) -> None:
-        """Iterates over all entities in a pkt knowledge graph that were constructed using the instance- and
-        subclass-based construction approaches and converts pkt-namespaced BNodes back to the original ontology class
-        identifier. A new edge for each triple, containing an instance of a class is updated with the original
-        ontology identifier, is added to the graph.
-
-        Assumptions: (1) all instances/classes of a BNode identifier contain the pkt namespace
-                     (2) all relations used when adding new edges to a graph are part of the OBO namespace
-
-        Returns:
-             None.
-        """
-
-        log_str = 'Post-processing pkt-kg-Namespaced Anonymous Nodes'; logger.info(log_str); print(log_str)
-
-        # STEP 1: check for pkt-namespaced bnodes (pkt-added bnodes) and remove them if present
-        pred = RDF.type if self.kg_construct_approach == 'instance' else RDFS.subClassOf
-        pkt_ns_dict = {x[0]: x[2] for x in list(self.graph.triples((None, pred, None))) if isinstance(x[2], URIRef)
-                       and (str(x[0]).startswith(str(pkt) + 'N') and x[2] not in [OWL.NamedIndividual, OWL.Class])}
-        if len(pkt_ns_dict) > 0:
-            remove_edges: Set = set()  # update triples containing BNodes with original ontology class
-            for node in pkt_ns_dict.keys():
-                triples = list(self.graph.triples((node, None, None))) + list(self.graph.triples((None, None, node)))
-                for edge in triples:
-                    sub = pkt_ns_dict[edge[0]] if edge[0] in pkt_ns_dict.keys() else edge[0]
-                    obj = pkt_ns_dict[edge[2]] if edge[2] in pkt_ns_dict.keys() else edge[2]
-                    if sub != obj: self.graph.add((sub, edge[1], obj))  # ensures we are not adding self-loops
-                # verify that updating node doesn't introduce punning (i.e. node is not NamedIndividual and Class)
-                node_types = list(self.graph.triples((pkt_ns_dict[node], RDF.type, None)))
-                if len(node_types) > 1: triples += [tuple(x) for x in node_types if x[2] == OWL.NamedIndividual]
-                remove_edges |= set(triples)
-            self.graph = remove_edges_from_graph(self.graph, list(remove_edges))
-
-        # STEP 2: check for pkt-namespaced bnodes (original bnodes) and remove them if present
-        ns_bnodes = {x for x in self.graph if str(x[0]).startswith(pkt_bnode) or str(x[2]).startswith(pkt_bnode)}
-        if len(ns_bnodes) > 0: self.graph = removes_namespace_from_bnodes(self.graph)
 
         return None
 
@@ -765,10 +726,10 @@ class OwlNets(object):
         return None
 
     def owl_nets(self, graph: Graph) -> None:
-        """Performs all steps of the OWL-NETS pipeline, including: (1) removing owl:disjointWith axioms; (2) updating
-        pkt-namespaced-BNodes; (3) filtering graph to remove all triples supporting OWL semantics; (4) decodes all
-        owl-encoded classes and axioms; (5) post-process decoded graph to ensure graph is connected and; (6) optionally,
-        purify graph to kg construction approach (i.e. subclass or instance).
+        """Performs all steps of the OWL-NETS pipeline, including: (1) removing owl:disjointWith axioms; (2) filtering
+        graph to remove all triples supporting OWL semantics; (3) decodes all owl-encoded classes and axioms; (4)
+        post-process decoded graph to ensure graph is connected and; (5) optionally, purify graph to kg construction
+        approach (i.e. subclass or instance).
 
         Args:
             graph: An RDFLib Graph object.
@@ -781,11 +742,9 @@ class OwlNets(object):
 
         # STEP 1: Remove owl:disjointWith axioms
         self.removes_disjoint_with_axioms()
-        # STEP 2: Update pkt-namespaced nodes and pkt-namespaced bnodes
-        self.updates_pkt_namespace_identifiers()
-        # STEP 3: Remove semantic support triples
+        # STEP 2: Remove semantic support triples
         filtered_graph = self.removes_edges_with_owl_semantics()
-        # STEP 4: Decode owl-encoded classes and axioms
+        # STEP 3: Decode owl-encoded classes and axioms
         owl_classes = list(gets_ontology_classes(self.graph)); owl_axioms = []
         for x in set(self.graph.subjects(RDF.type, OWL.Axiom)):
             src = set(self.graph.objects(list(self.graph.objects(x, OWL.annotatedSource))[0], RDF.type))
@@ -795,9 +754,9 @@ class OwlNets(object):
             else: pass
         self.node_list = list(set(owl_classes) | set(owl_axioms))
         decoded_graph = self.cleans_owl_encoded_classes()
-        # STEP 5: Ensure graph is connected
+        # STEP 4: Ensure graph is connected
         conn_graph = self.makes_graph_connected(filtered_graph + decoded_graph)
-        # STEP 6: Post-process OWL-NETS output
+        # STEP 5: Post-process OWL-NETS output
         self.owl_nets_graphs['original_graph'] |= set(conn_graph).copy()
         if self.kg_construct_approach is not None:
             self.owl_nets_graphs['purified_graph'] |= set(self.purifies_graph_build(conn_graph))
