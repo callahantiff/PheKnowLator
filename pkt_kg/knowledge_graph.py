@@ -337,7 +337,8 @@ class KGBuilder(object):
                 if self.checks_classes(edge_info) and meta_logic:
                     if self.construction == 'subclass': edges = set(kg_bld.subclass_constructor(edge_info, edge_type))
                     else: edges = set(kg_bld.instance_constructor(edge_info, edge_type))
-                    self.graph = adds_edges_to_graph(self.graph, edges, False)
+                    cleaned_edges = updates_pkt_namespace_identifiers(edges, self.construction)
+                    self.graph = adds_edges_to_graph(self.graph, cleaned_edges, False)
                     res |= edges; n1 |= {edge[0]}; n2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
                     appends_to_existing_file(edges, logic); appends_to_existing_file(edges, kg)
                     if meta is not None: appends_to_existing_file(meta, anot); appends_to_existing_file(meta, kg)
@@ -345,7 +346,7 @@ class KGBuilder(object):
             stat = self.gets_edge_statistics(edge_type, res, [n1, n2, rels]); del [n1, n2, rels], res
             p = 'Created {} ({}-{}) Edges: {}'.format(edge_type.upper(), s, o, stat); print('\n' + p); logger.info(p)
             if len(kg_bld.subclass_error.keys()) > 0: self.error_dict = kg_bld.subclass_error
-            self.graph = updates_pkt_namespace_identifiers(self.graph, self.construction)  # remove bnode namespacing
+            # self.graph = updates_pkt_namespace_identifiers(self.graph, self.construction)  # remove bnode namespacing
 
             return None
 
@@ -405,7 +406,8 @@ class PartialBuild(KGBuilder):
         log_str = '*** Building Knowledge Graph Edges ***'; print(log_str); logger.info(log_str)
         self.ont_classes = gets_ontology_classes(self.graph); self.obj_properties = gets_object_properties(self.graph)
         # instantiate inner class to construct edge sets
-        ray.init(ignore_reinit_error=True)
+        try: ray.init()
+        except RuntimeError: pass
         args = {'construction': self.construct_approach, 'edge_dict': self.edge_dict, 'write_loc': self.write_location,
                 'rel_dict': self.relations_dict, 'inverse_dict': self.inverse_relations_dict, 'kg_owl': kg_owl,
                 'node_data': self.node_data, 'ont_cls': self.ont_classes, 'metadata': meta.creates_node_metadata,
@@ -561,7 +563,8 @@ class FullBuild(KGBuilder):
         log_str = '*** Building Knowledge Graph Edges ***'; print('\n' + log_str); logger.info(log_str)
         self.ont_classes = gets_ontology_classes(self.graph); self.obj_properties = gets_object_properties(self.graph)
         # instantiate inner class to construct edge sets
-        ray.init(ignore_reinit_error=True)
+        try: ray.init()
+        except RuntimeError: pass
         args = {'construction': self.construct_approach, 'edge_dict': self.edge_dict, 'node_data': self.node_data,
                 'rel_dict': self.relations_dict, 'inverse_dict': self.inverse_relations_dict, 'kg_owl': kg_owl,
                 'ont_cls': self.ont_classes, 'obj_props': self.obj_properties, 'metadata': meta.creates_node_metadata,

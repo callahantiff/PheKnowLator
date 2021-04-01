@@ -689,3 +689,76 @@ class TestKGUtils(unittest.TestCase):
                           RDFS.subClassOf, obo.DOID_3075)) not in result_graph)
 
         return None
+
+    def test_updates_pkt_namespace_identifiers_edges(self):
+        """Tests the updates_pkt_namespace_identifiers method when the input is a set of RDFLib triples."""
+
+        # update graph
+        edges = {
+            (obo.VO_0001966, RDFS.subClassOf,
+             URIRef('https://github.com/callahantiff/PheKnowLator/pkt/bnode/Nf334e885b3d14bddb5bc6381903d360e')),
+            (obo.VO_0001966, RDFS.subClassOf, URIRef('http://purl.obolibrary.org/obo/VO_0000712')),
+            (obo.VO_0001966, RDFS.subClassOf,
+             URIRef('https://github.com/callahantiff/PheKnowLator/pkt/bnode/Ncd56e20d7a144ddda7bb1651af6a89e2')),
+            (obo.VO_0001966, RDFS.subClassOf,
+             URIRef('https://github.com/callahantiff/PheKnowLator/pkt/bnode/Nff2e174e1c2b4c74b46767538a316664')),
+            (obo.VO_0001966, RDFS.subClassOf, obo.VO_0002364), (obo.VO_0001966, RDFS.subClassOf, obo.VO_0001214),
+            (obo.VO_0001966, RDF.type, OWL.Class), (obo.VO_0001966, RDFS.subClassOf, obo.VO_0001485)
+        }
+
+        # run method to roll back to re-map instances of classes
+        result_graph = updates_pkt_namespace_identifiers(edges, 'subclass')
+        self.assertEqual(len(result_graph), 8)
+        self.assertTrue(((URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Ncd56e20d7a144ddda7bb1651af6a89e2'),
+                          RDFS.subClassOf, obo.VO_0001966)) not in result_graph)
+
+        return None
+
+    def test_updates_pkt_namespace_identifiers_edges_bad(self):
+        """Tests the updates_pkt_namespace_identifiers method when the input is a set of RDFLib triples and when the
+        construction type is not found in the edges.
+        ."""
+
+        # update graph
+        edges = {
+            (obo.VO_0001966, RDFS.subClassOf,
+             URIRef('https://github.com/callahantiff/PheKnowLator/pkt/bnode/Nf334e885b3d14bddb5bc6381903d360e')),
+            (obo.VO_0001966, RDFS.subClassOf, URIRef('http://purl.obolibrary.org/obo/VO_0000712')),
+            (obo.VO_0001966, RDFS.subClassOf,
+             URIRef('https://github.com/callahantiff/PheKnowLator/pkt/bnode/Ncd56e20d7a144ddda7bb1651af6a89e2')),
+            (obo.VO_0001966, RDFS.subClassOf,
+             URIRef('https://github.com/callahantiff/PheKnowLator/pkt/bnode/Nff2e174e1c2b4c74b46767538a316664')),
+            (obo.VO_0001966, RDFS.subClassOf, obo.VO_0002364), (obo.VO_0001966, RDFS.subClassOf, obo.VO_0001214),
+            (obo.VO_0001966, RDF.type, OWL.Class), (obo.VO_0001966, RDFS.subClassOf, obo.VO_0001485)
+        }
+
+        # run method to roll back to re-map instances of classes
+        result_graph = updates_pkt_namespace_identifiers(edges, 'instance')
+        self.assertEqual(len(result_graph), 8)
+        self.assertTrue(((URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Ncd56e20d7a144ddda7bb1651af6a89e2'),
+                          RDFS.subClassOf, obo.VO_0001966)) in result_graph)
+
+        return None
+
+    def test_updates_pkt_namespace_identifiers_edges2(self):
+        """Tests the updates_pkt_namespace_identifiers method when the input is a set of RDFLib triples -- testing
+        other pkt namespace."""
+
+        # update graph
+        edges = {
+            (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/N02512fc29ed2150ca065184c232c48e9'),
+             RDF.type, OWL.Class),
+            (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/N02512fc29ed2150ca065184c232c48e9'),
+             RDFS.subClassOf, URIRef('http://www.ncbi.nlm.nih.gov/gene/4841')),
+            (URIRef('https://github.com/callahantiff/PheKnowLator/pkt/N02512fc29ed2150ca065184c232c48e9'),
+             RDFS.subClassOf,
+             URIRef('https://github.com/callahantiff/PheKnowLator/pkt/bnode/N3cdf4666519fcb7f8b5e76091081271f'))}
+
+        # run method to roll back to re-map instances of classes
+        result_graph = updates_pkt_namespace_identifiers(edges, 'subclass')
+        print([x for x in result_graph])
+        self.assertEqual(len(result_graph), 2)
+        self.assertTrue(((URIRef('https://github.com/callahantiff/PheKnowLator/pkt/N02512fc29ed2150ca065184c232c48e9'),
+                          RDFS.subClassOf, URIRef('http://www.ncbi.nlm.nih.gov/gene/4841'))) not in result_graph)
+
+        return None
