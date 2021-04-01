@@ -746,7 +746,8 @@ class OwlNets(object):
                 elif (OWL.Class in src and len(tgt) == 0) or (OWL.Class in tgt and len(src) == 0): owl_axioms += [x]
                 else: pass
             entities = [list(set(owl_classes) | set(owl_axioms))[i::cpus] for i in range(cpus)]
-            ray.init(ignore_reinit_error=True)
+            try: ray.init()
+            except RuntimeError: pass
             actors = [ray.remote(OwlNets).remote(self.graph, loc, f, cons, ot) for _ in range(cpus)]  # type: ignore
             for i in range(0, cpus): actors[i % cpus].cleans_owl_encoded_entities.remote(entities[i])  # type: ignore
             _ = ray.wait([x.gets_owlnets_graph.remote() for x in actors], num_returns=len(actors))

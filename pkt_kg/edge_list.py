@@ -400,7 +400,8 @@ class CreatesEdgeList(object):
 
         logger.info('*' * 10 + 'PKT STEP: GENERATING KNOWLEDGE GRAPH MASTER EDGE LIST' + '*' * 10)
 
-        ray.init(ignore_reinit_error=True)
+        try: ray.init()
+        except RuntimeError: pass
         actors = [ray.remote(CreatesEdgeList).remote(data_files, source_file) for _ in range(cpus)]  # type: ignore
         edge_types = [x for x in data_files.keys() if '-' in x]
         for i in range(0, len(edge_types)):
