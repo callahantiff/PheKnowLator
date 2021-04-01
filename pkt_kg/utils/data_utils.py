@@ -21,6 +21,7 @@ Miscellaneous data Processing Methods
 * explodes_data
 * genomic_id_mapper
 * deduplicates_file
+* merges_files
 
 Outputs data
 * outputs_dictionary_data
@@ -427,5 +428,24 @@ def deduplicates_file(src_filepath: str, dest_filepath: Optional[str] = None) ->
 
     os.system('sort {} | uniq > {}'.format(src_filepath, dest_filepath))
     if temp_data and os.path.exists(temp_data): os.remove(temp_data)
+
+    return None
+
+
+def merges_files(filepath1: str, filepath2: str, merged_filepath: str) -> None:
+    """Merges two files together.
+
+    Args:
+        filepath1: A string specifying a path to an existing file.
+        filepath2: A string specifying a path to an existing file.
+        merged_filepath: A string specifying the file name for the merged files.
+
+    Returns:
+         None.
+    """
+
+    print('Merging Files: {} and {}'.format(filepath1, filepath2))
+
+    os.system('( cat {} ; echo ''; cat {} ) > {}'.format(filepath1, filepath2, merged_filepath))
 
     return None

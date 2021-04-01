@@ -322,7 +322,7 @@ class KGBuilder(object):
             """
 
             kg_bld = KGConstructionApproach(self.res_dir); f_name = self.write_location + self.kg_owl
-            anot = f_name[:-4] + '_AnnotationsOnly.nt'; logic = f_name[:-4] + '_LogicOnly.nt'; kg = f_name[:-4] + '.nt'
+            anot = f_name[:-4] + '_AnnotationsOnly.nt'; logic = f_name[:-4] + '_LogicOnly.nt'
             edge_list = self.edge_dict[edge_type]['edge_list']; s, o = self.edge_dict[edge_type]['data_type'].split('-')
             rel, uri = self.edge_dict[edge_type]['edge_relation'], self.edge_dict[edge_type]['uri']
             invrel = self.checks_relations(rel, edge_list) if self.inverse_relations_dict is not None else None
@@ -340,8 +340,8 @@ class KGBuilder(object):
                     cleaned_edges = updates_pkt_namespace_identifiers(edges, self.construction)
                     self.graph = adds_edges_to_graph(self.graph, cleaned_edges, False)
                     res |= edges; n1 |= {edge[0]}; n2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
-                    appends_to_existing_file(edges, logic); appends_to_existing_file(edges, kg)
-                    if meta is not None: appends_to_existing_file(meta, anot); appends_to_existing_file(meta, kg)
+                    appends_to_existing_file(edges, logic)
+                    if meta is not None: appends_to_existing_file(meta, anot)
             # pbar.close()
             stat = self.gets_edge_statistics(edge_type, res, [n1, n2, rels]); del [n1, n2, rels], res
             p = 'Created {} ({}-{}) Edges: {}'.format(edge_type.upper(), s, o, stat); print('\n' + p); logger.info(p)
@@ -396,11 +396,11 @@ class PartialBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         f = self.write_location; self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
+        stats = 'LOGIC SUBSET {}'.format(derives_graph_statistics(self.graph)); print(stats); logger.info(stats)
         kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, f + annot); appends_to_existing_file(self.graph, f + logic)
-        shutil.copy(f + annot, f + full); appends_to_existing_file(self.graph, f + full); del annotation_triples
+        del annotation_triples
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         log_str = '*** Building Knowledge Graph Edges ***'; print(log_str); logger.info(log_str)
@@ -421,8 +421,8 @@ class PartialBuild(KGBuilder):
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
 
-        # tidy up work space and print final stats
-        deduplicates_file(f + annot); deduplicates_file(f + logic); deduplicates_file(f + full)
+        # depuplicate logic and annotation files, merge them, and print final stats
+        deduplicates_file(f + annot); deduplicates_file(f + logic); merges_files(f + annot, f + logic, f + full)
         graph = Graph().parse(f + full, format='nt')
         s = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s); logger.info(s)
 
@@ -479,12 +479,11 @@ class PostClosureBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         _ = self.write_location; self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
+        stats = 'LOGIC SUBSET {}'.format(derives_graph_statistics(self.graph)); print(stats); logger.info(stats)
         kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, _ + annot); appends_to_existing_file(self.graph, _ + logic)
-        shutil.copy(_ + annot, _ + full); appends_to_existing_file(self.graph, _ + full); del annotation_triples
-        self.graph = updates_pkt_namespace_identifiers(self.graph, self.construct_approach)
+        self.graph = updates_pkt_namespace_identifiers(self.graph, self.construct_approach); del annotation_triples
 
         # STEP 5: DECODE OWL SEMANTICS
         if self.decode_owl:
@@ -510,6 +509,9 @@ class PostClosureBuild(KGBuilder):
                 log_str = '*** Processing Metadata ***'; print(log_str); logger.info(log_str)
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
+
+        # depuplicate logic and annotation files and then merge them
+        deduplicates_file(_ + annot); deduplicates_file(_ + logic); merges_files(_ + annot, _ + logic, _ + full)
 
         return None
 
@@ -557,12 +559,11 @@ class FullBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         f = self.write_location; self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        stats = derives_graph_statistics(self.graph); print(stats); logger.info(stats)
+        stats = 'LOGIC SUBSET {}'.format(derives_graph_statistics(self.graph)); print(stats); logger.info(stats)
         kg_owl = self.full_kg.replace('noOWL', 'OWL') if self.decode_owl == 'yes' else self.full_kg
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, f + annot); appends_to_existing_file(self.graph, f + logic)
-        shutil.copy(f + annot, f + full); appends_to_existing_file(self.graph, f + full); del annotation_triples
-        self.graph = updates_pkt_namespace_identifiers(self.graph, self.construct_approach)
+        self.graph = updates_pkt_namespace_identifiers(self.graph, self.construct_approach); del annotation_triples
 
         # STEP 5: ADD EDGE DATA TO KNOWLEDGE GRAPH DATA
         log_str = '*** Building Knowledge Graph Edges ***'; print('\n' + log_str); logger.info(log_str)
@@ -609,8 +610,8 @@ class FullBuild(KGBuilder):
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
 
-        # tidy up work space and print final stats
-        deduplicates_file(f + annot); deduplicates_file(f + logic); deduplicates_file(f + full)
+        # depuplicate logic and annotation files, merge them, and print final stats
+        deduplicates_file(f + annot); deduplicates_file(f + logic); merges_files(f + annot, f + logic, f + full)
         graph = Graph().parse(f + full, format='nt')
         s = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s); logger.info(s)
 

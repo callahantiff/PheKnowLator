@@ -105,7 +105,7 @@ class TestDataUtilsMisc(unittest.TestCase):
         return None
 
     def test_deduplicates_file_only_src(self):
-        """Tests the deduplicates_filet method when a destination location is not provided."""
+        """Tests the deduplicates_file method when a destination location is not provided."""
 
         data_dir = os.path.dirname(__file__)
         src_filepath = data_dir + '/data/test_file_2.nt'
@@ -118,6 +118,24 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         # clean up environment
         if os.path.exists(src_filepath): os.remove(src_filepath)
+
+        return None
+
+    def test_merges_files(self):
+        """Tests the merges_files method when a destination location is not provided."""
+
+        data_dir = os.path.dirname(__file__)
+        filepath1 = data_dir + '/data/INVERSE_RELATIONS.txt'
+        filepath2 = data_dir + '/data/RELATIONS_LABELS.txt'
+        merge_filepath = data_dir + '/data/MERGED_RELATIONS.txt'
+        merges_files(filepath1, filepath2, merge_filepath)
+
+        # test method
+        with open(merge_filepath) as f: data = f.readlines()
+        self.assertTrue(len(data) == 5)
+
+        # clean up environment
+        if os.path.exists(merge_filepath): os.remove(merge_filepath)
 
         return None
 
