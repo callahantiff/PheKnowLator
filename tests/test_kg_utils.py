@@ -736,7 +736,7 @@ class TestKGUtils(unittest.TestCase):
         result_graph = updates_pkt_namespace_identifiers(edges, 'instance')
         self.assertEqual(len(result_graph), 8)
         self.assertTrue(((URIRef('https://github.com/callahantiff/PheKnowLator/pkt/Ncd56e20d7a144ddda7bb1651af6a89e2'),
-                          RDFS.subClassOf, obo.VO_0001966)) in result_graph)
+                          RDFS.subClassOf, obo.VO_0001966)) not in result_graph)
 
         return None
 
@@ -756,9 +756,14 @@ class TestKGUtils(unittest.TestCase):
 
         # run method to roll back to re-map instances of classes
         result_graph = updates_pkt_namespace_identifiers(edges, 'subclass')
-        print([x for x in result_graph])
         self.assertEqual(len(result_graph), 2)
         self.assertTrue(((URIRef('https://github.com/callahantiff/PheKnowLator/pkt/N02512fc29ed2150ca065184c232c48e9'),
                           RDFS.subClassOf, URIRef('http://www.ncbi.nlm.nih.gov/gene/4841'))) not in result_graph)
+
+        # run method to roll back to re-map instances of classes
+        result_graph = updates_pkt_namespace_identifiers(edges, 'instance')
+        self.assertEqual(len(result_graph), 3)
+        self.assertTrue(((URIRef('https://github.com/callahantiff/PheKnowLator/pkt/N02512fc29ed2150ca065184c232c48e9'),
+                          RDFS.subClassOf, URIRef('http://www.ncbi.nlm.nih.gov/gene/4841'))) in result_graph)
 
         return None
