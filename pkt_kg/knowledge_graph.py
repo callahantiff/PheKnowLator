@@ -420,8 +420,11 @@ class PartialBuild(KGBuilder):
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
-        
+
+        # tidy up work space and print final stats
         deduplicates_file(f + annot); deduplicates_file(f + logic); deduplicates_file(f + full)
+        graph = Graph().parse(f + full, format='nt')
+        s = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s); logger.info(s)
 
         return None
 
@@ -489,20 +492,22 @@ class PostClosureBuild(KGBuilder):
             results = owlnets.runs_owlnets(self.cpus)
         else:
             logger.info('*** Converting Knowledge Graph to Networkx MultiDiGraph ***')
-            results = tuple(self.graph,); convert_to_networkx(self.write_location, self.full_kg[:-4], results[0])
+            results = tuple(self.graph,); stats = derives_graph_statistics(results[0]); print(stats); logger.info(stats)
+            convert_to_networkx(self.write_location, self.full_kg[:-4], results[0])
 
         # STEP 6: WRITE OUT KNOWLEDGE GRAPH DATA AND CREATE EDGE LISTS
         log_str = '*** Building Knowledge Graph Edges ***'; print(log_str); logger.info(log_str)
         f_prefix = ('', '_' + self.construct_approach.upper() + '_purified') if len(results) == 2 else ('', '')
-        for graph in results:
+        for x in range(0, len(results)):
+            graph = results[x]
             if graph is not None:
-                print('OWL-NETS Graph') if results.index(graph) == 0 else print('Purified OWL-NETS Graph')
+                print('OWL-NETS Graph') if x == 0 else print('Purified OWL-NETS Graph')
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = triple_list_file[:-5] + '_Identifier_Map.json'
                 node_int_map = maps_ids_to_integers(graph, self.write_location, triple_list_file, triple_map)
 
                 # STEP 8: EXTRACT AND WRITE NODE METADATA
-                log_str = '*** Processing Metadata ***'; print('\n' + log_str); logger.info(log_str)
+                log_str = '*** Processing Metadata ***'; print(log_str); logger.info(log_str)
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
 
@@ -585,23 +590,28 @@ class FullBuild(KGBuilder):
         else:
             logger.info('*** Converting Knowledge Graph to Networkx MultiDiGraph ***')
             results = tuple([set(x for y in [set(x) for x in graphs] for x in y)])
+            stats = derives_graph_statistics(results[0]); print(stats); logger.info(stats)
             convert_to_networkx(self.write_location, self.full_kg[:-4], results[0])
 
         # STEP 7: WRITE OUT KNOWLEDGE GRAPH METADATA AND CREATE EDGE LISTS
         log_str = '*** Writing Knowledge Graph Edge Lists ***'; print('\n' + log_str); logger.info(log_str)
         f_prefix = ('', '_' + self.construct_approach.upper() + '_purified') if len(results) == 2 else ('', '')
-        for graph in results:
+        for x in range(0, len(results)):
+            graph = results[x]
             if graph is not None:
-                print('OWL-NETS Graph') if results.index(graph) == 0 else print('Purified OWL-NETS Graph')
+                print('OWL-NETS Graph') if x == 0 else print('Purified OWL-NETS Graph')
                 triple_list_file = self.full_kg[:-4] + f_prefix[results.index(graph)] + '_Triples_Integers.txt'
                 triple_map = triple_list_file[:-5] + '_Identifier_Map.json'
                 node_int_map = maps_ids_to_integers(graph, self.write_location, triple_list_file, triple_map)
 
                 # STEP 8: EXTRACT AND WRITE NODE METADATA
-                log_str = '*** Processing Metadata ***'; print('\n' + log_str); logger.info(log_str)
+                log_str = '*** Processing Metadata ***'; print(log_str); logger.info(log_str)
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
 
+        # tidy up work space and print final stats
         deduplicates_file(f + annot); deduplicates_file(f + logic); deduplicates_file(f + full)
+        graph = Graph().parse(f + full, format='nt')
+        s = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s); logger.info(s)
 
         return None
