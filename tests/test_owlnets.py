@@ -603,7 +603,7 @@ class TestOwlNets(unittest.TestCase):
         graph1, graph2 = self.owl_nets.runs_owlnets(); ray.shutdown()
 
         # test graph output
-        self.assertIsInstance(graph1, Graph)
+        self.assertIsInstance(graph1, Set)
         self.assertEqual(graph2, None)
 
         # make sure files are written locally
@@ -622,8 +622,9 @@ class TestOwlNets(unittest.TestCase):
         graph1, graph2 = self.owl_nets.runs_owlnets(); ray.shutdown()
 
         # test graph output
-        self.assertIsInstance(graph1, Graph)
-        self.assertIsInstance(graph2, Graph)
+        self.assertIsInstance(graph1, Set)
+        self.assertIsInstance(graph2, Set)
+        self.assertTrue(len(graph2) >= len(graph1))
 
         # make sure files are written locally for each graph
         # purified
@@ -648,8 +649,9 @@ class TestOwlNets(unittest.TestCase):
         graph1, graph2 = self.owl_nets2.runs_owlnets(); ray.shutdown()
 
         # test graph output
-        self.assertIsInstance(graph1, Graph)
-        self.assertIsInstance(graph2, Graph)
+        self.assertIsInstance(graph1, Set)
+        self.assertIsInstance(graph2, Set)
+        self.assertTrue(len(graph2) > len(graph1))
 
         # make sure files are written locally for each graph
         # purified

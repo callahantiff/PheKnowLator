@@ -624,8 +624,7 @@ class OwlNets(object):
 
         return None
 
-    @staticmethod
-    def makes_graph_connected(graph: Graph, common_ancestor: Union[URIRef, str] = obo.BFO_0000001) -> Graph:
+    def makes_graph_connected(self, graph: Graph, common_ancestor: Union[URIRef, str] = obo.BFO_0000001) -> Graph:
         """In order to prevent the filtered graph from becoming unnecessarily disconnected, all OWL-NETS nodes are
         checked to ensure that at least one of their ancestor concepts is a subclass of common_ancestor. While this is
         not the best solution long-term is the cleanest way to ensure the graph remains connected and to introduce the
@@ -644,8 +643,11 @@ class OwlNets(object):
 
         if not str(common_ancestor).startswith('http'): raise ValueError('Error: common_ancestor must be a valid URL')
         else:
+            log_str = 'Obtaining node list'; print(log_str); logger.info(log_str)
             anc_node, roots = common_ancestor if isinstance(common_ancestor, URIRef) else URIRef(common_ancestor), set()
-            nodes = set([x for x in list(graph.subjects()) + list(graph.objects()) if isinstance(x, URIRef)])
+            nodes = set([x for x in tqdm(list(graph.subjects()) + list(graph.objects())) if isinstance(x, URIRef)])
+
+            print('Identifying root nodes')
             for x in tqdm(nodes):
                 ancs = gets_entity_ancestors(graph, [x], RDFS.subClassOf)
                 if len(ancs) == 0:
@@ -656,8 +658,12 @@ class OwlNets(object):
                         try: ancs = [mode(ancs)]
                         except StatisticsError: ancs = sample(ancs, 1) if not any(x for x in ancs if x in roots) else []
                 roots |= {ancs[0]} if len(ancs) > 0 else {x}
-            needed_triples = set((URIRef(x), RDFS.subClassOf, anc_node) for x in roots if x != anc_node)
+
+            log_str = 'Updating graph connectivity'; print(log_str); logger.info(log_str)
+            rel = RDF.type if self.kg_construct_approach == 'instance' else RDFS.subClassOf
+            needed_triples = set((URIRef(x), rel, anc_node) for x in roots if x != anc_node)
             graph = adds_edges_to_graph(graph, needed_triples, False)
+
             logs = '{} triples added to make connected.'.format(len(needed_triples)); logger.info(logs); print(logs)
 
             return graph
@@ -677,8 +683,12 @@ class OwlNets(object):
 
         org_rel = RDF.type if self.kg_construct_approach == 'subclass' else RDFS.subClassOf
         pure_rel = RDFS.subClassOf if org_rel == RDF.type else RDF.type
-        dirty_edges = list(graph.triples((None, org_rel, None)))
-        for edge in tqdm(dirty_edges):
+
+        log_str = 'Determining what triples need purification'; print(log_str); logger.info(log_str)
+        triples = list(graph.triples((None, org_rel, None)))
+
+        log_str = 'Processing {} {} triples'.format(len(triples), org_rel); print(log_str); logger.info(log_str)
+        for edge in tqdm(triples):
             graph.add((edge[0], pure_rel, edge[2])); graph.remove(edge)
             o_ancs = gets_entity_ancestors(graph, [edge[2]], RDFS.subClassOf, [edge[2]])
             ancs_filter = tuple([x for x in o_ancs if x.startswith('http') and URIRef(x) != edge[2]])
@@ -727,8 +737,8 @@ class OwlNets(object):
             cpus: An integer representing the number of workers (default=1).
 
         Return:
-            graph 1: An rdflib.Graph object.
-            graph 2: An rdflib.Graph object purified according to the kg_construct_approach.
+            graph 1: A set of rdflib.Graph object triples.
+            graph 2: A set of rdflib.Graph object triples purified according to the kg_construct_approach.
         """
 
         log_str = '*** Running OWL-NETS ***'; print('\n' + log_str); logger.info(log_str)
@@ -754,16 +764,18 @@ class OwlNets(object):
             graph_res = ray.get([x.gets_owlnets_graph.remote() for x in actors])  # type: ignore
             full_graph = adds_edges_to_graph(full_graph, set(x for y in set(graph_res) for x in y), False)
             res2 += ray.get([x.gets_owlnets_dict.remote() for x in actors]); del actors  # type: ignore
-        graph1 = self.makes_graph_connected(full_graph); graph2 = None
+        conn_graph = self.makes_graph_connected(full_graph); graph1 = set(conn_graph).copy(); graph2 = None
         g1 = derives_graph_statistics(graph1); g2 = 'None'; self.write_out_results(graph1)
         if self.kg_construct_approach is not None:
-            graph2 = self.purifies_graph_build(graph1); g2 = derives_graph_statistics(graph2)
+            graph2 = set(self.purifies_graph_build(conn_graph)); g2 = derives_graph_statistics(graph2)
             self.write_out_results(graph2, self.kg_construct_approach)
         stats = 'OWL-NETS {};\nPurified OWL-NETS {}'.format(g1, g2); print(stats); logger.info(stats)
 
         # process owl decoding results
-        self.owl_nets_dict = {key: set(ChainMap(*[d[key] for d in res2])) if isinstance(self.owl_nets_dict[key], Set)
-                              else dict(ChainMap(*[d[key] for d in res2])) for key in self.owl_nets_dict.keys()}
+        for key in self.owl_nets_dict.keys():
+            if not isinstance(self.owl_nets_dict[key], Set): value = dict(ChainMap(*[d[key] for d in res2]))
+            else: value = self.owl_nets_dict[key] | set(ChainMap(*[d[key] for d in res2]))
+            self.owl_nets_dict[key] = value
         str1 = 'Decoded {} owl-encoded classes and axioms. Note the following:\nPartially processed {} cardinality ' \
                'elements\nRemoved {} owl:disjointWith axioms\nIgnored: {} misc classes; {} classes constructed with ' \
                'owl:complementOf; {} classes containing negation (e.g. pr#lacks_part, cl#has_not_completed)\n' \
