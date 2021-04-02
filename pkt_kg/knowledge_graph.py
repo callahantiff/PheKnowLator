@@ -337,7 +337,7 @@ class KGBuilder(object):
                 if self.checks_classes(edge_info) and meta_logic:
                     if self.construction == 'subclass': edges = set(kg_bld.subclass_constructor(edge_info, edge_type))
                     else: edges = set(kg_bld.instance_constructor(edge_info, edge_type))
-                    cleaned_edges = updates_pkt_namespace_identifiers(edges, self.construction)
+                    cleaned_edges = updates_pkt_namespace_identifiers(edges, self.construction, False)
                     self.graph = adds_edges_to_graph(self.graph, cleaned_edges, False)
                     res |= edges; n1 |= {edge[0]}; n2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
                     appends_to_existing_file(edges, logic)
@@ -610,7 +610,7 @@ class FullBuild(KGBuilder):
                 meta.full_kg = self.full_kg[:-4] + f_prefix[results.index(graph)] + '.owl'
                 if self.node_data: meta.output_metadata(node_int_map, graph)
 
-        # depuplicate logic and annotation files, merge them, and print final stats
+        # deduplicate logic and annotation files, merge them, and print final stats
         deduplicates_file(f + annot); deduplicates_file(f + logic); merges_files(f + annot, f + logic, f + full)
         graph = Graph().parse(f + full, format='nt')
         s = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s); logger.info(s)

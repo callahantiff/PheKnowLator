@@ -485,20 +485,20 @@ def adds_namespace_to_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode
     return updated_graph
 
 
-def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode) -> Graph:
+def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_bnode, verbose: bool = True) -> Graph:
     """Methods removes namespace from nodes originally assumed to be RDFLib BNodes. This method acts to reverse the
     pkt_kg.utils.adds_namespace_to_bnodes method.
 
     Args:
         graph: An RDFLib Graph object.
         ns: A string or RDFLib Namespace object (default='https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
+        verbose: A bool flag used to indicate whether or not to print method function (default=False).
 
     Returns:
         updated_graph: An RDFLib Graph object with bnode namespaces removed.
     """
 
-    print('Removing Namespace from BNodes')
-    # print('Processing Original Nodes')
+    if verbose: print('Removing Namespace from BNodes'); print('Processing Original Nodes')
     ns_uri = str(ns) if isinstance(ns, Namespace) else ns
     all_triples = set(graph)
     sub_only_bnodes_ns = {(s, p, o) for s, p, o in graph if str(s).startswith(ns_uri) and not str(o).startswith(ns_uri)}
@@ -506,19 +506,19 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
     sub_and_obj_bnodes_ns = {(s, p, o) for s, p, o in graph if str(s).startswith(ns_uri) and str(o).startswith(ns_uri)}
     graph_no_bnodes = all_triples - (sub_only_bnodes_ns | obj_only_bnodes_ns | sub_and_obj_bnodes_ns)
     del all_triples, graph
-    # print('Removing Namespace from BNodes')
+    if verbose: print('Removing Namespace from BNodes')
     sub_fixed = {(BNode(str(s).split('/')[-1]), p, o) for s, p, o in sub_only_bnodes_ns}
     obj_fixed = {(s, p, BNode(str(o).split('/')[-1])) for s, p, o in obj_only_bnodes_ns}
     both_fixed = {(BNode(str(s).split('/')[-1]), p, BNode(str(o).split('/')[-1])) for s, p, o in sub_and_obj_bnodes_ns}
     del sub_only_bnodes_ns, obj_only_bnodes_ns, sub_and_obj_bnodes_ns
-    # print('Finalizing Updated Graph')
+    if verbose: print('Finalizing Updated Graph')
     updated_graph = Graph()
     for s, p, o in (graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
 
     return updated_graph
 
 
-def updates_pkt_namespace_identifiers(graph: Union[Graph, Set], kg_construct_approach: str) -> Union[Graph, Set]:
+def updates_pkt_namespace_identifiers(graph: Union[Graph, Set], const: str, verbose: bool = True) -> Union[Graph, Set]:
     """Iterates over all entities in a pkt knowledge graph that were constructed using the instance- and
     subclass-based construction approaches and converts pkt-namespaced BNodes back to the original ontology
     class identifier. A new edge for each triple, containing an instance of a class is updated with the original
@@ -529,16 +529,17 @@ def updates_pkt_namespace_identifiers(graph: Union[Graph, Set], kg_construct_app
 
     Args:
         graph: An RDFLib Graph object containing pkt-namespacing.
-        kg_construct_approach: A string containing the type of construction approach used to build the knowledge graph.
+        const: A string containing the type of construction approach used to build the knowledge graph.
+        verbose: A bool flag used to indicate whether or not to print method function (default=False).
 
     Returns:
          graph: An RDFLib Graph object or set of RDFLib triples updated to remove bnode namespacing.
     """
 
-    print('Post-processing pkt-kg-Namespaced Anonymous Nodes')
+    if verbose: print('Post-processing pkt-kg-Namespaced Anonymous Nodes')
 
     # STEP 1: check for pkt-namespaced bnodes (pkt-added bnodes) and remove them if present
-    pred = RDF.type if kg_construct_approach == 'instance' else RDFS.subClassOf
+    pred = RDF.type if const == 'instance' else RDFS.subClassOf
     if isinstance(graph, Set): graph = adds_edges_to_graph(Graph(), graph, False)
     pkt_ns_dict = {x[0]: x[2] for x in list(graph.triples((None, pred, None))) if isinstance(x[2], URIRef)
                    and (str(x[0]).startswith(str(pkt) + 'N') and x[2] not in [OWL.NamedIndividual, OWL.Class])}
@@ -558,7 +559,7 @@ def updates_pkt_namespace_identifiers(graph: Union[Graph, Set], kg_construct_app
 
     # STEP 2: check for pkt-namespaced bnodes (original bnodes) and remove them if present
     ns_bnodes = {x for x in graph if str(x[0]).startswith(pkt_bnode) or str(x[2]).startswith(pkt_bnode)}
-    if len(ns_bnodes) > 0: graph = removes_namespace_from_bnodes(graph)
+    if len(ns_bnodes) > 0: graph = removes_namespace_from_bnodes(graph=graph, verbose=verbose)
 
     return graph
 
