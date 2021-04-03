@@ -628,9 +628,9 @@ class TestOwlNets(unittest.TestCase):
 
         # make sure files are written locally for each graph
         # purified
-        nx_mdg_file = 'so_with_imports_SUBCLASS_purified_OWLNETS_NetworkxMultiDiGraph.gpickle'
-        nt_file = 'so_with_imports_SUBCLASS_purified_OWLNETS.nt'
-        dict_file = '/so_with_imports_SUBCLASS_purified_OWLNETS_decoding_dict.pkl'
+        nx_mdg_file = 'so_with_imports_OWLNETS_SUBCLASS_purified_NetworkxMultiDiGraph.gpickle'
+        nt_file = 'so_with_imports_OWLNETS_SUBCLASS_purified.nt'
+        dict_file = '/so_with_imports_OWLNETS_SUBCLASS_purified_decoding_dict.pkl'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nt_file))
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs' + dict_file))
@@ -655,9 +655,9 @@ class TestOwlNets(unittest.TestCase):
 
         # make sure files are written locally for each graph
         # purified
-        nx_mdg_file = 'so_with_imports_INSTANCE_purified_OWLNETS_NetworkxMultiDiGraph.gpickle'
-        nt_file = 'so_with_imports_INSTANCE_purified_OWLNETS.nt'
-        dict_file = '/so_with_imports_INSTANCE_purified_OWLNETS_decoding_dict.pkl'
+        nx_mdg_file = 'so_with_imports_OWLNETS_INSTANCE_purified_NetworkxMultiDiGraph.gpickle'
+        nt_file = 'so_with_imports_OWLNETS_INSTANCE_purified.nt'
+        dict_file = '/so_with_imports_OWLNETS_INSTANCE_purified_decoding_dict.pkl'
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nt_file))
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs/' + nx_mdg_file))
         self.assertTrue(os.path.exists(self.dir_loc_resources + '/knowledge_graphs' + dict_file))

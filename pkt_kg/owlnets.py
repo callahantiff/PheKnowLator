@@ -696,12 +696,12 @@ class OwlNets(object):
 
         return graph
 
-    def write_out_results(self, graph: Union[Set, Graph], kg_construction_approach: Optional[str] = None) -> None:
+    def write_out_results(self, graph: Union[Set, Graph], kg_const: Optional[str] = None) -> None:
         """Serializes graph and prints out basic statistics.
 
         Args:
             graph: An RDF Graph lib object or a set of RDFLib triples.
-            kg_construction_approach: A string specifying the type of knowledge graph construction to implement.
+            kg_const: A string specifying the type of knowledge graph construction to implement.
 
         NOTE. It is important to check the number of unique nodes and relations in OWL-NETS and to compare the counts
         with and without the URIs (i.e. http://purl.obolibrary.org/obo/HP_0000000 vs HP_0000000). Doing this provides a
@@ -712,14 +712,14 @@ class OwlNets(object):
              None.
         """
 
-        personalize = '' if kg_construction_approach is None else kg_construction_approach.title() + '-Purified '
+        personalize = '' if kg_const is None else kg_const.title() + '-Purified '
         log_str = 'Serializing {}OWL-NETS Graph'.format(personalize); logger.info(log_str); print(log_str)
 
-        f_name_lab = '_' + kg_construction_approach.upper() + '_purified' if kg_construction_approach else ''
+        f_name_lab = '_OWLNETS_' + kg_const.upper() + '_purified' if kg_const else '_OWLNETS'
         f_name = [self.filename[:-4] + f_name_lab if '.owl' in self.filename
                   else '.'.join(self.filename.split('.')[:-1]) + f_name_lab if '.' in self.filename
                   else self.filename + f_name_lab][0]
-        f_name = '/' + f_name + '_OWLNETS.nt' if not f_name.startswith('/') else f_name + '_OWLNETS.nt'
+        f_name = '/' + f_name + '.nt' if not f_name.startswith('/') else f_name + '.nt'
         # write graph to n-triples file
         if isinstance(graph, Graph): graph.serialize(destination=self.write_location + f_name, format='nt')
         else: appends_to_existing_file(graph, self.write_location + f_name, ' ')
@@ -755,15 +755,17 @@ class OwlNets(object):
                 if OWL.Class in src and OWL.Class in tgt: owl_axioms += [x]
                 elif (OWL.Class in src and len(tgt) == 0) or (OWL.Class in tgt and len(src) == 0): owl_axioms += [x]
                 else: pass
-            entities = [list(set(owl_classes) | set(owl_axioms))[i::cpus] for i in range(cpus)]
-            try: ray.init()
-            except RuntimeError: pass
-            actors = [ray.remote(OwlNets).remote(self.graph, loc, f, cons, ot) for _ in range(cpus)]  # type: ignore
-            for i in range(0, cpus): actors[i % cpus].cleans_owl_encoded_entities.remote(entities[i])  # type: ignore
-            _ = ray.wait([x.gets_owlnets_graph.remote() for x in actors], num_returns=len(actors))
-            graph_res = ray.get([x.gets_owlnets_graph.remote() for x in actors])  # type: ignore
-            full_graph = adds_edges_to_graph(full_graph, set(x for y in set(graph_res) for x in y), False)
-            res2 += ray.get([x.gets_owlnets_dict.remote() for x in actors]); del actors  # type: ignore
+            ents_to_decode = list(set(owl_classes) | set(owl_axioms))
+            if len(ents_to_decode) > 0:
+                entities = [ents_to_decode[i::cpus] for i in range(cpus)]
+                try: ray.init()
+                except RuntimeError: pass
+                acts = [ray.remote(OwlNets).remote(self.graph, loc, f, cons, ot) for _ in range(cpus)]  # type: ignore
+                for i in range(0, cpus): acts[i % cpus].cleans_owl_encoded_entities.remote(entities[i])  # type: ignore
+                _ = ray.wait([x.gets_owlnets_graph.remote() for x in acts], num_returns=len(acts))
+                graph_res = ray.get([x.gets_owlnets_graph.remote() for x in acts])  # type: ignore
+                full_graph = adds_edges_to_graph(full_graph, set(x for y in set(graph_res) for x in y), False)
+                res2 += ray.get([x.gets_owlnets_dict.remote() for x in acts]); del acts  # type: ignore
         conn_graph = self.makes_graph_connected(full_graph); graph1 = set(conn_graph).copy(); graph2 = None
         g1 = derives_graph_statistics(graph1); g2 = 'None'; self.write_out_results(graph1)
         if self.kg_construct_approach is not None:
