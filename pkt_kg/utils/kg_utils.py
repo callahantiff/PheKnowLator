@@ -58,9 +58,9 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 # set-up environment variables
 obo = Namespace('http://purl.obolibrary.org/obo/')
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
-schema = Namespace('http://www.w3.org/2001/XMLSchema#')
 pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
 pkt_bnode = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
+schema = Namespace('http://www.w3.org/2001/XMLSchema#')
 
 
 def gets_ontology_classes(graph: Graph) -> Set:
@@ -77,8 +77,8 @@ def gets_ontology_classes(graph: Graph) -> Set:
     """
 
     class_list = {x for x in graph.subjects(RDF.type, OWL.Class) if isinstance(x, URIRef)}
-    if len(class_list) > 0: return class_list
-    else: raise ValueError('ERROR: No classes returned from query.')
+
+    return class_list
 
 
 def gets_deprecated_ontology_classes(graph: Graph) -> Set:
@@ -110,8 +110,8 @@ def gets_object_properties(graph: Graph) -> Set:
     """
 
     object_property_list = {x for x in graph.subjects(RDF.type, OWL.ObjectProperty) if isinstance(x, URIRef)}
-    if len(object_property_list) > 0: return object_property_list
-    else: raise ValueError('ERROR: No object properties returned from query.')
+
+    return object_property_list
 
 
 def gets_ontology_class_synonyms(graph: Graph) -> Tuple:
@@ -524,8 +524,8 @@ def updates_pkt_namespace_identifiers(graph: Union[Graph, Set], const: str, verb
     class identifier. A new edge for each triple, containing an instance of a class is updated with the original
     ontology identifier, is added to the graph.
 
-    Assumptions: (1) all instances/classes of a BNode identifier contain the pkt namespace
-                 (2) all relations used when adding new edges to a graph are part of the OBO namespace
+    Assumptions: (1) all instances/classes of a BNode identifier contain the pkt namespace and (2) all relations used
+    when adding new edges to a graph are part of the OBO namespace.
 
     Args:
         graph: An RDFLib Graph object containing pkt-namespacing.
@@ -537,12 +537,17 @@ def updates_pkt_namespace_identifiers(graph: Union[Graph, Set], const: str, verb
     """
 
     if verbose: print('Post-processing pkt-kg-Namespaced Anonymous Nodes')
-
-    # STEP 1: check for pkt-namespaced bnodes (pkt-added bnodes) and remove them if present
-    pred = RDF.type if const == 'instance' else RDFS.subClassOf
     if isinstance(graph, Set): graph = adds_edges_to_graph(Graph(), graph, False)
+
+    # STEP 1: check for pkt-namespaced bnodes (original bnodes) and remove them if present
+    ns_bnodes = {x for x in graph if str(x[0]).startswith(pkt_bnode) or str(x[2]).startswith(pkt_bnode)}
+    if len(ns_bnodes) > 0: graph = removes_namespace_from_bnodes(graph=graph, verbose=verbose)
+
+    # STEP 2: check for pkt-namespaced bnodes (pkt-added bnodes) and remove them if present
+    pred = RDF.type if const == 'instance' else RDFS.subClassOf
     pkt_ns_dict = {x[0]: x[2] for x in list(graph.triples((None, pred, None))) if isinstance(x[2], URIRef)
-                   and (str(x[0]).startswith(str(pkt) + 'N') and x[2] not in [OWL.NamedIndividual, OWL.Class])}
+                   and ((str(x[0]).startswith(str(pkt) + 'N') and 'bnode' not in str(x[0]))
+                        and x[2] not in [OWL.NamedIndividual, OWL.Class])}
     if len(pkt_ns_dict) > 0:
         remove_edges: Set = set()  # update triples containing BNodes with original ontology class
         for node in pkt_ns_dict.keys():
@@ -556,10 +561,6 @@ def updates_pkt_namespace_identifiers(graph: Union[Graph, Set], const: str, verb
             if len(node_types) > 1: triples += [tuple(x) for x in node_types if x[2] == OWL.NamedIndividual]
             remove_edges |= set(triples)
         graph = remove_edges_from_graph(graph, list(remove_edges))
-
-    # STEP 2: check for pkt-namespaced bnodes (original bnodes) and remove them if present
-    ns_bnodes = {x for x in graph if str(x[0]).startswith(pkt_bnode) or str(x[2]).startswith(pkt_bnode)}
-    if len(ns_bnodes) > 0: graph = removes_namespace_from_bnodes(graph=graph, verbose=verbose)
 
     return graph
 

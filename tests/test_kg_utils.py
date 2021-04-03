@@ -330,10 +330,6 @@ class TestKGUtils(unittest.TestCase):
         self.assertIsInstance(classes, Set)
         self.assertEqual(2573, len(classes))
 
-        # retrieve classes form graph with no data
-        no_data_graph = Graph()
-        self.assertRaises(ValueError, gets_ontology_classes, no_data_graph)
-
         return None
 
     def test_gets_deprecated_ontology_classes(self):
@@ -361,10 +357,6 @@ class TestKGUtils(unittest.TestCase):
 
         self.assertIsInstance(object_properties, Set)
         self.assertEqual(50, len(object_properties))
-
-        # retrieve object properties form graph with no data
-        no_data_graph = Graph()
-        self.assertRaises(ValueError, gets_object_properties, no_data_graph)
 
         return None
 
