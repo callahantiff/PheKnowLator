@@ -528,8 +528,7 @@ class TestKGBuilder(unittest.TestCase):
         if self.kg_subclass.node_data: meta.metadata_processor(); meta.extract_metadata(self.kg_subclass.graph)
         # create graph subsets
         self.kg_subclass.graph, annotation_triples = splits_knowledge_graph(self.kg_subclass.graph)
-        if self.kg_subclass.decode_owl == 'yes': full_kg_owl = self.kg_subclass.full_kg.replace('noOWL', 'OWL')
-        else: full_kg_owl = self.kg_subclass.full_kg
+        full_kg_owl = '_'.join(self.kg_subclass.full_kg.split('_')[0:-1]) + '_OWL.owl'
         annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, self.kg_subclass.write_location + annot, ' ')
         # test method
@@ -574,8 +573,7 @@ class TestKGBuilder(unittest.TestCase):
         if self.kg_subclass.node_data: meta.metadata_processor(); meta.extract_metadata(self.kg_subclass.graph)
         # create graph subsets
         self.kg_subclass.graph, annotation_triples = splits_knowledge_graph(self.kg_subclass.graph)
-        if self.kg_subclass.decode_owl == 'yes': full_kg_owl = self.kg_subclass.full_kg.replace('noOWL', 'OWL')
-        else: full_kg_owl = self.kg_subclass.full_kg
+        full_kg_owl = '_'.join(self.kg_subclass.full_kg.split('_')[0:-1]) + '_OWL.owl'
         annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, self.kg_subclass.write_location + annot, ' ')
         # test method
@@ -641,8 +639,7 @@ class TestKGBuilder(unittest.TestCase):
         if self.kg_instance.node_data: meta.metadata_processor(); meta.extract_metadata(self.kg_instance.graph)
         # create graph subsets
         self.kg_instance.graph, annotation_triples = splits_knowledge_graph(self.kg_instance.graph)
-        if self.kg_instance.decode_owl == 'yes': full_kg_owl = self.kg_instance.full_kg.replace('noOWL', 'OWL')
-        else: full_kg_owl = self.kg_instance.full_kg
+        full_kg_owl = '_'.join(self.kg_instance.full_kg.split('_')[0:-1]) + '_OWL.owl'
         annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, self.kg_instance.write_location + annot, ' ')
 
@@ -689,8 +686,7 @@ class TestKGBuilder(unittest.TestCase):
         if self.kg_instance2.node_data: meta.metadata_processor(); meta.extract_metadata(self.kg_instance2.graph)
         # create graph subsets
         self.kg_instance2.graph, annotation_triples = splits_knowledge_graph(self.kg_instance2.graph)
-        if self.kg_instance2.decode_owl == 'yes': full_kg_owl = self.kg_instance2.full_kg.replace('noOWL', 'OWL')
-        else: full_kg_owl = self.kg_instance2.full_kg
+        full_kg_owl = '_'.join(self.kg_instance2.full_kg.split('_')[0:-1]) + '_OWL.owl'
         annot, full = full_kg_owl[:-4] + '_AnnotationsOnly.nt', full_kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, self.kg_instance2.write_location + annot, ' ')
 

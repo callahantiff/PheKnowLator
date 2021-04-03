@@ -127,7 +127,7 @@ class TestPartialBuild(unittest.TestCase):
 
         # test out the build
         self.kg.construct_knowledge_graph()
-        full_kg_owl = self.kg.full_kg.replace('noOWL', 'OWL') if self.kg.decode_owl == 'yes' else self.kg.full_kg
+        full_kg_owl = '_'.join(self.kg.full_kg.split('_')[0:-1]) + '_OWL.owl'
 
         # check for output files
         f_name = full_kg_owl[:-4] + '_LogicOnly.nt'
