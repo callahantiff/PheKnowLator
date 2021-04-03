@@ -423,7 +423,7 @@ class PartialBuild(KGBuilder):
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
         results = set(x for y in [set(x) for x in graphs] for x in y)
-        stats = 'Full Logic {}'.format(derives_graph_statistics(results[0])); print(stats); logger.info(stats)
+        stats = 'Full Logic {}'.format(derives_graph_statistics(results)); print(stats); logger.info(stats)
 
         # deduplicate logic and annotation files, merge them, and print final stats
         deduplicates_file(f + annot); deduplicates_file(f + logic); merges_files(f + annot, f + logic, f + full)
@@ -599,18 +599,18 @@ class FullBuild(KGBuilder):
 
         # STEP 7: WRITE OUT KNOWLEDGE GRAPH METADATA AND CREATE EDGE LISTS
         log_str = '*** Writing Knowledge Graph Edge Lists ***'; print('\n' + log_str); logger.info(log_str)
-        f_prefix = ['_OWL', '_OWLNETS', '_OWLNETS_' + kg.construct_approach.upper() + '_purified']
+        f_prefix = ['_OWL', '_OWLNETS', '_OWLNETS_' + self.construct_approach.upper() + '_purified']
         for x in range(0, len(results)):
             graph = results[x]; p_str = 'OWL' if x == 0 else 'OWL-NETS' if x == 1 else 'Purified OWL-NETS'
             if graph is not None:
                 log_str = '*** Processing {} Graph ***'.format(p_str); print(log_str); logger.info(log_str)
                 triple_list_file = kg_owl[:-8] + f_prefix[x] + '_Triples_Integers.txt'
                 triple_map = triple_list_file[:-5] + '_Identifier_Map.json'
-                node_int_map = maps_ids_to_integers(graph, kg.write_location, triple_list_file, triple_map)
+                node_int_map = maps_ids_to_integers(graph, self.write_location, triple_list_file, triple_map)
 
                 # STEP 8: EXTRACT AND WRITE NODE METADATA
                 meta.full_kg = kg_owl[:-8] + f_prefix[x] + '.owl'
-                if kg.node_data: meta.output_metadata(node_int_map, graph)
+                if self.node_data: meta.output_metadata(node_int_map, graph)
 
         # deduplicate logic and annotation files, merge them, and print final stats
         deduplicates_file(f + annot); deduplicates_file(f + logic); merges_files(f + annot, f + logic, f + full)
