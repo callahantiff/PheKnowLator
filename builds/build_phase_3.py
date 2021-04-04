@@ -35,8 +35,8 @@ logging.config.fileConfig(log_config[0], disable_existing_loggers=False, default
 def derives_networkx_graph_statistics(graph) -> str:
     """Derives statistics from an input knowledge graph and prints them to the console. Note that we are not
     converting each node to a string before deriving our counts. This is purposeful as the number of unique nodes is
-    altered when you it converted to a string. For example, in the HPO when honoring the RDF type of each node
-    there are 406,717 unique nodes versus 406,331 unique nodes when ignoring the RDF type of each node.
+    altered when you it converted to a string. For example, in the HPO when honoring the RDF type of each node there are
+    406,717 unique nodes versus 406,331 unique nodes when ignoring the RDF type of each node.
 
     Args:
         graph: An networkx.MultiDiGraph object.
@@ -47,16 +47,12 @@ def derives_networkx_graph_statistics(graph) -> str:
 
     # derive statistics
     nx_graph_und = graph.to_undirected()
-    nodes = networkx.number_of_nodes(graph)
-    edges = networkx.number_of_edges(graph)
+    nodes = networkx.number_of_nodes(graph); edges = networkx.number_of_edges(graph)
     self_loops = networkx.number_of_selfloops(graph)
     ce = sorted(Counter([str(x[2]) for x in graph.edges(keys=True)]).items(),  # type: ignore
-                key=lambda x: x[1],  # type: ignore
-                reverse=1)[:6]  # type: ignore
+                key=lambda x: x[1], reverse=1)[:6]  # type: ignore
     avg_degree = float(edges) / nodes
-    n_deg = sorted([(str(x[0]), x[1]) for x in graph.degree()],  # type: ignore
-                   key=lambda x: x[1],  # type: ignore
-                   reverse=1)[:6]  # type: ignore
+    n_deg = sorted([(str(x[0]), x[1]) for x in graph.degree()], key=lambda x: x[1], reverse=1)[:6]  # type: ignore
     density = networkx.density(graph)
     components = sorted(list(networkx.connected_components(nx_graph_und)), key=len, reverse=True)
     cc_sizes = {x: len(components[x]) for x in range(len(components))}
@@ -80,13 +76,15 @@ def uploads_build_data(bucket, gcs_location) -> None:
         None.
     """
 
-    # create variables to store source directory locations
     resources_loc = 'resources/'; kg_loc = resources_loc + 'knowledge_graphs/'
     metadata_loc = resources_loc + 'node_data/'; construct_app = resources_loc + 'construction_approach/'
+    data_type = '_OWLNETS' if gcs_location.endswith('/owlnets/') else '_OWL'
 
     # move knowledge graph data
     for kg_file in [x for x in glob.glob(kg_loc + '*') if 'README.md' not in x]:
-        uploads_data_to_gcs_bucket(bucket, gcs_location, kg_loc, kg_file.split('/')[-1])
+        if data_type + '_' in kg_file or data_type + '.' in kg_file:
+            uploads_data_to_gcs_bucket(bucket, gcs_location, kg_loc, kg_file.split('/')[-1])
+    uploads_data_to_gcs_bucket(bucket, gcs_location, kg_loc, 'PheKnowLator_MergedOntologies.owl')
     uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc, 'Master_Edge_List_Dict.json')
     uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc + 'edge_data/', 'edge_source_metadata.txt')
     uploads_data_to_gcs_bucket(bucket, gcs_location, resources_loc + 'ontologies/', 'ontology_source_metadata.txt')
@@ -120,19 +118,24 @@ def main(app, rel, owl):
     # reformat input build arguments and create needed GCS directory variables
     build_app = 'instance_builds' if app == 'instance' else 'subclass_builds'
     rel_type = 'relations_only' if rel == 'no' else 'inverse_relations'
-    owl_decoding = 'owl' if owl == 'no' else 'owlnets'
+    # owl_decoding = 'owl' if owl == 'no' else 'owlnets'
     arch_string = 'archived_builds/{}/{}/knowledge_graphs/{}/{}/{}/'
-    gcs_archive_loc = arch_string.format(release, build, build_app, rel_type, owl_decoding)
     gcs_current_root = 'current_build/'; gcs_log_root = 'temp_build_inprogress/'
-    gcs_current_loc = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_current_root, build_app, rel_type, owl_decoding)
-    gcs_log_location = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_log_root, build_app, rel_type, owl_decoding)
+    # full owl build
+    gcs_archive_loc_owl = arch_string.format(release, build, build_app, rel_type, 'owl')
+    gcs_current_loc_owl = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_current_root, build_app, rel_type, 'owl')
+    gcs_log_location_owl = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_log_root, build_app, rel_type, 'owl')
+    # owl-nets build
+    gcs_archive_loc_owlnets = arch_string.format(release, build, build_app, rel_type, 'owlnets')
+    gcs_current_loc_owlnets = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_current_root, build_app, rel_type, 'owlnets')
+    gcs_log_location_owlnets = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_log_root, build_app, rel_type, 'owlnets')
 
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 2 - CONSTRUCT KNOWLEDGE GRAPH
-    log_str1 = 'STEP 2: CONSTRUCT KNOWLEDGE GRAPH'
-    log_str2 = 'KG Build: {} + {} + {}.txt'.format(app, rel_type.lower(), owl_decoding.lower())
+    log_str1 = 'STEP 2: CONSTRUCT KNOWLEDGE GRAPH'; log_str2 = 'KG Build: {} + {}.txt'.format(app, rel_type.lower())
     print('\n' + log_str1); logger.info(log_str1); print(log_str2); logger.info(log_str2)
     ray.init()  # start daemon to continuously upload logs while the pkt main knowledge graph function runs
     background_task = PKTLogUploader.remote('pheknowlator', gcs_log_location, log_dir, 90)
@@ -149,7 +152,8 @@ def main(app, rel, owl):
     background_task.__ray_terminate__.remote()  # kills the process with an `exit(0)`
     ray.shutdown()
 
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 3 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
@@ -160,59 +164,76 @@ def main(app, rel, owl):
     deletes_bucket_files(bucket, gcs_current_root + 'data/')  # data directories
     bucket.blob(gcs_current_root + 'data/original_data/').upload_from_string('')
     bucket.blob(gcs_current_root + 'data/processed_data/').upload_from_string('')
-    deletes_bucket_files(bucket, gcs_current_loc); bucket.blob(gcs_current_loc).upload_from_string('')
+    deletes_bucket_files(bucket, gcs_current_loc_owl); bucket.blob(gcs_current_loc_owl).upload_from_string('')
+    deletes_bucket_files(bucket, gcs_current_loc_owlnets); bucket.blob(gcs_current_loc_owlnets).upload_from_string('')
 
     # copy GCS archived_data/data --> GCS current_build/data
     source_dir, destination_dir = 'archived_builds/{}/{}/data/'.format(release, build), gcs_current_root + 'data/'
     source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_dir)]
     logs = 'Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir); print(logs); logger.info(logs)
     copies_data_between_gcs_bucket_directories(bucket, source_dir, destination_dir, source_data)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)
 
     # move Docker pkt output --> GCS archived_builds
     logs = 'Uploading Knowledge Graph Data from Docker to the archived_builds Directory'; print(logs); logger.info(logs)
-    uploads_build_data(bucket, gcs_archive_loc)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
+    uploads_build_data(bucket, gcs_archive_loc_owl); uploads_build_data(bucket, gcs_archive_loc_owlnets)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
 
     # copy GCS archived_builds --> GCS current_build
     logs = 'Copying Graph Data from archived_builds to current_builds'; print(logs); logger.info(logs)
-    source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_archive_loc)]
-    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc, gcs_current_loc, source_data)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
+    # full owl build
+    source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_archive_loc_owl)]
+    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owl, gcs_current_loc_owl, source_data)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
+    # owl-nets build
+    source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_archive_loc_owlnets)]
+    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owlnets, gcs_current_loc_owlnets, source_data)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 4 - PRINT BUILD STATISTICS
     logs = 'STEP 4: DERIVING NETWORK STATISTICS FOR BUILD KNOWLEDGE GRAPHS'; print('\n' + logs); logger.info(logs)
 
     try:  # find Networkx MultiDiGraph files in Google Cloud Storage Bucket for build
-        kg_files = [f.name for f in bucket.list_blobs(prefix=gcs_current_loc) if f.name.endswith('gpickle')]
-        for f in kg_files:
+        kg_owl = [f.name for f in bucket.list_blobs(prefix=gcs_current_loc_owl) if f.name.endswith('gpickle')]
+        kg_owlnets = [f.name for f in bucket.list_blobs(prefix=gcs_current_loc_owlnets) if f.name.endswith('gpickle')]
+        for f in set(kg_owl + kg_owlnets):
             log_str = 'Loading graph data: {}'.format(f.split('/')[-1]); print(log_str); logger.info(log_str)
-            nx_local_file = downloads_data_from_gcs_bucket(bucket, None, gcs_current_loc, f.split('/')[-1], '')
+            bucket_loc = gcs_current_loc_owlnets if 'OWLNETS' in f else gcs_current_loc_owl
+            nx_local_file = downloads_data_from_gcs_bucket(bucket, None, bucket_loc, f.split('/')[-1], '')
             graph = networkx.read_gpickle(nx_local_file)
             stats = derives_networkx_graph_statistics(graph); print(stats); logger.info(stats)
     except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
 
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 5 - CLEAN UP BUILD ENVIRONMENT + LOG EXIT STATUS TO FINISH RUN
     print('\nSTEP 5: BUILD CLEAN-UP'); logger.info('STEP 5: BUILD CLEAN-UP')
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
     print('\n\n' + '*' * 5 + ' COMPLETED BUILD PHASE 3: {} MINUTES '.format(runtime) + '*' * 5)
-    logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime))  # don't delete - needed for build monitoring
-    logger.info('EXIT BUILD PHASE 3')  # don't delete - needed for build monitoring
-    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc, log_dir, log)
+    logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime)); logger.info('EXIT BUILD PHASE 3')
+    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc_owl, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc_owlnets, log_dir, log)
 
     # copy build logs from GCS temp_build_inprogress --> GCS archived_builds and GCS current_build
     logs = 'Copying Logs to the current_build and archived_builds Directories'; print(logs); logger.info(logs)
     log_1 = [x for x in [_.name for _ in bucket.list_blobs(prefix=gcs_log_root)] if x.endswith('phases12_log.log')]
-    copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc, [log_1[0].split('/')[-1]])
-    copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_loc, [log_1[0].split('/')[-1]])
-    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc, gcs_current_loc, [log])
+    # owl build
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc_owl, [log_1[0].split('/')[-1]])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_loc_owl, [log_1[0].split('/')[-1]])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owl, gcs_current_loc_owl, [log])
+    # owl-nets build
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc_owlnets, [log_1[0].split('/')[-1]])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_loc_owlnets, [log_1[0].split('/')[-1]])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owlnets, gcs_current_loc_owlnets, [log])
 
     # exit build
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
 
     return None
 
