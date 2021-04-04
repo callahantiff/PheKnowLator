@@ -115,8 +115,7 @@ class Metadata(object):
                     labels = [x for x in list(graph.triples((i, RDFS.label, None)))]
                     descriptions = [x for x in list(graph.triples((i, obo.IAO_0000115, None)))]
                     synonyms = [x for x in list(graph.triples((i, None, None))) if 'synonym' in str(x[1]).lower()]
-                    if len(labels) == 0: pass
-                    else:
+                    if len(labels) != 0:
                         temp_dict[str(i)] = {
                             'Label': str(labels[0][2]) if len(labels) > 0 else None,
                             'Description': str(descriptions[0][2]) if len(descriptions) > 0 else None,
@@ -243,17 +242,16 @@ class Metadata(object):
                           'description/definition' + '\t' + 'synonym' + '\n')
                 for x in tqdm(entities):
                     nid, nint = n3(x), node_integer_map[n3(x)]
-                    if x in self.node_dict['nodes'].keys():
-                        etyp, meta = 'NODES', self.node_dict['nodes'][x]
-                    elif x in self.node_dict['relations'].keys():
-                        etyp, meta = 'RELATIONS', self.node_dict['relations'][x]
+                    if str(x) in self.node_dict['nodes'].keys():
+                        etyp, meta = 'NODES', self.node_dict['nodes'][str(x)]
+                    elif str(x) in self.node_dict['relations'].keys():
+                        etyp, meta = 'RELATIONS', self.node_dict['relations'][str(x)]
                     else: meta, etyp, lab, dsc, syn = None, 'NA', 'NA', 'NA', 'NA'
                     if meta is not None:
                         lab = meta['Label'] if meta['Label'] is not None else 'None'
                         dsc = meta['Description'] if meta['Description'] is not None else 'None'
                         syn = meta['Synonym'] if meta['Synonym'] is not None else 'None'
-                    try:
-                        out.write(etyp + '\t' + str(nint) + '\t' + nid + '\t' + lab + '\t' + dsc + '\t' + syn + '\n')
+                    try: out.write(etyp + '\t' + str(nint) + '\t' + nid + '\t' + lab + '\t' + dsc + '\t' + syn + '\n')
                     except UnicodeEncodeError:
                         out.write(etyp.encode('utf-8').decode() + '\t' + str(nint).encode('utf-8').decode() +
                                   '\t' + nid.encode('utf-8').decode() + '\t' + lab.encode('utf-8').decode() +
