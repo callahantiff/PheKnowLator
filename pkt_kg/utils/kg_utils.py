@@ -606,6 +606,7 @@ def splits_knowledge_graph(graph: Graph, graph_output: bool = False) -> Tuple[Gr
         else: annot_triples |= {x for x in triples if x[1] in all_annot_props or x[2] == OWL.Axiom}
     # create graph subsets
     all_triples = set(graph); logic_triples = all_triples - annot_triples
+    print('Annotation Assertions (n={} Triples)'.format(len(annot_triples)))
     if len(logic_triples) + len(annot_triples) == len(all_triples):
         print('Creating Logic Graph (n={} Triples)'.format(len(logic_triples)))
         logic_graph = adds_edges_to_graph(Graph(), logic_triples)
