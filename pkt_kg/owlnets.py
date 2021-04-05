@@ -533,7 +533,7 @@ class OwlNets(object):
 
         return cleaned, batch
 
-    def parses_restrictions(self, node: URIRef, edges: Dict, class_dict: Dict) -> Tuple[Set, Optional[Dict]]:
+    def parses_restrictions(self, node: URIRef, edges: Dict, class_dict: Dict) -> Optional[Tuple]:
         """Parses a subset of a dictionary containing rdflib objects participating in a restriction and reconstructs the
         class (referenced by node) in order to remove owl-encoded information. An example is shown below:
             INPUT:    <!-- http://purl.obolibrary.org/obo/GO_0000785 -->
@@ -548,6 +548,9 @@ class OwlNets(object):
                         </owl:Class>
             OUTPUT: [(GO_0000785, BFO_0000050, GO_0005694)]
 
+        Assumptions: If the restriction contains a cardinality constraint, it is not processed at this time.
+        Source: https://www.cs.vu.nl/~guus/public/owl-restrictions/
+
         Args:
             node: An rdflib term of type URIRef or BNode that references an OWL-encoded class.
             edges: A dictionary, keys are owl:Objects (i.e. 'first', 'rest', 'onProperty', or 'someValuesFrom').
@@ -560,8 +563,9 @@ class OwlNets(object):
 
         prop_types = ['allValuesFrom', 'someValuesFrom', 'hasSelf', 'hasValue', 'onClass']  # can be extended
         restriction_components = ['type', 'first', 'rest', 'onProperty']
-        object_type = [x for x in edges.keys() if x not in restriction_components and x in prop_types][0]
-        batch = edges; cleaned: Set = set()
+        object_type = [x for x in edges.keys() if x not in restriction_components and x in prop_types]
+        if len(object_type) == 0: return None
+        else: object_type = object_type[0]; batch = edges; cleaned: Set = set()
 
         if isinstance(batch[object_type], URIRef) or isinstance(batch[object_type], Literal):
             object_node = node if object_type == 'hasSelf' else batch[object_type]
@@ -607,14 +611,17 @@ class OwlNets(object):
                         edges = node_info[1][element]
                         while edges:
                             if 'subClassOf' in edges.keys():
-                                results = self.parses_subclasses(node, edges, node_info[1])
-                                cleaned_classes |= results[0]; edges = results[1]
+                                results: Optional[Tuple] = self.parses_subclasses(node, edges, node_info[1])
+                                if results is not None: cleaned_classes |= results[0]; edges = results[1]
+                                else: edges = None
                             elif 'intersectionOf' in edges.keys() or 'unionOf' in edges.keys():
                                 results = self.parses_constructors(node, edges, node_info[1])
-                                cleaned_classes |= results[0]; edges = results[1]
+                                if results is not None: cleaned_classes |= results[0]; edges = results[1]
+                                else: edges = None
                             elif 'type' in edges.keys() and 'Restriction' in edges['type']:
                                 results = self.parses_restrictions(node, edges, node_info[1])
-                                cleaned_classes |= results[0]; edges = results[1]
+                                if results is not None: cleaned_classes |= results[0]; edges = results[1]
+                                else: edges = None
                             else:  # catch all other axioms -- only catching owl:onProperty
                                 misc = [x for x in edges.keys() if x not in ['type', 'first', 'rest', 'onProperty']]
                                 edges = None; self.owl_nets_dict['misc'][n3(node)] = {tuple(misc)}
