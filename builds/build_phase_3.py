@@ -121,17 +121,15 @@ def main(app, rel, owl):
     # owl_decoding = 'owl' if owl == 'no' else 'owlnets'
     arch_string = 'archived_builds/{}/{}/knowledge_graphs/{}/{}/{}/'
     gcs_current_root = 'current_build/'; gcs_log_root = 'temp_build_inprogress/'
+    gcs_log_location = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_log_root, build_app, rel_type, 'owl')
     # full owl build
     gcs_archive_loc_owl = arch_string.format(release, build, build_app, rel_type, 'owl')
     gcs_current_loc_owl = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_current_root, build_app, rel_type, 'owl')
-    gcs_log_location_owl = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_log_root, build_app, rel_type, 'owl')
     # owl-nets build
     gcs_archive_loc_owlnets = arch_string.format(release, build, build_app, rel_type, 'owlnets')
     gcs_current_loc_owlnets = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_current_root, build_app, rel_type, 'owlnets')
-    gcs_log_location_owlnets = '{}knowledge_graphs/{}/{}/{}/'.format(gcs_log_root, build_app, rel_type, 'owlnets')
 
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 2 - CONSTRUCT KNOWLEDGE GRAPH
@@ -152,8 +150,7 @@ def main(app, rel, owl):
     background_task.__ray_terminate__.remote()  # kills the process with an `exit(0)`
     ray.shutdown()
 
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 3 - UPLOAD BUILD DATA TO GOOGLE CLOUD STORAGE
@@ -172,25 +169,23 @@ def main(app, rel, owl):
     source_data = ['/'.join(_.name.split('/')[-2:]) for _ in bucket.list_blobs(prefix=source_dir)]
     logs = 'Copying Data FROM: {} TO: {}'.format(source_dir, destination_dir); print(logs); logger.info(logs)
     copies_data_between_gcs_bucket_directories(bucket, source_dir, destination_dir, source_data)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     # move Docker pkt output --> GCS archived_builds
     logs = 'Uploading Knowledge Graph Data from Docker to the archived_builds Directory'; print(logs); logger.info(logs)
     uploads_build_data(bucket, gcs_archive_loc_owl); uploads_build_data(bucket, gcs_archive_loc_owlnets)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     # copy GCS archived_builds --> GCS current_build
     logs = 'Copying Graph Data from archived_builds to current_builds'; print(logs); logger.info(logs)
     # full owl build
     source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_archive_loc_owl)]
     copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owl, gcs_current_loc_owl, source_data)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
     # owl-nets build
     source_data = [_.name.split('/')[-1] for _ in bucket.list_blobs(prefix=gcs_archive_loc_owlnets)]
     copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owlnets, gcs_current_loc_owlnets, source_data)
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
+
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 4 - PRINT BUILD STATISTICS
@@ -207,8 +202,7 @@ def main(app, rel, owl):
             stats = derives_networkx_graph_statistics(graph); print(stats); logger.info(stats)
     except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
 
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
     # STEP 5 - CLEAN UP BUILD ENVIRONMENT + LOG EXIT STATUS TO FINISH RUN
@@ -216,8 +210,7 @@ def main(app, rel, owl):
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
     print('\n\n' + '*' * 5 + ' COMPLETED BUILD PHASE 3: {} MINUTES '.format(runtime) + '*' * 5)
     logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime)); logger.info('EXIT BUILD PHASE 3')
-    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc_owl, log_dir, log)
-    uploads_data_to_gcs_bucket(bucket, gcs_archive_loc_owlnets, log_dir, log)
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)
 
     # copy build logs from GCS temp_build_inprogress --> GCS archived_builds and GCS current_build
     logs = 'Copying Logs to the current_build and archived_builds Directories'; print(logs); logger.info(logs)
@@ -229,11 +222,11 @@ def main(app, rel, owl):
     # owl-nets build
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc_owlnets, [log_1[0].split('/')[-1]])
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_loc_owlnets, [log_1[0].split('/')[-1]])
-    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owlnets, gcs_current_loc_owlnets, [log])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owl, gcs_archive_loc_owlnets, [log])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_current_loc_owl, gcs_current_loc_owlnets, [log])
 
     # exit build
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owl, log_dir, log)  # uploads log to gcs bucket
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location_owlnets, log_dir, log)  # uploads log to gcs bucket
+    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     return None
 
