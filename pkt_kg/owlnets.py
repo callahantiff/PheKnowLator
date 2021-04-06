@@ -12,7 +12,7 @@ import ray  # type: ignore
 import re
 
 from collections import ChainMap  # type: ignore
-from random import sample
+from random import sample, shuffle
 from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from statistics import mode, StatisticsError
@@ -593,7 +593,7 @@ class OwlNets(object):
              None.
         """
 
-        log_str = 'Decoding OWL Classes and Axioms'; logger.info(log_str); print(log_str)
+        log_str = 'Decoding {} OWL Classes and Axioms'.format(len(node_list)); logger.info(log_str); print(log_str)
 
         decoded_graph: Graph = Graph(); cleaned_entities: Set = set()  # ; pbar = tqdm(total=len(self.node_list))
         while node_list:
@@ -762,7 +762,7 @@ class OwlNets(object):
                 if OWL.Class in src and OWL.Class in tgt: owl_axioms += [x]
                 elif (OWL.Class in src and len(tgt) == 0) or (OWL.Class in tgt and len(src) == 0): owl_axioms += [x]
                 else: pass
-            ents_to_decode = list(set(owl_classes) | set(owl_axioms))
+            ents_to_decode = list(set(owl_classes) | set(owl_axioms)); shuffle(ents_to_decode)
             if len(ents_to_decode) > 0:
                 entities = [ents_to_decode[i::cpus] for i in range(cpus)]
                 try: ray.init()
