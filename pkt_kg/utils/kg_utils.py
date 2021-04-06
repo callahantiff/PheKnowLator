@@ -365,7 +365,7 @@ def gets_entity_ancestors(graph: Graph, uris: List[Union[URIRef, str]], rel: Uni
         return gets_entity_ancestors(graph, uris, prop, cls_lst)
 
 
-def connected_components(graph: Graph) -> List:
+def connected_components(graph: Union[Graph, Set]) -> List:
     """Creates a dictionary where the keys are integers representing a component number and the values are sets
     containing the nodes for a given component. This method works by first converting the RDFLib graph into a
     NetworkX multi-directed graph, which is converted to a undirected graph prior to calculating the connected
@@ -375,17 +375,15 @@ def connected_components(graph: Graph) -> List:
         graph: An RDFLib Graph object.
 
     Returns:
-        component_dict: A dictionary where the keys are integers representing a component number and the values are sets
-            containing the nodes for a given component.
+        components: A list of the nodes in each component detected in the graph.
     """
 
     nx_mdg = nx.MultiDiGraph()
-    for s, p, o in tqdm(graph):
-        nx_mdg.add_edge(s, o, **{'key': p})
+    for s, p, o in tqdm(graph): nx_mdg.add_edge(s, o, **{'key': p})
     print('Calculating Connected Components')
-    comps = list(nx.connected_components(nx_mdg.to_undirected())); component_dict = sorted(comps, key=len, reverse=True)
+    components = list(nx.connected_components(nx_mdg.to_undirected()))
 
-    return component_dict
+    return components
 
 
 def removes_self_loops(graph: Graph) -> List:
