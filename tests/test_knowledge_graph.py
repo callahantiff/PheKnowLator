@@ -13,14 +13,16 @@ import warnings
 
 from collections import ChainMap
 from mock import patch
-from rdflib import Graph, URIRef, BNode
-from rdflib.namespace import OWL, RDF
+from rdflib import Graph, URIRef, BNode, Namespace
+from rdflib.namespace import OWL, RDF, RDFS
 from typing import Dict, List
 
 from pkt_kg.__version__ import __version__
 from pkt_kg.knowledge_graph import FullBuild, PartialBuild, PostClosureBuild
 from pkt_kg.metadata import Metadata
-from pkt_kg.utils import appends_to_existing_file, gets_ontology_classes, gets_object_properties, splits_knowledge_graph
+from pkt_kg.utils import *
+
+obo = Namespace('http://purl.obolibrary.org/obo/')
 
 
 class TestKGBuilder(unittest.TestCase):
@@ -511,6 +513,49 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
+    def test_decodes_owl_semantics(self):
+        """Tests the decodes_owl_semantics method."""
+
+        # set-up attributes to test method
+        edges = {'n1': 'class', 'n2': 'entity', 'rel': 'RO_0002434', 'inv_rel': 'RO_0002434',
+                 'uri': ['http://purl.obolibrary.org/obo/',
+                         'https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t='],
+                 'edges': ['CHEBI_15409', 'ENST00000637514']}
+        cleaned_edges = [
+            (BNode('Nfff80871d09041af169ef5828276c69b'), RDF.type, OWL.Restriction),
+            (obo.SO_0001217, RDF.type, OWL.Class),
+            (obo.CHEBI_15409, RDFS.subClassOf, BNode('Nfff80871d09041af169ef5828276c69b')),
+            (BNode('Nb82d965b35c6af5dadb291270b4990a1'), OWL.onProperty, obo.RO_0002434),
+            (BNode('Nb82d965b35c6af5dadb291270b4990a1'), RDF.type, OWL.Restriction),
+            (URIRef('https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=ENST00000637514'),
+             RDFS.subClassOf, obo.SO_0000673),
+            (BNode('Nb82d965b35c6af5dadb291270b4990a1'), OWL.someValuesFrom, obo.CHEBI_15409),
+            (BNode('Nfff80871d09041af169ef5828276c69b'), OWL.onProperty, obo.RO_0002434),
+            (URIRef('https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=ENST00000637514'),
+             RDFS.subClassOf, BNode('Nb82d965b35c6af5dadb291270b4990a1')),
+            (obo.SO_0000673, RDF.type, OWL.Class),
+            (BNode('Nfff80871d09041af169ef5828276c69b'), OWL.someValuesFrom,
+             URIRef('https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=ENST00000637514')),
+            (obo.RO_0002434, RDF.type, OWL.ObjectProperty),
+            (URIRef('https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=ENST00000637514'),
+             RDF.type, OWL.Class), (obo.CHEBI_15409, RDF.type, OWL.Class),
+            (URIRef('https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=ENST00000637514'),
+             RDFS.subClassOf, obo.SO_0001217)]
+        cleaned_edges = adds_edges_to_graph(Graph(), set(cleaned_edges), False)
+
+        self.inner_class.graph = cleaned_edges
+        self.inner_class.decodes_owl_semantics(edges, cleaned_edges)
+
+        # check output
+        self.assertIsInstance(self.inner_class.decoded_graph, Graph)
+        self.assertTrue(len(self.inner_class.decoded_graph) == 4)
+        decoded_graph, decoded_dict = self.inner_class.decoded_graph_getter()
+        self.assertIsInstance(decoded_graph, Graph)
+        self.assertTrue(len(decoded_graph) == 4)
+        self.assertIsInstance(decoded_dict, Dict)
+
+        return None
+
     def test_creates_new_edges_not_adding_metadata_to_kg(self):
         """Tests the creates_new_edges method without adding node metadata to the KG."""
 
@@ -663,7 +708,7 @@ class TestKGBuilder(unittest.TestCase):
         # check that edges were added to the graph
         self.kg_instance.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_instance.graph) > 0)
-        self.assertEqual(len(self.kg_instance.graph), 29)
+        self.assertEqual(len(self.kg_instance.graph), 57)
         self.assertIsInstance(error_dicts, Dict)
         # check graph files were saved
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'
@@ -710,7 +755,7 @@ class TestKGBuilder(unittest.TestCase):
         # check that edges were added to the graph
         self.kg_instance2.graph = set(x for y in [set(x) for x in graphs] for x in y)
         self.assertTrue(len(self.kg_instance2.graph) > 0)
-        self.assertEqual(len(self.kg_instance2.graph), 36)
+        self.assertEqual(len(self.kg_instance2.graph), 64)
         self.assertIsInstance(error_dicts, Dict)
         # check graph files were saved
         f_name = full_kg_owl[:-4] + '_AnnotationsOnly.nt'

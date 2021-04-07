@@ -82,9 +82,9 @@ class OwlNets(object):
         self.write_location = write_location
         self.res_dir = os.path.relpath('/'.join(self.write_location.split('/')[:-1]))
         self.filename = filename
-        self.top_level_ontologies: List = ['ISO', 'SUMO', 'BFO']  # can only appear as predicates
-        self.relations_ontologies: List = ['RO']  # can only appear as predicates
-        self.support_ontologies: List = ['IAO', 'SWO', 'OBI', 'UBPROP']  # can never appear in OWL-NETS triples
+        self.top_level: List = ['ISO', 'SUMO', 'BFO']  # can only appear as predicates
+        self.relations: List = ['RO']  # can only appear as predicates
+        self.support: List = ['IAO', 'SWO', 'OBI', 'UBPROP']  # can never appear in OWL-NETS triples
 
         # VERIFY INPUT GRAPH
         if not isinstance(graph, Graph) and not isinstance(graph, List) and not isinstance(graph, str):
@@ -130,34 +130,33 @@ class OwlNets(object):
 
         return None
 
-    def removes_edges_with_owl_semantics(self) -> Graph:
+    def removes_edges_with_owl_semantics(self, verbose: bool = True) -> Graph:
         """Creates a filtered knowledge graph, such that only nodes that are owl:Class/owl:Individual connected via a
         owl:ObjectProperty and not an owl:AnnotationProperty. For example:
-
             REMOVE - edges needed to support owl semantics (not biologically meaningful):
-                subject: obo:CLO_0037294
-                predicate: owl:AnnotationProperty
-                object: rdf:about="http://purl.obolibrary.org/obo/CLO_0037294"
+                subject: obo:CLO_0037294; predicate: owl:AnnotationProperty; object: rdf:about=obo.CLO_0037294
 
             KEEP - biologically meaningful edges:
-                subject: obo:CHEBI_16130
-                predicate: obo:RO_0002606
-                object: obo:HP_0000832
+                subject: obo:CHEBI_16130; predicate: obo:RO_0002606; object: obo:HP_0000832
+
+        Args:
+            verbose: A bool indicating whether or not to print/log method use.
 
         Returns:
             filtered_graph: An RDFLib graph that contains only clinically and biologically meaningful triples.
         """
 
-        log_str = 'Filtering Triples'; logger.info(log_str); print(log_str)
+        if verbose: log_str = 'Filtering Triples'; logger.info(log_str); print(log_str)
 
-        keep_predicates, filtered_triples = set(), set()
-        exclude = self.top_level_ontologies + self.relations_ontologies + self.support_ontologies
-        for x in tqdm(self.graph):
+        keep, filtered = set(), set(); exclude = self.top_level + self.relations + self.support
+        pbar = tqdm(total=len(self.graph)) if verbose else None
+        for x in self.graph:
+            if verbose: pbar.update(1)
             if isinstance(x[0], URIRef) and isinstance(x[1], URIRef) and isinstance(x[2], URIRef):
                 # handle top-level, relation, and support ontologies (top/rel can only be rel; remove support onts)
                 subj = not any(i for i in exclude if str(x[0]).split('/')[-1].startswith(i + '_'))
                 obj = not any(i for i in exclude if str(x[2]).split('/')[-1].startswith(i + '_'))
-                rel = not any(i for i in self.support_ontologies if str(x[1]).split('/')[-1].startswith(i + '_'))
+                rel = not any(i for i in self.support if str(x[1]).split('/')[-1].startswith(i + '_'))
                 if subj and obj and rel:
                     s = [i for i in list(self.graph.triples((x[0], RDF.type, None)))
                          if (OWL.Class in i[2] or OWL.NamedIndividual in i[2]) and '#' not in str(x[0])]
@@ -166,41 +165,44 @@ class OwlNets(object):
                     p = [i for i in list(self.graph.triples((x[1], RDF.type, None)))
                          if i[2] != OWL.AnnotationProperty]
                     if len(s) > 0 and len(o) > 0 and len(p) > 0:
-                        if OWL.ObjectProperty in [x[2] for x in p]: keep_predicates.add(x)
-                        else: filtered_triples |= {x}
+                        if OWL.ObjectProperty in [x[2] for x in p]: keep.add(x)
+                        else: filtered |= {x}
                     if len(s) > 0 and len(o) > 0 and len(p) == 0:
-                        if RDFS.subClassOf in x[1]: keep_predicates.add(x)
-                        elif RDF.type in x[1]: keep_predicates.add(x)
-                        else: filtered_triples |= {x}
-                    elif x[1] == RDFS.subClassOf and str(OWL) not in str(x[2]): keep_predicates.add(x)
-                    else: filtered_triples |= {x}
-                else: filtered_triples |= {x}
-            else: filtered_triples |= {x}
-        filtered_graph = adds_edges_to_graph(Graph(), list(keep_predicates), False)
+                        if RDFS.subClassOf in x[1]: keep.add(x)
+                        elif RDF.type in x[1]: keep.add(x)
+                        else: filtered |= {x}
+                    elif x[1] == RDFS.subClassOf and str(OWL) not in str(x[2]): keep.add(x)
+                    else: filtered |= {x}
+                else: filtered |= {x}
+            else: filtered |= {x}
+        if verbose: pbar.close()
+        filtered_graph = adds_edges_to_graph(Graph(), list(keep), False)
 
-        self.owl_nets_dict['filtered_triples'] |= filtered_triples
+        self.owl_nets_dict['filtered_triples'] |= filtered
 
         return filtered_graph
 
-    def cleans_decoded_graph(self) -> Graph:
+    def cleans_decoded_graph(self, verbose: bool = True) -> Graph:
         """Creates a filtered knowledge graph, such that only nodes that are owl:Class/owl:Individual connected via a
         owl:ObjectProperty and not an owl:AnnotationProperty. This method is a reduced version of the
         removes_edges_with_owl_semantics method, which is meant to be applied to a graph after it's been decoded.
+
+        Args:
+            verbose: A bool indicating whether or not to print/log progress.
 
         Returns:
              filtered_graph: An RDFLib graph that contains only clinically and biologically meaningful triples.
         """
 
-        log_str = 'Filtering Triples'; logger.info(log_str); print(log_str)
+        if verbose: log_str = 'Filtering Triples'; logger.info(log_str); print(log_str)
 
-        keep_predicates, filtered_triples = set(), set()
-        exclude = self.top_level_ontologies + self.relations_ontologies + self.support_ontologies
+        keep_predicates, filtered_triples = set(), set(); exclude = self.top_level + self.relations + self.support
         for x in self.graph:
             if isinstance(x[0], URIRef) and isinstance(x[1], URIRef) and isinstance(x[2], URIRef):
                 # handle top-level, relation, and support ontologies (top/rel can only be rel; remove support onts)
                 subj = not any(i for i in exclude if str(x[0]).split('/')[-1].startswith(i + '_'))
                 obj = not any(i for i in exclude if str(x[2]).split('/')[-1].startswith(i + '_'))
-                rel = not any(i for i in self.support_ontologies if str(x[1]).split('/')[-1].startswith(i + '_'))
+                rel = not any(i for i in self.support if str(x[1]).split('/')[-1].startswith(i + '_'))
                 if subj and obj and rel:
                     if str(OWL) not in str(x[0]) and str(OWL) not in str(x[2]): keep_predicates.add(x)
                     else: filtered_triples |= {x}
@@ -582,22 +584,23 @@ class OwlNets(object):
                 return cleaned, results[1]
             else: return cleaned, axioms
 
-    def cleans_owl_encoded_entities(self, node_list: List) -> None:
+    def cleans_owl_encoded_entities(self, node_list: List, verbose: bool = True) -> None:
         """Loops over a all owl:Class and owl: Axiom objects and decodes the OWL semantics returning the corresponding
         triples for each type without OWL semantics.
 
         Args:
             node_list: A list of owl:Class and owl:Axiom entities to decode.
+            verbose: A bool indicating whether or not to print/log progress.
 
         Returns:
              None.
         """
 
-        log_str = 'Decoding {} OWL Classes and Axioms'.format(len(node_list)); logger.info(log_str); print(log_str)
+        if verbose: s = 'Decoding {} OWL Classes and Axioms'.format(len(node_list)); logger.info(s); print(s)
 
-        decoded_graph: Graph = Graph(); cleaned_entities: Set = set()  # ; pbar = tqdm(total=len(self.node_list))
+        decoded_graph: Graph = Graph(); cleaned_entities: Set = set()  # ; pbar = tqdm(total=len(node_list))
         while node_list:
-            # pbar.update(1);
+            # pbar.update(1)
             node = node_list.pop(0); node_info = self.creates_edge_dictionary(node)
             if node_info is not None and len(node_info[1]) != 0:
                 self.captures_cardinality_axioms(node_info[2], node)
@@ -627,7 +630,7 @@ class OwlNets(object):
                                 edges = None; self.owl_nets_dict['misc'][n3(node)] = {tuple(misc)}
                     decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes), False)
                     self.owl_nets_dict['decoded_entities'][n3(node)] = cleaned_classes
-        self.graph = decoded_graph; self.graph = self.cleans_decoded_graph()  # ; pbar.close()
+        self.graph = decoded_graph; self.graph = self.cleans_decoded_graph(verbose)  # ; pbar.close()
 
         return None
 
@@ -671,7 +674,7 @@ class OwlNets(object):
             needed_triples = set((URIRef(x), rel, anc_node) for x in roots if x != anc_node)
             graph = adds_edges_to_graph(graph, needed_triples, False)
 
-            logs = '{} triples added to make connected.'.format(len(needed_triples)); logger.info(logs); print(logs)
+            logs = '{} triples added to make connected'.format(len(needed_triples)); logger.info(logs); print(logs)
 
             return graph
 
@@ -781,10 +784,10 @@ class OwlNets(object):
         stats = 'OWL-NETS {};\nPurified OWL-NETS {}'.format(g1, g2); print(stats); logger.info(stats)
 
         # process owl decoding results
-        for key in self.owl_nets_dict.keys():
-            if not isinstance(self.owl_nets_dict[key], Set): value = dict(ChainMap(*[d[key] for d in res2]))
-            else: value = self.owl_nets_dict[key] | set(ChainMap(*[d[key] for d in res2]))
-            self.owl_nets_dict[key] = value
+        for k in self.owl_nets_dict.keys():
+            if not isinstance(self.owl_nets_dict[k], Set):
+                self.owl_nets_dict[k].update(dict(ChainMap(*[d[k] for d in res2])))
+            else: self.owl_nets_dict[k] = self.owl_nets_dict[k] | set(ChainMap(*[d[k] for d in res2]))
         str1 = 'Decoded {} owl-encoded classes and axioms. Note the following:\nPartially processed {} cardinality ' \
                'elements\nRemoved {} owl:disjointWith axioms\nIgnored: {} misc classes; {} classes constructed with ' \
                'owl:complementOf; {} classes containing negation (e.g. pr#lacks_part, cl#has_not_completed)\n' \
