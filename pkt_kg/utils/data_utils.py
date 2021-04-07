@@ -407,12 +407,11 @@ def outputs_dictionary_data(dict_object: Optional[Dict], filename: str) -> None:
     return None
 
 
-def deduplicates_file(src_filepath: str, dest_filepath: Optional[str] = None) -> None:
+def deduplicates_file(src_filepath: str) -> None:
     """Removes duplicates from a file.
 
     Args:
         src_filepath: A string specifying a path to an existing file.
-        dest_filepath: A string specifying a path to write deduplicated file to (default=src_filepath).
 
     Returns:
          None.
@@ -420,14 +419,12 @@ def deduplicates_file(src_filepath: str, dest_filepath: Optional[str] = None) ->
 
     print('Depduplicating File: {}'.format(src_filepath))
 
-    temp_data = None
-    if dest_filepath is None:
-        temp_data = '/'.join(src_filepath.split('/')[:-1]) + '/test.nt'
-        os.rename(src_filepath, temp_data)
-        dest_filepath, src_filepath = src_filepath, temp_data
-
-    os.system('sort {} | uniq > {}'.format(src_filepath, dest_filepath))
-    if temp_data and os.path.exists(temp_data): os.remove(temp_data)
+    lines = list(set(open(src_filepath, 'r').readlines())); pbar = tqdm(total=len(lines))
+    with open(src_filepath, 'w') as f:
+        while len(lines) > 0:
+            x = lines.pop(); pbar.update(1)
+            f.write(x) if x.endswith('\n') else f.write(x + '\n')
+        pbar.close()
 
     return None
 
