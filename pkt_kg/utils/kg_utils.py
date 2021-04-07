@@ -684,7 +684,7 @@ def n3(node: Union[URIRef, BNode, Literal]) -> str:
     return serialized_node
 
 
-def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Union[Graph, Set]] = None) -> None:
+def convert_to_networkx(write_loc: str, filename: str, graph: Union[Graph, Set], stats: bool = False) -> Optional[str]:
     """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally. Each node is provided a
     key that is the URI identifier and each edge is given a key which is an md5 hash of the triple and a weight of
     0.0. An example of the output is shown below. The md5 hash is meant to store a unique key that represents that
@@ -701,23 +701,16 @@ def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Union
             - edge data: [(obo.SO_0000288, obo.SO_0000287', {'predicate_key': '9cbd4826291e7b38eb', 'weight': 0.0})]
 
     Args:
-        write_location: A string pointing to a local directory for writing data.
-        full_kg: A string containing the subdirectory and name of the the knowledge graph file.
+        write_loc: A string pointing to a local directory for writing data.
+        filename: A string containing the subdirectory and name of the the knowledge graph file.
         graph: An RDFLib Graph object or set of RDFLib Graph triples.
+        stats: A bool indicating whether or not to derive network statistics after writing networkx file to disk.
 
     Returns:
-        None.
-
-    Raises:
-        IOError: If the file referenced by filename does not exist.
+        network_stats: A string containing network statistics information.
     """
 
     print('Converting Knowledge Graph to MultiDiGraph')
-
-    if graph is None:
-        file_type = 'xml' if 'OWLNETS' not in full_kg else full_kg.split('.')[-1]
-        ext = '.owl' if file_type == 'xml' else '.nt'
-        graph = Graph().parse(write_location + full_kg + ext, format=file_type)
 
     nx_mdg = nx.MultiDiGraph()
     for s, p, o in tqdm(graph):
@@ -725,9 +718,13 @@ def convert_to_networkx(write_location: str, full_kg: str, graph: Optional[Union
         nx_mdg.add_node(s, key=n3(s)); nx_mdg.add_node(o, key=n3(o))
         nx_mdg.add_edge(s, o, **{'key': p, 'predicate_key': pred_key, 'weight': 0.0})
     print('Pickling MultiDiGraph')
-    nx.write_gpickle(nx_mdg, write_location + full_kg + '_NetworkxMultiDiGraph.gpickle'); del nx_mdg
+    nx.write_gpickle(nx_mdg, write_loc + filename + '_NetworkxMultiDiGraph.gpickle')
 
-    return None
+    # STEP 2: DERIVE NETWORK STATISTICS
+    print('Generating Network Statistics')
+    network_stats = derives_graph_statistics(nx_mdg) if stats else None
+
+    return network_stats
 
 
 def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep: str = ' ') -> None:

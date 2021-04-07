@@ -32,39 +32,6 @@ os.mkdir(log_dir); logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
 
 
-def derives_networkx_graph_statistics(graph) -> str:
-    """Derives statistics from an input knowledge graph and prints them to the console. Note that we are not
-    converting each node to a string before deriving our counts. This is purposeful as the number of unique nodes is
-    altered when you it converted to a string. For example, in the HPO when honoring the RDF type of each node there are
-    406,717 unique nodes versus 406,331 unique nodes when ignoring the RDF type of each node.
-
-    Args:
-        graph: An networkx.MultiDiGraph object.
-
-    Returns:
-        stats: A formatted string containing descriptive statistics.
-    """
-
-    # derive statistics
-    nx_graph_und = graph.to_undirected()
-    nodes = networkx.number_of_nodes(graph); edges = networkx.number_of_edges(graph)
-    self_loops = networkx.number_of_selfloops(graph)
-    ce = sorted(Counter([str(x[2]) for x in graph.edges(keys=True)]).items(),  # type: ignore
-                key=lambda x: x[1], reverse=1)[:6]  # type: ignore
-    avg_degree = float(edges) / nodes
-    n_deg = sorted([(str(x[0]), x[1]) for x in graph.degree()], key=lambda x: x[1], reverse=1)[:6]  # type: ignore
-    density = networkx.density(graph)
-    components = sorted(list(networkx.connected_components(nx_graph_und)), key=len, reverse=True)
-    cc_sizes = {x: len(components[x]) for x in range(len(components))}
-    x = '{} nodes, {} edges, {} self-loops, 5 most most common edges: {}, average degree {}, 5 highest degree '\
-        'nodes: {}, density: {}, {} component(s) and size(s): {}'
-    stats = 'Graph Stats: ' + x.format(nodes, edges, self_loops, ', '.join([x[0] + ':' + str(x[1]) for x in ce]),
-                                       avg_degree, ', '.join([x[0] + ':' + str(x[1]) for x in n_deg]),
-                                       density, len(components), cc_sizes)
-
-    return stats
-
-
 def uploads_build_data(bucket, gcs_location) -> None:
     """Moves data from docker container to the dedicated Google Cloud Storage Bucket directory.
 
@@ -188,25 +155,8 @@ def main(app, rel, owl):
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     #############################################################################
-    # STEP 4 - PRINT BUILD STATISTICS
-    logs = 'STEP 4: DERIVING NETWORK STATISTICS FOR BUILD KNOWLEDGE GRAPHS'; print('\n' + logs); logger.info(logs)
-
-    try:  # find Networkx MultiDiGraph files in Google Cloud Storage Bucket for build
-        kg_owl = [f.name for f in bucket.list_blobs(prefix=gcs_current_loc_owl) if f.name.endswith('gpickle')]
-        kg_owlnets = [f.name for f in bucket.list_blobs(prefix=gcs_current_loc_owlnets) if f.name.endswith('gpickle')]
-        for f in set(kg_owl + kg_owlnets):
-            log_str = 'Loading graph data: {}'.format(f.split('/')[-1]); print(log_str); logger.info(log_str)
-            bucket_loc = gcs_current_loc_owlnets if 'OWLNETS' in f else gcs_current_loc_owl
-            nx_local_file = downloads_data_from_gcs_bucket(bucket, None, bucket_loc, f.split('/')[-1], '')
-            graph = networkx.read_gpickle(nx_local_file)
-            stats = derives_networkx_graph_statistics(graph); print(stats); logger.info(stats)
-    except: logger.error('ERROR: Uncaught Exception: {}'.format(traceback.format_exc()))
-
-    uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
-
-    #############################################################################
-    # STEP 5 - CLEAN UP BUILD ENVIRONMENT + LOG EXIT STATUS TO FINISH RUN
-    print('\nSTEP 5: BUILD CLEAN-UP'); logger.info('STEP 5: BUILD CLEAN-UP')
+    # STEP 4 - CLEAN UP BUILD ENVIRONMENT + LOG EXIT STATUS TO FINISH RUN
+    print('\nSTEP 4: BUILD CLEAN-UP'); logger.info('STEP 4: BUILD CLEAN-UP')
     runtime = round((datetime.now() - start_time).total_seconds() / 60, 3)
     print('\n\n' + '*' * 5 + ' COMPLETED BUILD PHASE 3: {} MINUTES '.format(runtime) + '*' * 5)
     logger.info('COMPLETED BUILD PHASE 3: {} MINUTES'.format(runtime)); logger.info('EXIT BUILD PHASE 3')
@@ -218,12 +168,13 @@ def main(app, rel, owl):
     # owl build
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc_owl, [log_1[0].split('/')[-1]])
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_loc_owl, [log_1[0].split('/')[-1]])
-    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owl, gcs_current_loc_owl, [log])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_location, gcs_archive_loc_owlnets, [log])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_location, gcs_current_loc_owl, [log])
     # owl-nets build
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc_owlnets, [log_1[0].split('/')[-1]])
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_loc_owlnets, [log_1[0].split('/')[-1]])
-    copies_data_between_gcs_bucket_directories(bucket, gcs_archive_loc_owl, gcs_archive_loc_owlnets, [log])
-    copies_data_between_gcs_bucket_directories(bucket, gcs_current_loc_owl, gcs_current_loc_owlnets, [log])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_location, gcs_archive_loc_owlnets, [log])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_location, gcs_current_loc_owlnets, [log])
 
     # exit build
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket

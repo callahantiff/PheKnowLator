@@ -736,7 +736,8 @@ class OwlNets(object):
         # write out owl_nets dictionary
         with open(self.write_location + f_name.strip('.nt') + '_decoding_dict.pkl', 'wb') as out:
             pickle.dump(self.owl_nets_dict, out)
-        convert_to_networkx(self.write_location, f_name.strip('.nt'), graph)
+        s = convert_to_networkx(self.write_location, f_name.strip('.nt'), graph, True)
+        if s is not None: log_stats = '{}OWL-NETS {}'.format(personalize, s); logger.info(log_stats); print(log_stats)
 
         return None
 

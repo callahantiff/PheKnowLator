@@ -530,8 +530,8 @@ class PostClosureBuild(KGBuilder):
         results = [set(self.graph), None, None]
         stats = 'Full Logic {}'.format(derives_graph_statistics(results[0])); print(stats); logger.info(stats)
         logger.info('*** Converting Knowledge Graph to Networkx MultiDiGraph ***')
-        convert_to_networkx(self.write_location, kg_owl[:-4], results[0])
-        stats = derives_graph_statistics(results[0]); print(stats); logger.info(stats)
+        s = convert_to_networkx(self.write_location, kg_owl[:-4], results[0], True)
+        if s is not None: log_stats = 'Full Logic Subset (OWL) {}'.format(s); logger.info(log_stats); print(log_stats)
         if self.decode_owl:
             owlnets = OwlNets(self.graph, self.write_location, kg_owl_main, self.construct_approach, self.owl_tools)
             results = [results[0]] + list(owlnets.runs_owlnets(self.cpus))
@@ -629,8 +629,8 @@ class FullBuild(KGBuilder):
         # STEP 6: DECODE OWL SEMANTICS
         results = [set(x for y in [set(x) for x in graphs] for x in y), None, None]
         stats = 'Full Logic {}'.format(derives_graph_statistics(results[0])); print(stats); logger.info(stats)
-        logger.info('*** Converting Knowledge Graph to Networkx MultiDiGraph ***')
-        convert_to_networkx(self.write_location, kg_owl[:-4], results[0])
+        s = convert_to_networkx(self.write_location, kg_owl[:-4], results[0], True)
+        if s is not None: log_stats = 'Full Logic Subset (OWL) {}'.format(s); logger.info(log_stats); print(log_stats)
         # aggregates processed owl-nets output derived when constructing non-ontology edges
         if self.decode_owl and clean_res is not None:
             clean_graph = updates_pkt_namespace_identifiers(self.graph, self.construct_approach)
