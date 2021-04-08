@@ -5,6 +5,7 @@ import shutil
 import unittest
 
 from tqdm import tqdm
+from typing import List
 
 from pkt_kg.utils import *
 
@@ -126,5 +127,36 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         # remove temp directory
         shutil.rmtree(self.dir_loc)
+
+        return None
+
+    def tests_sublist_creator_dict(self):
+        """Tests the sublist_creator method when the input is a dictionary."""
+
+        actors = {'protein-cell': 75308, 'protein-cofactor': 1994, 'variant-disease': 35686, 'rna-anatomy': 444974,
+                  'protein-catalyst': 24311, 'chemical-protein': 64330, 'chemical-gene': 16695, 'protein-gobp': 137926,
+                  'protein-pathway': 114807, 'protein-anatomy': 30677, 'chemical-pathway': 28357, 'gene-gene': 23525}
+        lists = sublist_creator(actors, 5)
+
+        self.assertIsInstance(lists, List)
+        self.assertTrue(len(lists), 5)
+        self.assertEqual(lists,
+                         [['rna-anatomy'], ['protein-gobp'], ['protein-pathway', 'gene-gene'],
+                          ['protein-cell', 'protein-anatomy', 'protein-catalyst', 'protein-cofactor'],
+                          ['chemical-protein', 'variant-disease', 'chemical-pathway', 'chemical-gene']])
+
+        return None
+
+    def tests_sublist_creator_list(self):
+        """Tests the sublist_creator method when the input is a dictionary."""
+
+        actors = [75308, 1994, 35686, 444974, 24311, 64330, 16695, 137926, 114807, 30677, 28357, 23525]
+        lists = sublist_creator(actors, 5)
+
+        self.assertIsInstance(lists, List)
+        self.assertTrue(len(lists), 5)
+        self.assertEqual(lists,
+                         [[444974], [137926], [114807, 23525],
+                          [75308, 30677, 24311, 1994], [64330, 35686, 28357, 16695]])
 
         return None

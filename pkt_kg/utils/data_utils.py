@@ -22,6 +22,7 @@ Miscellaneous data Processing Methods
 * genomic_id_mapper
 * deduplicates_file
 * merges_files
+* sublist_creator
 
 Outputs data
 * outputs_dictionary_data
@@ -30,6 +31,7 @@ Outputs data
 # import needed libraries
 import ftplib
 import gzip
+import heapq
 import json
 import numpy as np  # type: ignore
 import os
@@ -446,3 +448,34 @@ def merges_files(filepath1: str, filepath2: str, merged_filepath: str) -> None:
     os.system('( cat {} ; echo ''; cat {} ) > {}'.format(filepath1, filepath2, merged_filepath))
 
     return None
+
+
+def sublist_creator(actors: Union[Dict, List], chunk_size: int) -> List:
+    """Takes a list of lists and returns sublists, where the sublists are balanced according to their length.
+
+    SOURCE: https://stackoverflow.com/questions/61648065
+
+    Args:
+        actors: A list or a dictionary keyed by edge identifier with the length of each associated edge list
+            stored as the values.
+        chunk_size: An integer specifying the number of sublists that should be returned.
+
+    Returns:
+         updated_lists: A list of lists, where the inner lists have been balanced by their size.
+    """
+
+    if isinstance(actors, Dict): values = sorted(list(actors.values()), reverse=True)
+    else: values = sorted(actors, reverse=True)
+    lists: List = [[] for _ in range(chunk_size)]; totals = [(0, i) for i in range(chunk_size)]; heapq.heapify(totals)
+    for value in values:
+        total, index = heapq.heappop(totals); lists[index].append(value); heapq.heappush(totals, (total + value, index))
+
+    # update list to return string identifier associated with each list length
+    if isinstance(actors, Dict):
+        updated_lists = []; used_ids = set()
+        for sub in lists:
+            sub_list = [[k for k, v in actors.items() if v == x and k not in used_ids][0] for x in sub]
+            updated_lists += [sub_list]; used_ids |= set(x for y in sub_list for x in y)
+    else: updated_lists = lists
+
+    return updated_lists
