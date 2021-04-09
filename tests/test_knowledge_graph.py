@@ -802,6 +802,27 @@ class TestKGBuilder(unittest.TestCase):
 
         return None
 
+    def tests_graph_getter(self):
+        """Tests graph_getter method."""
+
+        results = self.inner_class.graph_getter()
+
+        # verify results
+        self.assertIsInstance(results, Graph)
+
+        return None
+
+    def tests_decoded_graph_getter(self):
+        """Tests decoded_graph_getter method."""
+
+        graph, dic_res = self.inner_class.decoded_graph_getter()
+
+        # verify results
+        self.assertIsInstance(graph, Graph)
+        self.assertIsInstance(dic_res, Dict)
+
+        return None
+
     def tearDown(self):
         warnings.simplefilter('default', ResourceWarning)
 
