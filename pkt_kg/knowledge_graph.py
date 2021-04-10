@@ -192,13 +192,15 @@ class KGBuilder(object):
             ont_cls: A set of RDFLib URIRef terms representing all classes in the core merged ontologies.
             obj_props: A set of RDFLib URIRef terms representing all object properties in the core merged ontologies.
             write_loc: A string passed specifying the primary directory to write to.
-            decode_owl: A string ("yes" or "no") indicating whether or not to decode owl semantics and filter triples.
         """
 
         def __init__(self, params) -> None:
 
+            self.clean_graph: Graph = Graph()
             self.construction: str = params.get('construction')
             self.edge_dict: dict = params.get('edge_dict')
+            self.error_dict: Dict = dict()
+            self.graph: Graph = Graph()
             self.kg_owl = params.get('kg_owl')
             self.inverse_relations_dict: Optional[Dict] = params.get('inverse_dict')
             self.node_data: Optional[str] = 'yes' if params.get('node_data') is not None else None
@@ -206,24 +208,14 @@ class KGBuilder(object):
             self.obj_properties: Set = params.get('obj_props')
             self.ont_classes: Set = params.get('ont_cls')
             self.relations_dict: Optional[Dict] = params.get('rel_dict')
-            self.write_location: str = params.get('write_loc')
-            self.error_dict: Dict = dict()
-            self.graph: Graph = Graph()
             self.res_dir: str = os.path.abspath('/'.join(params.get('write_loc').split('/')[:-1]))
-            self.decode_owl: str = params.get('decode')
-            self.decoded_graph: Graph = Graph()
-            self.decoded_dict: Dict = {'decoded_entities': {}, 'cardinality': {}, 'misc': {}, 'complementOf': {},
-                                       'negation': {}, 'disjointWith': set(), 'filtered_triples': set()}
+            self.write_location: str = params.get('write_loc')
 
-        def graph_getter(self) -> Graph:
-            """Methods returns inner class RDFLib Graph object."""
+        def graph_getter(self) -> Tuple[Graph, Graph]:
+            """Methods returns two inner class RDFLib Graph objects the first contains pkt-namespaces and the second
+            contains the bnodes (anonymous nodes) with the pkt_namespace removed."""
 
-            return self.graph
-
-        def decoded_graph_getter(self) -> Tuple[Graph, Dict]:
-            """Methods returns inner class RDFLib Graph object for decoded graph and a list of decoded dict."""
-
-            return self.decoded_graph, self.decoded_dict
+            return self.graph, self.clean_graph
 
         def error_dict_getter(self) -> Dict:
             """Methods returns inner class subclass error dict object."""
@@ -299,35 +291,6 @@ class KGBuilder(object):
                 else: return None
             else: return None
 
-        def decodes_owl_semantics(self, edges: Dict, cleaned_edges: Graph) -> None:
-            """Applies two of the OWL-NETS algorithm steps: (1) filters out OWL triples and (2) decodes OWL class and
-            axiom objects. For each processed edge, the results of the two steps is updated to the owl decoding
-            dictionary object.
-
-            Args:
-                edges: A dict of information needed to add edge to graph, for example:
-                    {'n1': 'class', 'n2': 'class','rel': 'RO_0002606', 'inv_rel': 'RO_0002615',
-                     'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
-                     'edges': ['CHEBI_81395', 'DOID_12858']}
-                cleaned_edges: An RDFLib Graph object or set of RDFLib triples updated to remove bnode namespacing.
-
-            Returns:
-                None.
-            """
-
-            owlnets = OwlNets(self.graph, self.write_location, '', self.construction)
-            edge_list = [URIRef(edges['uri'][0] + edges['edges'][0]), URIRef(edges['uri'][1] + edges['edges'][1])]
-            owlnets.graph = cleaned_edges; g1 = set(owlnets.removes_edges_with_owl_semantics(verbose=False))
-            owlnets.cleans_owl_encoded_entities(node_list=edge_list, verbose=False); g2 = set(owlnets.graph)
-            # update graph with decoded classes and filtered triples
-            self.decoded_graph = adds_edges_to_graph(self.decoded_graph, g1 | g2, False)
-            # update decode dict with owl-nets metadata
-            for k in self.decoded_dict.keys():
-                if not isinstance(self.decoded_dict[k], Set): self.decoded_dict[k].update(owlnets.owl_nets_dict[k])
-                else: self.decoded_dict[k] = self.decoded_dict[k] | owlnets.owl_nets_dict[k]
-
-            return None
-
         @staticmethod
         def gets_edge_statistics(edge_type: str, results: Set, entity_info: List) -> str:
             """Calculates the number of nodes and edges involved in constructing an edge type.
@@ -367,8 +330,7 @@ class KGBuilder(object):
             invrel = self.checks_relations(rel, edge_list) if self.inverse_relations_dict is not None else None
             n1, n2, rels = set(), set(), 0; res: Set = set()  # ; pbar = tqdm(total=len(edge_list))
             while len(edge_list) > 0:
-                # pbar.update(1)
-                edge = edge_list.pop(0)
+                edge = edge_list.pop(0)  # ; pbar.update(1)
                 edge_info = {'n1': s, 'n2': o, 'rel': rel, 'inv_rel': invrel, 'uri': uri, 'edges': edge}
                 meta = self.node_metadata_func(ent=[''.join(x) for x in list(zip(uri, edge))], e_type=[s, o])
                 meta_logic = [True if (self.node_data is None and meta is None) or [s, o] == ['class', 'class']
@@ -376,12 +338,11 @@ class KGBuilder(object):
                 if self.checks_classes(edge_info) and meta_logic:
                     if self.construction == 'subclass': edges = set(kg_bld.subclass_constructor(edge_info, edge_type))
                     else: edges = set(kg_bld.instance_constructor(edge_info, edge_type))
-                    self.graph = adds_edges_to_graph(self.graph, edges, False)
                     res |= edges; n1 |= {edge[0]}; n2 |= {edge[1]}; rels = rels + 1 if invrel is None else rels + 2
-                    appends_to_existing_file(edges, logic)
+                    self.graph = adds_edges_to_graph(self.graph, edges, False); appends_to_existing_file(edges, logic)
                     if meta is not None: appends_to_existing_file(meta, anot)
-                    cleaned_edges = updates_pkt_namespace_identifiers(edges, self.construction, False)
-                    if self.decode_owl: self.decodes_owl_semantics(edge_info, cleaned_edges)
+                    cleaned_graph = updates_pkt_namespace_identifiers(edges, self.construction, False)
+                    self.clean_graph = adds_edges_to_graph(self.clean_graph, cleaned_graph, False)
             stat = self.gets_edge_statistics(edge_type, res, [n1, n2, rels]); del [n1, n2, rels], res  # ; pbar.close()
             p = 'Created {} ({}-{}) Edges: {}'.format(edge_type.upper(), s, o, stat); print('\n' + p); logger.info(p)
             if len(kg_bld.subclass_error.keys()) > 0: self.error_dict = kg_bld.subclass_error
@@ -434,7 +395,7 @@ class PartialBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         f = self.write_location; self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        stats = 'Merged Logic Subset {}'.format(derives_graph_statistics(self.graph)); print(stats); logger.info(stats)
+        s = 'Merged Ontologies - Logic Subset {}'.format(derives_graph_statistics(self.graph)); print(s); logger.info(s)
         kg_owl = '_'.join(self.full_kg.split('_')[0:-1]) + '_OWL.owl'
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, f + annot); appends_to_existing_file(self.graph, f + logic)
@@ -449,12 +410,14 @@ class PartialBuild(KGBuilder):
         args = {'construction': self.construct_approach, 'edge_dict': self.edge_dict, 'write_loc': self.write_location,
                 'rel_dict': self.relations_dict, 'inverse_dict': self.inverse_relations_dict, 'kg_owl': kg_owl,
                 'node_data': self.node_data, 'ont_cls': self.ont_classes, 'metadata': meta.creates_node_metadata,
-                'obj_props': self.obj_properties, 'decode': self.decode_owl}; edges = [x for x in self.edge_dict.keys()]
+                'obj_props': self.obj_properties}
+        edges = sublist_creator({k: len(v['edge_list']) for k, v in self.edge_dict.items()}, self.cpus)
         actors = [ray.remote(self.EdgeConstructor).remote(args) for _ in range(self.cpus)]  # type: ignore
-        for i in range(0, len(edges)): actors[i % self.cpus].creates_new_edges.remote(edges[i])  # type: ignore
+        for i in range(0, len(edges)): [actors[i].creates_new_edges.remote(j) for j in edges[i]]  # type: ignore
         # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
         _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
-        graphs = [self.graph] + ray.get([x.graph_getter.remote() for x in actors])
+        graph_res = ray.get([x.graph_getter.remote() for x in actors])
+        graphs = [self.graph] + [x[0] for x in graph_res]  # ; clean_graphs = [x[1] for x in graph_res]
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
@@ -524,7 +487,7 @@ class PostClosureBuild(KGBuilder):
         kg_owl = '_'.join(self.full_kg.split('_')[0:-1]) + '_OWL.owl'; kg_owl_main = kg_owl[:-8] + '.owl'
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, _ + annot); appends_to_existing_file(self.graph, _ + logic)
-        self.graph = updates_pkt_namespace_identifiers(self.graph, self.construct_approach); del annotation_triples
+        del annotation_triples
 
         # STEP 5: DECODE OWL SEMANTICS
         results = [set(self.graph), None, None]
@@ -533,6 +496,7 @@ class PostClosureBuild(KGBuilder):
         s = convert_to_networkx(self.write_location, kg_owl[:-4], results[0], True)
         if s is not None: log_stats = 'Full Logic Subset (OWL) {}'.format(s); logger.info(log_stats); print(log_stats)
         if self.decode_owl:
+            self.graph = updates_pkt_namespace_identifiers(self.graph, self.construct_approach)
             owlnets = OwlNets(self.graph, self.write_location, kg_owl_main, self.construct_approach, self.owl_tools)
             results = [results[0]] + list(owlnets.runs_owlnets(self.cpus))
 
@@ -600,7 +564,7 @@ class FullBuild(KGBuilder):
         # STEP 4: CREATE GRAPH SUBSETS
         log_str = '*** Splitting Graph ***'; print(log_str); logger.info(log_str)
         f = self.write_location; self.graph, annotation_triples = splits_knowledge_graph(self.graph)
-        stats = 'Merged Logic Subset {}'.format(derives_graph_statistics(self.graph)); print(stats); logger.info(stats)
+        s = 'Merged Ontologies - Logic Subset {}'.format(derives_graph_statistics(self.graph)); print(s); logger.info(s)
         kg_owl = '_'.join(self.full_kg.split('_')[0:-1]) + '_OWL.owl'; kg_owl_main = kg_owl[:-8] + '.owl'
         annot, logic, full = kg_owl[:-4] + '_AnnotationsOnly.nt', kg_owl[:-4] + '_LogicOnly.nt', kg_owl[:-4] + '.nt'
         appends_to_existing_file(annotation_triples, f + annot); appends_to_existing_file(self.graph, f + logic)
@@ -614,32 +578,26 @@ class FullBuild(KGBuilder):
         args = {'construction': self.construct_approach, 'edge_dict': self.edge_dict, 'node_data': self.node_data,
                 'rel_dict': self.relations_dict, 'inverse_dict': self.inverse_relations_dict, 'kg_owl': kg_owl,
                 'ont_cls': self.ont_classes, 'obj_props': self.obj_properties, 'metadata': meta.creates_node_metadata,
-                'write_loc': self.write_location, 'decode': self.decode_owl}; edges = [x for x in self.edge_dict.keys()]
+                'write_loc': self.write_location}
+        edges = sublist_creator({k: len(v['edge_list']) for k, v in self.edge_dict.items()}, self.cpus)
         actors = [ray.remote(self.EdgeConstructor).remote(args) for _ in range(self.cpus)]  # type: ignore
-        for i in range(0, len(edges)): actors[i % self.cpus].creates_new_edges.remote(edges[i])  # type: ignore
-        # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
+        for i in range(0, len(edges)): [actors[i].creates_new_edges.remote(j) for j in edges[i]]  # type: ignore
         _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
-        graphs = [self.graph] + ray.get([x.graph_getter.remote() for x in actors])
-        clean_res = ray.get([x.decoded_graph_getter.remote() for x in actors]) if self.decode_owl else None
+        res = ray.get([x.graph_getter.remote() for x in actors]); g1 = [x[0] for x in res]; g2 = [x[1] for x in res]
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
 
         # STEP 6: DECODE OWL SEMANTICS
-        results = [set(x for y in [set(x) for x in graphs] for x in y), None, None]
+        results = [set(x for y in [set(x) for x in [self.graph] + g1] for x in y), None, None]
         stats = 'Full Logic {}'.format(derives_graph_statistics(results[0])); print(stats); logger.info(stats)
-        s = convert_to_networkx(self.write_location, kg_owl[:-4], results[0], True)
-        if s is not None: log_stats = 'Full Logic Subset (OWL) {}'.format(s); logger.info(log_stats); print(log_stats)
+        s1 = convert_to_networkx(self.write_location, kg_owl[:-4], results[0], True)
+        if s1 is not None: log_stats = 'Full Logic Subset (OWL) {}'.format(s1); logger.info(log_stats); print(log_stats)
         # aggregates processed owl-nets output derived when constructing non-ontology edges
-        if self.decode_owl and clean_res is not None:
-            clean_graph = updates_pkt_namespace_identifiers(self.graph, self.construct_approach)
-            graphs = [clean_graph] + [x[0] for x in clean_res]; clean_dicts = [x[1] for x in clean_res]
+        if self.decode_owl is not None:
+            graphs = [updates_pkt_namespace_identifiers(self.graph, self.construct_approach)] + g2
             owlnets = OwlNets(graphs, self.write_location, kg_owl_main, self.construct_approach, self.owl_tools)
-            for key in owlnets.owl_nets_dict.keys():
-                if isinstance(owlnets.owl_nets_dict[key], Set):
-                    owlnets.owl_nets_dict[key] = set(ChainMap(*[d[key] for d in clean_dicts]))
-                else: owlnets.owl_nets_dict[key] = dict(ChainMap(*[d[key] for d in clean_dicts]))
             results = [results[0]] + list(owlnets.runs_owlnets(self.cpus))
 
         # STEP 7: WRITE OUT KNOWLEDGE GRAPH METADATA AND CREATE EDGE LISTS
