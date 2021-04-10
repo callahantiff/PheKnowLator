@@ -720,11 +720,10 @@ def convert_to_networkx(write_loc: str, filename: str, graph: Union[Graph, Set],
     print('Pickling MultiDiGraph')
     nx.write_gpickle(nx_mdg, write_loc + filename + '_NetworkxMultiDiGraph.gpickle')
 
-    # STEP 2: DERIVE NETWORK STATISTICS
-    print('Generating Network Statistics')
-    network_stats = derives_graph_statistics(nx_mdg) if stats else None
-
-    return network_stats
+    if stats:
+        print('Generating Network Statistics')
+        return derives_graph_statistics(nx_mdg)
+    else: return None
 
 
 def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep: str = ' ') -> None:
