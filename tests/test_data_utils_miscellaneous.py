@@ -123,13 +123,6 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         return None
 
-    def tearDown(self):
-
-        # remove temp directory
-        shutil.rmtree(self.dir_loc)
-
-        return None
-
     def tests_sublist_creator_dict(self):
         """Tests the sublist_creator method when the input is a dictionary."""
 
@@ -158,5 +151,12 @@ class TestDataUtilsMisc(unittest.TestCase):
         self.assertEqual(lists,
                          [[444974], [137926], [114807, 23525],
                           [75308, 30677, 24311, 1994], [64330, 35686, 28357, 16695]])
+
+        return None
+
+    def tearDown(self):
+
+        # remove temp directory
+        shutil.rmtree(self.dir_loc)
 
         return None
