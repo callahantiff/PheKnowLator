@@ -1,0 +1,15 @@
+Cython>=0.29.14
+more-itertools
+networkx
+numpy>=1.18.1
+openpyxl>=3.0.3
+pandas>=1.0.5
+psutil
+python-json-logger
+ray
+rdflib
+reactome2py
+requests
+responses==0.10.12
+tqdm
+urllib3
