@@ -266,7 +266,7 @@ class TestKGConstructionApproach(unittest.TestCase):
         # check subclass error log
         self.assertIsInstance(self.kg_builder.subclass_error, Dict)
         self.assertIn('gene-phenotype', self.kg_builder.subclass_error.keys())
-        self.assertEqual(self.kg_builder.subclass_error['gene-phenotype'], {'2'})
+        self.assertEqual(self.kg_builder.subclass_error['gene-phenotype'], ['2'])
 
         return None
 
