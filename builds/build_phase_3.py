@@ -168,7 +168,7 @@ def main(app, rel, owl):
     # owl build
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc_owl, [log_1[0].split('/')[-1]])
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_loc_owl, [log_1[0].split('/')[-1]])
-    copies_data_between_gcs_bucket_directories(bucket, gcs_log_location, gcs_archive_loc_owlnets, [log])
+    copies_data_between_gcs_bucket_directories(bucket, gcs_log_location, gcs_archive_loc_owl, [log])
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_location, gcs_current_loc_owl, [log])
     # owl-nets build
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_archive_loc_owlnets, [log_1[0].split('/')[-1]])
