@@ -606,7 +606,7 @@ class FullBuild(KGBuilder):
         for x in range(0, len(results)):
             graph = results[x]; p_str = 'OWL' if x == 0 else 'OWL-NETS' if x == 1 else 'Purified OWL-NETS'
             if graph is not None:
-                log_str = '*** Processing {} Graph ***'.format(p_str); print(log_str); logger.info(log_str)
+                log_str = '*** Processing {} Graph ***'.format(p_str); print('\n' + log_str); logger.info(log_str)
                 triple_list_file = kg_owl[:-8] + f_prefix[x] + '_Triples_Integers.txt'
                 triple_map = triple_list_file[:-5] + '_Identifier_Map.json'
                 node_int_map = maps_ids_to_integers(graph, self.write_location, triple_list_file, triple_map)
@@ -617,7 +617,8 @@ class FullBuild(KGBuilder):
 
         # deduplicate logic and annotation files, merge them, and print final stats
         deduplicates_file(f + annot); deduplicates_file(f + logic); merges_files(f + annot, f + logic, f + full)
-        graph = Graph().parse(f + full, format='nt')
+        str1 = 'Loading Full (Logic + Annotation) Graph'; print('\n' + str1); logger.info(str1)
+        graph = Graph().parse(f + full, format='nt'); str2 = 'Deriving Stats'; print('\n' + str2); logger.info(str2)
         s = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s); logger.info(s)
 
         return None
