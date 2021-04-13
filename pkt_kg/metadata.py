@@ -152,11 +152,17 @@ class Metadata(object):
         """
 
         key, edges, x = key_type, [], []
-        if self.node_dict:
-            if key == 'relations' and e_type is None: x = [i for i in ent if i in self.node_dict[key].keys()]
-            elif e_type: x = [i for i in ent if e_type[ent.index(i)] != 'class' and i in self.node_dict[key].keys()]
-            else: pass
-            if len(x) > 0:  # add metadata for eligible entities
+        if self.node_dict and isinstance(self.node_dict, Dict):
+            if key == 'nodes' and isinstance(e_type, List):
+                x = [i for i in ent if e_type[ent.index(i)] != 'class' and i in self.node_dict[key].keys()]
+            elif key == 'relations': x = [i for i in ent if i in self.node_dict[key].keys()]
+            else: return None
+            # check for matches
+            if (key == 'relations' and e_type is None) and len(x) == 0: return None
+            elif e_type == ['class', 'class'] and len(x) == 0: return None
+            elif (e_type == ['class', 'entity'] or e_type == ['entity', 'class']) and len(x) == 0: return None
+            elif e_type == ['entity', 'entity'] and len(x) != 2: return None
+            else:
                 for i in x:
                     metadata_info = self.node_dict[key][i]
                     if 'Label' in metadata_info.keys():
@@ -170,7 +176,6 @@ class Metadata(object):
                             for syn in metadata_info['Synonym'].split('|'):
                                 edges += [(URIRef(i), URIRef(oboinowl + 'hasSynonym'), Literal(syn))]
                 return edges
-            else: return None
         else: return None
 
     def adds_ontology_annotations(self, filename: str, graph: Graph) -> Graph:
@@ -235,7 +240,7 @@ class Metadata(object):
         """
 
         if self.node_dict:
-            log_str = 'Writing Class Metadata'; print('\n' + log_str); logger.info(log_str)
+            log_str = 'Writing Class Metadata'; print(log_str); logger.info(log_str)
             entities = set([i for j in tqdm(graph) for i in j]); filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:
                 out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'entity_uri' + '\t' + 'label' + '\t' +

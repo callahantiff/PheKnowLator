@@ -15,4 +15,4 @@ __all__ = ['url_download', 'ftp_url_download', 'gzipped_ftp_url_download', 'zipp
            'connected_components', 'removes_self_loops', 'derives_graph_statistics', 'splits_knowledge_graph',
            'adds_namespace_to_bnodes', 'removes_namespace_from_bnodes', 'updates_pkt_namespace_identifiers',
            'finds_node_type', 'updates_graph_namespace', 'maps_ids_to_integers', 'n3', 'appends_to_existing_file',
-           'deduplicates_file', 'merges_files', 'convert_to_networkx']
+           'deduplicates_file', 'merges_files', 'convert_to_networkx', 'sublist_creator']
