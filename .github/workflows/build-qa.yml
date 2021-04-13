@@ -94,7 +94,7 @@ jobs:
         run: pip install --upgrade pip setuptools wheel
       - name: Create Package Distribution
         run: python setup.py sdist bdist_wheel
-      - name: Publish Package tp PyPi
+      - name: Publish Package to PyPi
         uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__
