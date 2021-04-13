@@ -53,10 +53,10 @@ jobs:
     timeout-minutes: 3000
     env:
       GCE_ZONE: us-central1-a
-      GCE_CPU: 1
+      GCE_CPU: 4
       GCE_MEMORY: 200GB
       GCE_BOOT_DISC_TYPE: pd-standard
-      GCE_BOOT_DISC_SIZE: 200GB
+      GCE_BOOT_DISC_SIZE: 150GB
       DOCKERFILE: builds/Dockerfile.phase3
       GCE_JOB_NAME: pkt-builder-phase3-job1
       GCS_LOCATION: 'subclass_builds/relations_only/owl'
@@ -107,10 +107,10 @@ jobs:
     timeout-minutes: 3000
     env:
       GCE_ZONE: us-west1-b
-      GCE_CPU: 1
+      GCE_CPU: 8
       GCE_MEMORY: 200GB
       GCE_BOOT_DISC_TYPE: pd-standard
-      GCE_BOOT_DISC_SIZE: 200GB
+      GCE_BOOT_DISC_SIZE: 150GB
       DOCKERFILE: builds/Dockerfile.phase3
       GCE_JOB_NAME: pkt-builder-phase3-job3
       GCS_LOCATION: 'subclass_builds/inverse_relations/owl'
@@ -164,10 +164,10 @@ jobs:
     timeout-minutes: 3000
     env:
       GCE_ZONE: us-central1-a
-      GCE_CPU: 1
+      GCE_CPU: 4
       GCE_MEMORY: 200GB
       GCE_BOOT_DISC_TYPE: pd-standard
-      GCE_BOOT_DISC_SIZE: 200GB
+      GCE_BOOT_DISC_SIZE: 150GB
       DOCKERFILE: builds/Dockerfile.phase3
       GCE_JOB_NAME: pkt-builder-phase3-job5
       GCS_LOCATION: 'instance_builds/relations_only/owl'
@@ -218,10 +218,10 @@ jobs:
     timeout-minutes: 3000
     env:
       GCE_ZONE: us-central1-a
-      GCE_CPU: 1
+      GCE_CPU: 8
       GCE_MEMORY: 200GB
       GCE_BOOT_DISC_TYPE: pd-standard
-      GCE_BOOT_DISC_SIZE: 200GB
+      GCE_BOOT_DISC_SIZE: 150GB
       DOCKERFILE: builds/Dockerfile.phase3
       GCE_JOB_NAME: pkt-builder-phase3-job7
       GCS_LOCATION: 'instance_builds/inverse_relations/owl'
