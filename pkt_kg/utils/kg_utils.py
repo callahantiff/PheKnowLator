@@ -719,10 +719,7 @@ def convert_to_networkx(write_loc: str, filename: str, graph: Union[Graph, Set],
         nx_mdg.add_edge(s, o, **{'key': p, 'predicate_key': pred_key, 'weight': 0.0})
     print('Pickling MultiDiGraph')
     nx.write_gpickle(nx_mdg, write_loc + filename + '_NetworkxMultiDiGraph.gpickle')
-
-    if stats:
-        print('Generating Network Statistics')
-        return derives_graph_statistics(nx_mdg)
+    if stats: print('Generating Network Statistics'); return derives_graph_statistics(nx_mdg)
     else: return None
 
 

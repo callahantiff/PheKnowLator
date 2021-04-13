@@ -782,7 +782,7 @@ class OwlNets(object):
         if self.kg_construct_approach is not None:
             graph2 = set(self.purifies_graph_build(conn_graph)); g2 = derives_graph_statistics(graph2)
             self.write_out_results(graph2, self.kg_construct_approach)
-        stats = 'OWL-NETS {};\nPurified OWL-NETS {}'.format(g1, g2); print(stats); logger.info(stats)
+        stats = '\n\nOWL-NETS {};\nPurified OWL-NETS {}'.format(g1, g2); print(stats); logger.info(stats)
 
         # process owl decoding results
         for k in self.owl_nets_dict.keys():

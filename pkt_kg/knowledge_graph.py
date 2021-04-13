@@ -617,7 +617,7 @@ class FullBuild(KGBuilder):
 
         # deduplicate logic and annotation files, merge them, and print final stats
         deduplicates_file(f + annot); deduplicates_file(f + logic); merges_files(f + annot, f + logic, f + full)
-        str1 = 'Loading Full (Logic + Annotation) Graph'; print('\n' + str1); logger.info(str1)
+        str1 = '\nLoading Full (Logic + Annotation) Graph'; print('\n' + str1); logger.info(str1)
         graph = Graph().parse(f + full, format='nt'); str2 = 'Deriving Stats'; print('\n' + str2); logger.info(str2)
         s = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s); logger.info(s)
 
