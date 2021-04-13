@@ -305,13 +305,15 @@ class TestKGUtils(unittest.TestCase):
         """Tests the convert_to_networkx method."""
 
         # check that files were created
-        convert_to_networkx(write_location=self.dir_loc, full_kg='/so_with_imports', graph=None)
-        self.assertTrue(os.path.exists(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle'))
+        graph = Graph().parse(self.good_ontology_file_location)
+        stats = convert_to_networkx(self.dir_loc, '/so_with_imports', graph, True)
+        print(stats)
 
         # load graph and check structure
         s = obo.SO_0000288; o = obo.SO_0000287; p = RDFS.subClassOf
         graph = nx.read_gpickle(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle')
         self.assertEqual(graph[s][o][p], {'predicate_key': '72908c671b9244c1a1dc2b36e4708f15', 'weight': 0.0})
+        self.assertIsInstance(stats, str)
 
         # clean up the environment
         os.remove(self.dir_loc + '/so_with_imports_NetworkxMultiDiGraph.gpickle')

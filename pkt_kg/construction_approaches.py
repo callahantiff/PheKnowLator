@@ -92,10 +92,10 @@ class KGConstructionApproach(object):
             non-class entity node is returned.
         """
 
-        e_type = edge_type
         if entity not in self.subclass_dict.keys():
-            if self.subclass_error and e_type in self.subclass_error.keys(): self.subclass_error[e_type] += [entity]
-            else: self.subclass_error[e_type] = [entity]
+            if self.subclass_error and edge_type in self.subclass_error.keys():
+                if entity not in self.subclass_error[edge_type]: self.subclass_error[edge_type] += [entity]
+            else: self.subclass_error[edge_type] = [entity]
             subclass_map = None
         else: subclass_map = self.subclass_dict[entity]
 

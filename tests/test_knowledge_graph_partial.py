@@ -65,10 +65,10 @@ class TestPartialBuild(unittest.TestCase):
                                         "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
                                                 "http://purl.obolibrary.org/obo/"],
                                         "edge_list": [["2", "SO_0000162"], ["2", "SO_0000196"],
-                                                      ["2", "SO_0000323"], ["9", "SO_0001490"],
-                                                      ["9", "SO_0000301"], ["9", "SO_0001560"],
-                                                      ["9", "SO_0001560"], ["10", "SO_0000444"],
-                                                      ["10", "SO_0002138"], ["10", "SO_0000511"]]},
+                                                      ["3", "SO_0000323"], ["9", "SO_0001490"],
+                                                      ["10", "SO_0000301"], ["11", "SO_0001560"],
+                                                      ["12", "SO_0001560"], ["17", "SO_0000444"],
+                                                      ["18", "SO_0002138"], ["20", "SO_0000511"]]},
                      "gene-gene": {"data_type": "entity-entity",
                                    "edge_relation": "RO_0002435",
                                    "uri": ["http://www.ncbi.nlm.nih.gov/gene/",
@@ -83,8 +83,7 @@ class TestPartialBuild(unittest.TestCase):
                                          "edge_list": [["DOID_3075", "DOID_1080"], ["DOID_3075", "DOID_4267"],
                                                        ["DOID_4800", "DOID_10190"], ["DOID_4800", "DOID_80219"],
                                                        ["DOID_2729", "DOID_1962"], ["DOID_2729", "DOID_5096"],
-                                                       ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]},
-                     "entity_namespaces": {"gene": "http://purl.uniprot.org/geneid/"}
+                                                       ["DOID_8837", "DOID_6774"], ["DOID_8837", "DOID_8754"]]}
                      }
 
         # save data

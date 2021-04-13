@@ -129,7 +129,7 @@ class TestMetadata(unittest.TestCase):
         # check that nothing is returned if the entities are classes
         updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002597'],
                                                               e_type=['class'], key_type='relations')
-        self.assertTrue(updated_graph_2 is None)
+        self.assertTrue(len(updated_graph_2) == 2)
 
         # test when the node does not have metadata
         updated_graph_3 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/None'],
