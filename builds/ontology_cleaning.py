@@ -498,7 +498,7 @@ class OntologyCleaner(object):
             o.write('\n{}\n'.format(str(datetime.datetime.utcnow().strftime('%a %b %d %X UTC %Y'))) + '=' * 50 + '\n\n')
             for key in ont_order:
                 o.write('\n\n\nONTOLOGY: {}\n'.format(key)); o.write('*' * (len(key) + 10) + '\n\n')
-                x = ont_data.ontology_info[key]
+                x = self.ontology_info[key]
                 if 'Original GCS URL' in x.keys(): o.write('\t- Original GCS URL: {}\n'.format(x['Original GCS URL']))
                 if 'Processed GCS URL' in x: o.write('\t- Processed GCS URL: {}\n'.format(x['Processed GCS URL']))
                 o.write('\t- Statistics Before Cleaning:\n\t\t- {}\n'.format(x['Starting Statistics']))
