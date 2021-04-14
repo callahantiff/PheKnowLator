@@ -212,12 +212,15 @@ class OntologyCleaner(object):
             self.ontology_info[self.ont_file_location]['Processed GCS URL'] = gcs_proc_url + self.ont_file_location
             key = 'Starting Statistics'
         else: key = 'Final Statistics'
-
-        classes, obj_props = len(gets_ontology_classes(self.ont_graph)), len(gets_object_properties(self.ont_graph))
-        triples, indv = len(self.ont_graph), len(list(self.ont_graph.triples((None, RDF.type, OWL.NamedIndividual))))
+        # get statistics
+        triples = len(self.ont_graph); cls = len(set([x for x in self.ont_graph.subjects(RDF.type, OWL.Class)]))
+        indv = len(set([x for x in self.ont_graph.subjects(RDF.type, OWL.NamedIndividual)]))
+        obj_prop = len(set([x for x in self.ont_graph.subjects(RDF.type, OWL.ObjectProperty)]))
+        ant_prop = len(set([x for x in self.ont_graph.subjects(RDF.type, OWL.AnnotationProperty)]))
         conn_comps = len(connected_components(self.ont_graph))
-        stats = '{} Classes; {} Object Properties; {} Triples; {} Individuals; {} Connected Components'
-        self.ontology_info[self.ont_file_location][key] = stats.format(classes, obj_props, triples, indv, conn_comps)
+        s = '{} Triples; {} Classes; {} Individuals; {} Object Properties; {} Annotation Properties; {} Connected ' \
+            'Components'
+        self.ontology_info[self.ont_file_location][key] = s.format(triples, cls, indv, obj_prop, ant_prop, conn_comps)
 
         return None
 
@@ -494,42 +497,56 @@ class OntologyCleaner(object):
             o.write('=' * 50 + '\n{}'.format('ONTOLOGY CLEANING REPORT'))
             o.write('\n{}\n'.format(str(datetime.datetime.utcnow().strftime('%a %b %d %X UTC %Y'))) + '=' * 50 + '\n\n')
             for key in ont_order:
-                o.write('\nONTOLOGY: {}\n'.format(key))
-                x = self.ontology_info[key]
+                o.write('\n\n\nONTOLOGY: {}\n'.format(key)); o.write('*' * (len(key) + 10) + '\n\n')
+                x = ont_data.ontology_info[key]
                 if 'Original GCS URL' in x.keys(): o.write('\t- Original GCS URL: {}\n'.format(x['Original GCS URL']))
                 if 'Processed GCS URL' in x: o.write('\t- Processed GCS URL: {}\n'.format(x['Processed GCS URL']))
-                o.write('\t- Statistics:\n\t\t- Before Cleaning: {}\n'.format(x['Starting Statistics']))
-                if 'Final Statistics' in x.keys(): o.write('\t\t- After Cleaning: {}\n'.format(x['Final Statistics']))
-                if 'ValueErrors' in x.keys(): o.write('\t- Value Errors: {}\n'.format(x['ValueErrors']))
-                if 'IdentifierErrors' in x.keys(): o.write('\t- Identifier Errors: {}\n'.format(x['IdentifierErrors']))
+                o.write('\t- Statistics Before Cleaning:\n\t\t- {}\n'.format(x['Starting Statistics']))
+                o.write('\t- Statistics After Cleaning:\n\t\t- {}\n'.format(x['Final Statistics']))
+                if 'ValueErrors' in x.keys():
+                    if isinstance(x['ValueErrors'], str):
+                        o.write('\t- Value Errors (n=1):\n\t\t- {}\n'.format(x['ValueErrors']))
+                    else:
+                        for i in x['ValueErrors']: o.write('\t\t- {}\n'.format(str(i)))
+                else: o.write('\t- Value Errors: 0\n')
+                if x['IdentifierErrors'] != 'None':
+                    o.write('\t- Identifier Errors (n={}):\n'.format(len(x['IdentifierErrors'].split(', '))))
+                    for i in x['IdentifierErrors'].split(', '): o.write('\t\t- {}\n'.format(str(i)))
+                else: o.write('\t- Identifier Errors: 0\n')
                 if 'PheKnowLator_MergedOntologies' not in key:
                     if x['Deprecated'] != 'None':
-                        o.write('\t- Deprecated Classes:\n')
+                        o.write('\t- Deprecated Classes (n={}):\n'.format(len(x['Deprecated'])))
                         for i in x['Deprecated']: o.write('\t\t- {}\n'.format(str(i)))
-                    else: o.write('\t\t\t- {}\n'.format(x['Deprecated']))
+                    else: o.write('\t- Deprecated Classes: 0\n')
                     if x['Obsolete'] != 'None':
-                        o.write('\t- Obsolete Classes:\n')
+                        o.write('\t- Obsolete Classes (n={}):\n'.format(len(x['Obsolete'])))
                         for i in x['Obsolete']: o.write('\t\t- {}\n'.format(str(i)))
-                    else: o.write('\t\t\t- {}\n'.format(x['Obsolete']))
-                o.write('\t- Punning Error:\n\t\t- Classes:\n')
+                    else: o.write('\t- Obsolete Classes: 0\n')
+                o.write('\t- Punning Errors:\n')
                 if x['PunningErrors - Classes'] != 'None':
+                    o.write('\t\t- Classes (n={}):\n'.format(len(x['PunningErrors - Classes'].split(', '))))
                     for i in x['PunningErrors - Classes'].split(', '): o.write('\t\t\t- {}\n'.format(i))
-                else: o.write('\t\t\t- {}\n'.format(x['PunningErrors - Classes']))
-                o.write('\t\t- ObjectProperties:\n')
+                else: o.write('\t\t- Classes: 0\n')
                 if x['PunningErrors - ObjectProperty'] != 'None':
+                    o.write('\t\t- Object Properties (n={}):\n'.format(
+                        len(x['PunningErrors - ObjectProperty'].split(', '))))
                     for i in x['PunningErrors - ObjectProperty'].split(', '): o.write('\t\t\t- {}\n'.format(i))
-                else: o.write('\t\t\t- {}\n'.format(x['PunningErrors - ObjectProperty']))
+                else: o.write('\t\t- Object Properties: 0\n')
                 if 'Normalized - Duplicates' in x.keys():
-                    o.write('\t- Entity Normalization:\n')
+                    o.write('\t- Normalization:\n')
                     if x['Normalized - Duplicates'] != 'None':
-                        for i in x['Normalized - Duplicates'].split(', '): o.write('\t\t- {}\n'.format(i))
-                    else: o.write('\t\t- {}\n'.format(x['Normalized - Duplicates']))
-                    o.write('\t\t- Other Classes that May Need Normalization: {}\n'.format(x['Normalized - NonOnt']))
-                    o.write('\t\t- Normalized HGNC IDs: {}\n'.format(x['Normalized - Gene IDs']))
-                    o.write('\t- Deprecated Ontology HGNC Identifiers Needing Alignment:\n')
+                        o.write('\t\t- Normalized Entities (n={}):\n'.format(
+                            len(x['Normalized - Duplicates'].split(', '))))
+                        for i in x['Normalized - Duplicates'].split(', '): o.write('\t\t\t- {}\n'.format(i))
+                    else: o.write('\t\t- Entity Normalization: 0\n')
+                    if x['Normalized - Gene IDs'] != 'None':
+                        o.write('\t\t- Normalized HGNC IDs: {}\n'.format(x['Normalized - Gene IDs']))
+                    if x['Normalized - NonOnt'] != 'None':
+                        o.write('\t\t- Other Classes that May Need Normalizing: {}\n'.format(x['Normalized - NonOnt']))
                     if x['Normalized - Dep'] != 'None':
+                        o.write('\t\t- HGNC IDs Needing Alignment (n={}):\n'.format(len(x['Normalized - Dep'])))
                         for i in x['Normalized - Dep']: o.write('\t\t- {}\n'.format(i))
-                    else: o.write('\t\t- {}\n'.format(x['Normalized - Dep']))
+                    else: o.write('\t\t- Deprecated Ontology HGNC Identifiers Needing Alignment: 0\n')
 
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, ontology_report_filename)
 
