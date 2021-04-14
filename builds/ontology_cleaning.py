@@ -78,6 +78,7 @@ class OntologyCleaner(object):
         self.ont_graph: Graph = Graph()
         self.ontology_classes: List = []
         # GENE IDENTIFIER DATA
+        # TODO: need to periodically verify that the withdrawn_map below covers what's in the core set of ontologies
         self.withdrawn_map = {  # keep list of withdrawn hgnc gene ids in HPO that need updating
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=21508': ['653067', '653220'],
             'http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=23418': ['653450'],
