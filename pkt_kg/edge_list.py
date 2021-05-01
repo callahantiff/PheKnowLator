@@ -356,13 +356,13 @@ class CreatesEdgeList(object):
         Returns:
             source_info: A dictionary that contains all of the master information for each edge type resource. For
                 example: {'chemical-complex': {'source_labels': ';;', 'data_type': 'class-entity',
-                                               'edge_relation': 'RO_0002436', 'uri': ['http://ex/', 'https://ex/'],
+                                               'edge_relation': 'RO_0002436', 'uri': ['https://ex/', 'https://ex/'],
                                                'delimiter': 't', 'column_idx': '0;1', 'identifier_maps': 'None',
                                                'evidence_criteria': 'None', 'filter_criteria': 'None',
                                                'edge_list': [['CHEBI_24505', 'R-HSA-1006173'], ...]}}
         """
 
-        # STEP 1: Apply filtering/evidence criteria, reduce columns, remove duplicates, and ensure proper formatting
+        # STEP 1: Apply filtering/evidence criteria, reduce columns, and remove duplicates
         df = self.data_reader(self.data_files[x], self.source_info[x]['delimiter']); n1, n2 = x.split('-')
         df = self.filter_data(df, self.source_info[x]['filter_criteria'], self.source_info[x]['evidence_criteria'])
         df = self.data_reducer(self.source_info[x]['column_idx'], df)
