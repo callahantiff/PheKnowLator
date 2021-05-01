@@ -36,7 +36,7 @@ jobs:
       run: docker build --tag "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds
     - name: Publish Docker Image to Google Container Registry
       run: docker push "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
-    - name: Prepare Google Cloud Storage Bucket
+    - name: Prepare Temp Build Directory in PKT Google Cloud Storage Bucket
       run: gsutil cp gs://pheknowlator/README.txt gs://pheknowlator/temp_build_inprogress/
     - name: Submit Build Job to AI-Platform
       run: |-
@@ -265,18 +265,18 @@ jobs:
 #      - name: Delete Virtual Machine Instance
 #        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
-  build-clean-up:
-    needs: [pkt-build-phase3-job1, pkt-build-phase3-job2, pkt-build-phase3-job3, pkt-build-phase3-job4]
-    name: KG Build Clean-Up
-    runs-on: ubuntu-latest
-    steps:
-      - uses: google-github-actions/setup-gcloud@master
-        with:
-          version: '290.0.1'
-          service_account_key: ${{ secrets.GCE_SA_KEY }}
-          project_id: ${{ secrets.GCE_PROJECT }}
-      - name: Delete temp_build_inprogress
-        run: gsutil rm -r gs://pheknowlator/temp_build_inprogress
+#  build-clean-up:
+#    needs: [pkt-build-phase3-job1, pkt-build-phase3-job2, pkt-build-phase3-job3, pkt-build-phase3-job4]
+#    name: KG Build Clean-Up
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: google-github-actions/setup-gcloud@master
+#        with:
+#          version: '290.0.1'
+#          service_account_key: ${{ secrets.GCE_SA_KEY }}
+#          project_id: ${{ secrets.GCE_PROJECT }}
+#      - name: Delete temp_build_inprogress
+#        run: gsutil rm -r gs://pheknowlator/temp_build_inprogress
 
 #TODO: Uncomment all code once Terraform solution is implemented
 # fix Bill's endpoint code to update for new builds (place that chunk before the build-clean-up section)
