@@ -590,7 +590,7 @@ class OntologyCleaner(object):
                 # read in cleaned, verified, and updated ontology containing inference
                 log_str = 'Reading in Cleaned Ontology -- Needed to Calculate Final Statistics'
                 print(log_str); logger.info(log_str)
-                self.ont_graph = Graph().parse(ont)
+                self.ont_graph = Graph().parse(self.temp_dir + '/' + ont)
                 self.updates_ontology_reporter()  # get finishing statistics
                 if self.bucket != '': uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
