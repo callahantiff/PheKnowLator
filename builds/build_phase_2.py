@@ -81,7 +81,7 @@ def writes_metadata(bucket, metadata, temp_directory, gcs_processed_location):
 def updates_dependency_documents(gcs_url, file_url, bucket, temp_directory):
     """Takes a dependency file url and downloads the file it points to. That file is then iterated over and all urls
     are updated to point their current Google Cloud Storage bucket. The updated file is saved locally and pushed to
-    the processed_data directory of the current build.
+    the processed_data directory in the archived_build directory of the current build.
 
     Args:
         gcs_url: A string containing a URL to the current Google Cloud Storage bucket.
