@@ -112,7 +112,7 @@ jobs:
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 150GB
       DOCKERFILE: builds/Dockerfile.phase3
-      GCE_JOB_NAME: pkt-builder-phase3-job3
+      GCE_JOB_NAME: pkt-builder-phase3-job2
       GCS_LOCATION: 'subclass_builds/inverse_relations/owl'
       KG_CONSTRUCT_APPROACH: 'subclass'
       INV_RELATIONS: 'yes'
@@ -169,7 +169,7 @@ jobs:
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 150GB
       DOCKERFILE: builds/Dockerfile.phase3
-      GCE_JOB_NAME: pkt-builder-phase3-job5
+      GCE_JOB_NAME: pkt-builder-phase3-job3
       GCS_LOCATION: 'instance_builds/relations_only/owl'
       KG_CONSTRUCT_APPROACH: 'instance'
       INV_RELATIONS: 'no'
@@ -223,7 +223,7 @@ jobs:
       GCE_BOOT_DISC_TYPE: pd-standard
       GCE_BOOT_DISC_SIZE: 150GB
       DOCKERFILE: builds/Dockerfile.phase3
-      GCE_JOB_NAME: pkt-builder-phase3-job7
+      GCE_JOB_NAME: pkt-builder-phase3-job4
       GCS_LOCATION: 'instance_builds/inverse_relations/owl'
       KG_CONSTRUCT_APPROACH: 'instance'
       INV_RELATIONS: 'yes'

@@ -6,7 +6,7 @@ chemical-gomf, https://storage.googleapis.com/pheknowlator/current_build/data/or
 chemical-pathway, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/ChEBI2Reactome_All_Levels.txt
 chemical-phenotype, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chemicals_diseases.tsv
 chemical-protein, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_gene_ixns.tsv
-disease-phenotype, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/phenotype_annotation.tab
+disease-phenotype, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/phenotype.hpoa
 gene-disease, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/curated_gene_disease_associations.tsv
 gene-gene, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
 gene-pathway, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_genes_pathways.tsv
