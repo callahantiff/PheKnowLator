@@ -265,6 +265,7 @@ jobs:
 #      - name: Delete Virtual Machine Instance
 #        run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
+#TODO: consider adding the code to remove the tempbuild directory to the builds phase 3 script
 #  build-clean-up:
 #    needs: [pkt-build-phase3-job1, pkt-build-phase3-job2, pkt-build-phase3-job3, pkt-build-phase3-job4]
 #    name: KG Build Clean-Up
