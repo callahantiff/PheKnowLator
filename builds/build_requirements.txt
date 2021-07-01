@@ -16,5 +16,6 @@ ray~=1.1.0
 rdflib==4.2.2
 reactome2py==0.0.8
 requests
+types-requests
 responses~=0.10.12
 tqdm==4.47.0
