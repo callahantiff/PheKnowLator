@@ -83,6 +83,7 @@ setup(
                       'rdflib',
                       'reactome2py',
                       'requests',
+                      'types-requests',
                       'responses==0.10.12',
                       'tqdm',
                       'urllib3'],
