@@ -1,5 +1,5 @@
 name: Build and Deploy to Google Compute Engine
-on: push
+on: push  # TIFFANY -- REMOVE TEMP BUILD DIR ON GCS BEFORE STARTING BUILD (THEN DELETE THIS COMMENT)!!!!
 #   schedule:
 #     - cron: '0 0 1 * *'  # runs at midnight on the first day of each month
 env:
@@ -265,7 +265,7 @@ jobs:
 ##       - name: Delete Virtual Machine Instance
 ##         run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
-#TODO: consider adding the code to remove the tempbuild directory to the builds phase 3 script
+#TODO: consider adding the code to remove the tempbuild_inprogress directory to the builds phase 3 script
 #  build-clean-up:
 #    needs: [pkt-build-phase3-job1, pkt-build-phase3-job2, pkt-build-phase3-job3, pkt-build-phase3-job4]
 #    name: KG Build Clean-Up
