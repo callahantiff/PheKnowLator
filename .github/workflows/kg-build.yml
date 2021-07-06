@@ -1,5 +1,5 @@
 name: Build and Deploy to Google Compute Engine
-on: push  # TIFFANY -- REMOVE TEMP BUILD DIR ON GCS BEFORE STARTING BUILD (THEN DELETE THIS COMMENT)!!!!
+on: push
 #   schedule:
 #     - cron: '0 0 1 * *'  # runs at midnight on the first day of each month
 env:
