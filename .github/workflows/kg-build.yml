@@ -1,7 +1,7 @@
 name: Build and Deploy to Google Compute Engine
-on: push
-#   schedule:
-#     - cron: '0 0 1 * *'  # runs at midnight on the first day of each month
+on:
+   schedule:
+     - cron: '0 0 1 * *'  # runs at midnight on the first day of each month
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
   GCS_SERVICE_ACCOUNT: ${{ secrets.GCE_SA_KEY }}
