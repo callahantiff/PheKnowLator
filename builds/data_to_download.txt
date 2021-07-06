@@ -52,7 +52,7 @@ curated_gene_disease_associations.tsv, https://www.disgenet.org/static/disgenet_
 COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt, http://genemania.org/data/current/Homo_sapiens.COMBINED/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
 CTD_genes_pathways.tsv, http://ctdbase.org/reports/CTD_genes_pathways.tsv.gz
 gene_association.reactome, https://reactome.org/download/current/gene_association.reactome.gz
-goa_human.gaf, http://geneontology.org/gene-associations/goa_human.gaf.gz
+goa_human.gaf, http://current.geneontology.org/annotations/goa_human.gaf.gz
 UniProt2Reactome_All_Levels.txt, https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt
 9606.protein.links.v11.0.txt, https://stringdb-static.org/download/protein.links.v11.0/9606.protein.links.v11.0.txt.gz
 
