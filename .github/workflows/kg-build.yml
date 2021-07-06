@@ -1,269 +1,269 @@
 name: Build and Deploy to Google Compute Engine
-on: push  # TIFFANY -- REMOVE TEMP BUILD DIR ON GCS BEFORE STARTING BUILD (THEN DELETE THIS COMMENT)!!!!
-#   schedule:
-#     - cron: '0 0 1 * *'  # runs at midnight on the first day of each month
+on:  
+  schedule:
+    - cron: '0 0 1 * *'  # runs at 00:00:00 UTC on the first day of each month
 env:
   PROJECT_ID: ${{ secrets.GCE_PROJECT }}
   GCS_SERVICE_ACCOUNT: ${{ secrets.GCE_SA_KEY }}
 
 jobs:
-   pkt-build-phase-1-2:
-     name: KG Build Phases 1-2
-     runs-on: ubuntu-latest
-     env:
-       DOCKERFILE: builds/Dockerfile.phases12
-       GCE_MACHINE_TYPE: n1-highmem-16
-       GCE_REGION: us-central1
-     steps:
-       - name: Checkout
-         uses: actions/checkout@v2
-         with:
+  pkt-build-phase-1-2:
+    name: KG Build Phases 1-2
+    runs-on: ubuntu-latest
+    env:
+      DOCKERFILE: builds/Dockerfile.phases12
+      GCE_MACHINE_TYPE: n1-highmem-16
+      GCE_REGION: us-central1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
           ref: master
-       - name: Setup Python
-         uses: actions/setup-python@v2
-         with:
-           python-version: 3.6
-       - name: Install Requirements and Dependencies
-         run: pip install -r builds/build_requirements.txt pkt_kg
-       - uses: google-github-actions/setup-gcloud@master
-         with:
-           version: '290.0.1'
-           service_account_key: ${{ secrets.GCE_SA_KEY }}
-           project_id: ${{ secrets.GCE_PROJECT }}
-       - name: Configure Docker Authentication
-         run: gcloud --quiet auth configure-docker
-       - name: Build Docker Image
-         run: docker build --tag "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds
-       - name: Publish Docker Image to Google Container Registry
-         run: docker push "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
-       - name: Prepare Temp Build Directory in PKT Google Cloud Storage Bucket
-         run: gsutil cp gs://pheknowlator/README.txt gs://pheknowlator/temp_build_inprogress/
-       - name: Submit Build Job to AI-Platform
-         run: |-
-             gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
-             --scale-tier custom --master-machine-type "$GCE_MACHINE_TYPE" --region "$GCE_REGION" \
-             --master-image-uri "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
-       - name: Monitor Build
-         run: python builds/job_monitoring.py --gce_type reg --phase 1 --sleep 60 --gcs_dir '' --project '' --job ''
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - name: Install Requirements and Dependencies
+        run: pip install -r builds/build_requirements.txt pkt_kg
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          version: '290.0.1'
+          service_account_key: ${{ secrets.GCE_SA_KEY }}
+          project_id: ${{ secrets.GCE_PROJECT }}
+      - name: Configure Docker Authentication
+        run: gcloud --quiet auth configure-docker
+      - name: Build Docker Image
+        run: docker build --tag "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds
+      - name: Publish Docker Image to Google Container Registry
+        run: docker push "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
+      - name: Prepare Temp Build Directory in PKT Google Cloud Storage Bucket
+        run: gsutil cp gs://pheknowlator/README.txt gs://pheknowlator/temp_build_inprogress/
+      - name: Submit Build Job to AI-Platform
+        run: |-
+            gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
+            --scale-tier custom --master-machine-type "$GCE_MACHINE_TYPE" --region "$GCE_REGION" \
+            --master-image-uri "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
+      - name: Monitor Build
+        run: python builds/job_monitoring.py --gce_type reg --phase 1 --sleep 60 --gcs_dir '' --project '' --job ''
 
-#  pkt-build-phase3-job1:
-##     needs: pkt-build-phase-1-2
-#    name: KG Build Phase 3 - Job 1 (Subclass + RelationsOnly + OWL/OWL-NETS)
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 3000
-#    env:
-#      GCE_ZONE: us-central1-a
-#      GCE_CPU: 4
-#      GCE_MEMORY: 200GB
-#      GCE_BOOT_DISC_TYPE: pd-standard
-#      GCE_BOOT_DISC_SIZE: 150GB
-#      DOCKERFILE: builds/Dockerfile.phase3
-#      GCE_JOB_NAME: pkt-builder-phase3-job1
-#      GCS_LOCATION: 'subclass_builds/relations_only/owl'
-#      KG_CONSTRUCT_APPROACH: 'subclass'
-#      INV_RELATIONS: 'no'
-#      DECODE_OWL: 'yes'
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#        with:
-#          ref: master
-#      - name: Setup Python
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: 3.6
-#      - name: Install Requirements and Dependencies
-#        run: pip install -r builds/build_requirements.txt pkt_kg
-#      - uses: google-github-actions/setup-gcloud@master
-#        with:
-#          version: '290.0.1'
-#          service_account_key: ${{ secrets.GCE_SA_KEY }}
-#          project_id: ${{ secrets.GCE_PROJECT }}
-#      - name: Configure Docker Authentication
-#        run: gcloud --quiet auth configure-docker
-#      - name: Build Docker Image
-#        run: |-
-#             docker build --tag "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds \
-#             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
-#      - name: Publish Docker Image to Google Container Registry
-#        run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-#      - name: Create Virtual Machine Instance
-#        run: |-
-#             gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
-#             --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
-#             --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
-#             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
-#      - name: Monitor Build
-#        run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-##       - name: Stop Virtual Machine Instance
-##         run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-##       - name: Delete Virtual Machine Instance
-##         run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-#
-#  pkt-build-phase3-job2:
-##     needs: pkt-build-phase-1-2
-#    name: KG Build Phase 3 - Job 2 (Subclass + InverseRelations + OWL/OWL-NETS)
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 3000
-#    env:
-#      GCE_ZONE: us-west1-b
-#      GCE_CPU: 8
-#      GCE_MEMORY: 200GB
-#      GCE_BOOT_DISC_TYPE: pd-standard
-#      GCE_BOOT_DISC_SIZE: 150GB
-#      DOCKERFILE: builds/Dockerfile.phase3
-#      GCE_JOB_NAME: pkt-builder-phase3-job2
-#      GCS_LOCATION: 'subclass_builds/inverse_relations/owl'
-#      KG_CONSTRUCT_APPROACH: 'subclass'
-#      INV_RELATIONS: 'yes'
-#      DECODE_OWL: 'yes'
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#        with:
-#          ref: master
-#      - name: Setup Python
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: 3.6
-#      - name: Install Requirements and Dependencies
-#        run: pip install -r builds/build_requirements.txt pkt_kg
-#      - uses: google-github-actions/setup-gcloud@master
-#        with:
-#          version: '290.0.1'
-#          service_account_key: ${{ secrets.GCE_SA_KEY }}
-#          project_id: ${{ secrets.GCE_PROJECT }}
-#      - name: Configure Docker Authentication
-#        run: gcloud --quiet auth configure-docker
-#      - name: Build Docker Image
-#        run: |-
-#             docker build --tag "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds \
-#             --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
-#      - name: Publish Docker Image to Google Container Registry
-#        run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-#      - name: Create Virtual Machine Instance
-#        run: |-
-#             gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
-#             --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
-#             --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
-#             --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
-#      - name: Monitor Build
-#        run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-##       - name: Stop Virtual Machine Instance
-##         run: |
-##           gcloud compute scp --zone="$GCE_ZONE" --project="$PROJECT_ID" "$GCE_JOB_NAME:system_stats.txt" system_stats.txt |\
-##           gsutil cp system_stats.txt gs://pheknowlator/temp_build_inprogress/knowledge_graphs/$GCS_LOCATION
-##           gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-##       - name: Delete Virtual Machine Instance
-##         run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-#
-#  pkt-build-phase3-job3:
-##     needs: pkt-build-phase-1-2
-#    name: KG Build Phase 3 - Job 3 (Instance + RelationsOnly + OWL/OWL-NETS)
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 3000
-#    env:
-#      GCE_ZONE: us-central1-a
-#      GCE_CPU: 4
-#      GCE_MEMORY: 200GB
-#      GCE_BOOT_DISC_TYPE: pd-standard
-#      GCE_BOOT_DISC_SIZE: 150GB
-#      DOCKERFILE: builds/Dockerfile.phase3
-#      GCE_JOB_NAME: pkt-builder-phase3-job3
-#      GCS_LOCATION: 'instance_builds/relations_only/owl'
-#      KG_CONSTRUCT_APPROACH: 'instance'
-#      INV_RELATIONS: 'no'
-#      DECODE_OWL: 'yes'
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#        with:
-#          ref: master
-#      - name: Setup Python
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: 3.6
-#      - name: Install Requirements and Dependencies
-#        run: pip install -r builds/build_requirements.txt pkt_kg
-#      - uses: google-github-actions/setup-gcloud@master
-#        with:
-#          version: '290.0.1'
-#          service_account_key: ${{ secrets.GCE_SA_KEY }}
-#          project_id: ${{ secrets.GCE_PROJECT }}
-#      - name: Configure Docker Authentication
-#        run: gcloud --quiet auth configure-docker
-#      - name: Build Docker Image
-#        run: |-
-#          docker build --tag "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds \
-#            --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
-#      - name: Publish Docker Image to Google Container Registry
-#        run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-#      - name: Create Virtual Machine Instance
-#        run: |-
-#            gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
-#            --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
-#            --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
-#            --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
-#      - name: Monitor Build
-#        run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-##       - name: Stop Virtual Machine Instance
-##         run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-##       - name: Delete Virtual Machine Instance
-##         run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-#
-#  pkt-build-phase3-job4:
-##     needs: pkt-build-phase-1-2
-#    name: KG Build Phase 3 - Job 4 (Instance + InverseRelations + OWL/OWL-NETS)
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 3000
-#    env:
-#      GCE_ZONE: us-central1-a
-#      GCE_CPU: 8
-#      GCE_MEMORY: 200GB
-#      GCE_BOOT_DISC_TYPE: pd-standard
-#      GCE_BOOT_DISC_SIZE: 150GB
-#      DOCKERFILE: builds/Dockerfile.phase3
-#      GCE_JOB_NAME: pkt-builder-phase3-job4
-#      GCS_LOCATION: 'instance_builds/inverse_relations/owl'
-#      KG_CONSTRUCT_APPROACH: 'instance'
-#      INV_RELATIONS: 'yes'
-#      DECODE_OWL: 'yes'
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#        with:
-#         ref: master
-#      - name: Setup Python
-#        uses: actions/setup-python@v2
-#        with:
-#         python-version: 3.6
-#      - name: Install Requirements and Dependencies
-#        run: pip install -r builds/build_requirements.txt pkt_kg
-#      - uses: google-github-actions/setup-gcloud@master
-#        with:
-#          version: '290.0.1'
-#          service_account_key: ${{ secrets.GCE_SA_KEY }}
-#          project_id: ${{ secrets.GCE_PROJECT }}
-#      - name: Configure Docker Authentication
-#        run: gcloud --quiet auth configure-docker
-#      - name: Build Docker Image
-#        run: |-
-#            docker build --tag "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds \
-#            --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
-#      - name: Publish Docker Image to Google Container Registry
-#        run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
-#      - name: Create Virtual Machine Instance
-#        run: |-
-#            gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
-#            --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
-#            --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
-#            --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
-#      - name: Monitor Build
-#        run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
-##       - name: Stop Virtual Machine Instance
-##         run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
-##       - name: Delete Virtual Machine Instance
-##         run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+  pkt-build-phase3-job1:
+    needs: pkt-build-phase-1-2
+    name: KG Build Phase 3 - Job 1 (Subclass + RelationsOnly + OWL/OWL-NETS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3000
+    env:
+      GCE_ZONE: us-central1-a
+      GCE_CPU: 4
+      GCE_MEMORY: 200GB
+      GCE_BOOT_DISC_TYPE: pd-standard
+      GCE_BOOT_DISC_SIZE: 150GB
+      DOCKERFILE: builds/Dockerfile.phase3
+      GCE_JOB_NAME: pkt-builder-phase3-job1
+      GCS_LOCATION: 'subclass_builds/relations_only/owl'
+      KG_CONSTRUCT_APPROACH: 'subclass'
+      INV_RELATIONS: 'no'
+      DECODE_OWL: 'yes'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - name: Install Requirements and Dependencies
+        run: pip install -r builds/build_requirements.txt pkt_kg
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          version: '290.0.1'
+          service_account_key: ${{ secrets.GCE_SA_KEY }}
+          project_id: ${{ secrets.GCE_PROJECT }}
+      - name: Configure Docker Authentication
+        run: gcloud --quiet auth configure-docker
+      - name: Build Docker Image
+        run: |-
+            docker build --tag "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds \
+            --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
+      - name: Publish Docker Image to Google Container Registry
+        run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
+      - name: Create Virtual Machine Instance
+        run: |-
+            gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
+            --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
+            --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
+            --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
+      - name: Monitor Build
+        run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
+#       - name: Stop Virtual Machine Instance
+#         run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#       - name: Delete Virtual Machine Instance
+#         run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+
+  pkt-build-phase3-job2:
+    needs: pkt-build-phase-1-2
+    name: KG Build Phase 3 - Job 2 (Subclass + InverseRelations + OWL/OWL-NETS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3000
+    env:
+      GCE_ZONE: us-west1-b
+      GCE_CPU: 8
+      GCE_MEMORY: 200GB
+      GCE_BOOT_DISC_TYPE: pd-standard
+      GCE_BOOT_DISC_SIZE: 150GB
+      DOCKERFILE: builds/Dockerfile.phase3
+      GCE_JOB_NAME: pkt-builder-phase3-job2
+      GCS_LOCATION: 'subclass_builds/inverse_relations/owl'
+      KG_CONSTRUCT_APPROACH: 'subclass'
+      INV_RELATIONS: 'yes'
+      DECODE_OWL: 'yes'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - name: Install Requirements and Dependencies
+        run: pip install -r builds/build_requirements.txt pkt_kg
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          version: '290.0.1'
+          service_account_key: ${{ secrets.GCE_SA_KEY }}
+          project_id: ${{ secrets.GCE_PROJECT }}
+      - name: Configure Docker Authentication
+        run: gcloud --quiet auth configure-docker
+      - name: Build Docker Image
+        run: |-
+            docker build --tag "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds \
+            --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
+      - name: Publish Docker Image to Google Container Registry
+        run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
+      - name: Create Virtual Machine Instance
+        run: |-
+            gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
+            --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
+            --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
+            --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
+      - name: Monitor Build
+        run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
+#       - name: Stop Virtual Machine Instance
+#         run: |
+#           gcloud compute scp --zone="$GCE_ZONE" --project="$PROJECT_ID" "$GCE_JOB_NAME:system_stats.txt" system_stats.txt |\
+#           gsutil cp system_stats.txt gs://pheknowlator/temp_build_inprogress/knowledge_graphs/$GCS_LOCATION
+#           gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#       - name: Delete Virtual Machine Instance
+#         run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+
+  pkt-build-phase3-job3:
+    needs: pkt-build-phase-1-2
+    name: KG Build Phase 3 - Job 3 (Instance + RelationsOnly + OWL/OWL-NETS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3000
+    env:
+      GCE_ZONE: us-central1-a
+      GCE_CPU: 4
+      GCE_MEMORY: 200GB
+      GCE_BOOT_DISC_TYPE: pd-standard
+      GCE_BOOT_DISC_SIZE: 150GB
+      DOCKERFILE: builds/Dockerfile.phase3
+      GCE_JOB_NAME: pkt-builder-phase3-job3
+      GCS_LOCATION: 'instance_builds/relations_only/owl'
+      KG_CONSTRUCT_APPROACH: 'instance'
+      INV_RELATIONS: 'no'
+      DECODE_OWL: 'yes'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - name: Install Requirements and Dependencies
+        run: pip install -r builds/build_requirements.txt pkt_kg
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          version: '290.0.1'
+          service_account_key: ${{ secrets.GCE_SA_KEY }}
+          project_id: ${{ secrets.GCE_PROJECT }}
+      - name: Configure Docker Authentication
+        run: gcloud --quiet auth configure-docker
+      - name: Build Docker Image
+        run: |-
+            docker build --tag "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds \
+            --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
+      - name: Publish Docker Image to Google Container Registry
+        run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
+      - name: Create Virtual Machine Instance
+        run: |-
+           gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
+           --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
+           --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
+           --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
+      - name: Monitor Build
+        run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
+#       - name: Stop Virtual Machine Instance
+#         run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#       - name: Delete Virtual Machine Instance
+#         run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+
+  pkt-build-phase3-job4:
+    needs: pkt-build-phase-1-2
+    name: KG Build Phase 3 - Job 4 (Instance + InverseRelations + OWL/OWL-NETS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3000
+    env:
+      GCE_ZONE: us-central1-a
+      GCE_CPU: 8
+      GCE_MEMORY: 200GB
+      GCE_BOOT_DISC_TYPE: pd-standard
+      GCE_BOOT_DISC_SIZE: 150GB
+      DOCKERFILE: builds/Dockerfile.phase3
+      GCE_JOB_NAME: pkt-builder-phase3-job4
+      GCS_LOCATION: 'instance_builds/inverse_relations/owl'
+      KG_CONSTRUCT_APPROACH: 'instance'
+      INV_RELATIONS: 'yes'
+      DECODE_OWL: 'yes'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+         ref: master
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+         python-version: 3.6
+      - name: Install Requirements and Dependencies
+        run: pip install -r builds/build_requirements.txt pkt_kg
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          version: '290.0.1'
+          service_account_key: ${{ secrets.GCE_SA_KEY }}
+          project_id: ${{ secrets.GCE_PROJECT }}
+      - name: Configure Docker Authentication
+        run: gcloud --quiet auth configure-docker
+      - name: Build Docker Image
+        run: |-
+            docker build --tag "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds \
+            --build-arg "app_arg=$KG_CONSTRUCT_APPROACH" --build-arg "rel_arg=$INV_RELATIONS" --build-arg "owl_arg=$DECODE_OWL"
+      - name: Publish Docker Image to Google Container Registry
+        run: docker push "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA"
+      - name: Create Virtual Machine Instance
+        run: |-
+            gcloud compute instances create-with-container "$GCE_JOB_NAME" --zone="$GCE_ZONE" \
+            --container-image "gcr.io/$PROJECT_ID/$GCE_JOB_NAME-image:$GITHUB_SHA" --container-restart-policy=never \
+            --boot-disk-type="$GCE_BOOT_DISC_TYPE" --boot-disk-size="$GCE_BOOT_DISC_SIZE" \
+            --custom-cpu="$GCE_CPU" --custom-memory="$GCE_MEMORY" --custom-extensions --scopes=storage-rw
+      - name: Monitor Build
+        run: python builds/job_monitoring.py --gce_type reg --phase 3 --sleep 60 --gcs_dir "$GCS_LOCATION" --project '' --job ''
+#       - name: Stop Virtual Machine Instance
+#         run: gcloud compute instances stop "$GCE_JOB_NAME" --zone="$GCE_ZONE"
+#       - name: Delete Virtual Machine Instance
+#         run: gcloud compute instances delete "$GCE_JOB_NAME" --zone="$GCE_ZONE"
 
 #TODO: consider adding the code to remove the tempbuild_inprogress directory to the builds phase 3 script
 #  build-clean-up:
