@@ -32,16 +32,16 @@ How do I Learn More?
 Important Updates and Notifications
 ************************************
 
-- *January 2021:*
+- *July 2021:*
+
+  - Public SPARQL Endpoint: `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
+
+    - Current Build: ``July 2021``  
+
+    - Build Type: ``OWL-NETS``  instance-based + inverse relations and no metadata
 
   - Access build data via a dedicated Google Cloud Storage bucket (see details under ``Releases``)
-
-  - New Public Endpoints:
-
-    - SPARQL Endpoint (``OWL-NETS``  instance-based + inverse relations and no metadata): `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
-
-    - Neo4J Endpoint: *COMING SOON*
-
+  
   - New Jupyter Notebooks:
 
     - Applying ``OWL-NETS``: `OWLNETS_Example_Application.ipynb <https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb>`__
