@@ -1,5 +1,5 @@
 # PheKnowLator Builds  
-**Current Release:** [`v2.0.0`](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0)  
+**Current Release:** [`v2.1.0`](https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0)  
 
 This directory stores the scripts and files needed for the automatic monthly builds. Our continuous integration (CI)
 /Continuous deployment (CD) pipeline is managed entirely using [GitHub Actions](https://github.com/actions) and [Google's AI-Platform](https://cloud.google.com/ai-platform). Builds are triggered on the first of each month and consist of three separate asynchronous phases (each phase is briefly described below):  
@@ -7,7 +7,15 @@ This directory stores the scripts and files needed for the automatic monthly bui
 2. Data Processing and Quality Control   
 3. Knowledge Graph Construction  
 
-*NOTE.* Build Progress can be monitored (during the build) via the `pkt_builder_logs.log` file in the `current_build` directory of the current release in the dedicated project [Google Cloud Storage Bucket](https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator). Once a build is complete, the log is moved to the dataed build directory under the `archived_builds` sub-directory.
+*NOTES.*   
+- Build Progress can be monitored (during the build) via the `pkt_builder_logs.log` file in the `current_build` directory of the current release in the dedicated project [Google Cloud Storage Bucket](https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator). Once a build is complete, the log is moved to the dataed build directory under the `archived_builds` sub-directory.  
+
+⬆️ 📅  **GitHub Action - Build Management** ✅  
+Please note that if you are watching the builds via GitHub Actions it will appear as if the builds are not successfully finishing. We can assure you that they are they, our process is currently longer than the 3,000 minute (6 hour) timeout permitted by GitHub. When We reach their cut-off a message in Actions is returned (see example screenshot below). Since we employ independent logging any actual issues, should they arise, can be verified. So please don't worry if you see this, message or receive a notification email will these details.  
+
+![Screen Shot 2021-07-07 at 10 10 37](https://user-images.githubusercontent.com/8030363/124793902-af15ae00-df0b-11eb-939f-3a64aa24a215.png)
+
+<br>
  
 ## Phase 1: Download Build Data 
 **Script(s):** `build_phase_1.py`  
@@ -93,7 +101,7 @@ This phase is triggered by the successful completion of [Phase 2](#Phase-2:-Prep
     - Blazegraph SPARQL Endpoint: [http://sparql.pheknowlator.com](http://sparql.pheknowlator.com/)  
     - Neo4J Endpoint and User Interface: [http://neo4j.pheknowlator.com]()  -- *COMING SOON*   
 
-**GitHUb Actions - Phase 3 Build Job Names**
+**GitHub Actions - Phase 3 Build Job Names**
 GitHub   Action Job | Job Name | Construction   Approach | Relations | OWL Decoding
 :--: | -- | :--: | :--: | :--:
 1 | Phase   3 - Job 1 (Subclass + RelationsOnly + OWL) | Subclass | Relations   Only | OWL
@@ -111,4 +119,3 @@ ____
 - The contents in this directory are updated for every release and as needed to prepare bugs and unexpected issues. Any important to changes to the workflow and associated scripts will be documented her as they arise.
 
 - Any issues that may arise during any of the Phases described above will be pushed to a build log and saved under the current build's directory in the Google Cloud Storage bucket.  
-  
