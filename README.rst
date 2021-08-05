@@ -18,6 +18,9 @@ What Does This Repository Provide?
 1. **A Knowledge Graph Sharing Hub:** Prebuilt KGs and associated metadata. Each KG is provided as triple edge lists, OWL API-formatted ``RDF/XML`` and NetworkX graph-pickled MultiDiGraphs. We also make text files available containing node and relation metadata.
 2. **A Knowledge Graph Building Framework:** An automated ``Python 3`` library designed for optimized construction of semantically-rich, large-scale biomedical KGs from complex heterogeneous data. The framework also includes Jupyter Notebooks to greatly simplify the generation of required input dependencies.
 
+*NOTE.* A table listing and describing all output files generated for each build along with example output from each
+file can be found `here <https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction#table-knowledge-graph-build-output>`__.
+
 How do I Learn More?
 ===================================
 - Join and/or start a `Discussion`_
