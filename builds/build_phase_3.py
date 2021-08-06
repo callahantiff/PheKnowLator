@@ -3,18 +3,19 @@
 
 # import needed libraries
 import click
-import fnmatch
+# import fnmatch
 import glob
+import json
 import logging.config
 import networkx  # type: ignore
-import os
+# import os
 import ray
 import re
 import shutil
-import subprocess
+# import subprocess
 import traceback
 
-from collections import Counter
+# from collections import Counter
 from datetime import datetime
 from google.cloud import storage  # type: ignore
 
@@ -175,6 +176,61 @@ def main(app, rel, owl):
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_root, gcs_current_loc_owlnets, [log_1[0].split('/')[-1]])
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_location, gcs_archive_loc_owlnets, [log])
     copies_data_between_gcs_bucket_directories(bucket, gcs_log_location, gcs_current_loc_owlnets, [log])
+
+    #############################################################################
+    # STEP 5 - CREATE DIRECTORY INDEX
+    base_url = 'https://storage.googleapis.com/pheknowlator/'
+
+    # get list of current builds
+    all_builds = [file.name for file in bucket.list_blobs(prefix='archived_builds/')
+                  if file.name.endswith('_Identifiers.txt')]
+
+    # order build output by release and build date
+    date_look_up = {'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6, 'JUL': 7, 'AUG': 8, 'SEP': 9,
+                    'OCT': 10, 'NOV': 1, 'DEC': 12}
+    curr_build_dates = sorted(list(set('_'.join(x.split('/')[1:3]) for x in all_builds)))
+    curr_build_dates_sorted = {x: x.split('_')[1] + "-" + x.split('_')[-1][5:] + '-' +
+                               str(date_look_up[x.split('_')[-1][2:5]]) + '-' + x.split('_')[-1][0:2]
+                               for x in curr_build_dates}
+    write_order = list({k: v for k, v in sorted(curr_build_dates_sorted.items(), key=lambda item: item[1])}.keys())
+
+    # create dictionary with build data
+    output_dict = {}
+    for k in write_order:
+        inner_dict = {'subclass-relationsOnly-owl': None, 'subclass-relationsOnly-owlnets': None,
+                      'subclass-relationsOnly-owlnets-purified': None, 'subclass-inverseRelations-owl': None,
+                      'subclass-inverseRelations-owlnets': None, 'subclass-inverseRelations-owlnets-purified': None,
+                      'instance-relationsOnly-owl': None, 'instance-relationsOnly-owlnets': None,
+                      'instance-relationsOnly-owlnets-purified': None, 'instance-inverseRelations-owl': None,
+                      'instance-inverseRelations-owlnets': None, 'instance-inverseRelations-owlnets-purified': None}
+        search_str = '_'.join(k.split('_')[0:2]) + '/' + '_'.join(k.split('_')[2:])
+        matches = [x for x in all_builds if search_str in x]
+        for i in matches:
+            if 'subclass_builds/relations_only/owl' in i: inner_dict['subclass-relationsOnly-owl'] = base_url + i
+            if 'subclass_builds/relations_only/owlnets' in i:
+                if 'purified' in i: inner_dict['subclass-relationsOnly-owlnets-purified'] = base_url + i
+                else: inner_dict['subclass-relationsOnly-owlnets'] = base_url + i
+            if 'subclass_builds/inverse_relations/owl' in i: inner_dict['subclass-inverseRelations-owl'] = base_url + i
+            if 'subclass_builds/inverse_relations/owlnets' in i:
+                if 'purified' in i: inner_dict['subclass-inverseRelations-owlnets-purified'] = base_url + i
+                else: inner_dict['subclass-inverseRelations-owlnets'] = base_url + i
+            if 'instance_builds/relations_only/owl' in i: inner_dict['instance-relationsOnly-owl'] = base_url + i
+            if 'instance_builds/relations_only/owlnets' in i:
+                if 'purified' in i: inner_dict['instance-relationsOnly-owlnets-purified'] = base_url + i
+                else: inner_dict['instance-relationsOnly-owlnets'] = base_url + i
+            if 'instance_builds/inverse_relations/owl' in i: inner_dict['instance-inverseRelations-owl'] = base_url + i
+            if 'instance_builds/inverse_relations/owlnets' in i:
+                if 'purified' in i: inner_dict['instance-inverseRelations-owlnets-purified'] = base_url + i
+                else: inner_dict['instance-inverseRelations-owlnets'] = base_url + i
+        output_dict[curr_build_dates_sorted[k]] = inner_dict
+    # add build metadata
+    output_dict['metadata'] = "For more information on the PheKnowLator Builds, please visit the project GitHub: " + \
+                              "https://github.com/callahantiff/PheKnowLator"
+
+    # save json to temp dir and push pheknowlator GCS bucket
+    with open(log_dir + '/pheknowlator_builds.json', 'w') as outfile:
+        json.dump(output_dict, outfile, indent=4, sort_keys=True)
+    uploads_data_to_gcs_bucket(bucket, '', log_dir, 'pheknowlator_builds.json')
 
     # exit build
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
