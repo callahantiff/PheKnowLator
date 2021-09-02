@@ -171,15 +171,16 @@ class OwlNets(object):
                     o = [i for i in list(self.graph.triples((x[2], RDF.type, None)))
                          if (OWL.Class in i[2] or OWL.NamedIndividual in i[2]) and '#' not in str(x[2])]
                     p = [i for i in list(self.graph.triples((x[1], RDF.type, None)))
-                         if i[2] != OWL.AnnotationProperty]
+                         if i[2] != OWL.AnnotationProperty and i[2] != OWL.DatatypeProperty]
                     if len(s) > 0 and len(o) > 0 and len(p) > 0:
                         if OWL.ObjectProperty in [x[2] for x in p]: keep.add(x)
                         else: filtered |= {x}
-                    if len(s) > 0 and len(o) > 0 and len(p) == 0:
+                    elif len(s) > 0 and len(o) > 0 and len(p) == 0:
                         if RDFS.subClassOf in x[1]: keep.add(x)
                         elif RDF.type in x[1]: keep.add(x)
                         else: filtered |= {x}
-                    elif x[1] == RDFS.subClassOf and str(OWL) not in str(x[2]): keep.add(x)
+                    elif x[1] == RDFS.subClassOf and (str(OWL) not in str(x[2]) and 'ObsoleteClass' not in str(x[2])):
+                        keep.add(x)
                     else: filtered |= {x}
                 else: filtered |= {x}
             else: filtered |= {x}
@@ -212,7 +213,9 @@ class OwlNets(object):
                 obj = not any(i for i in exclude if str(x[2]).split('/')[-1].startswith(i + '_'))
                 rel = not any(i for i in self.support if str(x[1]).split('/')[-1].startswith(i + '_'))
                 if subj and obj and rel:
-                    if str(OWL) not in str(x[0]) and str(OWL) not in str(x[2]): keep_predicates.add(x)
+                    if str(OWL) not in str(x[0]) and str(OWL) not in str(x[2]):
+                        if ('XMLSchema' not in str(x[0])) and ('XMLSchema' not in str(x[2])):
+                            keep_predicates.add(x)
                     else: filtered_triples |= {x}
                 else: filtered_triples |= {x}
             else: filtered_triples |= {x}
