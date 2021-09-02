@@ -81,6 +81,25 @@ def gets_ontology_classes(graph: Graph) -> Set:
     return class_list
 
 
+def gets_ontology_definitions(graph: Graph) -> Dict:
+    """Queries a knowledge graph and returns a list of all object definitions (obo:IAO_0000115) in the graph.
+
+    Args:
+        graph: An rdflib Graph object.
+
+    Returns:
+        obj_defs: A dictionary where keys are object URiRefs and values are Literal object definitions. For example:
+                    {rdflib.term.URIRef('http://purl.obolibrary.org/obo/OBI_0001648'):
+                     rdflib.term.Literal('A B cell epitope qualitative binding to antibody assay that uses an antibody
+                     cross-blocking assay.', datatype=rdflib.term.URIRef('http://www.w3.org/2001/XMLSchema#string')),
+                     ...}
+    """
+
+    obj_defs = {x[0]: x[2] for x in graph.triples((None, obo.IAO_0000115, None))}
+
+    return obj_defs
+
+
 def gets_deprecated_ontology_classes(graph: Graph) -> Set:
     """Queries a knowledge graph and returns a list of all deprecated owl:Class objects in the graph.
 

@@ -363,7 +363,7 @@ class TestKGUtils(unittest.TestCase):
         return None
 
     def test_gets_ontology_class_synonyms(self):
-        """Tests the  gets_ontology_class_synonyms method."""
+        """Tests the gets_ontology_class_synonyms method."""
 
         # read in ontology
         graph = Graph().parse(self.good_ontology_file_location)
@@ -375,6 +375,20 @@ class TestKGUtils(unittest.TestCase):
         self.assertIsInstance(synonym_type_dict, Dict)
         self.assertEqual(4056, len(synonym_dict))
         self.assertEqual(4056, len(synonym_type_dict))
+
+        return None
+
+    def test_gets_ontology_definitions(self):
+        """Tests the gets_ontology_definitions method."""
+
+        # read in ontology
+        graph = Graph().parse(self.good_ontology_file_location)
+
+        # retrieve object properties form graph with data
+        definition_dict = gets_ontology_definitions(graph)
+
+        self.assertIsInstance(definition_dict, Dict)
+        self.assertEqual(2152, len(definition_dict))
 
         return None
 
