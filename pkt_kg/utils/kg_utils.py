@@ -10,6 +10,7 @@ Interacts with OWL Tools API
 * gets_object_properties
 * gets_ontology_class_dbxrefs
 * gets_ontology_class_synonyms
+* gets_ontology_definitions
 * merges_ontologies
 * ontology_file_formatter
 * adds_annotation_assertions
