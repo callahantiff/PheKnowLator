@@ -98,6 +98,63 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
+    def test_initialization_support(self):
+        """Tests the class initialization state for the support parameter."""
+
+        # when no list is passed
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.graph,
+                           write_location=self.write_location,
+                           filename=self.kg_filename)
+        self.assertEqual(owl_nets.support, ['IAO', 'SWO', 'OBI', 'UBPROP'])
+        # when an argument is passed
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.graph,
+                           write_location=self.write_location,
+                           filename=self.kg_filename,
+                           support=['IAO'])
+        self.assertEqual(owl_nets.support, ['IAO'])
+
+        return None
+
+    def test_initialization_top_level(self):
+        """Tests the class initialization state for the top_level parameter."""
+
+        # when no list is passed
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.graph,
+                           write_location=self.write_location,
+                           filename=self.kg_filename)
+        self.assertEqual(owl_nets.top_level, ['ISO', 'SUMO', 'BFO'])
+        # when an argument is passed
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.graph,
+                           write_location=self.write_location,
+                           filename=self.kg_filename,
+                           top_level=['BFO'])
+        self.assertEqual(owl_nets.top_level, ['BFO'])
+
+        return None
+
+    def test_initialization_relations(self):
+        """Tests the class initialization state for the relations parameter."""
+
+        # when no list is passed
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.graph,
+                           write_location=self.write_location,
+                           filename=self.kg_filename)
+        self.assertEqual(owl_nets.relations, ['RO'])
+        # when an argument is passed
+        owl_nets = OwlNets(kg_construct_approach='subclass',
+                           graph=self.graph,
+                           write_location=self.write_location,
+                           filename=self.kg_filename,
+                           relations=['RO'])
+        self.assertEqual(owl_nets.relations, ['RO'])
+
+        return None
+
     def test_initialization_state_graph(self):
         """Tests the class initialization state for graphs."""
 
