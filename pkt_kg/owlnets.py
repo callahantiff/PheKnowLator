@@ -9,7 +9,7 @@ import os
 import os.path
 import pickle
 import ray  # type: ignore
-import re
+# import re
 
 from collections import ChainMap  # type: ignore
 from random import sample, shuffle
@@ -17,7 +17,7 @@ from rdflib import BNode, Graph, Literal, Namespace, URIRef  # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from statistics import mode, StatisticsError
 from tqdm import tqdm  # type: ignore
-from typing import Any, Dict, IO, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from pkt_kg.utils import *
 
@@ -66,6 +66,12 @@ class OwlNets(object):
         filename: A string containing the filename for the full knowledge graph (e.g. "/hpo_owlnets").
         kg_construct_approach: A string containing the type of construction approach used to build the knowledge graph.
         owl_tools: A string pointing to the location of the owl tools library.
+        top_level: A list of ontology namespaces that should not appear in any subject or object in the clean graph (
+        default list: ['ISO', 'SUMO', 'BFO']).
+        support: A list of ontology namespaces that should not appear in any subject, object, or relation in the clean
+        graph (default list: ['IAO', 'SWO', 'OBI', 'UBPROP']).
+        relations: A list of ontology namespaces that should not appear in any subject or object in the clean graph (
+        default list ['RO']).
 
     Raises:
         TypeError: If graph is not an rdflib.graph object.
@@ -75,16 +81,18 @@ class OwlNets(object):
     """
 
     def __init__(self, graph: Union[Graph, List, str], write_location: str, filename: str,
-                 kg_construct_approach: Optional[str] = None, owl_tools: str = './pkt_kg/libs/owltools') -> None:
+                 kg_construct_approach: Optional[str] = None, owl_tools: str = './pkt_kg/libs/owltools',
+                 top_level: Optional[List] = None, support: Optional[List] = None,
+                 relations: Optional[List] = None) -> None:
 
         self.owl_tools = owl_tools
         self.kg_construct_approach = kg_construct_approach
         self.write_location = write_location
         self.res_dir = os.path.relpath('/'.join(self.write_location.split('/')[:-1]))
         self.filename = filename
-        self.top_level: List = ['ISO', 'SUMO', 'BFO']  # can only appear as predicates
-        self.relations: List = ['RO']  # can only appear as predicates
-        self.support: List = ['IAO', 'SWO', 'OBI', 'UBPROP']  # can never appear in OWL-NETS triples
+        self.top_level: List = ['ISO', 'SUMO', 'BFO'] if top_level is None else top_level  # can only be in predicates
+        self.support: List = ['IAO', 'SWO', 'OBI', 'UBPROP'] if support is None else support  # never in triples
+        self.relations: List = ['RO'] if relations is None else relations  # can only appear as relations
 
         # VERIFY INPUT GRAPH
         if not isinstance(graph, Graph) and not isinstance(graph, List) and not isinstance(graph, str):
@@ -107,7 +115,7 @@ class OwlNets(object):
 
         return self.owl_nets_dict
 
-    def gets_owlnets_graph(self) -> Dict:
+    def gets_owlnets_graph(self) -> Graph:
         """Returns the graph RDFLib Graph object."""
 
         return self.graph
@@ -151,7 +159,7 @@ class OwlNets(object):
         keep, filtered = set(), set(); exclude = self.top_level + self.relations + self.support
         pbar = tqdm(total=len(self.graph)) if verbose else None
         for x in self.graph:
-            if verbose: pbar.update(1)
+            if verbose: pbar.update()
             if isinstance(x[0], URIRef) and isinstance(x[1], URIRef) and isinstance(x[2], URIRef):
                 # handle top-level, relation, and support ontologies (top/rel can only be rel; remove support onts)
                 subj = not any(i for i in exclude if str(x[0]).split('/')[-1].startswith(i + '_'))
@@ -163,15 +171,16 @@ class OwlNets(object):
                     o = [i for i in list(self.graph.triples((x[2], RDF.type, None)))
                          if (OWL.Class in i[2] or OWL.NamedIndividual in i[2]) and '#' not in str(x[2])]
                     p = [i for i in list(self.graph.triples((x[1], RDF.type, None)))
-                         if i[2] != OWL.AnnotationProperty]
+                         if i[2] != OWL.AnnotationProperty and i[2] != OWL.DatatypeProperty]
                     if len(s) > 0 and len(o) > 0 and len(p) > 0:
                         if OWL.ObjectProperty in [x[2] for x in p]: keep.add(x)
                         else: filtered |= {x}
-                    if len(s) > 0 and len(o) > 0 and len(p) == 0:
+                    elif len(s) > 0 and len(o) > 0 and len(p) == 0:
                         if RDFS.subClassOf in x[1]: keep.add(x)
                         elif RDF.type in x[1]: keep.add(x)
                         else: filtered |= {x}
-                    elif x[1] == RDFS.subClassOf and str(OWL) not in str(x[2]): keep.add(x)
+                    elif x[1] == RDFS.subClassOf and (str(OWL) not in str(x[2]) and 'ObsoleteClass' not in str(x[2])):
+                        keep.add(x)
                     else: filtered |= {x}
                 else: filtered |= {x}
             else: filtered |= {x}
@@ -204,7 +213,9 @@ class OwlNets(object):
                 obj = not any(i for i in exclude if str(x[2]).split('/')[-1].startswith(i + '_'))
                 rel = not any(i for i in self.support if str(x[1]).split('/')[-1].startswith(i + '_'))
                 if subj and obj and rel:
-                    if str(OWL) not in str(x[0]) and str(OWL) not in str(x[2]): keep_predicates.add(x)
+                    if str(OWL) not in str(x[0]) and str(OWL) not in str(x[2]):
+                        if ('XMLSchema' not in str(x[0])) and ('XMLSchema' not in str(x[2])):
+                            keep_predicates.add(x)
                     else: filtered_triples |= {x}
                 else: filtered_triples |= {x}
             else: filtered_triples |= {x}
@@ -250,11 +261,11 @@ class OwlNets(object):
             node: A RDFLib URIRef object.
         """
 
-        n = list(self.graph.objects(n1, None)) if node_list is None else node_list
+        n = list(self.graph.objects(n1)) if node_list is None else node_list
         n = [x for x in n if x != n2 and (isinstance(x, BNode) or OWL.Class in set(self.graph.objects(x, RDF.type)))]
         n1 = n.pop(0)
         if n1 != n2 and OWL.Class in list(self.graph.objects(n1, RDF.type)): return n1
-        else: n += [x for x in set(self.graph.objects(n1, None)) if x not in n]; return self.finds_uri(n1, n2, n)
+        else: n += [x for x in set(self.graph.objects(n1)) if x not in n]; return self.finds_uri(n1, n2, n)
 
     def reconciles_axioms(self, src: Union[BNode, URIRef], tgt: Union[BNode, URIRef]) -> Tuple:
         """Method takes two RDFLib objects (both are either a URIRef or a BNode) and performs two steps: (1) if
@@ -270,12 +281,12 @@ class OwlNets(object):
         """
 
         if isinstance(src, BNode) and isinstance(tgt, BNode):
-            org_tgt, tgt = tgt, self.finds_uri(tgt, None, None)
-            org_src, src = src, src if isinstance(src, URIRef) else self.finds_uri(src, tgt, None)
+            org_tgt, tgt = tgt, self.finds_uri(tgt, None)
+            org_src, src = src, src if isinstance(src, URIRef) else self.finds_uri(src, tgt)
             bnodes = [org_src, org_tgt]
         else:
-            org_src, src = src, src if isinstance(src, URIRef) else self.finds_uri(src, tgt, None)
-            org_tgt, tgt = tgt, tgt if isinstance(tgt, URIRef) else self.finds_uri(tgt, src, None)
+            org_src, src = src, src if isinstance(src, URIRef) else self.finds_uri(src, tgt)
+            org_tgt, tgt = tgt, tgt if isinstance(tgt, URIRef) else self.finds_uri(tgt, src)
             bnodes = [org_src] if isinstance(org_src, BNode) and not isinstance(org_tgt, BNode) else [org_tgt]
         master, matches = set(), set()
         while len(bnodes) > 0:
@@ -609,7 +620,7 @@ class OwlNets(object):
                 if not neg and not comp:
                     node, org = (node_info[0], node) if isinstance(node, BNode) else (node, node)
                     cleaned_entities |= {org}; cleaned_classes: Set = set()
-                    bnodes = set(x for x in self.graph.objects(org, None) if isinstance(x, BNode))
+                    bnodes = set(x for x in self.graph.objects(org) if isinstance(x, BNode))
                     for element in (bnodes if len(bnodes) > 0 else node_info[1].keys()):
                         edges = node_info[1][element]
                         while edges:
@@ -661,7 +672,7 @@ class OwlNets(object):
             for x in tqdm(nodes):
                 ancs = gets_entity_ancestors(graph, [x], RDFS.subClassOf)
                 if len(ancs) == 0:
-                    nbhd = set(graph.objects(x, None))
+                    nbhd = set(graph.objects(x))
                     ancs = [x for y in [gets_entity_ancestors(graph, [i], RDFS.subClassOf) for i in nbhd] for x in y]
                     if len(ancs) == 0: ancs = [x]
                     else:
@@ -732,7 +743,7 @@ class OwlNets(object):
         f_name = '/' + f_name + '.nt' if not f_name.startswith('/') else f_name + '.nt'
         # write graph to n-triples file
         if isinstance(graph, Graph): graph.serialize(destination=self.write_location + f_name, format='nt')
-        else: appends_to_existing_file(graph, self.write_location + f_name, ' ')
+        else: appends_to_existing_file(graph, self.write_location + f_name)
         # write out owl_nets dictionary
         with open(self.write_location + f_name.strip('.nt') + '_decoding_dict.pkl', 'wb') as out:
             pickle.dump(self.owl_nets_dict, out)
