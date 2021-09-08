@@ -1,7 +1,7 @@
 version: "3"
 services:
   api:
-    image: dbcls/sparql-proxy
+    image: ghcr.io/dbcls/sparql-proxy
     # ports:
     #   - "3000:3000"
     environment:
