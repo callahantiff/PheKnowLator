@@ -150,8 +150,11 @@ def gets_ontology_class_synonyms(graph: Graph) -> Tuple:
                     {'susceptibility to herpesvirus': 'hasExactSynonym', 'full upper lip': 'hasExactSynonym'}
     """
 
+    synonyms = dict()
     class_list = [x for x in graph if 'synonym' in str(x[1]).lower() and isinstance(x[0], URIRef)]
-    synonyms = {str(x[2]).lower(): str(x[0]) for x in class_list}
+    for x in class_list:
+        if str(x[2]).lower() in synonyms.keys(): synonyms[str(x[2]).lower()].append(str(x[0]))
+        else: synonyms[str(x[2]).lower()] = [str(x[0])]
     synonym_type = {str(x[2]).lower(): str(x[1]).split('#')[-1] for x in class_list}
 
     return synonyms, synonym_type
@@ -173,10 +176,19 @@ def gets_ontology_class_dbxrefs(graph: Graph):
         dbxref_type: A dict where keys are dbxref/exact uris; values are str indicating if the uri is dbxref or exact.
     """
 
+    dbx_uris = dict()
     dbx = [x for x in graph if 'hasdbxref' in str(x[1]).lower() if isinstance(x[0], URIRef)]
-    dbx_uris, dbx_type = {str(x[2]).lower(): str(x[0]) for x in dbx}, {str(x[2]).lower(): 'DbXref' for x in dbx}
+    for x in dbx:
+        if str(x[2]).lower() in dbx_uris.keys(): dbx_uris[str(x[2]).lower()].append(str(x[0]))
+        else: dbx_uris[str(x[2]).lower()] = [str(x[0])]
+    dbx_type = {str(x[2]).lower(): 'DbXref' for x in dbx}
+
+    ex_uris = dict()
     ex = [x for x in graph if 'exactmatch' in str(x[1]).lower() if isinstance([0], URIRef)]
-    ex_uris, ex_type = {str(x[2]).lower(): str(x[0]) for x in ex}, {str(x[2]).lower(): 'ExactMatch' for x in ex}
+    for x in ex:
+        if str(x[2]).lower() in ex_uris.keys(): ex_uris[str(x[2]).lower()].append(str(x[0]))
+        else: ex_uris[str(x[2]).lower()] = [str(x[0])]
+    ex_type = {str(x[2]).lower(): 'ExactMatch' for x in ex}
 
     return {**dbx_uris, **ex_uris}, {**dbx_type, **ex_type}
 
