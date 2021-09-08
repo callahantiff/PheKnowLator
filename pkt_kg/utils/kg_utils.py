@@ -150,7 +150,7 @@ def gets_ontology_class_synonyms(graph: Graph) -> Tuple:
                     {'susceptibility to herpesvirus': 'hasExactSynonym', 'full upper lip': 'hasExactSynonym'}
     """
 
-    synonyms = dict()
+    synonyms: Dict = dict()
     class_list = [x for x in graph if 'synonym' in str(x[1]).lower() and isinstance(x[0], URIRef)]
     for x in class_list:
         if str(x[2]).lower() in synonyms.keys(): synonyms[str(x[2]).lower()].append(str(x[0]))
@@ -160,7 +160,7 @@ def gets_ontology_class_synonyms(graph: Graph) -> Tuple:
     return synonyms, synonym_type
 
 
-def gets_ontology_class_dbxrefs(graph: Graph):
+def gets_ontology_class_dbxrefs(graph: Graph) -> Tuple:
     """Queries a knowledge graph and returns a dictionary containing all owl:Class objects and their database
     cross references (dbxref). Function also includes exact matches. A tuple of dictionaries: (1) contains dbxref and
     exact matches (URIs and labels); and (2) contains dbxref/exactmatch uris and a string indicating the type (i.e.
@@ -176,14 +176,14 @@ def gets_ontology_class_dbxrefs(graph: Graph):
         dbxref_type: A dict where keys are dbxref/exact uris; values are str indicating if the uri is dbxref or exact.
     """
 
-    dbx_uris = dict()
+    dbx_uris: Dict = dict()
     dbx = [x for x in graph if 'hasdbxref' in str(x[1]).lower() if isinstance(x[0], URIRef)]
     for x in dbx:
         if str(x[2]).lower() in dbx_uris.keys(): dbx_uris[str(x[2]).lower()].append(str(x[0]))
         else: dbx_uris[str(x[2]).lower()] = [str(x[0])]
     dbx_type = {str(x[2]).lower(): 'DbXref' for x in dbx}
 
-    ex_uris = dict()
+    ex_uris: Dict = dict()
     ex = [x for x in graph if 'exactmatch' in str(x[1]).lower() if isinstance([0], URIRef)]
     for x in ex:
         if str(x[2]).lower() in ex_uris.keys(): ex_uris[str(x[2]).lower()].append(str(x[0]))
