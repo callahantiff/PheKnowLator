@@ -633,7 +633,7 @@ class DataPreprocessing(object):
         f_name = 'mondo_with_imports.owl'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
         mondo_graph = Graph().parse(x); dbxref_res = gets_ontology_class_dbxrefs(mondo_graph)[0]
-        mondo_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
+        mondo_dict = {str(k).lower().split('/')[-1]: {str(i).split('/')[-1].replace('_', ':') for i in v}
                       for k, v in dbxref_res.items() if 'MONDO' in str(v)}
 
         return mondo_dict
@@ -653,7 +653,7 @@ class DataPreprocessing(object):
         f_name = 'hp_with_imports.owl'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
         hp_graph = Graph().parse(x); dbxref_res = gets_ontology_class_dbxrefs(hp_graph)[0]
-        hp_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
+        hp_dict = {str(k).lower().split('/')[-1]: {str(i).split('/')[-1].replace('_', ':') for i in v}
                    for k, v in dbxref_res.items() if 'HP' in str(v)}
 
         return hp_dict
@@ -827,10 +827,10 @@ class DataPreprocessing(object):
         f_name = 'pw_with_imports.owl'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
         pw_graph = Graph().parse(x); dbxref_res = gets_ontology_class_dbxrefs(pw_graph)[0]
-        dbxref_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
+        dbxref_dict = {str(k).lower().split('/')[-1]: {str(i).split('/')[-1].replace('_', ':') for i in v}
                        for k, v in dbxref_res.items() if 'PW_' in str(v)}
         syn_res = gets_ontology_class_synonyms(pw_graph)[0]
-        synonym_dict = {str(k).lower().split('/')[-1]: {str(v).split('/')[-1].replace('_', ':')}
+        synonym_dict = {str(k).lower().split('/')[-1]: {str(i).split('/')[-1].replace('_', ':') for i in v}
                         for k, v in syn_res.items() if 'PW_' in str(v)}
         id_mappings = {**dbxref_dict, **synonym_dict}
 
