@@ -12,4 +12,5 @@ reactome2py
 requests
 responses==0.10.12
 tqdm
+urllib
 urllib3
