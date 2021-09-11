@@ -44,7 +44,6 @@ import json
 import networkx as nx  # type: ignore
 import os
 import os.path
-import random
 
 from collections import Counter  # type: ignore
 from more_itertools import unique_everseen  # type: ignore
