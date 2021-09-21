@@ -13,7 +13,6 @@ Interacts with OWL Tools API
 * gets_ontology_definitions
 * merges_ontologies
 * ontology_file_formatter
-* adds_annotation_assertions
 
 Interacts with Knowledge Graphs
 * adds_edges_to_graph
@@ -392,7 +391,8 @@ def gets_entity_ancestors(graph: Graph, uris: List[Union[URIRef, str]], rel: Uni
     if len(ancs) == 0 or len(set(ancs).difference(set(cls_lst))) == 0:
         return list(unique_everseen([str(x) for x in cls_lst]))
     else:
-        uris = [x for x in ancs if x not in cls_lst]; cls_lst.insert(0, [x for x in uris][0])
+        uris = [x for x in ancs if x not in cls_lst]
+        for i in uris: cls_lst.insert(0, i)
         return gets_entity_ancestors(graph, uris, prop, cls_lst)
 
 
