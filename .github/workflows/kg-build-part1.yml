@@ -1,4 +1,4 @@
-name:  KG Build - Part 1
+name:  KG Build - Part 1 (Data Download and Preprocess)
 on:
   push
 #   schedule:
