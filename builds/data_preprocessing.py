@@ -1106,7 +1106,8 @@ class DataPreprocessing(object):
 
         log_str = 'Creating Pathway and Sequence Ontology Mapping Dictionary'; print(log_str); logger.info(log_str)
 
-        sequence_map = self._creates_sequence_identifier_mappings()
+        # sequence_map = self._creates_sequence_identifier_mappings()
+        sequence_map = dict()
         reactome_map = self._creates_pathway_identifier_mappings()
         # combine genomic and pathway maps + iterate over pathway lists and combine them into a single dictionary
         sequence_map.update(reactome_map); subclass_mapping = {}
