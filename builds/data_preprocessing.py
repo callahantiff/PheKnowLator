@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # import needed libraries
-import fnmatch
+# import fnmatch
 import glob
-import itertools
+# import itertools
 import logging.config
 import networkx  # type: ignore
 import numpy  # type: ignore
@@ -18,11 +18,15 @@ from rdflib import Graph, Namespace, URIRef  # type: ignore
 from rdflib.namespace import RDFS  # type: ignore
 from reactome2py import content  # type: ignore
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 # import script containing helper functions
 from builds.build_utilities import *
 from pkt_kg.utils import *
+
+# handle ssl errors
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # set environment variables
 log_dir, log, log_config = 'builds/logs', 'pkt_builder_phases12_log.log', glob.glob('**/logging.ini', recursive=True)
@@ -126,7 +130,7 @@ class DataPreprocessing(object):
 
         logger.info('Preprocessing HGNC Data')
 
-        hgnc = self.reads_gcs_bucket_data_to_df(f_name='hgnc_complete_set.txt', delm='\t', skip=0, head=0, sht=None)
+        hgnc = self.reads_gcs_bucket_data_to_df(f_name='hgnc_complete_set.txt', delm='\t', head=0)
         hgnc = hgnc.loc[hgnc['status'].apply(lambda x: x == 'Approved')]
         hgnc = hgnc[['hgnc_id', 'entrez_id', 'ensembl_gene_id', 'uniprot_ids', 'symbol', 'locus_type', 'alias_symbol',
                      'name', 'location', 'alias_name']]
@@ -152,7 +156,7 @@ class DataPreprocessing(object):
             explode_df_hgnc['master_gene_type'].replace(val, master_dict[val], inplace=True)
         # post-process reformatted data
         explode_df_hgnc.drop(['alias_symbol', 'alias_name'], axis=1, inplace=True)  # remove original gene type column
-        explode_df_hgnc.drop_duplicates(subset=None, keep='first', inplace=True)
+        explode_df_hgnc.drop_duplicates(inplace=True)
 
         return explode_df_hgnc
 
@@ -170,7 +174,7 @@ class DataPreprocessing(object):
         logger.info('Preprocessing Ensembl Data')
 
         f_name = 'Homo_sapiens.GRCh38.*.gtf'
-        ensembl = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=5, head=None, sht=None)
+        ensembl = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=5)
         ensembl_data = list(ensembl[8]); ensembl_df_data = []
         for i in tqdm(range(0, len(ensembl_data))):
             if 'gene_id' in ensembl_data[i] and 'transcript_id' in ensembl_data[i]:
@@ -194,7 +198,7 @@ class DataPreprocessing(object):
         trans_d = self.genomic_type_mapper['ensembl_master_transcript_type']
         for val in trans_d.keys(): ensembl_geneset['master_transcript_type'].replace(val, trans_d[val], inplace=True)
         # post-process reformatted data
-        ensembl_geneset.drop_duplicates(subset=None, keep='first', inplace=True)
+        ensembl_geneset.drop_duplicates(inplace=True)
 
         return ensembl_geneset
 
@@ -214,7 +218,7 @@ class DataPreprocessing(object):
         drop_cols = ['db_name', 'info_type', 'source_identity', 'xref_identity', 'linkage_type']
         un_name, ent_name = 'Homo_sapiens.GRCh38.*.uniprot.tsv', 'Homo_sapiens.GRCh38.*.entrez.tsv'
         # uniprot data
-        ensembl_uniprot = self.reads_gcs_bucket_data_to_df(f_name=un_name, delm='\t', skip=0, head=0, sht=None)
+        ensembl_uniprot = self.reads_gcs_bucket_data_to_df(f_name=un_name, delm='\t', head=0)
         ensembl_uniprot.rename(columns={'xref': 'uniprot_id', 'gene_stable_id': 'ensembl_gene_id'}, inplace=True)
         ensembl_uniprot.replace('-', 'None', inplace=True); ensembl_uniprot.fillna('None', inplace=True)
         ensembl_uniprot = ensembl_uniprot.loc[ensembl_uniprot['uniprot_id'].apply(lambda x: '-' not in x)]
@@ -225,7 +229,7 @@ class DataPreprocessing(object):
         ensembl_uniprot.drop(drop_cols, axis=1, inplace=True)
         ensembl_uniprot.drop_duplicates(subset=None, keep='first', inplace=True)
         # entrez data
-        ensembl_entrez = self.reads_gcs_bucket_data_to_df(f_name=ent_name, delm='\t', skip=0, head=0, sht=None)
+        ensembl_entrez = self.reads_gcs_bucket_data_to_df(f_name=ent_name, delm='\t', head=0)
         ensembl_entrez.rename(columns={'xref': 'entrez_id', 'gene_stable_id': 'ensembl_gene_id'}, inplace=True)
         ensembl_entrez = ensembl_entrez.loc[ensembl_entrez['db_name'].apply(lambda x: x == 'EntrezGene')]
         ensembl_entrez = ensembl_entrez.loc[ensembl_entrez['info_type'].apply(lambda x: x == 'DEPENDENT')]
@@ -236,16 +240,16 @@ class DataPreprocessing(object):
         merge_cols = list(set(ensembl_entrez).intersection(set(ensembl_uniprot)))
         ensembl_annot = pandas.merge(ensembl_uniprot, ensembl_entrez, on=merge_cols, how='outer')
         ensembl_annot.fillna('None', inplace=True)
-        ensembl_annot.drop_duplicates(subset=None, keep='first', inplace=True)
+        ensembl_annot.drop_duplicates(inplace=True)
         # merge annotation and gene data
         ensembl_geneset = self._preprocess_ensembl_data()
         merge_cols = list(set(ensembl_annot).intersection(set(ensembl_geneset)))
         ensembl = pandas.merge(ensembl_geneset, ensembl_annot, on=merge_cols, how='outer')
-        ensembl.fillna('None', inplace=True); ensembl.replace('NA', 'None', inplace=True, regex=False)
-        ensembl.drop_duplicates(subset=None, keep='first', inplace=True)
+        ensembl.fillna('None', inplace=True); ensembl.replace('NA', 'None', inplace=True)
+        ensembl.drop_duplicates(inplace=True)
         # save data locally and push to gcs bucket
         filename = 'ensembl_identifier_data_cleaned.txt'
-        ensembl.to_csv(self.temp_dir + '/' + filename, header=True, sep='\t', index=False)
+        ensembl.to_csv(self.temp_dir + '/' + filename, sep='\t', index=False)
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, filename)
 
         return ensembl
@@ -262,7 +266,7 @@ class DataPreprocessing(object):
         logger.info('Preprocessing UniProt Data')
 
         f_name = 'uniprot_identifier_mapping.tab'
-        uniprot = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=0, sht=None)
+        uniprot = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', head=0)
         uniprot.fillna('None', inplace=True)
         uniprot.rename(columns={'Entry': 'uniprot_id', 'Cross-reference (GeneID)': 'entrez_id',
                                 'Ensembl transcript': 'transcript_stable_id', 'Cross-reference (HGNC)': 'hgnc_id',
@@ -275,7 +279,7 @@ class DataPreprocessing(object):
         explode_df_uniprot = explodes_data(explode_df_uniprot.copy(), ['symbol', 'synonyms'], '|')
         explode_df_uniprot['transcript_stable_id'].replace('\s.*', '', inplace=True, regex=True)  # strip uniprot names
         explode_df_uniprot.drop(['Status'], axis=1, inplace=True)
-        explode_df_uniprot.drop_duplicates(subset=None, keep='first', inplace=True)
+        explode_df_uniprot.drop_duplicates(inplace=True)
 
         return explode_df_uniprot
 
@@ -293,7 +297,7 @@ class DataPreprocessing(object):
         logger.info('Preprocessing Entrez Data')
 
         f_name = 'Homo_sapiens.gene_info'
-        ncbi_gene = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=0, sht=None)
+        ncbi_gene = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', head=0)
         ncbi_gene = ncbi_gene.loc[ncbi_gene['#tax_id'].apply(lambda x: x == 9606)]  # remove non-human rows
         ncbi_gene.replace('-', 'None', inplace=True)
         ncbi_gene.rename(columns={'GeneID': 'entrez_id', 'Symbol': 'symbol', 'Synonyms': 'synonyms'}, inplace=True)
@@ -346,7 +350,7 @@ class DataPreprocessing(object):
         logger.info('Preprocessing Protein Ontology Data')
 
         col_names = ['pro_id', 'Entry', 'pro_mapping']
-        pro = self.reads_gcs_bucket_data_to_df(f_name='promapping.txt', delm='\t', skip=0, head=col_names, sht=None)
+        pro = self.reads_gcs_bucket_data_to_df(f_name='promapping.txt', delm='\t', head=col_names)
         pro = pro.loc[pro['Entry'].apply(lambda x: x.startswith('UniProtKB:') and '_VAR' not in x and ', ' not in x)]
         pro = pro.loc[pro['pro_mapping'].apply(lambda x: x.startswith('exact'))]
         pro['pro_id'].replace('PR:', 'PR_', inplace=True, regex=True)  # replace PR: with PR_
@@ -370,23 +374,23 @@ class DataPreprocessing(object):
         hgnc, ensembl = self._preprocess_hgnc_data(), self.merges_ensembl_mapping_data()
         merge_cols = list(set(hgnc.columns).intersection(set(ensembl.columns)))
         ensembl_hgnc = pandas.merge(ensembl, hgnc, on=merge_cols, how='outer')
-        ensembl_hgnc.fillna('None', inplace=True); ensembl_hgnc.drop_duplicates(subset=None, keep='first', inplace=True)
+        ensembl_hgnc.fillna('None', inplace=True); ensembl_hgnc.drop_duplicates(inplace=True)
         # ensembl_hgnc + uniprot
         uniprot = self._preprocess_uniprot_data()
         merge_cols = list(set(ensembl_hgnc.columns).intersection(set(uniprot.columns)))
         ensembl_hgnc_uniprot = pandas.merge(ensembl_hgnc, uniprot, on=merge_cols, how='outer')
         ensembl_hgnc_uniprot.fillna('None', inplace=True)
-        ensembl_hgnc_uniprot.drop_duplicates(subset=None, keep='first', inplace=True)
+        ensembl_hgnc_uniprot.drop_duplicates(inplace=True)
         # ensembl_hgnc_uniprot + Homo_sapiens.gene_info
         ncbi = self._preprocess_ncbi_data()
         merge_cols = list(set(ensembl_hgnc_uniprot.columns).intersection(set(ncbi.columns)))
         ensembl_hgnc_uniprot_ncbi = pandas.merge(ensembl_hgnc_uniprot, ncbi, on=merge_cols, how='outer')
         ensembl_hgnc_uniprot_ncbi.fillna('None', inplace=True)
-        ensembl_hgnc_uniprot_ncbi.drop_duplicates(subset=None, keep='first', inplace=True)
+        ensembl_hgnc_uniprot_ncbi.drop_duplicates(inplace=True)
         # ensembl_hgnc_uniprot_ncbi + promapping.txt
         pro = self._preprocess_protein_ontology_mapping_data()
         merged_data = pandas.merge(ensembl_hgnc_uniprot_ncbi, pro, on='uniprot_id', how='outer')
-        merged_data.fillna('None', inplace=True); merged_data.drop_duplicates(subset=None, keep='first', inplace=True)
+        merged_data.fillna('None', inplace=True); merged_data.drop_duplicates(inplace=True)
 
         return merged_data
 
@@ -412,7 +416,7 @@ class DataPreprocessing(object):
         merged_data['master_gene_type'].replace('None', 'unknown', inplace=True, regex=False)
         merged_data['master_transcript_type'].replace('None', 'not protein-coding', inplace=True, regex=False)
         merged_data['ensembl_transcript_type'].replace('None', 'unknown', inplace=True, regex=False)
-        merged_data_clean = merged_data.drop_duplicates(subset=None, keep='first')
+        merged_data_clean = merged_data.drop_duplicates()
 
         return merged_data_clean
 
@@ -578,7 +582,7 @@ class DataPreprocessing(object):
 
         print('\t- Processing ChEBI Data'); logger.info('Preprocessing ChEBI Data')
 
-        chebi = self.reads_gcs_bucket_data_to_df(f_name='names.tsv', delm='\t', skip=0, head=0, sht=None)
+        chebi = self.reads_gcs_bucket_data_to_df(f_name='names.tsv', delm='\t', head=0)
         chebi_df = chebi[['COMPOUND_ID', 'TYPE', 'NAME']]  # remove unneeded columns
         chebi_df.drop_duplicates(subset=None, keep='first', inplace=True)
         chebi_df.columns = ['ID', 'TYP', 'STR']  # rename columns
@@ -602,7 +606,7 @@ class DataPreprocessing(object):
 
         mesh_df, mesh_dict = self._processes_mesh_data(); chebi_df = self._processes_chebi_data()
         merge_cols = ['STR', 'ID']
-        identifier_merge = pandas.merge(chebi_df[merge_cols], mesh_df[merge_cols], on='STR', how='inner')
+        identifier_merge = pandas.merge(chebi_df[merge_cols], mesh_df[merge_cols], on='STR')
         # filter merged data
         mesh_edges = set()
         for idx, row in identifier_merge.drop_duplicates().iterrows():
@@ -670,7 +674,7 @@ class DataPreprocessing(object):
         log_str = 'Creating Phenotype and Disease ID Cross-Map Data'; print(log_str); logger.info(log_str)
 
         mondo_dict, hp_dict = self._preprocess_mondo_mapping_data(), self._preprocess_hpo_mapping_data()
-        data = self.reads_gcs_bucket_data_to_df(f_name='disease_mappings.tsv', delm='\t', skip=0, head=0, sht=None)
+        data = self.reads_gcs_bucket_data_to_df(f_name='disease_mappings.tsv', delm='\t', head=0)
         data['vocabulary'], data['diseaseId'] = data['vocabulary'].str.lower(), data['diseaseId'].str.lower()
         data['vocabulary'] = ['doid' if x == 'do' else 'ordoid' if x == 'ordo' else x for x in data['vocabulary']]
         # get all CUIs mapped to HPO and MONDO
@@ -724,7 +728,7 @@ class DataPreprocessing(object):
         logger.info('Preprocessing HPA Data')
 
         data_file, sheet = 'zooma_tissue_cell_mapping_04JAN2020.xlsx', 'Concept_Mapping - 04JAN2020'
-        mapping_data = self.reads_gcs_bucket_data_to_df(f_name=data_file, delm='\t', skip=0, head=0, sht=sheet)
+        mapping_data = self.reads_gcs_bucket_data_to_df(f_name=data_file, delm='\t', head=0, sht=sheet)
         mapping_data.fillna('NA', inplace=True)
         filename = 'HPA_GTEx_TISSUE_CELL_MAP.txt'
         with open(self.temp_dir + '/' + filename, 'w') as out:
@@ -747,7 +751,7 @@ class DataPreprocessing(object):
 
         logger.info('Extracting HPA Tissue and Cell Information')
 
-        hpa = self.reads_gcs_bucket_data_to_df(f_name='proteinatlas_search.tsv', delm='\t', skip=0, head=0, sht=None)
+        hpa = self.reads_gcs_bucket_data_to_df(f_name='proteinatlas_search.tsv', delm='\t', head=0)
         hpa.fillna('None', inplace=True)
         # write results
         filename = 'HPA_tissues.txt'
@@ -775,7 +779,7 @@ class DataPreprocessing(object):
         log_str = 'Creating Human Protein Atlas and GTEx Cross-Map Data'; print(log_str); logger.info(log_str)
 
         hpa = self._extracts_hpa_tissue_information(); f_name = 'GTEx_Analysis_*_RNASeQC*_gene_median_tpm.gct'
-        gtex = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=2, head=0, sht=None)
+        gtex = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=2, head=0)
         gtex.fillna('None', inplace=True); gtex['Name'].replace('(\..*)', '', inplace=True, regex=True)
         # process human protein atlas data
         hpa_results = []
@@ -847,15 +851,15 @@ class DataPreprocessing(object):
 
         r_name, g_name, c_name = 'ReactomePathways.txt', 'gene_association.reactome', 'ChEBI2Reactome_All_Levels.txt'
         # reactome pathways
-        reactome_pathways = self.reads_gcs_bucket_data_to_df(f_name=r_name, delm='\t', skip=0, head=None, sht=None)
+        reactome_pathways = self.reads_gcs_bucket_data_to_df(f_name=r_name, delm='\t')
         reactome_pathways = reactome_pathways.loc[reactome_pathways[2].apply(lambda x: x == 'Homo sapiens')]
         reactome = {x: {'PW_0000001'} for x in set(list(reactome_pathways[0]))}
         # reactome - GO associations
-        reactome_pathways2 = self.reads_gcs_bucket_data_to_df(f_name=g_name, delm='\t', skip=3, head=None, sht=None)
+        reactome_pathways2 = self.reads_gcs_bucket_data_to_df(f_name=g_name, delm='\t', skip=3)
         reactome_pathways2 = reactome_pathways2.loc[reactome_pathways2[12].apply(lambda x: x == 'taxon:9606')]
         reactome.update({x.split(':')[-1]: {'PW_0000001'} for x in set(list(reactome_pathways2[5]))})
         # reactome CHEBI
-        reactome_pathways3 = self.reads_gcs_bucket_data_to_df(f_name=c_name, delm='\t', skip=0, head=None, sht=None)
+        reactome_pathways3 = self.reads_gcs_bucket_data_to_df(f_name=c_name, delm='\t')
         reactome_pathways3 = reactome_pathways3.loc[reactome_pathways3[5].apply(lambda x: x == 'Homo sapiens')]
         reactome.update({x: {'PW_0000001'} for x in set(list(reactome_pathways3[1]))})
 
@@ -876,7 +880,7 @@ class DataPreprocessing(object):
         log_str = 'Loading ComPath Canonical Pathway Data'; print('\t- ' + log_str); logger.info(log_str)
 
         f_name = 'compath_canonical_pathway_mappings.txt'
-        compath = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=None, sht=None)
+        compath = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t')
         compath.fillna('None', inplace=True)
         for idx, row in tqdm(compath.iterrows(), total=compath.shape[0]):
             if row[6] == 'kegg' and 'kegg:' + row[5].strip('path:hsa') in pw_dict.keys() and row[2] == 'reactome':
@@ -905,7 +909,7 @@ class DataPreprocessing(object):
         log_str = 'Loading KEGG Data'; print('\t- ' + log_str); logger.info(log_str)
 
         f_name = 'kegg_reactome.csv'
-        kegg_reactome_map = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm=',', skip=0, head=0, sht=None)
+        kegg_reactome_map = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm=',', head=0)
         src, tar, tar_ids, src_ids = 'Source Resource', 'Target Resource', 'Target ID', 'Source ID'
         for idx, row in tqdm(kegg_reactome_map.iterrows(), total=kegg_reactome_map.shape[0]):
             if row[src] == 'reactome' and 'kegg:' + row[tar_ids].strip('path:hsa') in pw_dict.keys():
@@ -1050,7 +1054,7 @@ class DataPreprocessing(object):
         log_str = 'Mapping Sequence Ontology Classes to Variant IDs'; print('\t- ' + log_str); logger.info(log_str)
 
         f_name: str = 'variant_summary.txt'; v_df: Dict = {}
-        variant_data = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=0, sht=None)
+        variant_data = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', head=0)
         for idx, row in tqdm(variant_data.iterrows(), total=variant_data.shape[0]):
             if row['Assembly'] == 'GRCh38' and row['RS# (dbSNP)'] != -1:
                 if 'rs' + str(row['RS# (dbSNP)']) in v_df.keys(): v_df['rs' + str(row['RS# (dbSNP)'])] |= {row['Type']}
@@ -1075,7 +1079,7 @@ class DataPreprocessing(object):
         log_str = 'Creating Sequence Ontology ID Cross-Map Data'; print('\n' + log_str); logger.info(log_str)
 
         f_name, sht = 'genomic_sequence_ontology_mappings.xlsx', 'GenomicType_SO_Map_09Mar2020'
-        mapping_data = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=0, sht=sht)
+        mapping_data = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', head=0, sht=sht)
         genomic_type_so_map = {}
         for idx, row in tqdm(mapping_data.iterrows(), total=mapping_data.shape[0]):
             genomic_type_so_map[row['source_*_type'] + '_' + row['Genomic']] = row['SO ID']
@@ -1191,7 +1195,7 @@ class DataPreprocessing(object):
         component_dict = sorted(components, key=len, reverse=True)
         if len(component_dict) > 1:  # if more than 1 connected component remove all but largest
             for node in [x for y in component_dict[1:] for x in list(y)]: human_pro_graph.remove((node, None, None))
-        human_pro_graph.serialize(destination=self.temp_dir + '/human_pro.owl', format='xml')
+        human_pro_graph.serialize(destination=self.temp_dir + '/human_pro.owl')
         f_name1, f_name2 = self.temp_dir + '/human_pro.owl', self.temp_dir + '/pr_with_imports.owl'
         self._logically_verifies_human_protein_ontology(f_name1, f_name2, 'elk')
 
@@ -1241,7 +1245,7 @@ class DataPreprocessing(object):
         log_str = 'Generating ClinVar Cross-Mapping Data'; print(log_str); logger.info(log_str)
 
         f_name = 'variant_summary.txt'
-        clinvar_data = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=0, head=0, sht=None)
+        clinvar_data = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', head=0)
         clinvar_data.fillna('None', inplace=True)
         # explode nested data
         explode_df_clinvar = explodes_data(clinvar_data.copy(), ['PhenotypeIDS'], ';')
@@ -1249,7 +1253,7 @@ class DataPreprocessing(object):
         explode_df_clinvar['PhenotypeIDS'].replace('Orphanet:ORPHA', 'ORPHA:', inplace=True, regex=True)
         explode_df_clinvar['PhenotypeIDS'].replace('Human Phenotype Ontology:HP:', 'HP_', inplace=True, regex=True)
         filename = 'CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt'
-        explode_df_clinvar.to_csv(self.temp_dir + '/' + filename, header=True, sep='\t', encoding='utf-8', index=False)
+        explode_df_clinvar.to_csv(self.temp_dir + '/' + filename, sep='\t', encoding='utf-8', index=False)
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, filename)
 
         return None
@@ -1325,7 +1329,7 @@ class DataPreprocessing(object):
                 else: syn.append('None')
         # combine into new data frame then convert it to dictionary
         metadata = pandas.DataFrame(list(zip(genes, lab, desc, syn)), columns=['ID', 'Label', 'Description', 'Synonym'])
-        metadata = metadata.astype(str); metadata.drop_duplicates(subset='ID', keep='first', inplace=True)
+        metadata = metadata.astype(str); metadata.drop_duplicates(subset='ID', inplace=True)
         metadata.set_index('ID', inplace=True); gene_metadata_dict = metadata.to_dict('index')
 
         return gene_metadata_dict
@@ -1365,7 +1369,7 @@ class DataPreprocessing(object):
             syn.append('None')
         # combine into new data frame then convert it to dictionary
         metadata = pandas.DataFrame(list(zip(rna, lab, desc, syn)), columns=['ID', 'Label', 'Description', 'Synonym'])
-        metadata = metadata.astype(str); metadata.drop_duplicates(subset='ID', keep='first', inplace=True)
+        metadata = metadata.astype(str); metadata.drop_duplicates(subset='ID', inplace=True)
         metadata.set_index('ID', inplace=True); rna_metadata_dict = metadata.to_dict('index')
 
         return rna_metadata_dict
@@ -1418,7 +1422,7 @@ class DataPreprocessing(object):
                 syn.append('None')
         # combine into new data frame then convert it to dictionary
         metadata = pandas.DataFrame(list(zip(var, label, desc, syn)), columns=['ID', 'Label', 'Description', 'Synonym'])
-        metadata.drop_duplicates(subset=None, keep='first', inplace=True); metadata = metadata.astype(str)
+        metadata.drop_duplicates(inplace=True); metadata = metadata.astype(str)
         metadata.set_index('ID', inplace=True); variant_metadata_dict = metadata.to_dict('index')
 
         return variant_metadata_dict
@@ -1545,29 +1549,29 @@ class DataPreprocessing(object):
 
         log_str = '*** PROCESSING LINKED OPEN DATA SOURCES ***'; print(log_str); logger.info(log_str)
 
-        # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
-        log_str = 'STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN ID MAPPING'; print('\n' + log_str); logger.info(log_str)
-        self.generates_specific_genomic_identifier_maps()
-        uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
-
-        # STEP 2: MeSH-ChEBI Identifier Mapping
-        log_str = 'STEP 2: MESH-CHEBI ID MAPPING'; print('\n' + log_str); logger.info(log_str)
-        self.creates_chebi_to_mesh_identifier_mappings()
-        uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
-
-        # STEP 3: Disease and Phenotype Identifier Mapping
-        log_str = 'STEP 3: DISEASE-PHENOTYPE ID MAPPING'; print('\n' + log_str); logger.info(log_str)
-        self.creates_disease_identifier_mappings()
-        uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
-
-        # STEP 4: Human Protein Atlas/GTEx Tissue/Cells Edge Data
-        log_str = 'STEP 4: CREATING HPA + GTEX ID EDGE DATA'; print('\n' + log_str); logger.info(log_str)
-        self._hpa_gtex_ontology_alignment()
-        self.processes_hpa_gtex_data()
-        uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
+        # # STEP 1: Human Transcript, Gene, and Protein Identifier Mapping
+        # log_str = 'STEP 1: HUMAN TRANSCRIPT, GENE, PROTEIN ID MAPPING'; print('\n' + log_str); logger.info(log_str)
+        # self.generates_specific_genomic_identifier_maps()
+        # uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
+        #
+        # # STEP 2: MeSH-ChEBI Identifier Mapping
+        # log_str = 'STEP 2: MESH-CHEBI ID MAPPING'; print('\n' + log_str); logger.info(log_str)
+        # self.creates_chebi_to_mesh_identifier_mappings()
+        # uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
+        #
+        # # STEP 3: Disease and Phenotype Identifier Mapping
+        # log_str = 'STEP 3: DISEASE-PHENOTYPE ID MAPPING'; print('\n' + log_str); logger.info(log_str)
+        # self.creates_disease_identifier_mappings()
+        # uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
+        #
+        # # STEP 4: Human Protein Atlas/GTEx Tissue/Cells Edge Data
+        # log_str = 'STEP 4: CREATING HPA + GTEX ID EDGE DATA'; print('\n' + log_str); logger.info(log_str)
+        # self._hpa_gtex_ontology_alignment()
+        # self.processes_hpa_gtex_data()
+        # uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
         # STEP 5: Creating Pathway and Sequence Ontology Mappings
-        log_str = 'STEP 5: PATHWAY + SEQUENCE ONTOLOGY ID MAP'; print('\n' + log_str); logger.info(log_str)
+        log_str = 'STEP 5: SEQUENCE ONTOLOGY + PATHWAY ID MAP'; print('\n' + log_str); logger.info(log_str)
         self.combines_pathway_and_sequence_ontology_dictionaries()
         uploads_data_to_gcs_bucket(self.bucket, self.log_location, log_dir, log)
 
