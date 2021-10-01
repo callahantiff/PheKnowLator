@@ -22,7 +22,7 @@ WORKDIR /PheKnowLator/
 RUN pip install -r builds/build_requirements.txt pkt_kg
 
 # handle ssl certifications
-pip install --upgrade certifi
+RUN pip install --upgrade certifi
 
 # set OWlTools memory (set to a high value, system will only use available memory)
 ENV OWLTOOLS_MEMORY=100g
