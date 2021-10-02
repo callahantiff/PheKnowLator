@@ -938,7 +938,6 @@ class DataPreprocessing(object):
         url = 'https://reactome.org/ContentService/data/query/ids'
         headers = {'accept': 'application/json', 'content-type': 'text/plain', }
         for request_ids in tqdm(list(chunks(list(reactome.keys()), 20))):
-            # result, key = content.query_ids(ids=','.join(request_ids)), 'goBiologicalProcess'
             data, key = ','.join(request_ids), 'goBiologicalProcess'
             result = requests.post(url=url, headers=headers, data=data, verify=False).json()
             if isinstance(result, List) or result['code'] != 404:
@@ -948,31 +947,6 @@ class DataPreprocessing(object):
                         else: reactome[res['stId']] = {'GO_' + res[key]['accession']}
 
         return reactome
-
-    # def processes_reactome_annotations(self, reactome: Dict) -> Dict:
-    #     """Runs a set of reactome identifiers against reactome gene ontology annotations to obtain mappings to Gene
-    #     Ontology Biological Processes.
-    #
-    #     Args:
-    #         reactome: A dict mapping different pathway identifiers to the Pathway Ontology.
-    #
-    #     Returns:
-    #          reactome: An extended dict mapping different pathway identifiers to the Pathway Ontology.
-    #     """
-    #
-    #     log_str = 'Obtaining Reactome-GO BP Mappings'; print('\t- ' + log_str); logger.info(log_str)
-    #
-    #     # process data frame and convert it to dictionary (keys=reactome ids, values=GO ids)
-    #     g_name = 'gene_association.reactome'
-    #     reactome_pathways2 = self.reads_gcs_bucket_data_to_df(f_name=g_name, delm='\t', skip=3)
-    #     reactome_pathways2 = reactome_pathways2.loc[reactome_pathways2[12].apply(lambda x: x == 'taxon:9606')]
-    #     filt_df = reactome_pathways2[reactome_pathways2[5].isin(['REACTOME:' + x for x in set(reactome.keys())])]
-    #     filt_df = dict(zip(filt_df[filt_df[8] == 'P'][5].str.replace('REACTOME:', ''), filt_df[filt_df[8] == 'P'][4]))
-    #     # add reactome annotations to dictionary
-    #     for key in tqdm(reactome.keys()):
-    #         if key in filt_df.keys(): reactome[key] |= {filt_df[key].replace('GO:', 'GO_')}
-    #
-    #     return reactome
 
     def _creates_pathway_identifier_mappings(self) -> Dict:
         """Processes the canonical pathways and other kegg-reactome pathway mapping files from the ComPath
@@ -988,7 +962,6 @@ class DataPreprocessing(object):
         pw_dict = self._preprocess_pathway_mapping_data(); reactome = self._processes_reactome_data()
         compath_reactome = self._processes_compath_pathway_data(reactome, pw_dict)
         kegg_reactome = self._processes_kegg_pathway_data(compath_reactome, pw_dict)
-        # reactome = self.processes_reactome_annotations(kegg_reactome)
         reactome = self._queries_reactome_api(kegg_reactome)
         filename = 'REACTOME_PW_GO_MAPPINGS.txt'
         with open(self.temp_dir + '/' + filename, 'w') as out:
@@ -1469,7 +1442,6 @@ class DataPreprocessing(object):
         ids, labels, desc, synonyms = [], [], [], []
         url = 'https://reactome.org/ContentService/data/query/ids'
         headers = {'accept': 'application/json', 'content-type': 'text/plain', }
-
         for request_ids in tqdm(list(chunks(nodes, 20))):
             data = ','.join(request_ids)
             results = requests.post(url=url, headers=headers, data=data, verify=False).json()
@@ -1480,8 +1452,8 @@ class DataPreprocessing(object):
                     else: synonyms.append('None')
 
         # combine into new data frame
-        metadata = pandas.DataFrame(list(zip(ids, labels, desc, synonyms)),
-                                    columns=['ID', 'Label', 'Description', 'Synonym'])
+        column_names = ['ID', 'Label', 'Description', 'Synonym']
+        metadata = pandas.DataFrame(list(zip(ids, labels, desc, synonyms)), columns=column_names)
         node_metadata_final = metadata.astype(str)
 
         return node_metadata_final
