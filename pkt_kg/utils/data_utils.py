@@ -281,7 +281,7 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
         # results = content.query_ids(ids=','.join(request_ids))
         data = ','.join(request_ids)
         results = requests.post(url=url, headers=headers, data=data, verify=False).json()
-        if results is not None or (isinstance(results, Dict) and results['code'] != 404):
+        if isinstance(results, List) or results['code'] != 404:
             for row in results:
                 ids.append(row['stId']); labels.append(row['displayName']); desc.append('None')
                 if row['displayName'] != row['name']: synonyms.append('|'.join(row['name']))
