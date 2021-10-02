@@ -128,7 +128,7 @@ def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> No
     with closing(ftplib.FTP(server)) as ftp, open(write_loc, 'wb') as fid:
         ftp.login(); ftp.cwd(directory); ftp.retrbinary('RETR {}'.format(file), fid.write)
     print('Decompressing and Writing Gzipped Data to File')
-    with gzip.open(write_loc, 'rb') as fid_in:
+    with gzip.open(write_loc) as fid_in:
         with open(write_loc.replace('.gz', ''), 'wb') as file_loc:
             file_loc.write(fid_in.read())
     # change filename and remove gzipped and original files
@@ -274,14 +274,10 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
     """
 
     ids, labels, desc, synonyms = [], [], [], []
-    url = 'https://reactome.org/ContentService/data/query/ids'
-    headers = {'accept': 'application/json', 'content-type': 'text/plain', }
 
     for request_ids in tqdm(list(chunks(nodes, 20))):
-        # results = content.query_ids(ids=','.join(request_ids))
-        data = ','.join(request_ids)
-        results = requests.post(url=url, headers=headers, data=data, verify=False).json()
-        if isinstance(results, List) or results['code'] != 404:
+        results = content.query_ids(ids=','.join(request_ids))
+        if results is not None and (isinstance(results, List) or results['code'] != 404):
             for row in results:
                 ids.append(row['stId']); labels.append(row['displayName']); desc.append('None')
                 if row['displayName'] != row['name']: synonyms.append('|'.join(row['name']))
@@ -326,7 +322,7 @@ def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: s
         res = (pd.DataFrame({col: np.repeat(df[col].values, lens) for col in idx_cols},
                             index=idx).assign(**{col: np.concatenate(df.loc[lens > 0, col].values) for col in lst}))
         # append those rows that have empty lists
-        if (lens == 0).any(): res = (res.append(df.loc[lens == 0, idx_cols], sort=False).fillna(fill_value))
+        if (lens == 0).any(): res = (res.append(df.loc[lens == 0, idx_cols]).fillna(fill_value))
         res = res.sort_index()  # revert the original index order
         if not preserve_idx: res = res.reset_index(drop=True)  # reset index if requested
         res = res[list(df)]  # return columns in original order
@@ -427,7 +423,7 @@ def deduplicates_file(src_filepath: str) -> None:
     lines = list(set(open(src_filepath, 'r').readlines())); pbar = tqdm(total=len(lines))
     with open(src_filepath, 'w') as f:
         while len(lines) > 0:
-            x = lines.pop(); pbar.update(1)
+            x = lines.pop(); pbar.update()
             f.write(x) if x.endswith('\n') else f.write(x + '\n')
         pbar.close()
 
