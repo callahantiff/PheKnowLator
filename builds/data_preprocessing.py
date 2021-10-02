@@ -1455,6 +1455,37 @@ class DataPreprocessing(object):
 
         return variant_metadata_dict
 
+    @staticmethod
+    def _metadata_api_mapper(nodes: List[str]) -> pandas.DataFrame:
+        """Takes a list of nodes and queries them, in chunks of 20, against the Reactome API.
+
+        Args:
+            nodes: A list of identifiers to obtain metadata information for.
+
+        Returns:
+            A pandas.DataFrame of metadata results.
+        """
+
+        ids, labels, desc, synonyms = [], [], [], []
+        url = 'https://reactome.org/ContentService/data/query/ids'
+        headers = {'accept': 'application/json', 'content-type': 'text/plain', }
+
+        for request_ids in tqdm(list(chunks(nodes, 20))):
+            data = ','.join(request_ids)
+            results = requests.post(url=url, headers=headers, data=data, verify=False).json()
+            if isinstance(results, List) or results['code'] != 404:
+                for row in results:
+                    ids.append(row['stId']); labels.append(row['displayName']); desc.append('None')
+                    if row['displayName'] != row['name']: synonyms.append('|'.join(row['name']))
+                    else: synonyms.append('None')
+
+        # combine into new data frame
+        metadata = pandas.DataFrame(list(zip(ids, labels, desc, synonyms)),
+                                    columns=['ID', 'Label', 'Description', 'Synonym'])
+        node_metadata_final = metadata.astype(str)
+
+        return node_metadata_final
+
     def _creates_pathway_metadata_dict(self) -> Dict:
         """Creates a dictionary to store labels, synonyms, and a description for each Reactome Pathway identifier
         present in the human Reactome Pathway Database identifier data set (ReactomePathways.txt); Reactome-Gene
@@ -1489,7 +1520,7 @@ class DataPreprocessing(object):
         data2 = pandas.read_csv(h, header=None, delimiter='\t', low_memory=False)
         data2 = data2.loc[data2[5].apply(lambda x: x == 'Homo sapiens')]
         # set unique node list
-        nodes = set(list(data[0]) + list(data1[5]) + list(data2[1])); metadata = metadata_api_mapper(list(nodes))
+        nodes = list(set(data[0]) | set(data1[5]) | set(data2[1])); metadata = self._metadata_api_mapper(nodes)
         metadata['ID'] = metadata['ID'].map('https://reactome.org/content/detail/{}'.format)
         metadata.set_index('ID', inplace=True); pathway_metadata_dict = metadata.to_dict('index')
 
