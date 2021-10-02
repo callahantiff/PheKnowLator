@@ -91,5 +91,6 @@ class TestDataUtilsMetadata(unittest.TestCase):
         self.assertIsInstance(metadata, pandas.DataFrame)
         self.assertTrue(all(x for x in list(metadata['ID']) if x in self.pathway_ids))
         self.assertEqual(['ID', 'Label', 'Description', 'Synonym'], list(metadata.columns))
+        self.assertEqual(len(metadata), 5)
 
         return None
