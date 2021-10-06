@@ -181,7 +181,7 @@ def main(app, rel, owl):
     # STEP 5 - CREATE DIRECTORY INDEX
     base_url = 'https://storage.googleapis.com/pheknowlator/'
 
-    # get list of current builds
+    # get list of archived builds
     all_builds = [file.name for file in bucket.list_blobs(prefix='archived_builds/')
                   if file.name.endswith('_Identifiers.txt')]
 
@@ -194,7 +194,7 @@ def main(app, rel, owl):
                                for x in curr_build_dates}
     write_order = list({k: v for k, v in sorted(curr_build_dates_sorted.items(), key=lambda item: item[1])}.keys())
 
-    # create dictionary with build data
+    # create dictionary with build data -- for specific flat-files
     output_dict = {}
     for k in write_order:
         inner_dict = {'subclass-relationsOnly-owl': None, 'subclass-relationsOnly-owlnets': None,
@@ -234,6 +234,59 @@ def main(app, rel, owl):
 
     # exit build
     uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
+
+    # write out dictionary of all archived files
+    all_builds = [file.name for file in bucket.list_blobs(prefix='archived_builds/')]
+    output_dict2 = {}
+    for k in write_order:
+        search_str = '_'.join(k.split('_')[0:2]) + '/' + '_'.join(k.split('_')[2:])
+        matches = [x for x in all_builds if search_str in x]
+        output_dict2[curr_build_dates_sorted[k]] = {'knowledge_graphs': {'other': ['None']}, 'data': {},
+                                                    'other': ['None'],
+                                                    'build_logs': {'data': 'None', 'knowledge_graphs': 'None'}}
+        for i in matches:
+            if '.log' in i:
+                if 'phases12' in i: output_dict2[curr_build_dates_sorted[k]]['build_logs']['data'] = base_url + i
+                else: output_dict2[curr_build_dates_sorted[k]]['build_logs']['knowledge_graphs'] = base_url + i
+            elif '/data/' in i and '.' in i.split('/')[-1]:
+                k1 = i.split('/')[i.split('/').index('data') + 1]
+                if k1 in output_dict2[curr_build_dates_sorted[k]]['data'].keys():
+                    output_dict2[curr_build_dates_sorted[k]]['data'][k1].append(base_url + i)
+                else: output_dict2[curr_build_dates_sorted[k]]['data'][k1] = [base_url + i]
+            elif '/knowledge_graphs/' in i and '.' in i.split('/')[-1]:
+                k1 = 'knowledge_graphs'
+                if 'subclass' in i or 'instance' in i:
+                    k2 = i.split('/')[i.split('/').index('knowledge_graphs') + 1]
+                    if k2 in output_dict2[curr_build_dates_sorted[k]][k1].keys():
+                        output_dict2[curr_build_dates_sorted[k]][k1][k2].append(base_url + i)
+                    else:
+                        output_dict2[curr_build_dates_sorted[k]][k1][k2] = [base_url + i]
+                else:
+                    if 'None' in output_dict2[curr_build_dates_sorted[k]][k1]['other']:
+                        output_dict2[curr_build_dates_sorted[k]][k1]['other'] = [base_url + i]
+                    else:
+                        output_dict2[curr_build_dates_sorted[k]][k1]['other'].append(base_url + i)
+            else:
+                if '.' in i.split('/')[-1]:
+                    if 'None' in output_dict2[curr_build_dates_sorted[k]]['other']:
+                        output_dict2[curr_build_dates_sorted[k]]['other'] = [base_url + i]
+                    else:
+                        output_dict2[curr_build_dates_sorted[k]]['other'].append(base_url + i)
+        # add build metadata
+        output_dict2['metadata'] = "For more information on the PheKnowLator Builds, please visit the project " + \
+                                   "GitHub: https://github.com/callahantiff/PheKnowLator. Additional information " + \
+                                   "on the file types can be found on the wiki, here: " + \
+                                   "https://github.com/callahantiff/PheKnowLator/wiki/KG-Construction#table-knowledge" \
+                                   "-graph-build-output"
+
+        # save json to temp dir and push pheknowlator GCS bucket
+        with open(log_dir + '/full_pheknowlator_build_files.json', 'w') as outfile:
+            json.dump(output_dict2, outfile, indent=4, sort_keys=True)
+        outfile.close()
+        uploads_data_to_gcs_bucket(bucket, '', log_dir, 'full_pheknowlator_build_files.json')
+
+        # exit build
+        uploads_data_to_gcs_bucket(bucket, gcs_log_location, log_dir, log)  # uploads log to gcs bucket
 
     return None
 
