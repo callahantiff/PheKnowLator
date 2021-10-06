@@ -53,7 +53,11 @@ Important Updates and Notifications
 
 Releases
 =========
-All data and output for each release are free to download from our dedicated Google Cloud Storage Bucket (GCS). All data can be downloaded from the `PheKnowLator GCS Bucket <https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator>`__, which is organized by release and build.
+All data and output for each release are free to download from our dedicated Google Cloud Storage Bucket (GCS). All
+data can be downloaded from the `PheKnowLator GCS Bucket <https://console.cloud.google
+.com/storage/browser/pheknowlator?project=pheknowlator>`__, which is organized by release and build. See `full_pheknowlator_build_files.json
+<https://storage.googleapis.com/pheknowlator/full_pheknowlator_build_files.json>`__ for a list of
+all of the knowledge graph and data file URLs for all builds.
 
 Current Release
 ----------------
