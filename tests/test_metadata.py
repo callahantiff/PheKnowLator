@@ -62,7 +62,7 @@ class TestMetadata(unittest.TestCase):
         # check node dict
         node_key = 'http://www.ncbi.nlm.nih.gov/gene/1'
         self.assertIsInstance(self.metadata.node_dict['nodes'], Dict)
-        self.assertTrue(len(self.metadata.node_dict['nodes']) == 20)
+        self.assertTrue(len(self.metadata.node_dict['nodes']) == 21)
         self.assertIn('Label', self.metadata.node_dict['nodes'][node_key].keys())
         self.assertIn('Synonym', self.metadata.node_dict['nodes'][node_key].keys())
         self.assertIn('Description', self.metadata.node_dict['nodes'][node_key].keys())
@@ -181,7 +181,7 @@ class TestMetadata(unittest.TestCase):
         # check that it worked
         # nodes
         node_key = 'http://purl.obolibrary.org/obo/SO_0000373'
-        self.assertTrue(len(self.metadata.node_dict['nodes']) == 2461)
+        self.assertTrue(len(self.metadata.node_dict['nodes']) == 2462)
         self.assertIn('Label', self.metadata.node_dict['nodes'][node_key])
         self.assertIn('Description', self.metadata.node_dict['nodes'][node_key])
         self.assertIn('Synonym', self.metadata.node_dict['nodes'][node_key])
@@ -200,6 +200,7 @@ class TestMetadata(unittest.TestCase):
     def test_output_metadata_graph(self):
         """Tests the output_metadata method when input is an RDFLib Graph object."""
 
+        original_dict = self.metadata.node_dict.copy()
         self.metadata.write_location = ''  # update environment var
         self.metadata.metadata_processor()  # load dictionary
         graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')  # load graph
@@ -221,11 +222,29 @@ class TestMetadata(unittest.TestCase):
         os.remove(filename + 'SO_Triples_Identifiers.txt')
         os.remove(filename + 'SO_Triples_Integer_Identifier_Map.json')
 
+        # write original data
+        pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
+
+        return None
+
+    def test_tidy_metadata(self):
+        """Tests the _tidy_metadata function when input includes keys with newlines."""
+
+        original_dict = self.metadata.node_dict.copy()  # store original faulty dict
+
+        test_node = 'http://purl.obolibrary.org/obo/VO_0000247'
+        self.metadata._tidy_metadata()
+        self.assertTrue('\n' not in self.metadata.node_dict['nodes'][test_node]['Label'])
+
+        # set original metadata dict back to faulty data
+        self.metadata.node_dict = original_dict
+
         return None
 
     def test_output_metadata_graph_set(self):
         """Tests the output_metadata method when input is a set of RDFLib Graph object triples."""
 
+        original_dict = self.metadata.node_dict.copy()
         self.metadata.write_location = ''  # update environment var
         self.metadata.metadata_processor()  # load dictionary
         graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')  # load graph
@@ -246,6 +265,9 @@ class TestMetadata(unittest.TestCase):
         os.remove(filename + 'SO_Triples_Integers.txt')
         os.remove(filename + 'SO_Triples_Identifiers.txt')
         os.remove(filename + 'SO_Triples_Integer_Identifier_Map.json')
+
+        # write original data
+        pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
 
         return None
 

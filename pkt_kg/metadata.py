@@ -3,16 +3,16 @@
 
 # import needed libraries
 import glob
-import json
+# import json
 import logging.config
-import os
+# import os
 import os.path
 import pandas  # type: ignore
 import pickle
 import re
-import subprocess
+# import subprocess
 
-from datetime import date, datetime
+from datetime import datetime
 from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
 from rdflib.namespace import RDF, RDFS, OWL  # type: ignore
 from tqdm import tqdm  # type: ignore
@@ -78,8 +78,23 @@ class Metadata(object):
 
         if self.node_data:
             log_str = 'Loading and Processing Node Metadata'; print(log_str); logger.info(log_str)
-            with open(self.node_data[0], 'rb') as out:
-                self.node_dict = pickle.load(out, encoding="utf8")
+            self.node_dict = pickle.load(open(self.node_data[0], 'rb'), encoding="utf8")
+
+        return None
+
+    def _tidy_metadata(self) -> None:
+        """Function checks the node_dict object, verifying that all associated strings do not contain random newline
+        characters which can cause errors when writing our metadata"""
+
+        if self.node_data and self.node_dict is not None:
+            temp_copy = self.node_dict.copy(); self.node_dict = dict()
+            for key, value in tqdm(temp_copy.items()):
+                self.node_dict[key] = {}
+                for ent_key, ent_value in value.items():
+                    updated_inner_dict = {k: re.sub('\s\s+', ' ', v.replace('\n', ' '))
+                                          if v is not None else v for k, v in ent_value.items()}
+                    self.node_dict[key][ent_key] = updated_inner_dict
+            del temp_copy
 
         return None
 
@@ -131,9 +146,7 @@ class Metadata(object):
                     'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': {
                         'Label': 'type', 'Description': 'The subject is an instance of a class.', 'Synonym': 'None'}}}
 
-            if self.node_data:
-                with open(self.node_data[0], 'wb') as out:
-                    pickle.dump(self.node_dict, out)
+            if self.node_data: pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))
 
         return None
 
@@ -239,8 +252,12 @@ class Metadata(object):
             None.
         """
 
-        if self.node_dict:
+        if self.node_dict is not None and self.node_data is not None:
             log_str = 'Writing Class Metadata'; print(log_str); logger.info(log_str)
+
+            # make sure that the metadata dict contains valid entries
+            self._tidy_metadata(); pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))
+            # write metadata in flat-file
             entities = set([i for j in tqdm(graph) for i in j]); filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:
                 out.write('entity_type' + '\t' + 'integer_id' + '\t' + 'entity_uri' + '\t' + 'label' + '\t' +
@@ -258,8 +275,8 @@ class Metadata(object):
                         syn = meta['Synonym'] if meta['Synonym'] is not None else 'None'
                     try: out.write(etyp + '\t' + str(nint) + '\t' + nid + '\t' + lab + '\t' + dsc + '\t' + syn + '\n')
                     except UnicodeEncodeError:
-                        out.write(etyp.encode('utf-8').decode() + '\t' + str(nint).encode('utf-8').decode() +
-                                  '\t' + nid.encode('utf-8').decode() + '\t' + lab.encode('utf-8').decode() +
-                                  '\t' + dsc.encode('utf-8').decode() + '\t' + syn.encode('utf-8').decode() + '\n')
+                        out.write(etyp.encode().decode() + '\t' + str(nint).encode().decode() +
+                                  '\t' + nid.encode().decode() + '\t' + lab.encode().decode() +
+                                  '\t' + dsc.encode().decode() + '\t' + syn.encode().decode() + '\n')
 
         return None
