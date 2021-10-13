@@ -3,9 +3,11 @@
 
 |pip| |downloads|
 
-|github_action| |sonar_quality| |code_climate_maintainability| |codacy| |code_climate_coverage| |coveralls|
+|github_action|  |ABRA|
 
-|ABRA|
+|sonar_quality| |code_climate_maintainability| |codacy| |code_climate_coverage| |coveralls|
+
+
 
 ***********************
 What is PheKnowLator?
