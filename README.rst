@@ -1,9 +1,9 @@
 |logo| 
 
 
-|github_action| |pip|  
+|pip| |downloads|
 
-|sonar_quality| |code_climate_maintainability| |codacy| |code_climate_coverage| |coveralls|
+|github_action| |sonar_quality| |code_climate_maintainability| |codacy| |code_climate_coverage| |coveralls|
 
 |ABRA|
 
@@ -387,11 +387,11 @@ Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. `A Framework for Automated C
     :target: https://coveralls.io/github/callahantiff/PheKnowLator?branch=master
     :alt: Coveralls Coverage
 
-.. |pip| image:: https://pypip.in/v/pkt-kg/badge.png
+.. |pip| image:: https://img.shields.io/pypi/v/pkt-kg?label=PyPI&logo=pypi&style=social
     :target: https://pypi.org/project/pkt-kg/
     :alt: PyPI project
 
-.. |downloads| image:: https://pepy.tech/badge/pkt_kg
+.. |downloads| image:: https://img.shields.io/pypi/dm/pkt-kg?color=%23b66dff&label=Downloads&logo=pypi
     :target: https://pepy.tech/badge/pkt_kg
     :alt: Pypi total project downloads
 

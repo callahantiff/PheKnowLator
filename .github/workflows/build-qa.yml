@@ -78,7 +78,7 @@ jobs:
         run: echo ${{ steps.docker_build.outputs.digest }}
 
   publish_pypi_library:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags')
     needs: build
     name: Publishes pkt_kg to PyPI
     runs-on: ubuntu-latest
@@ -100,3 +100,4 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
           verbose: true
+          skip_existing: true

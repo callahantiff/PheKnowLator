@@ -11,6 +11,7 @@ import numpy  # type: ignore
 import os
 import pandas  # type: ignore
 import pickle
+import re
 import requests
 import sys
 
@@ -1563,6 +1564,17 @@ class DataPreprocessing(object):
                                                 **self._creates_variant_metadata_dict(),
                                                 **self._creates_pathway_metadata_dict()},
                                       'relations': self._creates_relations_metadata_dict()}
+
+        # verify metadata strings are properly formatted
+        temp_copy = master_metadata_dictionary.copy(); master_metadata_dictionary = dict()
+        for key, value in tqdm(temp_copy.items()):
+            master_metadata_dictionary[key] = {}
+            for ent_key, ent_value in value.items():
+                updated_inner_dict = {k: re.sub('\s\s+', ' ', v.replace('\n', ' '))
+                                      if v is not None else v for k, v in ent_value.items()}
+                master_metadata_dictionary[key][ent_key] = updated_inner_dict
+        del temp_copy
+
         # save data and push to gcs bucket
         filename = 'node_metadata_dict.pkl'
         pickle.dump(master_metadata_dictionary, open(self.temp_dir + '/' + filename, 'wb'), protocol=4)
