@@ -53,6 +53,7 @@ import subprocess
 
 from tqdm import tqdm  # type: ignore
 from typing import Dict, List, Optional, Set, Tuple, Union
+from pkt_kg.utils import *
 
 # set-up environment variables
 obo = Namespace('http://purl.obolibrary.org/obo/')
@@ -94,7 +95,8 @@ def gets_ontology_definitions(graph: Graph) -> Dict:
                      ...}
     """
 
-    obj_defs = {x[0]: x[2] for x in graph.triples((None, obo.IAO_0000115, None))}
+    obj_defs = {x[0]: x[2] for x in graph.triples((None, obo.IAO_0000115, None))
+                if '@' not in n3(x[2]) or '@en' in n3(x[2])}
 
     return obj_defs
 
