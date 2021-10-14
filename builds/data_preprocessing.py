@@ -1526,11 +1526,11 @@ class DataPreprocessing(object):
               [x for x in gets_object_properties(ro_graph) if '/RO_' in str(x)]
         master_synonyms = [x for x in ro_graph if 'synonym' in str(x[1]).lower() and isinstance(x[0], URIRef)]
         for x in tqdm(cls):
-            cls_label = list(ro_graph.objects(x, RDFS.label))
+            cls_label = [x for x in ro_graph.objects(x, RDFS.label) if '@' not in n3(x) or '@en' in n3(x)]
             labels = str(cls_label[0]) if len(cls_label) > 0 else 'None'
             cls_syn = [str(i[2]) for i in master_synonyms if x == i[0]]
             synonym = str(cls_syn[0]) if len(cls_syn) > 0 else 'None'
-            cls_desc = list(ro_graph.objects(x, obo.IAO_0000115))
+            cls_desc = [x for x in ro_graph.objects(x, obo.IAO_0000115) if '@' not in n3(x) or '@en' in n3(x)]
             desc = '|'.join([str(cls_desc[0])]) if len(cls_desc) > 0 else 'None'
             relation_metadata_dict[str(x)] = {'Label': labels, 'Description': desc, 'Synonym': synonym}
 
