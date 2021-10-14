@@ -127,9 +127,11 @@ class Metadata(object):
             for key, entities in domains:
                 temp_dict = dict()
                 for i in tqdm(entities):
-                    labels = [x for x in list(graph.triples((i, RDFS.label, None)))]
-                    descriptions = [x for x in list(graph.triples((i, obo.IAO_0000115, None)))]
-                    synonyms = [x for x in list(graph.triples((i, None, None))) if 'synonym' in str(x[1]).lower()]
+                    labels = [x for x in graph.triples((i, RDFS.label, None))
+                              if '@' not in n3(x[2]) or '@en' in n3(x[2])]
+                    descriptions = [x for x in graph.triples((i, obo.IAO_0000115, None))
+                                    if '@' not in n3(x[2]) or '@en' in n3(x[2])]
+                    synonyms = [x for x in graph.triples((i, None, None)) if 'synonym' in str(x[1]).lower()]
                     if len(labels) != 0:
                         temp_dict[str(i)] = {
                             'Label': str(labels[0][2]) if len(labels) > 0 else None,

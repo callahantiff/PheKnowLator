@@ -197,10 +197,10 @@ def data_downloader(url: str, write_location: str, filename: str = '') -> None:
     file = re.sub(zip_pat, '', filename) if filename != '' else re.sub(zip_pat, '', url.split('/')[-1])
     if '.zip' in url: zipped_url_download(url, write_location, file)
     elif '.gz' in url or '.gz' in filename:
-        if 'ftp' in url: gzipped_ftp_url_download(url, write_location, file)
+        if url.startswith('ftp'): gzipped_ftp_url_download(url, write_location, file)
         else: gzipped_url_download(url, write_location, file)
     else:
-        if 'ftp' in url: ftp_url_download(url, write_location, file)
+        if url.startswith('ftp'): ftp_url_download(url, write_location, file)
         else: url_download(url, write_location, file)
 
     return None

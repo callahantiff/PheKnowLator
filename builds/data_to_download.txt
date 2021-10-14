@@ -13,7 +13,7 @@ http://purl.obolibrary.org/obo/ro.owl
 
 # linked open data
 # human transcript, gene, and protein identifier mapping
-hgnc_complete_set.txt, ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/tsv/hgnc_complete_set.txt
+hgnc_complete_set.txt, http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/hgnc_complete_set.txt
 Homo_sapiens.GRCh38.102.gtf, ftp://ftp.ensembl.org/pub/release-102/gtf/homo_sapiens/Homo_sapiens.GRCh38.102.gtf.gz
 Homo_sapiens.GRCh38.102.uniprot.tsv, ftp://ftp.ensembl.org/pub/release-102/tsv/homo_sapiens/Homo_sapiens.GRCh38.102.uniprot.tsv.gz
 Homo_sapiens.GRCh38.102.entrez.tsv, ftp://ftp.ensembl.org/pub/release-102/tsv/homo_sapiens/Homo_sapiens.GRCh38.102.entrez.tsv.gz
