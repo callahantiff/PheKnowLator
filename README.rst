@@ -394,7 +394,7 @@ Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. `A Framework for Automated C
     :alt: PyPI project
 
 .. |downloads| image:: https://img.shields.io/pypi/dm/pkt-kg?color=%23b66dff&label=Downloads&logo=pypi
-    :target: https://pepy.tech/badge/pkt_kg
+    :target: https://img.shields.io/pypi/dm/pkt-kg?color=%23b66dff&label=Downloads&logo=pypi
     :alt: Pypi total project downloads
 
 .. |codacy| image:: https://app.codacy.com/project/badge/Grade/2cfa4ef5f9b6498da56afea0f5dadeed
