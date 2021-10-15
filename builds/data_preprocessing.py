@@ -17,10 +17,10 @@ import sys
 
 from google.cloud import storage  # type: ignore
 from rdflib import Graph, Namespace, URIRef  # type: ignore
-from rdflib.namespace import RDFS  # type: ignore
+from rdflib.namespace import RDFS, OWL  # type: ignore
 from reactome2py import content  # type: ignore
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 # import script containing helper functions
 from builds.build_utilities import *
@@ -36,6 +36,9 @@ except FileNotFoundError:
     if not os.path.exists(log_dir): os.mkdir(log_dir)
 logger = logging.getLogger(__name__)
 logging.config.fileConfig(log_config[0], disable_existing_loggers=False, defaults={'log_file': log_dir + '/' + log})
+
+# set external namespaces for use with RDFLib Graph objects
+obo = Namespace('http://purl.obolibrary.org/obo/')
 
 
 class DataPreprocessing(object):
@@ -1119,12 +1122,13 @@ class DataPreprocessing(object):
 
         return None
 
-    def _processes_protein_ontology_data(self) -> networkx.MultiDiGraph:
+    def _processes_protein_ontology_data(self) -> Tuple:
         """Reads in the PRotein Ontology (PR) into an RDFLib graph object and converts it to a Networkx MultiDiGraph
         object.
 
         Returns:
-            networkx_mdg: A Networkx MultiDiGraph object containing protein ontology data.
+            A tuple where the first item is an RDFLib Graph object and the second is a Networkx MultiDiGraph
+            object; both contain the same data.
         """
 
         print('\t- Loading Protein Ontology Data'); logger.info('Loading Protein Ontology Data')
@@ -1134,7 +1138,24 @@ class DataPreprocessing(object):
         pr_graph = Graph().parse(x); networkx_mdg: networkx.MultiDiGraph = networkx.MultiDiGraph()
         for s, p, o in tqdm(pr_graph): networkx_mdg.add_edge(s, o, **{'key': p})
 
-        return networkx_mdg
+        return pr_graph, networkx_mdg
+
+    @staticmethod
+    def _queries_protein_ontology(protein_ont_graph: Graph) -> List:
+        """Queries the Protein Ontology for all Human Protein Classes.
+
+        Args:
+            protein_ont_graph: A RDFLib Graph object containing the Protein Ontology.
+
+        Returns:
+            human_pro_classes: A set of protein ontology identifiers for protein classes from the homo sapiens taxon.
+        """
+
+        human_classes_restriction = list(protein_ont_graph.triples((None, OWL.someValuesFrom, obo.NCBITaxon_9606)))
+        human_classes = [list(protein_ont_graph.subjects(RDFS.subClassOf, x[0])) for x in human_classes_restriction]
+        human_pro_classes = list(str(i) for j in human_classes for i in j if 'PR_' in str(i))
+
+        return human_pro_classes
 
     def _logically_verifies_human_protein_ontology(self, in_filename, out_filename, reasoner) -> None:
         """Logically verifies constructed Human Protein Ontology by running a deductive logic reasoner.
@@ -1180,9 +1201,11 @@ class DataPreprocessing(object):
 
         log_str = 'Construct a Human PRotein Ontology'; print(log_str); logger.info(log_str)
 
-        networkx_mdg = self._processes_protein_ontology_data(); f_name = 'human_pro_classes.html'
-        x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
-        df_list = pandas.read_html(x); human_pro_classes = list(df_list[-1]['PRO_term'])
+        pro_ont, networkx_mdg = self._processes_protein_ontology_data()
+        # f = 'human_pro_classes.html'
+        # x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f, self.temp_dir)
+        # df_list = pandas.read_html(x); human_pro_classes = list(df_list[-1]['PRO_term'])
+        human_pro_classes = self._queries_protein_ontology(pro_ont)
         # create a new graph using breadth first search paths
         human_pro_graph, human_networkx_mdg = Graph(), networkx.MultiDiGraph()
         for node in tqdm(human_pro_classes):
