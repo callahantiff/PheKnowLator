@@ -857,7 +857,7 @@ class DataPreprocessing(object):
         reactome_pathways = reactome_pathways.loc[reactome_pathways[2].apply(lambda x: x == 'Homo sapiens')]
         reactome = {x: {'PW_0000001'} for x in set(list(reactome_pathways[0]))}
         # reactome - GO associations
-        reactome_pathways2 = self.reads_gcs_bucket_data_to_df(f_name=g_name, delm='\t', skip=3)
+        reactome_pathways2 = self.reads_gcs_bucket_data_to_df(f_name=g_name, delm='\t', skip=4)
         reactome_pathways2 = reactome_pathways2.loc[reactome_pathways2[12].apply(lambda x: x == 'taxon:9606')]
         reactome.update({x.split(':')[-1]: {'PW_0000001'} for x in set(list(reactome_pathways2[5]))})
         # reactome CHEBI
@@ -1507,7 +1507,7 @@ class DataPreprocessing(object):
         # reactome gene association data
         f_name1 = 'gene_association.reactome'
         g = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name1, self.temp_dir)
-        data1 = pandas.read_csv(g, header=None, delimiter='\t', skiprows=3, low_memory=False)
+        data1 = pandas.read_csv(g, header=None, delimiter='\t', skiprows=4, low_memory=False)
         data1 = data1.loc[data1[12].apply(lambda x: x == 'taxon:9606')]
         data1[5].replace('REACTOME:', '', inplace=True, regex=True)
         # reactome CHEBI data
