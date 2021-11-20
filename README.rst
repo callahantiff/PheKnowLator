@@ -27,7 +27,7 @@ How do I Learn More?
 ===================================
 - Join and/or start a `Discussion`_
 - The Project `Wiki`_ for available knowledge graphs, `pkt_kg` data sources, and the knowledge graph construction process
-- Preliminary results from our 2020 ISMB presentation are available `here <https://doi.org/10.1101/2020.04.30.071407>`__
+- A `Zenodo Community <https://zenodo.org/communities/pheknowlator-ecosystem>`__ has been established to provide access to software releases, presentations, and preprints related to this project   
 
 |
 
