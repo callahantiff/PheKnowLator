@@ -5,7 +5,8 @@ import os.path
 import pickle
 import unittest
 
-from rdflib import Graph
+from rdflib import Graph, Namespace
+from rdflib.namespace import RDF, OWL
 from typing import Dict
 
 from pkt_kg.metadata import *
@@ -281,14 +282,7 @@ class TestMetadata(unittest.TestCase):
         updated_graph = self.metadata.adds_ontology_annotations(filename='tests/data/so_tests_file.owl', graph=graph)
 
         # check that the annotations were added
-        results = updated_graph.query(
-            """SELECT DISTINCT ?o ?p ?s
-                WHERE {
-                    ?o rdf:type owl:Ontology .
-                    ?o ?p ?s . }
-            """, initNs={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                         'owl': 'http://www.w3.org/2002/07/owl#'})
-
+        results = list(graph.triples((list(graph.subjects(RDF.type, OWL.Ontology))[0], None, None)))
         results_list = [str(x) for y in results for x in y]
         self.assertTrue(len(results_list) == 21)
         self.assertIn('https://pheknowlator.com/pheknowlator_file.owl', results_list)
