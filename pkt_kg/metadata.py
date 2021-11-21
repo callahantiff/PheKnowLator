@@ -216,19 +216,13 @@ class Metadata(object):
         pkt_url = 'https://github.com/callahantiff/PheKnowLator'
 
         # query ontology to obtain existing ontology annotations and remove them
-        results = graph.query(
-            """SELECT DISTINCT ?o ?p ?s
-                WHERE {
-                    ?o rdf:type owl:Ontology .
-                    ?o ?p ?s . }
-            """, initNs={'rdf': RDF, 'owl': OWL})
-        for res in results:
-            graph.remove(res)
+        results = list(graph.triples((list(graph.subjects(RDF.type, OWL.Ontology))[0], None, None)))
+        for res in results: graph.remove(res)
 
         # add new annotations
-        graph.add((URIRef(url + '.owl'), RDF.type, URIRef(OWL + 'Ontology')))
+        graph.add((URIRef(url + '.owl'), RDF.type, OWL.Ontology))
         graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'default-namespace'), Literal(filename)))
-        graph.add((URIRef(url + '.owl'), URIRef(OWL + 'versionIRI'), URIRef(pkt_url + '/wiki/' + self.kg_version)))
+        graph.add((URIRef(url + '.owl'), OWL.versionIRI, URIRef(pkt_url + '/wiki/' + self.kg_version)))
         graph.add((URIRef(url + '.owl'), RDFS.comment, Literal('PheKnowLator Release version ' + self.kg_version)))
         graph.add((URIRef(url + '.owl'), URIRef(oboinowl + 'date'), Literal(date_full)))
         graph.add((URIRef(url + '.owl'), RDFS.comment, Literal(authors)))
