@@ -1,47 +1,47 @@
-#name:  KG Build - Part 1 (Data Download and Preprocess)
-#on:
-#  schedule:
-#    - cron: '0 0 1 * *'  # runs at 00:00:00 UTC on the first day of each month
-#env:
-#  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
-#  GCS_SERVICE_ACCOUNT: ${{ secrets.GCE_SA_KEY }}
-#
-#jobs:
-#  pkt-build-phase-1-2:
-#    name: KG Build Phases 1-2
-#    runs-on: ubuntu-latest
-#    env:
-#      DOCKERFILE: builds/Dockerfile.phases12
-#      GCE_MACHINE_TYPE: n1-highmem-16
-#      GCE_REGION: us-central1
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#        with:
-#          ref: master
-#      - name: Setup Python
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: 3.6
-#      - name: Install Requirements and Dependencies
-#        run: pip install -r builds/build_requirements.txt pkt_kg
-#      - uses: google-github-actions/setup-gcloud@master
-#        with:
-#          version: '290.0.1'
-#          service_account_key: ${{ secrets.GCE_SA_KEY }}
-#          project_id: ${{ secrets.GCE_PROJECT }}
-#      - name: Configure Docker Authentication
-#        run: gcloud --quiet auth configure-docker
-#      - name: Build Docker Image
-#        run: docker build --tag "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds
-#      - name: Publish Docker Image to Google Container Registry
-#        run: docker push "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
-#      - name: Prepare Temp Build Directory in PKT Google Cloud Storage Bucket
-#        run: gsutil cp gs://pheknowlator/README.txt gs://pheknowlator/temp_build_inprogress/
-#      - name: Submit Build Job to AI-Platform
-#        run: |-
-#            gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
-#            --scale-tier custom --master-machine-type "$GCE_MACHINE_TYPE" --region "$GCE_REGION" \
-#            --master-image-uri "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
-#      - name: Monitor Build
-#        run: python builds/job_monitoring.py --gce_type reg --phase 1 --sleep 60 --gcs_dir '' --project '' --job ''
+name:  KG Build - Part 1 (Data Download and Preprocess)
+on:
+ schedule:
+   - cron: '0 0 30 * *'  # runs at 00:00:00 UTC on the first day of each month
+env:
+ PROJECT_ID: ${{ secrets.GCE_PROJECT }}
+ GCS_SERVICE_ACCOUNT: ${{ secrets.GCE_SA_KEY }}
+
+jobs:
+ pkt-build-phase-1-2:
+   name: KG Build Phases 1-2
+   runs-on: ubuntu-latest
+   env:
+     DOCKERFILE: builds/Dockerfile.phases12
+     GCE_MACHINE_TYPE: n1-highmem-16
+     GCE_REGION: us-central1
+   steps:
+     - name: Checkout
+       uses: actions/checkout@v2
+       with:
+         ref: master
+     - name: Setup Python
+       uses: actions/setup-python@v2
+       with:
+         python-version: 3.6
+     - name: Install Requirements and Dependencies
+       run: pip install -r builds/build_requirements.txt pkt_kg
+     - uses: google-github-actions/setup-gcloud@master
+       with:
+         version: '290.0.1'
+         service_account_key: ${{ secrets.GCE_SA_KEY }}
+         project_id: ${{ secrets.GCE_PROJECT }}
+     - name: Configure Docker Authentication
+       run: gcloud --quiet auth configure-docker
+     - name: Build Docker Image
+       run: docker build --tag "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA" -f "$DOCKERFILE" ./builds
+     - name: Publish Docker Image to Google Container Registry
+       run: docker push "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
+     - name: Prepare Temp Build Directory in PKT Google Cloud Storage Bucket
+       run: gsutil cp gs://pheknowlator/README.txt gs://pheknowlator/temp_build_inprogress/
+     - name: Submit Build Job to AI-Platform
+       run: |-
+           gcloud ai-platform jobs submit training "pkt_builder_phases_1_2_$GITHUB_SHA" \
+           --scale-tier custom --master-machine-type "$GCE_MACHINE_TYPE" --region "$GCE_REGION" \
+           --master-image-uri "gcr.io/$PROJECT_ID/pkt_builder_phases_1_2_$GITHUB_SHA-image:$GITHUB_SHA"
+     - name: Monitor Build
+       run: python builds/job_monitoring.py --gce_type reg --phase 1 --sleep 60 --gcs_dir '' --project '' --job ''
