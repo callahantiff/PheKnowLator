@@ -8,10 +8,10 @@ chemical-phenotype|:;MESH_;|class-class|RO_0002606|http://purl.obolibrary.org/ob
 chemical-protein|;MESH_;|class-class|RO_0002434|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|0;3|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt|10;!=;''|6;==;Homo sapiens::5;.startswith('protein');
 chemical-rna|;MESH_;|class-entity|RO_0002434|http://purl.obolibrary.org/obo/|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|t|0;3|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt|10;!=;''|6;==;Homo sapiens::5;.startswith('mRNA');
 disease-phenotype|:;;HP_|class-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|0;3|0:./resources/processed_data/DISEASE_MONDO_MAP.txt|None|2;!=;NOT|None
-gene-disease|;;|entity-class|RO_0003302|http://www.ncbi.nlm.nih.gov/gene/|http://purl.obolibrary.org/obo/|t|0;4|1:./resources/processed_data/DISEASE_MONDO_MAP.txt|10;>=;1.0|None
+gene-disease|;;|entity-class|RO_0003302|http://www.ncbi.nlm.nih.gov/gene/|http://purl.obolibrary.org/obo/|t|0;4|1:./resources/processed_data/DISEASE_MONDO_MAP.txt|6;!=;group|None
 gene-gene|;;|entity-entity|RO_0002435|http://www.ncbi.nlm.nih.gov/gene/|http://www.ncbi.nlm.nih.gov/gene/|t|0;1|0:./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt;1:./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt|None|None
 gene-pathway|:;;|entity-entity|RO_0000056|http://www.ncbi.nlm.nih.gov/gene/|https://reactome.org/content/detail/|t|1;3|None|None|3;.startswith('REACT:R-HSA-');
-gene-phenotype|;;|entity-class|RO_0003302|http://www.ncbi.nlm.nih.gov/gene/|http://purl.obolibrary.org/obo/|t|0;4|1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|10;>=;1.0|None
+gene-phenotype|;;|entity-class|RO_0003302|http://www.ncbi.nlm.nih.gov/gene/|http://purl.obolibrary.org/obo/|t|0;4|1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|6;!=;group|None
 gene-protein|;;|entity-class|RO_0002205|http://www.ncbi.nlm.nih.gov/gene/|http://purl.obolibrary.org/obo/|t|0;1|None|None|4;==;protein-coding
 gene-rna|;;|entity-entity|RO_0002511|http://www.ncbi.nlm.nih.gov/gene/|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|t|0;1|None|None|None
 gobp-pathway|:;GO_;|class-entity|RO_0009501|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|t|4;5|None|None|8;==;P::12;==;taxon:9606::5;.startswith('REACTOME');
