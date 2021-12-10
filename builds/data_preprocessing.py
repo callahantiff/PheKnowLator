@@ -1333,14 +1333,18 @@ class DataPreprocessing(object):
         filename1, filename2 = 'UNIPROT_PROTEIN_COFACTOR.txt', 'UNIPROT_PROTEIN_CATALYST.txt'
         with open(self.temp_dir + '/' + filename1, 'w') as out1, open(self.temp_dir + '/' + filename2, 'w') as out2:
             for line in tqdm(data):
-                if 'CHEBI' in line.split('\t')[4]:  # cofactors
+                status = line.split('\t')[1]; upt_id = line.split('\t')[0]; upt_entry = line.split('\t')[2]
+                pr_id = 'PR_' + line.split('\t')[3].strip(';')
+                # get cofactors
+                if 'CHEBI' in line.split('\t')[4]:
                     for i in line.split('\t')[4].split(';'):
                         chebi = i.split('[')[-1].replace(']', '').replace(':', '_')
-                        out1.write('PR_' + line.split('\t')[3].strip(';') + '\t' + chebi + '\n')
-                if 'CHEBI' in line.split('\t')[5]:  # catalysts
-                    for j in line.split('\t')[5].split(';'):
-                        chebi = j.split('[')[-1].replace(']', '').replace(':', '_')
-                        out2.write('PR_' + line.split('\t')[3].strip(';') + '\t' + chebi + '\n')
+                        out1.write(pr_id + '\t' + chebi + '\t' + status + '\t' + upt_id + '\t' + upt_entry + '\n')
+                # get catalysts
+                if 'CHEBI' in line.split('\t')[5]:
+                    for i in line.strip('\n').split('\t')[5].split(';'):
+                        chebi = i.split('[')[-1].replace(']', '').replace(':', '_')
+                        out2.write(pr_id + '\t' + chebi + '\t' + status + '\t' + upt_id + '\t' + upt_entry + '\n')
         # push data to gsc bucket
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, filename1)
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, filename2)
