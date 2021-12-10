@@ -759,7 +759,7 @@ class DataPreprocessing(object):
         filename = 'HPA_tissues.txt'
         with open(self.temp_dir + '/' + filename, 'w') as outfile:
             for x in tqdm(list(hpa.columns)):
-                if x.endswith('[NX]'): outfile.write(x.split('RNA - ')[-1].split(' [NX]')[:-1][0] + '\n')
+                if x.endswith('[nTPM]'): outfile.write(x.split('RNA - ')[-1].split(' [nTPM]')[:-1][0] + '\n')
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, filename)
 
         return hpa
@@ -786,36 +786,69 @@ class DataPreprocessing(object):
         # process human protein atlas data
         hpa_results = []
         for idx, row in tqdm(hpa.iterrows(), total=hpa.shape[0]):
-            ens, gene, uniprot, evid = str(row['Ensembl']), str(row['Gene']), str(row['Uniprot']), str(row['Evidence'])
-            if row['RNA tissue specific NX'] != 'None':
-                for x in row['RNA tissue specific NX'].split(';'):
-                    hpa_results += [[ens, gene, uniprot, evid, 'anatomy', str(x.split(':')[0])]]
-            if row['RNA cell line specific NX'] != 'None':
-                for x in row['RNA cell line specific NX'].split(';'):
-                    hpa_results += [[ens, gene, uniprot, evid, 'cell line', str(x.split(':')[0])]]
-            if row['RNA brain regional specific NX'] != 'None':
-                for x in row['RNA brain regional specific NX'].split(';'):
-                    hpa_results += [[ens, gene, uniprot, evid, 'anatomy', str(x.split(':')[0])]]
-            if row['RNA blood cell specific NX'] != 'None':
-                for x in row['RNA blood cell specific NX'].split(';'):
-                    hpa_results += [[ens, gene, uniprot, evid, 'anatomy', str(x.split(':')[0])]]
-            if row['RNA blood lineage specific NX'] != 'None':
-                for x in row['RNA blood lineage specific NX'].split(';'):
-                    hpa_results += [[ens, gene, uniprot, evid, 'anatomy', str(x.split(':')[0])]]
+            ens = str(row['Ensembl']); gene = str(row['Gene']); uni = str(row['Uniprot'])
+            evid = str(row['Evidence']); sub = str(row['Subcellular location']); source = 'The Human Protein Atlas'
+            if row['RNA tissue specific nTPM'] != 'None':
+                row_val = row['RNA tissue specific nTPM']
+                if ';' in row_val:
+                    for x in row_val.split(';'):
+                        x1 = str(x.split(':')[0]); x2 = float(x.split(': ')[1])
+                        hpa_results += [ [ens, gene, uni, evid, 'anatomy', sub, x1, x2, source]]
+                else:
+                    x1 = str(row_val.split(':')[0]); x2 = float(row_val.split(': ')[1])
+                    hpa_results += [[ens, gene, uni, evid, 'anatomy', sub, x1, x2, source]]
+            if row['RNA cell line specific nTPM'] != 'None':
+                row_val = row['RNA cell line specific nTPM']
+                if ';' in row_val:
+                    for x in row_val.split(';'):
+                        x1 = str(x.split(':')[0]); x2 = float(x.split(': ')[1])
+                        hpa_results += [[ens, gene, uni, evid, 'cell line', sub, x1, x2, source]]
+                else:
+                    x1 = str(row_val.split(':')[0]); x2 = float(row_val.split(': ')[1])
+                    hpa_results += [[ens, gene, uni, evid, 'cell line', sub, x1, x2, source]]
+            if row['RNA brain regional specific nTPM'] != 'None':
+                row_val = row['RNA brain regional specific nTPM']
+                if ';' in row_val:
+                    for x in row_val.split(';'):
+                        x1 = str(x.split(':')[0]); x2 = float(x.split(': ')[1])
+                        hpa_results += [[ens, gene, uni, evid, 'anatomy', sub, x1, x2, source]]
+                else:
+                    x1 = str(row_val.split(':')[0]); x2 = float(row_val.split(': ')[1])
+                    hpa_results += [[ens, gene, uni, evid, 'anatomy', sub, x1, x2, source]]
+            if row['RNA blood cell specific nTPM'] != 'None':
+                row_val = row['RNA blood cell specific nTPM']
+                if ';' in row_val:
+                    for x in row_val.split(';'):
+                        x1 = str(x.split(':')[0]); x2 = float(x.split(': ')[1])
+                        hpa_results += [[ens, gene, uni, evid, 'cell line', sub, x1, x2, source]]
+                else:
+                    x1 = str(row_val.split(':')[0]); x2 = float(row_val.split(': ')[1])
+                    hpa_results += [[ens, gene, uni, evid, 'cell line', sub, x1, x2, source]]
+            if row['RNA blood lineage specific nTPM'] != 'None':
+                row_val = row['RNA blood lineage specific nTPM']
+                if ';' in row_val:
+                    for x in row_val.split(';'):
+                        x1 = str(x.split(':')[0]); x2 = float(x.split(': ')[1])
+                        hpa_results += [[ens, gene, uni, evid, 'cell line', sub, x1, x2, source]]
+                else:
+                    x1 = str(row_val.split(':')[0]); x2 = float(row_val.split(': ')[1])
+                    hpa_results += [[ens, gene, uni, evid, 'cell line', sub, x1, x2, source]]
         # process gtex data -- using only those protein-coding genes not already in hpa
         gtex_results, hpa_genes = [], list(hpa['Ensembl'].drop_duplicates(keep='first', inplace=False))
         gtex = gtex.loc[gtex['Name'].apply(lambda i: i not in hpa_genes)]
+        # loop over data and re-organize
+        source = 'Genotype-Tissue Expression (GTEx) Project'
         for idx, row in tqdm(gtex.iterrows(), total=gtex.shape[0]):
             for col in list(gtex.columns)[2:]:
-                typ = 'cell line' if 'Cells' in col else 'anatomy'
-                if row[col] >= 1.0:
-                    evidence = 'Evidence at transcript level'
-                    gtex_results += [[str(row['Name']), str(row['Description']), 'None', evidence, typ, str(col)]]
+                typ = 'cell line' if 'Cells' in col else 'anatomy'; evid = 'Evidence at transcript level'
+                gtex_results += [
+                    [str(row['Name']), str(row['Description']), 'None', evid, typ, 'None', col, float(row[col]), source]]
         # write results
         filename = 'HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt'
         with open(self.temp_dir + '/' + filename, 'w') as out:
-            for x in hpa_results + gtex_results:
-                out.write(x[0] + '\t' + x[1] + '\t' + x[2] + '\t' + x[3] + '\t' + x[4] + '\t' + x[5] + '\n')
+            for x in tqdm(hpa_results + gtex_results):
+                out.write(x[0] + '\t' + x[1] + '\t' + x[2] + '\t' + x[3] + '\t' + x[4] + '\t' + x[5] + '\t' +
+                          x[6] + '\t' + str(x[7]) + '\t' + x[8] + '\n')
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, filename)
 
         return None
