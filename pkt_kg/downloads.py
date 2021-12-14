@@ -80,7 +80,8 @@ class DataSource(object):
             raise TypeError(log_str)
         else:
             resource_data_file: TextIO = open(self.resource_data)
-            self.resource_info: List = resource_data_file.read().splitlines(); resource_data_file.close()
+            self.resource_info: List = [x for x in resource_data_file.read().splitlines() if not x.startswith('#')]
+            resource_data_file.close()
 
         self.resource_dict: Dict[str, List[str]] = {}
         self.source_list: Dict[str, str] = {}

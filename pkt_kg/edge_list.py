@@ -51,7 +51,7 @@ class CreatesEdgeList(object):
         self.source_info: Dict[str, Dict[str, Any]] = dict()
 
         with open(source_file, 'r') as source_file_data:
-            for row in source_file_data.read().splitlines():
+            for row in [x for x in source_file_data.read().splitlines() if not x.startswith('#')]:
                 cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
                 key = cols[0].strip('"').strip("'")
                 self.source_info[key] = {}
