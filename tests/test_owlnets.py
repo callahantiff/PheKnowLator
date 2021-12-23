@@ -47,18 +47,23 @@ class TestOwlNets(unittest.TestCase):
         # set-up input arguments
         self.write_location = self.dir_loc_resources + '/knowledge_graphs'
         self.kg_filename = '/so_with_imports.owl'
+        self.kg_filename2 = '/clo_with_imports.owl'
         # read in knowledge graph
         self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.graph2 = Graph().parse('http://purl.obolibrary.org/obo/clo.owl', format='xml')
         # initialize class
         self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
                                 write_location=self.write_location, filename=self.kg_filename)
         self.owl_nets2 = OwlNets(kg_construct_approach='instance', graph=self.graph,
                                  write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets3 = OwlNets(kg_construct_approach='subclass', graph=self.graph2,
+                                 write_location=self.write_location, filename=self.kg_filename2)
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
         self.owl_nets.owl_tools = os.path.abspath(dir_loc_owltools)
         self.owl_nets2.owl_tools = os.path.abspath(dir_loc_owltools)
+        self.owl_nets3.owl_tools = os.path.abspath(dir_loc_owltools)
 
         return None
 
@@ -433,17 +438,17 @@ class TestOwlNets(unittest.TestCase):
         """Tests the returns_object_property method."""
 
         # when sub and obj are PATO terms and property is none
-        res1 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.PATO_0000402, None)
+        res1 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.PATO_0000402)
         self.assertIsInstance(res1, URIRef)
         self.assertEqual(res1, RDFS.subClassOf)
 
         # when sub and obj are NOT PATO terms and property is none
-        res2 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.GO_2000380, None)
+        res2 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.GO_2000380)
         self.assertIsInstance(res2, URIRef)
         self.assertEqual(res2, RDFS.subClassOf)
 
         # when the obj is a PATO term and property is none
-        res3 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.PATO_0001199, None)
+        res3 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.PATO_0001199)
         self.assertIsInstance(res3, URIRef)
         self.assertEqual(res3, obo.RO_0000086)
 
@@ -458,7 +463,7 @@ class TestOwlNets(unittest.TestCase):
         self.assertEqual(res5, obo.RO_0002202)
 
         # when sub is a PATO term and property is none
-        res6 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.SO_0000784, None)
+        res6 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.SO_0000784)
         self.assertEqual(res6, None)
 
         return None
@@ -526,7 +531,7 @@ class TestOwlNets(unittest.TestCase):
         # set-up inputs
         node = obo.SO_0000034
         node_info = self.owl_nets.creates_edge_dictionary(node)
-        bnodes = set(x for x in self.owl_nets.graph.objects(node, None) if isinstance(x, BNode))
+        bnodes = set(x for x in self.owl_nets.graph.objects(node) if isinstance(x, BNode))
         edges = {k: v for k, v in node_info[1].items() if 'intersectionOf' in v.keys() and k in bnodes}
         edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
 
@@ -539,12 +544,12 @@ class TestOwlNets(unittest.TestCase):
         return None
 
     def test_parses_constructors_intersection2(self):
-        """Tests the parses_constructors method for the UnionOf class constructor"""
+        """Tests the parses_constructors method for the intersectionOf class constructor"""
 
         # set-up inputs
         node = obo.SO_0000078
         node_info = self.owl_nets.creates_edge_dictionary(node)
-        bnodes = set(x for x in self.owl_nets.graph.objects(node, None) if isinstance(x, BNode))
+        bnodes = set(x for x in self.owl_nets.graph.objects(node) if isinstance(x, BNode))
         edges = {k: v for k, v in node_info[1].items() if 'intersectionOf' in v.keys() and k in bnodes}
         edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
 
@@ -556,13 +561,33 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
+    def test_parses_constructors_union(self):
+        """Tests the parses_constructors method for the unionOf class constructor"""
+
+        # set-up inputs
+        node = obo.CL_0000995
+        node_info = self.owl_nets3.creates_edge_dictionary(node)
+        bnodes = set(x for x in self.owl_nets3.graph.objects(node) if isinstance(x, BNode))
+        edges = {k: v for k, v in node_info[1].items() if 'unionOf' in v.keys() and k in bnodes}
+        edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
+
+        # test method
+        res = self.owl_nets3.parses_constructors(node, edges, node_info[1])
+        self.assertIsInstance(res, Tuple)
+        self.assertEqual(sorted(list(res[0])),
+                         [(obo.CL_0001021, RDFS.subClassOf, obo.CL_0000995),
+                          (obo.CL_0001026, RDFS.subClassOf, obo.CL_0000995)])
+        self.assertEqual(res[1], None)
+
+        return None
+
     def test_parses_restrictions(self):
         """Tests the parses_restrictions method."""
 
         # set-up inputs
         node = obo.SO_0000078
         node_info = self.owl_nets.creates_edge_dictionary(node)
-        bnodes = set(x for x in self.owl_nets.graph.objects(node, None) if isinstance(x, BNode))
+        bnodes = set(x for x in self.owl_nets.graph.objects(node) if isinstance(x, BNode))
         edges = {k: v for k, v in node_info[1].items()
                  if ('type' in v.keys() and v['type'] == OWL.Restriction) and k in bnodes}
         edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
@@ -573,6 +598,24 @@ class TestOwlNets(unittest.TestCase):
         self.assertEqual(res[0], {(
             obo.SO_0000078, URIRef('http://purl.obolibrary.org/obo/so#has_quality'), obo.SO_0000880)})
         self.assertEqual(res[1], None)
+
+        return None
+
+    def test_verifies_cleaned_classes(self):
+        """Tests the verifies_cleaned_classes method"""
+
+        # create input data
+        cleaned_classes = {(obo.HP_0000602, obo.BFO_0000051, obo.HP_0000597),
+                           (obo.HP_0000602, RDFS.subClassOf, obo.HP_0000597),
+                           (obo.HP_0007715, RDFS.subClassOf, obo.HP_0000597),
+                           (obo.HP_0007715, obo.BFO_0000051, obo.HP_0000597)}
+        cleaned_result = sorted(list({(obo.HP_0000602, obo.BFO_0000051, obo.HP_0000597),
+                                      (obo.HP_0007715, obo.BFO_0000051, obo.HP_0000597)}))
+
+        # test method
+        verified_classes = self.owl_nets3.verifies_cleaned_classes(cleaned_classes)
+        self.assertIsInstance(verified_classes, Set)
+        self.assertEqual(sorted(list(verified_classes)), cleaned_result)
 
         return None
 
