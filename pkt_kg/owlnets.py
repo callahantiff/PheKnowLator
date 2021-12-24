@@ -425,7 +425,7 @@ class OwlNets(object):
         else: return False
 
     @staticmethod
-    def returns_object_property(sub: URIRef, obj: URIRef, prop: URIRef = None) -> URIRef:
+    def returns_object_property(sub: URIRef, obj: URIRef, prop: Optional[URIRef] = None) -> URIRef:
         """Checks the subject and object node types in order to determine the correct type of owl:ObjectProperty.
 
         The following ObjectProperties are returned for each of the following subject-object types:
@@ -443,9 +443,9 @@ class OwlNets(object):
             An rdflib.term object that represents an owl:ObjectProperty.
         """
 
-        if ('PATO' in sub and 'PATO' in obj) and not prop: return RDFS.subClassOf
+        if ('PATO' in sub and 'PATO' in obj) and prop is None: return RDFS.subClassOf
         elif 'PATO' not in sub and 'PATO' in obj: return obo.RO_0000086
-        elif not prop: return RDFS.subClassOf
+        elif prop is None: return RDFS.subClassOf
         else: return prop
 
     @staticmethod
