@@ -47,23 +47,18 @@ class TestOwlNets(unittest.TestCase):
         # set-up input arguments
         self.write_location = self.dir_loc_resources + '/knowledge_graphs'
         self.kg_filename = '/so_with_imports.owl'
-        self.kg_filename2 = '/clo_with_imports.owl'
         # read in knowledge graph
         self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
-        self.graph2 = Graph().parse('http://purl.obolibrary.org/obo/clo.owl', format='xml')
         # initialize class
         self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
                                 write_location=self.write_location, filename=self.kg_filename)
         self.owl_nets2 = OwlNets(kg_construct_approach='instance', graph=self.graph,
                                  write_location=self.write_location, filename=self.kg_filename)
-        self.owl_nets3 = OwlNets(kg_construct_approach='subclass', graph=self.graph2,
-                                 write_location=self.write_location, filename=self.kg_filename2)
 
         # update class attributes
         dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
         self.owl_nets.owl_tools = os.path.abspath(dir_loc_owltools)
         self.owl_nets2.owl_tools = os.path.abspath(dir_loc_owltools)
-        self.owl_nets3.owl_tools = os.path.abspath(dir_loc_owltools)
 
         return None
 
@@ -464,7 +459,7 @@ class TestOwlNets(unittest.TestCase):
 
         # when sub is a PATO term and property is none
         res6 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.SO_0000784)
-        self.assertEqual(res6, None)
+        self.assertEqual(res6, RDFS.subClassOf)
 
         return None
 
@@ -564,6 +559,14 @@ class TestOwlNets(unittest.TestCase):
     def test_parses_constructors_union(self):
         """Tests the parses_constructors method for the unionOf class constructor"""
 
+        # instantiate class
+        self.kg_filename2 = '/clo_with_imports.owl'
+        self.graph2 = Graph().parse('http://purl.obolibrary.org/obo/clo.owl', format='xml')
+        self.owl_nets3 = OwlNets(kg_construct_approach='subclass', graph=self.graph2,
+                                 write_location=self.write_location, filename=self.kg_filename2)
+        dir_loc_owltools = os.path.join(os.path.dirname(__file__), 'utils/owltools')
+        self.owl_nets3.owl_tools = os.path.abspath(dir_loc_owltools)
+
         # set-up inputs
         node = obo.CL_0000995
         node_info = self.owl_nets3.creates_edge_dictionary(node)
@@ -613,7 +616,7 @@ class TestOwlNets(unittest.TestCase):
                                       (obo.HP_0007715, obo.BFO_0000051, obo.HP_0000597)}))
 
         # test method
-        verified_classes = self.owl_nets3.verifies_cleaned_classes(cleaned_classes)
+        verified_classes = self.owl_nets.verifies_cleaned_classes(cleaned_classes)
         self.assertIsInstance(verified_classes, Set)
         self.assertEqual(sorted(list(verified_classes)), cleaned_result)
 
