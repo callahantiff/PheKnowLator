@@ -138,7 +138,7 @@ class DataPreprocessing(object):
                      'name', 'location', 'alias_name']]
         hgnc.rename(columns={'uniprot_ids': 'uniprot_id', 'location': 'map_location', 'locus_type': 'hgnc_gene_type'},
                     inplace=True)
-        hgnc['hgnc_id'].replace('.*\:', '', inplace=True, regex=True)  # strip 'HGNC' off of the identifiers
+        hgnc['hgnc_id'].str.replace('.*\:', '', inplace=True, regex=True)  # strip 'HGNC' off of the identifiers
         hgnc.fillna('None', inplace=True)  # replace NaN with 'None'
         hgnc['entrez_id'] = hgnc['entrez_id'].apply(lambda x: str(int(x)) if x != 'None' else 'None')  # make col str
         # combine certain columns into single column
@@ -150,12 +150,13 @@ class DataPreprocessing(object):
                                                       'name', 'synonyms'], '|')
         # reformat hgnc gene type
         for v in self.genomic_type_mapper['hgnc_gene_type'].keys():
-            explode_df_hgnc['hgnc_gene_type'].replace(v, self.genomic_type_mapper['hgnc_gene_type'][v], inplace=True)
+            explode_df_hgnc['hgnc_gene_type'].str.replace(v, self.genomic_type_mapper['hgnc_gene_type'][v],
+                                                          inplace=True)
         # reformat master hgnc gene type
         explode_df_hgnc['master_gene_type'] = explode_df_hgnc['hgnc_gene_type']
         master_dict = self.genomic_type_mapper['hgnc_master_gene_type']
         for val in master_dict.keys():
-            explode_df_hgnc['master_gene_type'].replace(val, master_dict[val], inplace=True)
+            explode_df_hgnc['master_gene_type'].str.replace(val, master_dict[val], inplace=True)
         # post-process reformatted data
         explode_df_hgnc.drop(['alias_symbol', 'alias_name'], axis=1, inplace=True)  # remove original gene type column
         explode_df_hgnc.drop_duplicates(inplace=True)
@@ -189,16 +190,17 @@ class DataPreprocessing(object):
                                                     'ensembl_gene_type', 'transcript_name', 'ensembl_transcript_type'])
         # reformat ensembl gene type
         gene_dict = self.genomic_type_mapper['ensembl_gene_type']
-        for val in gene_dict.keys(): ensembl_geneset['ensembl_gene_type'].replace(val, gene_dict[val], inplace=True)
+        for val in gene_dict.keys(): ensembl_geneset['ensembl_gene_type'].str.replace(val, gene_dict[val], inplace=True)
         # reformat master gene type
         ensembl_geneset['master_gene_type'] = ensembl_geneset['ensembl_gene_type']
         gene_dict = self.genomic_type_mapper['ensembl_master_gene_type']
-        for val in gene_dict.keys(): ensembl_geneset['master_gene_type'].replace(val, gene_dict[val], inplace=True)
+        for val in gene_dict.keys(): ensembl_geneset['master_gene_type'].str.replace(val, gene_dict[val], inplace=True)
         # reformat master transcript type
-        ensembl_geneset['ensembl_transcript_type'].replace('vault_RNA', 'vaultRNA', inplace=True, regex=False)
+        ensembl_geneset['ensembl_transcript_type'].str.replace('vault_RNA', 'vaultRNA', inplace=True, regex=False)
         ensembl_geneset['master_transcript_type'] = ensembl_geneset['ensembl_transcript_type']
         trans_d = self.genomic_type_mapper['ensembl_master_transcript_type']
-        for val in trans_d.keys(): ensembl_geneset['master_transcript_type'].replace(val, trans_d[val], inplace=True)
+        for val in trans_d.keys():
+            ensembl_geneset['master_transcript_type'].str.replace(val, trans_d[val], inplace=True)
         # post-process reformatted data
         ensembl_geneset.drop_duplicates(inplace=True)
 
@@ -279,7 +281,7 @@ class DataPreprocessing(object):
         # explode nested data and perform light value reformatting
         explode_df_uniprot = explodes_data(uniprot.copy(), ['transcript_stable_id', 'entrez_id', 'hgnc_id'], ';')
         explode_df_uniprot = explodes_data(explode_df_uniprot.copy(), ['symbol', 'synonyms'], '|')
-        explode_df_uniprot['transcript_stable_id'].replace('\s.*', '', inplace=True, regex=True)  # strip uniprot names
+        explode_df_uniprot['transcript_stable_id'].str.replace('\s.*', '', inplace=True, regex=True)  # strip uniprot
         explode_df_uniprot.drop(['Status'], axis=1, inplace=True)
         explode_df_uniprot.drop_duplicates(inplace=True)
 
@@ -324,16 +326,16 @@ class DataPreprocessing(object):
         explode_df_ncbi_gene['entrez_gene_type'] = explode_df_ncbi_gene['type_of_gene']
         gene_dict = self.genomic_type_mapper['entrez_gene_type']
         for val in gene_dict.keys():
-            explode_df_ncbi_gene['entrez_gene_type'].replace(val, gene_dict[val], inplace=True)
+            explode_df_ncbi_gene['entrez_gene_type'].str.replace(val, gene_dict[val], inplace=True)
         # reformat master gene type
         explode_df_ncbi_gene['master_gene_type'] = explode_df_ncbi_gene['entrez_gene_type']
         gene_dict = self.genomic_type_mapper['master_gene_type']
         for val in gene_dict.keys():
-            explode_df_ncbi_gene['master_gene_type'].replace(val, gene_dict[val], inplace=True)
+            explode_df_ncbi_gene['master_gene_type'].str.replace(val, gene_dict[val], inplace=True)
         # post-process reformatted data
-        explode_df_ncbi_gene['hgnc_id'] = explode_df_ncbi_gene['hgnc_id'].replace('HGNC:', '', regex=True)
-        explode_df_ncbi_gene['ensembl_gene_id'] = explode_df_ncbi_gene['ensembl_gene_id'].replace('Ensembl:', '',
-                                                                                                  regex=True)
+        explode_df_ncbi_gene['hgnc_id'] = explode_df_ncbi_gene['hgnc_id'].str.replace('HGNC:', '', regex=True)
+        explode_df_ncbi_gene['ensembl_gene_id'] = explode_df_ncbi_gene['ensembl_gene_id'].str.replace('Ensembl:', '',
+                                                                                                      regex=True)
         explode_df_ncbi_gene.drop(['type_of_gene', 'dbXrefs', 'description', 'Nomenclature_status', 'Modification_date',
                                    'LocusTag', '#tax_id', 'Full_name_from_nomenclature_authority', 'Feature_type',
                                    'Symbol_from_nomenclature_authority'], axis=1, inplace=True)
@@ -355,8 +357,8 @@ class DataPreprocessing(object):
         pro = self.reads_gcs_bucket_data_to_df(f_name='promapping.txt', delm='\t', head=col_names)
         pro = pro.loc[pro['Entry'].apply(lambda x: x.startswith('UniProtKB:') and '_VAR' not in x and ', ' not in x)]
         pro = pro.loc[pro['pro_mapping'].apply(lambda x: x.startswith('exact'))]
-        pro['pro_id'].replace('PR:', 'PR_', inplace=True, regex=True)  # replace PR: with PR_
-        pro['Entry'].replace('(^\w*\:)', '', inplace=True, regex=True)  # remove ids which appear before ':'
+        pro['pro_id'].str.replace('PR:', 'PR_', inplace=True, regex=True)  # replace PR: with PR_
+        pro['Entry'].str.replace('(^\w*\:)', '', inplace=True, regex=True)  # remove ids which appear before ':'
         pro = pro.loc[pro['pro_id'].apply(lambda x: '-' not in x)]  # remove isoforms
         pro.rename(columns={'Entry': 'uniprot_id'}, inplace=True)
         pro.drop(['pro_mapping'], axis=1, inplace=True); pro.drop_duplicates(subset=None, keep='first', inplace=True)
@@ -412,12 +414,12 @@ class DataPreprocessing(object):
             else: clean_dates.append(x)
         merged_data['symbol'] = clean_dates; merged_data.fillna('None', inplace=True)
         # make sure that all gene and transcript type columns have none recoded to unknown or not protein-coding
-        merged_data['hgnc_gene_type'].replace('None', 'unknown', inplace=True, regex=False)
-        merged_data['ensembl_gene_type'].replace('None', 'unknown', inplace=True, regex=False)
-        merged_data['entrez_gene_type'].replace('None', 'unknown', inplace=True, regex=False)
-        merged_data['master_gene_type'].replace('None', 'unknown', inplace=True, regex=False)
-        merged_data['master_transcript_type'].replace('None', 'not protein-coding', inplace=True, regex=False)
-        merged_data['ensembl_transcript_type'].replace('None', 'unknown', inplace=True, regex=False)
+        merged_data['hgnc_gene_type'].str.replace('None', 'unknown', inplace=True, regex=False)
+        merged_data['ensembl_gene_type'].str.replace('None', 'unknown', inplace=True, regex=False)
+        merged_data['entrez_gene_type'].str.replace('None', 'unknown', inplace=True, regex=False)
+        merged_data['master_gene_type'].str.replace('None', 'unknown', inplace=True, regex=False)
+        merged_data['master_transcript_type'].str.replace('None', 'not protein-coding', inplace=True, regex=False)
+        merged_data['ensembl_transcript_type'].str.replace('None', 'unknown', inplace=True, regex=False)
         merged_data_clean = merged_data.drop_duplicates()
 
         return merged_data_clean
@@ -782,7 +784,7 @@ class DataPreprocessing(object):
 
         hpa = self._extracts_hpa_tissue_information(); f_name = 'GTEx_Analysis_*_RNASeQC*_gene_median_tpm.gct'
         gtex = self.reads_gcs_bucket_data_to_df(f_name=f_name, delm='\t', skip=2, head=0)
-        gtex.fillna('None', inplace=True); gtex['Name'].replace('(\..*)', '', inplace=True, regex=True)
+        gtex.fillna('None', inplace=True); gtex['Name'].str.replace('(\..*)', '', inplace=True, regex=True)
         # process human protein atlas data
         hpa_results = []
         for idx, row in tqdm(hpa.iterrows(), total=hpa.shape[0]):
@@ -793,7 +795,7 @@ class DataPreprocessing(object):
                 if ';' in row_val:
                     for x in row_val.split(';'):
                         x1 = str(x.split(':')[0]); x2 = float(x.split(': ')[1])
-                        hpa_results += [ [ens, gene, uni, evid, 'anatomy', sub, x1, x2, source]]
+                        hpa_results += [[ens, gene, uni, evid, 'anatomy', sub, x1, x2, source]]
                 else:
                     x1 = str(row_val.split(':')[0]); x2 = float(row_val.split(': ')[1])
                     hpa_results += [[ens, gene, uni, evid, 'anatomy', sub, x1, x2, source]]
@@ -841,8 +843,8 @@ class DataPreprocessing(object):
         for idx, row in tqdm(gtex.iterrows(), total=gtex.shape[0]):
             for col in list(gtex.columns)[2:]:
                 typ = 'cell line' if 'Cells' in col else 'anatomy'; evid = 'Evidence at transcript level'
-                gtex_results += [
-                    [str(row['Name']), str(row['Description']), 'None', evid, typ, 'None', col, float(row[col]), source]]
+                gtex_results += [[str(row['Name']), str(row['Description']),
+                                  'None', evid, typ, 'None', col, float(row[col]), source]]
         # write results
         filename = 'HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt'
         with open(self.temp_dir + '/' + filename, 'w') as out:
@@ -1308,8 +1310,8 @@ class DataPreprocessing(object):
         # explode nested data
         explode_df_clinvar = explodes_data(clinvar_data.copy(), ['PhenotypeIDS'], ';')
         explode_df_clinvar = explodes_data(explode_df_clinvar.copy(), ['PhenotypeIDS'], ',')
-        explode_df_clinvar['PhenotypeIDS'].replace('Orphanet:ORPHA', 'ORPHA:', inplace=True, regex=True)
-        explode_df_clinvar['PhenotypeIDS'].replace('Human Phenotype Ontology:HP:', 'HP_', inplace=True, regex=True)
+        explode_df_clinvar['PhenotypeIDS'].str.replace('Orphanet:ORPHA', 'ORPHA:', inplace=True, regex=True)
+        explode_df_clinvar['PhenotypeIDS'].str.replace('Human Phenotype Ontology:HP:', 'HP_', inplace=True, regex=True)
         filename = 'CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt'
         explode_df_clinvar.to_csv(self.temp_dir + '/' + filename, sep='\t', encoding='utf-8', index=False)
         uploads_data_to_gcs_bucket(self.bucket, self.processed_data, self.temp_dir, filename)
@@ -1477,7 +1479,7 @@ class DataPreprocessing(object):
                        "cytogenetic location:{}) and has clinical significance '{}'. " + \
                        "This entry is for the {} and was last reviewed on {} with review status '{}'."
                 desc.append(
-                    sent.format(row['Origin'].replace(';', '/'), row['Type'].replace(';', '/'), row['Chromosome'],
+                    sent.format(row['Origin'].str.replace(';', '/'), row['Type'].replace(';', '/'), row['Chromosome'],
                                 row['ChromosomeAccession'], row['Start'], row['Stop'], row['Cytogenetic'],
                                 row['ClinicalSignificance'], row['Assembly'], row['LastEvaluated'],
                                 row['ReviewStatus']).replace('None', 'UNKNOWN'))
@@ -1546,7 +1548,7 @@ class DataPreprocessing(object):
         g = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name1, self.temp_dir)
         data1 = pandas.read_csv(g, header=None, delimiter='\t', skiprows=4, low_memory=False)
         data1 = data1.loc[data1[12].apply(lambda x: x == 'taxon:9606')]
-        data1[5].replace('REACTOME:', '', inplace=True, regex=True)
+        data1[5].str.replace('REACTOME:', '', inplace=True, regex=True)
         # reactome CHEBI data
         f_name2 = 'ChEBI2Reactome_All_Levels.txt'
         h = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name2, self.temp_dir)
@@ -1581,7 +1583,7 @@ class DataPreprocessing(object):
         f_name = 'ro_with_imports.owl'
         x = downloads_data_from_gcs_bucket(self.bucket, self.original_data, self.processed_data, f_name, self.temp_dir)
         ro_graph = Graph().parse(x)
-        relation_metadata_dict, obo = {}, Namespace('http://purl.obolibrary.org/obo/')
+        relation_metadata_dict = {}
         cls = [x for x in gets_ontology_classes(ro_graph) if '/RO_' in str(x)] + \
               [x for x in gets_object_properties(ro_graph) if '/RO_' in str(x)]
         master_synonyms = [x for x in ro_graph if 'synonym' in str(x[1]).lower() and isinstance(x[0], URIRef)]
