@@ -1,2 +1,33 @@
-chemical-disease|:;MESH_;|class-class|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;4|0:MESH_CHEBI_MAP.txt;1:DISEASE_DOID_MAP.txt|5;!=;''|None
-gene-disease|;;|entity-class|RO_0003302|http://purl.uniprot.org/geneid/|http://purl.obolibrary.org/obo/|t|0;4|1:DISEASE_DOID_MAP.txt|10;>=;0.70|None
+######################################################################################################################################################################################
+#### resource_info.txt (last updated: December 27, 2021)
+### Each column is separated by a pipe (i.e., "|") and includes the following:
+# EdgeType:                            A string label for an edge (node1-node2). The label matches what is used in the edge_source_list.txt and ontology_source_list.txt files.
+# IdentifierPrefixInformation:         Three ";"-separated items used to update a prefix-identifier pair (e.g., :;GO_;GO_). The first item contains the character that separates
+#                                      existing prefixes and identifiers (e.g. ":" in GO:1283834). The second item contains the current prefix and the third item contains the
+#                                      new prefix (i.e. 'GO_' and 'GO_'). If the existing prefix is correct, type ";;". if there is no prefix in the current data, leave the
+#                                      item empty and specify the new prefix for the node in the corresponding item location.
+# NodeDataTypes:                       A label of "class" or "entity" for each node in an edge separated by "-" (e.g., "class-class"). The "class" label represents nodes from
+#                                      ontologies and "entity" represents nodes from other data sources.
+# Relation:                            A Relation Ontology (http://www.obofoundry.org/ontology/ro.html) CURIE (e.g., RO_0000056).
+# Delimiter:                           A character used to split rows from an input data source into columns (e.g., "t" for tab-delimited data or "," for comma-delimited data).
+# ColumnIndexes:                       Two-column indexes separated by ";" (e.g., "0;4" for the first and third columns in the input data source).
+# IdentifierMaps:                      A string of mapping information for each node in an edge. For example, the string "2:mapping_file_1.txt;4:mapping_file_2.txt" means that
+#                                      the first node requires data contained in the 2nd column of the "mapping_file_1.txt" and the second node requires data from the 4th column
+#                                      in the "mapping_file_2.txt" file.
+# EvidenceCriteria:                    Evidence criteria that can be used to filter an input data source (e.g., scores above a certain cut-off). An evidence set is composed of 3
+#                                      pieces of ";"-separated information. Multiple evidence sets can be passed, where each set is separated by "::". Consider the following
+#                                      example: "4;!=;IEA::8;<;0.0001":
+#                                         1. The index of the column to apply the evidence criteria to (e.g., "4" and "8" in the example above)
+#										  2. The operator (i.e., "==", "!=", "<", ">", "<=", ">=", "in", ".startswith()", ".endswith()") to use when filtering (e.g., "!=" and "<"
+#                                            in the example above)
+#										  3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "IEA" and "0.0001" in the example above)
+# FilterCriteria:                      Filtering criteria that can be used to filter an input data source (e.g., human proteins). An evidence set is composed of 3 pieces of ";"-
+#                                      separated information. Multiple filtering sets can be passed, where each set is separated by "::". Consider the following example:
+#                                      "5;==;P::7;==;9606"):
+#                                         1. The index of the column to apply the evidence criteria to (e.g., "5" and "7" in the example above)
+#										  2. The operator (i.e., "==", "!=", "<", ">", "<=", ">=", "in", ".startswith()", ".endswith()") to use when filtering (e.g., "==" and "=="
+#                                            in the example above)
+#										  3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "P" and "9606" in the example above)
+######################################################################################################################################################################################
+chemical-disease|:;MESH_;|class-class|RO_0002606|t|1;4|0:MESH_CHEBI_MAP.txt;1:DISEASE_DOID_MAP.txt|5;!=;''|None
+gene-disease|;;|entity-class|RO_0003302|t|0;4|1:DISEASE_DOID_MAP.txt|10;>=;0.70|None
