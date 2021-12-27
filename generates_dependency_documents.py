@@ -195,10 +195,10 @@ def main():
           'the example above)\n\t\t\t3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "P" and '
           '"9606" in the example above).\n\n\tAn example line from the resource_info.txt file is shown below:\n\t\t'
           'chemical-gene|;MESH_;|class-class|;MESH_;|class-class|RO_0002434|#|t|1;4|0:./resources/data_maps/'
-          'MESH_CHEBI_MAP.txt|None|7;==;9606\n\n(2) ontology_source_info.txt: This document contains a ","-delimited '
-          'line for each ontology source used, for example:\n\t"chemical, http://purl.obolibrary.org/obo/chebi.owl"'
-          '\n\t"gene, http://purl.obolibrary.org/obo/so.owl"\n\n(3) edge_source_info.txt: This document contains a '
-          '","-delimited line for each edge data source, for example:\n\t"chemical-gene, '
+          'MESH_CHEBI_MAP.txt|None|7;==;9606\n\n(2) ontology_source_info.txt: This document contains a "|"-delimited '
+          'line for each ontology source used, for example:\n\t"chemical|http://purl.obolibrary.org/obo/chebi.owl"'
+          '\n\t"gene|http://purl.obolibrary.org/obo/so.owl"\n\n(3) edge_source_info.txt: This document contains a '
+          '"|"-delimited line for each edge data source, for example:\n\t"chemical-gene|'
           'http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz"\n\nIf you would like more information on the '
           'dependency documents need to run PheKnowLator, please visit the following Wiki page:\n'
           'https://github.com/callahantiff/PheKnowLator/wiki/Dependencies.')
@@ -216,10 +216,10 @@ def main():
     edge_maker.writes_out_document(edge_data[0], '|', 'resource_info.txt')
 
     # write out ontology data
-    edge_maker.writes_out_document(edge_data[1], ', ', 'ontology_source_list.txt')
+    edge_maker.writes_out_document(edge_data[1], '|', 'ontology_source_list.txt')
 
     # write out edge data
-    edge_maker.writes_out_document(edge_data[2], ', ', 'edge_source_list.txt')
+    edge_maker.writes_out_document(edge_data[2], '|', 'edge_source_list.txt')
 
 
 if __name__ == '__main__':
