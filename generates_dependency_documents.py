@@ -32,8 +32,10 @@ class DocumentationMaker(object):
     def __init__(self, edge_count: int, write_location: str = './resources') -> None:
 
         # check edge count
-        if not isinstance(edge_count, int): raise ValueError('edge_count must be an integer (i.e. "1" not "one").')
-        else: self.edge_count = edge_count
+        if not isinstance(edge_count, int):
+            raise ValueError('edge_count must be an integer (i.e. "1" not "one").')
+        else:
+            self.edge_count = edge_count
 
         # make sure that the specified location to write data exists
         if os.path.exists(write_location):
@@ -63,7 +65,7 @@ class DocumentationMaker(object):
             print('GATHERING INFORMATION FOR EDGE: {count}/{total}'.format(count=edge, total=self.edge_count))
             print('#' * 40)
 
-            edge_name = input('Please enter the edge type (e.g. "gene-protein", "disease-chemical"): ')
+            edge_type = input('Please enter the edge type (e.g. "gene-protein", "disease-chemical"): ')
             print('\n')
 
             ont = input('Is one or both of the nodes in edge an ontology? Please enter "one" or "both": ')
@@ -76,8 +78,9 @@ class DocumentationMaker(object):
                     ont_data[ont_edge] = input('Provide an owl or obo URL for this ontology: ')
 
             print('\n')
-            data_type = input('Provide the data types for each node in the edge (e.g. "class" or "entity" (for '
-                              'non-class data) each node in the edge separated by "-" --> "class-entity"): ')
+            node_data_types = input('Provide the data types for each node in the edge (e.g. "class" or "entity" (for '
+                                    'data that is not from an ontology) each node in the edge separated by "-" --> '
+                                    '"class-entity"): ')
             print('\n')
 
             delimiter = input('Provide the character used to split each row into columns (e.g. "t" or ","): ')
@@ -111,29 +114,23 @@ class DocumentationMaker(object):
                                   '"RO_0000056"): ')
             print('\n')
 
-            subj_uri = input('Provide the Universal Resource Identifier that will be connected to the subject node ('
-                             '(e.g. "http://purl.obolibrary.org/obo/"): ')
-            print('\n')
-
-            obj_uri = input('Provide the Universal Resource Identifier that will be connected to the object node: ')
-            print('\n')
-
-            source_label = input('Source Identifier Formatting (i.e. GO:12838340, when we need '
-                                 'GO_12838340).\n\nProvide the following 3 items:\n(1) Character to split existing '
-                                 'source labels (e.g. ":" in GO:1283834);\n(2) New label to replace existing label) '
-                                 'for subject node (e.g. "GO_");\n(3) New label to replace existing label) for '
-                                 'object node (e.g. GO_).\n\nEnter each item separated by ";". If the existing label '
-                                 'is correct, press "enter": ') or ';;'
+            identifier_prefix_information = input('Source Identifier Formatting (i.e., GO:12838340, when we need '
+                                                  'GO_12838340).\n\nProvide the following 3 items:\n(1) Character to '
+                                                  'split existing CURIE (e.g., ":" in GO:1283834);\n(2) New subject '
+                                                  'prefix to replace existing one (e.g. "GO_");\n(3) New object '
+                                                  'prefix to replace existing one (e.g., GO_).\n\nEnter each item '
+                                                  'separated by ";". If the existing prefix is correct, press "enter": '
+                                                  ') or ";;"')
             print('\n')
 
             # add edge data to dictionary
-            resource_data[edge_name] = '{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}|{9}'.format(source_label, data_type,
-                                                                                        edge_relation, subj_uri,
-                                                                                        obj_uri, delimiter, col_idx,
-                                                                                        id_maps, evi_crit, filt_crit)
+            resource_data[edge_type] = '{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}'.format(identifier_prefix_information,
+                                                                                node_data_types, edge_relation,
+                                                                                delimiter, col_idx, id_maps,
+                                                                                evi_crit, filt_crit)
 
             # get edge data sources
-            edge_data[edge_name] = input('Provide a URL or file path to data used to create this edge: ')
+            edge_data[edge_type] = input('Provide a URL or file path to data used to create this edge: ')
 
         return resource_data, ont_data, edge_data
 
@@ -158,7 +155,6 @@ class DocumentationMaker(object):
 
 
 def main():
-
     # print initial message for user
     print('\n\n' + '***' * 50)
     print('INPUT DOCUMENT BUILDER\n\nThis program will help you generate the input documentation needed to run '
@@ -166,37 +162,44 @@ def main():
           'you create three documents: (1) resource_info.txt; (2) ontology_source_info.txt; and (3) '
           'edge_source_info.txt.\nAn example of the data this program expects to find within each of these '
           'documents is shown below:\n\n(1) resource_info.txt: This document represents each edge type as a single '
-          '"|" delimited string and contains a total of 11 items:\n\t(1) Edge Type: A string containing a "-" '
-          'delimited edge label (node1-node2)\n\t(2) Source Labels: 3 ";"-delimited strings (e.g. ":;GO_;GO_)":\n\t\t'
-          '-the character to split existing labels (e.g. ":" in GO:1283834)\n\t\t-a new label for the subject '
-          'node\n\t\t-a new label for the object node. If the existing label is correct, use ";;";\n\t(3) Data '
-          'Type: A label of "class", "entity" ( fornon-ontology data) provided for each node and separated by "-" ('
-          'e.g. "class-class", "class-entity", "entity-class");\n\t(4) Edge Relation: A Relation Ontology identifier to'
-          'be used as an edge between the nodes (e.g. "RO_0000056")\n\t(5) Subject URI: A Universal Resource Identifier'
-          ' that will be connected to the subject node in the Edge Type (e.g. "http://purl.uniprot.org/geneid/");\n\t'
-          '(6) Object URI that will be connected to the object node in the Edge Type (e.g. '
-          '"http://purl.obolibrary.org/obo/");\n\t(7) Delimiter: A character used to split input text rows into '
-          'columns (e.g. "t" or ",");\n\t(8) Column Indices: two column indices separated by ";" (e.g. 0;4 for the '
-          'first and third columns);\n\t(9) Identifier Maps: A string indicating the column index in the input data'
-          ' source needing identifier mapping and a file pointing to mapping data, for example:\n'
-          '\t\t"2:./resources/processed_data/mapping_file_1.txt;4:./resources/processed_data/mapping_file_2.txt" '
-          'means:\n\t\t\t-mapping data from the first node in the edge to the 0th column in '
-          '"mapping_file_1.txt"\n\t\t\t-mapping data from the second node in the edge to the 4th column in '
-          '"mapping_file_2.txt");\n\t(10) Evidence Criteria: Sets of 3 "::"-separated items, where each set is '
-          'composed of three pieces of ";"-separated information (e.g. "4;!=;IEA::8;<;0.0001" - means:\n\t\t-filter '
-          'the 4th column to keep rows that do not contain "IEA"\n\t\t-filter the 8th column to keep rows with a '
-          'value less than "0.0001");\n\t(11) Filter Criteria: Sets of 3 "::"-separated items, where each set is '
-          'composed of three pieces of ";"-separated information (e.g. "5;==;P::7;==;9606" - means:\n\t\t-filter the '
-          '5th column to only include rows with "P"\n\t\tfilter the 7th column to only include rows containing '
-          '"99606").\n\n\tAn example line from the resource_info.txt file is shown '
-          'below:\n\t\tchemical-gene|;MESH_;|class-class|;MESH_;|class-class|RO_0002434|http://purl.obolibrary.org'
-          '/obo/\n\t\t|http://purl.uniprot.org/geneid/|#|t|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt|None|7'
-          ';==;9606\n\n(2) ontology_source_info.txt: This document contains a ","-delimited line for each ontology '
-          'source used, for example:\n\t"chemical, http://purl.obolibrary.org/obo/chebi.owl"\n\t"gene, '
-          'http://purl.obolibrary.org/obo/so.owl"\n\n(3) edge_source_info.txt: This document contains a ",'
-          '"-delimited line for each edge data source, for example:\n\t"chemical-gene, '
+          '"|" delimited string and contains a total of 9 items:\n\t(1) EdgeType: A string label for an edge '
+          '(node1-node2). The label matches what is used in the edge_source_list.txt and ontology_source_list.txt files'
+          '\n\t(2) IdentifierPrefixInformation: Three ";"-separated items used to update a prefix-identifier pair '
+          '(e.g., :;GO_;GO_). The first item contains the character that separates existing\n\t\tprefixes and '
+          'identifiers (e.g. ":" in GO:1283834). The second item contains the current prefix and the third item '
+          'contains the new prefix (i.e. "GO_" and "GO_"). If the existing\n\t\tprefix is correct, type ";;". if there '
+          'is no prefix in the current data, leave the item empty and specify the new prefix for the node in the '
+          'corresponding item location;\n\t(3) NodeDataTypes: A label of "class" or "entity" for each node in an edge '
+          'separated by "-" (e.g., "class-class"). The "class" label\n\t\trepresents nodes from ontologies and '
+          '"entity" represents nodes from other data sources;\n\t(4) Relation: A Relation Ontology ('
+          'http://www.obofoundry.org/ontology/ro.html) CURIE (e.g., RO_0000056)\n\t(5) Delimiter: A character used to '
+          'split rows from an input data source into columns (e.g., "t" for tab-delimited data or "," for '
+          'comma-delimited data);\n\t(6) ColumnIndexes: Two-column indexes separated by ";" (e.g., "0;4" for the first '
+          'and third columns in the input data source);\n\t(7) IdentifierMaps: A string of mapping information for '
+          'each node in an edge. For example, the string "2:mapping_file_1.txt;4:mapping_file_2.txt" means that the '
+          'first node require\n\t\tdata contained in the 2nd column of the "mapping_file_1.txt" and the second node '
+          'requires data from the 4th column in the "mapping_file_2.txt" file;\n\t(8) EvidenceCriteria: Evidence '
+          'criteria that can be used to filter an input data source (e.g., scores above a certain cut-off). An '
+          'evidence set is composed of 3 pieces of ";"\n\t\t-separated information. Multiple filtering sets can be '
+          'passed, where each set is separated by "::". Consider the following example: '
+          '"4;!=;IEA::8;<;0.0001"):\n\t\t1. The index of the column to apply the evidence criteria to '
+          '(e.g., "4" and "8" in the example above)\n\t\t2. The operator (i.e., "==", "!=", "<", ">", "<=", ">=", '
+          '"in", ".startswith()", ".endswith()") to use when filtering (e.g., "!=" and "<" in the example above).'
+          ';\n\t(9) Filtering criteria that can be used to filter an input data source (e.g., human proteins). '
+          'An evidence set is composed of 3 pieces of ";"-separated information.\n\t\tMultiple filtering sets can be '
+          'passed as demonstrated by the example above, where each set is separated by "::". Consider the following '
+          'example: "5;==;P::7;==;9606"):\n\t\t1. The index of the column to apply the evidence criteria to '
+          '(e.g., "5" and "7" in the example above)\n\t\t2. The operator (i.e., "==", "!=", "<", ">", "<=", ">=", '
+          '"in", ".startswith()", ".endswith()") to use when filtering (e.g., "==" and "==" in the example above)\n\t\t'
+          '3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "P" and "9606" in the example above).'
+          '\n\n\tAn example line from the resource_info.txt file is shown below:\n\t\tchemical-gene|;MESH_;|class-class'
+          '|;MESH_;|class-class|RO_0002434|#|t|1;4|0:./resources/data_maps/MESH_CHEBI_MAP.txt|None|7;==;9606\n\n(2)'
+          ' ontology_source_info.txt: This document contains a ","-delimited line for each ontology source used, '
+          'for example:\n\t"chemical, http://purl.obolibrary.org/obo/chebi.owl"\n\t"gene, '
+          'http://purl.obolibrary.org/obo/so.owl"\n\n(3) edge_source_info.txt: This document contains a ","-delimited '
+          'line for each edge data source, for example:\n\t"chemical-gene, '
           'http://ctdbase.org/reports/CTD_chem_gene_ixns.tsv.gz"\n\nIf you would like more information on the '
-          'dependency documents need to run PheKnowLator, please visit the following Wiki page: '
+          'dependency documents need to run PheKnowLator, please visit the following Wiki page:\n'
           'https://github.com/callahantiff/PheKnowLator/wiki/Dependencies.')
     print('***' * 50 + '\n')
 
