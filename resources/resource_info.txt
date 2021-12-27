@@ -4,7 +4,8 @@
 # EdgeType:                            A string label for an edge (node1-node2). The label matches what is used in the edge_source_list.txt and ontology_source_list.txt files.
 # IdentifierPrefixInformation:         Three ";"-separated items used to update a prefix-identifier pair (e.g., :;GO_;GO_). The first item contains the character that separates  
 #                                      existing prefixes and identifiers (e.g. ":" in GO:1283834). The second item contains the current prefix and the third item contains the  
-#                                      new prefix (i.e. 'GO_' and 'GO_'). If the existing prefix is correct, type ";;".
+#                                      new prefix (i.e. 'GO_' and 'GO_'). If the existing prefix is correct, type ";;". if there is no prefix in the current data, leave the   
+#                                      item empty and specify the new prefix for the node in the corresponding item location.  
 # NodeDataTypes:                       A label of "class" or "entity" for each node in an edge separated by "-" (e.g., "class-class"). The "class" label represents nodes from  
 #                                      ontologies and "entity" represents nodes from other data sources.      
 # Relation:                            A Relation Ontology (http://www.obofoundry.org/ontology/ro.html) CURIE (e.g., RO_0000056).    
