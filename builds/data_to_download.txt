@@ -38,7 +38,15 @@ genomic_sequence_ontology_mappings.xlsx, https://storage.googleapis.com/pheknowl
 # protein ontology consortium sparql query results
 human_pro_classes.html, https://sparql.proconsortium.org/virtuoso/sparql?query=PREFIX+obo%3A+%3Chttp%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F%3E%0D%0A%0D%0ASELECT+%3FPRO_term%0D%0AFROM+%3Chttp%3A%2F%2Fpurl.obolibrary.org%2Fobo%2Fpr%3E%0D%0AWHERE+%7B%0D%0A+++++++%3FPRO_term+rdf%3Atype+owl%3AClass+.%0D%0A+++++++%3FPRO_term+rdfs%3AsubClassOf+%3Frestriction+.%0D%0A+++++++%3Frestriction+owl%3AonProperty+obo%3ARO_0002160+.%0D%0A+++++++%3Frestriction+owl%3AsomeValuesFrom+obo%3ANCBITaxon_9606+.%0D%0A%0D%0A+++++++%23+use+this+to+filter-out+things+like+hgnc+ids%0D%0A+++++++FILTER+%28regex%28%3FPRO_term%2C%22http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2F*%22%29%29+.%0D%0A%7D&format=text%2Fhtml&debug=
 # clinvar variant-diseases and phenotypes
-ClinVarFullRelease.xml, https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.xml.gz
+variant_summary.txt, https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz
+submission_summary.txt, https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/submission_summary.txt.gz
+disease_names, https://ftp.ncbi.nlm.nih.gov/pub/clinvar/disease_names
+var_citations.txt, https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/var_citations.txt
+allele_gene.txt, https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/allele_gene.txt.gz
+gene_specific_summary.txt, https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/gene_specific_summary.txt
+gene_condition_source_id, https://ftp.ncbi.nlm.nih.gov/pub/clinvar/gene_condition_source_id
+# human phenotype and disease mapping files
+MGCONSO.RRF, https://ftp.ncbi.nlm.nih.gov/pub/medgen/MGCONSO.RRF.gz
 # uniprot protein-cofactor and protein-catalyst
 uniprot-cofactor-catalyst.tab, https://www.uniprot.org/uniprot/?query=&fil=organism%3A%22Homo%20sapiens%20(Human)%20%5B9606%5D%22&columns=id%2Creviewed%2Centry%20name%2Cdatabase(PRO)%2Cchebi(Cofactor)%2Cchebi(Catalytic%20activity)&format=tab
 
