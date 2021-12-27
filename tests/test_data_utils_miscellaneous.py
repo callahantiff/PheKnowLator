@@ -154,6 +154,29 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         return None
 
+    def tests_obtains_entity_url_good(self):
+        """Tests the obtains_entity_url method when a valid prefix and identifier are passed."""
+
+        # set-up input
+        prefix = 'chebi'; identifier = '138488'
+
+        # test function
+        entity_uri = obtains_entity_url(prefix, identifier)
+        self.assertEqual(entity_uri, 'https://bioregistry.io/chebi:138488')
+
+        return None
+
+    def tests_obtains_entity_url_bad(self):
+        """Tests the obtains_entity_url method when an invalid identifier is passed."""
+
+        # set-up input
+        prefix = 'chebi'; identifier = 't'
+
+        # test function
+        self.assertRaises(ValueError, obtains_entity_url, prefix, identifier)
+
+        return None
+
     def tearDown(self):
 
         # remove temp directory

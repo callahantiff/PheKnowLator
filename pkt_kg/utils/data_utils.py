@@ -23,6 +23,7 @@ Miscellaneous data Processing Methods
 * deduplicates_file
 * merges_files
 * sublist_creator
+* obtains_entity_url
 
 Outputs data
 * outputs_dictionary_data
@@ -43,6 +44,7 @@ import urllib3  # type: ignore
 
 from contextlib import closing
 from io import BytesIO
+from json.decoder import JSONDecodeError
 from reactome2py import content  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, Generator, List, Optional, Union
@@ -478,3 +480,28 @@ def sublist_creator(actors: Union[Dict, List], chunk_size: int) -> List:
     else: updated_lists = lists
 
     return updated_lists
+
+
+def obtains_entity_url(prefix: str, identifier: Union[int, str]) -> str:
+    """Function takes a prefix and identifier for an entity, looks it up in the BioRegistry API and returns a
+    resolvable URL. Information on the BioRegistry can be found here: https://bioregistry.io/.
+
+    Args:
+        prefix: A string containing the prefix or name of a resources (e.g., "chebi").
+        identifier: A string or integer containing an entity identifier (e.g., "138488").
+
+    Returns:
+        entity_url: A string containing a valid BioRegistry URL (e.g., ).
+
+    Raises:
+        ValueError: If a JSONDecodeError is thrown, a ValueError is raised to alert the user that a bad identifier or
+            prefix was provided.
+    """
+
+    try:
+        res = requests.get('https://bioregistry.io/api/reference/' + prefix.lower() + ':' + str(identifier)).json()
+    except JSONDecodeError as e:
+        raise ValueError('Error: Invalid prefix or identifier provided. Please check your input and try again.')
+    entity_url = res['providers']['bioregistry']
+
+    return entity_url

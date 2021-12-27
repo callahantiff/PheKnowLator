@@ -8,9 +8,9 @@ from .kg_utils import *
 
 __all__ = ['url_download', 'ftp_url_download', 'gzipped_ftp_url_download', 'zipped_url_download',
            'gzipped_url_download', 'data_downloader', 'explodes_data', 'chunks', 'metadata_dictionary_mapper',
-           'metadata_api_mapper', 'genomic_id_mapper', 'outputs_dictionary_data', 'gets_ontology_statistics',
-           'gets_ontology_classes', 'gets_deprecated_ontology_classes', 'gets_object_properties',
-           'gets_ontology_class_dbxrefs', 'gets_ontology_class_synonyms', 'merges_ontologies',
+           'metadata_api_mapper', 'genomic_id_mapper', 'outputs_dictionary_data', 'obtains_entity_url',
+           'gets_ontology_statistics', 'gets_ontology_classes', 'gets_deprecated_ontology_classes',
+           'gets_object_properties', 'gets_ontology_class_dbxrefs', 'gets_ontology_class_synonyms', 'merges_ontologies',
            'ontology_file_formatter', 'adds_edges_to_graph', 'remove_edges_from_graph', 'gets_entity_ancestors',
            'connected_components', 'removes_self_loops', 'derives_graph_statistics', 'splits_knowledge_graph',
            'adds_namespace_to_bnodes', 'removes_namespace_from_bnodes', 'updates_pkt_namespace_identifiers',
