@@ -15,19 +15,19 @@
 #                                      the first node requires data contained in the 2nd column of the "mapping_file_1.txt" and the second node requires data from the 4th column  
 #                                      in the "mapping_file_2.txt" file.        
 # EvidenceCriteria:                    Evidence criteria that can be used to filter an input data source (e.g., scores above a certain cut-off). An evidence set is composed of 3  
-#                                      pieces of ";"-separated information (e.g., "4;!=;IEA::8;<;0.0001"):  
+#                                      pieces of ";"-separated information. Multiple evidence sets can be passed, where each set is separated by "::". Consider the following 
+#                                      example: "4;!=;IEA::8;<;0.0001":  
 #                                         1. The index of the column to apply the evidence criteria to (e.g., "4" and "8" in the example above)  
 #										  2. The operator (i.e., "==", "!=", "<", ">", "<=", ">=", "in", ".startswith()", ".endswith()") to use when filtering (e.g., "!=" and "<"  
 #                                            in the example above)           
 #										  3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "IEA" and "0.0001" in the example above)   
-#									   Multiple evidence sets can be passed as demonstrated by the example above, where each set is separated by "::".  
 # FilterCriteria:                      Filtering criteria that can be used to filter an input data source (e.g., human proteins). An evidence set is composed of 3 pieces of ";"-  
-#                                      separated information (e.g., "5;==;P::7;==;9606"):  
+#                                      separated information. Multiple filtering sets can be passed, where each set is separated by "::". Consider the following example: 
+#                                      "5;==;P::7;==;9606"):  
 #                                         1. The index of the column to apply the evidence criteria to (e.g., "5" and "7" in the example above)  
 #										  2. The operator (i.e., "==", "!=", "<", ">", "<=", ">=", "in", ".startswith()", ".endswith()") to use when filtering (e.g., "==" and "=="  
 #                                            in the example above)           
-#										  3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "P" and "9606" in the example above)   
-#									   Multiple filtering sets can be passed as demonstrated by the example above, where each set is separated by "::".    
+#										  3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "P" and "9606" in the example above)       
 ######################################################################################################################################################################################
 chemical-disease|:;MESH_;|class-class|RO_0002606|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/DISEASE_MONDO_MAP.txt|9;!=;''|None
 chemical-gene|;MESH_;NCBIGene_|class-entity|RO_0002434|t|0;3|0:./resources/processed_data/MESH_CHEBI_MAP.txt|10;!=;''|6;==;Homo sapiens::5;.startswith('gene');
