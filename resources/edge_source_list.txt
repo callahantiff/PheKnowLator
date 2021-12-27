@@ -1,34 +1,40 @@
-chemical-disease, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chemicals_diseases.tsv
-chemical-gene, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_gene_ixns.tsv
-chemical-gobp, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_go_enriched.tsv
-chemical-gocc, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_go_enriched.tsv
-chemical-gomf, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_go_enriched.tsv
-chemical-pathway, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/ChEBI2Reactome_All_Levels.txt
-chemical-phenotype, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chemicals_diseases.tsv
-chemical-protein, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_gene_ixns.tsv
-chemical-rna, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_gene_ixns.tsv
-disease-phenotype, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/phenotype.hpoa
-gene-disease, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/curated_gene_disease_associations.tsv
-gene-gene, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
-gene-pathway, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_genes_pathways.tsv
-gene-phenotype, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/curated_gene_disease_associations.tsv
-gene-protein, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
-gene-rna, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt
-gobp-pathway, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/gene_association.reactome
-pathway-gocc, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/gene_association.reactome
-pathway-gomf, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/gene_association.reactome
-protein-anatomy, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
-protein-catalyst, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/UNIPROT_PROTEIN_CATALYST.txt
-protein-cell, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
-protein-cofactor, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/UNIPROT_PROTEIN_COFACTOR.txt
-protein-gobp, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/goa_human.gaf
-protein-gocc, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/goa_human.gaf
-protein-gomf, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/goa_human.gaf
-protein-pathway, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/UniProt2Reactome_All_Levels.txt
-protein-protein, https://storage.googleapis.com/pheknowlator/current_build/data/original_data/9606.protein.links.v11.0.txt
-rna-anatomy, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
-rna-cell, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
-rna-protein, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt
-variant-disease, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
-variant-gene, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
-variant-phenotype, https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
+#####################################################################################################################################################
+#### edge_source_info.txt (last updated: December 27, 2021)
+### Each column is separated by a pipe (i.e., "|") and includes the following:
+# EdgeType:    A string label for an edge (node1-node2). The label matches what is used in the resource_info.txt and ontology_source_list.txt files.
+# URL:         A string containing a URL to the primary data source for the edge.    
+#####################################################################################################################################################
+chemical-disease|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chemicals_diseases.tsv
+chemical-gene|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_gene_ixns.tsv
+chemical-gobp|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_go_enriched.tsv
+chemical-gocc|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_go_enriched.tsv
+chemical-gomf|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_go_enriched.tsv
+chemical-pathway|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/ChEBI2Reactome_All_Levels.txt
+chemical-phenotype|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chemicals_diseases.tsv
+chemical-protein|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_gene_ixns.tsv
+chemical-rna|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_chem_gene_ixns.tsv
+disease-phenotype|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/phenotype.hpoa
+gene-disease|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/curated_gene_disease_associations.tsv
+gene-gene|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/COMBINED.DEFAULT_NETWORKS.BP_COMBINING.txt
+gene-pathway|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/CTD_genes_pathways.tsv
+gene-phenotype|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/curated_gene_disease_associations.tsv
+gene-protein|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt
+gene-rna|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt
+gobp-pathway|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/gene_association.reactome
+pathway-gocc|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/gene_association.reactome
+pathway-gomf|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/gene_association.reactome
+protein-anatomy|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
+protein-catalyst|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/UNIPROT_PROTEIN_CATALYST.txt
+protein-cell|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
+protein-cofactor|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/UNIPROT_PROTEIN_COFACTOR.txt
+protein-gobp|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/goa_human.gaf
+protein-gocc|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/goa_human.gaf
+protein-gomf|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/goa_human.gaf
+protein-pathway|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/UniProt2Reactome_All_Levels.txt
+protein-protein|https://storage.googleapis.com/pheknowlator/current_build/data/original_data/9606.protein.links.v11.0.txt
+rna-anatomy|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
+rna-cell|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
+rna-protein|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt
+variant-disease|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
+variant-gene|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
+variant-phenotype|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
