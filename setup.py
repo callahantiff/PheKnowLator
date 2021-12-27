@@ -79,6 +79,7 @@ setup(
                       'pandas>=1.0.5',
                       'psutil',
                       'python-json-logger',
+                      'pyyaml',
                       'ray',
                       'rdflib',
                       'reactome2py',
