@@ -136,9 +136,7 @@ class DataSource(object):
         """
 
         mapping = ['{} ({})'.format(edge.split('|')[0].split('-')[int(x.split(':')[0])], ''.join(x.split(':')[1]))
-                   if x != 'None'
-                   else 'None'
-                   for x in edge.split('|')[-3].strip('\n').split(';')]
+                   if x != 'None' else 'None' for x in edge.split('|')[-3].strip('\n').split(';')]
         filtering = ['None' if x == 'None'
                      else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
                      if ('in' in x.split(';')[1] and x != 'None')
@@ -238,7 +236,7 @@ class OntData(DataSource):
 
         Returns:
             source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
-                example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
+                example below: {'chemical-gomf': 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
                                 'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
 
         Raises:
@@ -251,8 +249,8 @@ class OntData(DataSource):
             raise TypeError('ERROR: ' + log_str)
         else:
             with open(self.data_path, 'r') as file_name:
-                self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
-                                    for row in file_name.read().splitlines()}
+                self.source_list = {row.strip().split('|')[0]: row.strip().split('|')[1].strip()
+                                    for row in file_name.read().splitlines() if not row.startswith('#')}
 
         return None
 
@@ -316,7 +314,7 @@ class LinkedData(DataSource):
 
         Returns:
             source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
-                example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
+                example below: {'chemical-gomf': 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
                                 'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
 
         Raises:
@@ -328,8 +326,8 @@ class LinkedData(DataSource):
             raise TypeError('ERROR: ' + log_str)
         else:
             with open(self.data_path, 'r') as file_name:
-                self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
-                                    for row in file_name.read().splitlines()}
+                self.source_list = {row.strip().split('|')[0]: row.strip().split('|')[1].strip()
+                                    for row in file_name.read().splitlines() if not row.startswith('#')}
 
         return None
 
