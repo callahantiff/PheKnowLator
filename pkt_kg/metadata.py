@@ -132,11 +132,15 @@ class Metadata(object):
                     descriptions = [x for x in graph.triples((i, obo.IAO_0000115, None))
                                     if '@' not in n3(x[2]) or '@en' in n3(x[2])]
                     synonyms = [x for x in graph.triples((i, None, None)) if 'synonym' in str(x[1]).lower()]
+                    dbxrefs = [x for x in graph.triples((i, None, None))
+                               if 'hasdbxref' in str(x[1]).lower() or 'exactmatch' in str(x[1]).lower()]
                     if len(labels) != 0:
                         temp_dict[str(i)] = {
                             'Label': str(labels[0][2]) if len(labels) > 0 else None,
                             'Description': str(descriptions[0][2]) if len(descriptions) > 0 else None,
-                            'Synonym': '|'.join([str(c[2]) for c in synonyms]) if len(synonyms) > 0 else None
+                            'Synonym': '|'.join([str(c[2]) for c in synonyms]) if len(synonyms) > 0 else None,
+                            'DbXref': '|'.join(['{}:{}'.format(str(c[1]), str(c[2])) for c in dbxrefs])
+                            if len(dbxrefs) > 0 else None
                         }
                 self.node_dict[key] = {**self.node_dict[key], **temp_dict}
 
