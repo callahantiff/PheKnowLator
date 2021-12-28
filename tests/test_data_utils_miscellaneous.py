@@ -177,6 +177,55 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         return None
 
+    def tests_gets_biolink_information_entity(self):
+        """Tests the gets_biolink_information function when provided a valid entity CURIE."""
+
+        # set-up input
+        entity = 'CHEBI:16753'; entity_label = None
+
+        # test function
+        res = gets_biolink_information(entity, entity_label, self.dir_loc + '/')
+        self.assertEqual(res, 'biolink:SmallMolecule')
+
+        return None
+
+    def tests_gets_biolink_information_entitylabel(self):
+        """Tests the gets_biolink_information function when provided a valid entity CURIE and label are provided."""
+
+        # set-up input
+        entity = 'RO:0002436'; entity_label = 'molecularly interacts with'
+
+        # test function
+        res = gets_biolink_information(entity, entity_label, self.dir_loc + '/')
+        self.assertEqual(res, 'biolink:molecularly_interacts_with')
+
+        return None
+
+    def tests_gets_biolink_information_entitylabel2(self):
+        """Tests the gets_biolink_information function when provided a valid entity CURIE and label are provided."""
+
+        # set-up input
+        entity = 'rdfs:subClassOf'; entity_label = 'subclass of'
+
+        # test function
+        res = gets_biolink_information(entity, entity_label, self.dir_loc + '/')
+        self.assertEqual(res, 'biolink:subclass_of')
+
+        return None
+
+    def tests_gets_biolink_information_entitylabel3(self):
+        """Tests the gets_biolink_information function when provided a valid entity CURIE and label that cannot be
+        found in the model or API."""
+
+        # set-up input
+        entity = 'RO:0000000'; entity_label = None
+
+        # test function
+        res = gets_biolink_information(entity, entity_label, self.dir_loc + '/')
+        self.assertEqual(res, 'biolink:Other')
+
+        return None
+
     def tearDown(self):
 
         # remove temp directory

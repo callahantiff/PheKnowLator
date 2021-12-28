@@ -24,6 +24,7 @@ Miscellaneous data Processing Methods
 * merges_files
 * sublist_creator
 * obtains_entity_url
+* gets_biolink_information
 
 Outputs data
 * outputs_dictionary_data
@@ -41,10 +42,12 @@ import re
 import requests
 import shutil
 import urllib3  # type: ignore
+import yaml
 
 from contextlib import closing
 from io import BytesIO
 from json.decoder import JSONDecodeError
+from rdflib import Graph  # type: ignore
 from reactome2py import content  # type: ignore
 from tqdm import tqdm  # type: ignore
 from typing import Dict, Generator, List, Optional, Union
@@ -500,8 +503,59 @@ def obtains_entity_url(prefix: str, identifier: Union[int, str]) -> str:
 
     try:
         res = requests.get('https://bioregistry.io/api/reference/' + prefix.lower() + ':' + str(identifier)).json()
-    except JSONDecodeError as e:
+    except JSONDecodeError:
         raise ValueError('Error: Invalid prefix or identifier provided. Please check your input and try again.')
     entity_url = res['providers']['bioregistry']
 
     return entity_url
+
+
+def gets_biolink_information(entity: str, entity_label: Optional[str] = None, biolink_loc='./resources/') -> str:
+    """Function takes an entity CURIE and label and returns its BioLink Model type. First, the function uses the
+    TranslatorSRI API. If that does not return a match, the function then downloads (if not already downloaded) a
+    yaml file of the current BioLink model and searches it. If that also does not return a match, then the function
+    formats the entity's label and returns it as the biolink type. Examples are shown below. For entities,
+    this function relies on the TranslatorSRI application (https://github.com/TranslatorSRI/NodeNormalization).
+
+    Assumptions: If more than 1 BioLink type is provided, the function is designed to take the first one.
+
+    EXAMPLE OUTPUT:
+        - ""CHEBI:16753" --> biolink:SmallMolecule
+        - "RO:0002512" --> biolink:translation_of
+
+    Args:
+        entity: A string containing an entity CURIE (e.g., CHEBI:16753) or None.
+        entity_label: A string representing an entity label.
+        biolink_loc: A string containing a location to a biolink yaml file.
+
+    Returns:
+        biolink_type: A string containing a BioLink model type for a node or an predication.
+    """
+
+    # check for biolink data being downloaded
+    biolink_file = 'https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml'
+    if not os.path.exists(biolink_loc + 'biolink-model.yaml'): data_downloader(biolink_file, biolink_loc)
+    biolink_data = yaml.load(open(biolink_loc + 'biolink-model.yaml'), Loader=yaml.FullLoader)
+
+    # find entities bioLink type
+    entity = entity.replace('_', ':')
+    result = requests.get('https://nodenormalization-sri.renci.org/get_normalized_nodes', params={'curie': entity})
+    res = result.json()
+
+    if res[entity] is not None: biolink_type = res[entity]['type'][0]
+    else:  # checks the biolink yaml for the entity CURIE
+        temp_idx = [k for k in biolink_data['slots'].keys()
+                    if ('exact_mappings' in biolink_data['slots'][k].keys()
+                        and entity in biolink_data['slots'][k]['exact_mappings'])
+                    or ('narrow_mappings' in biolink_data['slots'][k].keys()
+                        and entity in biolink_data['slots'][k]['narrow_mappings'])]
+        if len(temp_idx) > 0: biolink_type = 'biolink:{}'.format(temp_idx[0].replace(' ', '_'))
+        else:  # checks the biolink yaml for the entity label
+            if entity_label is not None:
+                entity_label = entity_label.lower()
+                temp_str = [k for k in biolink_data['slots'].keys() if k == entity_label]
+                if len(temp_str) > 0: biolink_type = 'biolink:{}'.format(temp_str[0].replace(' ', '_'))
+                else: biolink_type = 'biolink:{}'.format(entity_label.replace(' ', '_'))
+            else: biolink_type = 'biolink:Other'
+
+    return biolink_type
