@@ -4,7 +4,7 @@ google==1.9.3
 google-api-core==1.24.1
 google-api-python-client~=1.7.9
 google-cloud-storage==1.28.0
-lxml==4.6.3
+lxml==4.6.5
 networkx==2.4
 numpy==1.18.1
 openpyxl==3.0.3
