@@ -78,10 +78,6 @@ class DocumentationMaker(object):
                     ont_data[ont_edge] = input('Provide an owl or obo URL for this ontology: ')
 
             print('\n')
-            node_data_types = input('Provide the data types for each node in the edge (e.g. "class" or "entity" (for '
-                                    'data that is not from an ontology) each node in the edge separated by "-" --> '
-                                    '"class-entity"): ')
-            print('\n')
 
             delimiter = input('Provide the character used to split each row into columns (e.g. "t" or ","): ')
             print('\n')
@@ -124,10 +120,9 @@ class DocumentationMaker(object):
             print('\n')
 
             # add edge data to dictionary
-            resource_data[edge_type] = '{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}'.format(identifier_prefix_information,
-                                                                                node_data_types, edge_relation,
-                                                                                delimiter, col_idx, id_maps,
-                                                                                evi_crit, filt_crit)
+            resource_data[edge_type] = '{0}|{1}|{2}|{3}|{4}|{5}|{6}'.format(identifier_prefix_information,
+                                                                            edge_relation, delimiter, col_idx,
+                                                                            id_maps, evi_crit, filt_crit)
 
             # get edge data sources
             edge_data[edge_type] = input('Provide a URL or file path to data used to create this edge: ')
@@ -167,13 +162,11 @@ def main():
           '\n\t(2) IdentifierPrefixInformation: A ";"-separated string used to update a prefix-identifier pair '
           '(e.g., GO;GO). The first and second items contain BioRegistry prefixes. If one of the\n\t\texisting '
           'prefixes is correct leave its spot empty and if both are correct, type ";". All prefixes should be the '
-          'preferred prefix from the BioRegistry\n\t\t(https://bioregistry.io/registry/);\n\t(3) NodeDataTypes: A '
-          'label of "class" or "entity" for each node in an edge separated by "-" (e.g., "class-class"). The "class" '
-          'label\n\t\trepresents nodes from ontologies and "entity" represents nodes from other data sources;\n\t(4) '
-          'Relation: A Relation Ontology (http://www.obofoundry.org/ontology/ro.html) CURIE (e.g., RO_0000056)\n\t(5) '
-          'Delimiter: A character used to split rows from an input data source into columns (e.g., "t" for '
-          'tab-delimited data or "," for comma-delimited data);\n\t(6) ColumnIndexes: Two-column indexes separated by '
-          '";" (e.g., "0;4" for the first and third columns in the input data source);\n\t(7) IdentifierMaps: A string '
+          'preferred prefix from the BioRegistry\n\t\t(https://bioregistry.io/registry/);\n\t(3) Relation: A Relation '
+          'Ontology (http://www.obofoundry.org/ontology/ro.html) CURIE (e.g., RO_0000056)\n\t(4) Delimiter: A '
+          'character used to split rows from an input data source into columns (e.g., "t" for '
+          'tab-delimited data or "," for comma-delimited data);\n\t(5) ColumnIndexes: Two-column indexes separated by '
+          '";" (e.g., "0;4" for the first and third columns in the input data source);\n\t(6) IdentifierMaps: A string '
           'of mapping information for each node in an edge. For example, the string "2:mapping_file_1.txt;'
           '4:mapping_file_2.txt" means that the first node require\n\t\tdata contained in the 2nd column of the '
           '"mapping_file_1.txt" and the second node requires data from the 4th column in the "mapping_file_2.txt" '
@@ -192,7 +185,7 @@ def main():
           '"<", ">", "<=", ">=", "in", ".startswith()", ".endswith()") to use when filtering (e.g., "==" and "==" in '
           'the example above)\n\t\t\t3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "P" and '
           '"9606" in the example above).\n\n\tAn example line from the resource_info.txt file is shown below:\n\t\t'
-          'chemical-gene|;MESH_;|class-class|;MESH_;|class-class|RO_0002434|#|t|1;4|0:./resources/data_maps/'
+          'chemical-gene|;MESH_;|RO_0002434|#|t|1;4|0:./resources/data_maps/'
           'MESH_CHEBI_MAP.txt|None|7;==;9606\n\n(2) ontology_source_info.txt: This document contains a "|"-delimited '
           'line for each ontology source used, for example:\n\t"chemical|http://purl.obolibrary.org/obo/chebi.owl"'
           '\n\t"gene|http://purl.obolibrary.org/obo/so.owl"\n\n(3) edge_source_info.txt: This document contains a '
