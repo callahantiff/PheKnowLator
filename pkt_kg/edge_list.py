@@ -55,15 +55,13 @@ class CreatesEdgeList(object):
                 cols = ['"{}"'.format(x.strip()) for x in list(csv.reader([row], delimiter='|', quotechar='"'))[0]]
                 key = cols[0].strip('"').strip("'")
                 self.source_info[key] = {}
-                self.source_info[key]['source_labels'] = cols[1].strip('"').strip("'")
-                self.source_info[key]['data_type'] = cols[2].strip('"').strip("'")
-                self.source_info[key]['edge_relation'] = cols[3].strip('"').strip("'")
-                self.source_info[key]['uri'] = (cols[4].strip('"').strip("'"), cols[5].strip('"').strip("'"))
-                self.source_info[key]['delimiter'] = cols[6].strip('"').strip("'")
-                self.source_info[key]['column_idx'] = cols[7].strip('"').strip("'")
-                self.source_info[key]['identifier_maps'] = cols[8].strip('"').strip("'")
-                self.source_info[key]['evidence_criteria'] = cols[9].strip('"').strip("'")
-                self.source_info[key]['filter_criteria'] = cols[10].strip('"').strip("'")
+                self.source_info[key]['identifier_prefix_information'] = cols[1].strip('"').strip("'")
+                self.source_info[key]['relation'] = cols[2].strip('"').strip("'")
+                self.source_info[key]['delimiter'] = cols[3].strip('"').strip("'")
+                self.source_info[key]['column_indexes'] = cols[4].strip('"').strip("'")
+                self.source_info[key]['identifier_maps'] = cols[5].strip('"').strip("'")
+                self.source_info[key]['evidence_criteria'] = cols[6].strip('"').strip("'")
+                self.source_info[key]['filter_criteria'] = cols[7].strip('"').strip("'")
                 self.source_info[key]['edge_list'] = []
         source_file_data.close()
 
