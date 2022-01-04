@@ -503,7 +503,7 @@ def obtains_entity_url(prefix: str, identifier: Union[int, str], url: Optional[s
     """
 
     prefix = prefix.lower(); identifier = str(identifier); res = None; entity_url = None
-    default_bioregistry_url = 'https://bioregistry.io/'; obo_url = 'http://purl.obolibrary.org/obo/'
+    obo_url = 'http://purl.obolibrary.org/obo/'
     obo_ont_prefixes = ['BFO', 'CHEBI', 'DOID', 'GO', 'OBI', 'PATO', 'PO', 'PR', 'XAO', 'ZFA', 'AEO', 'AGRO', 'AISM',
                         'AMPHX', 'APO', 'APOLLO_SV', 'ARO', 'BCO', 'BSPO', 'BTO', 'CARO', 'CDAO', 'CDNO', 'CHEMINF',
                         'CHIRO', 'CHMO', 'CIDO', 'CIO', 'CL', 'CLAO', 'CLO', 'CLYH', 'CMO', 'COB', 'COLAO', 'CRO',
