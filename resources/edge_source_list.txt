@@ -35,6 +35,6 @@ protein-protein|https://storage.googleapis.com/pheknowlator/current_build/data/o
 rna-anatomy|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 rna-cell|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/HPA_GTEX_RNA_GENE_PROTEIN_EDGES.txt
 rna-protein|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/ENSEMBL_TRANSCRIPT_PROTEIN_ONTOLOGY_MAP.txt
-variant-disease|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
-variant-gene|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
-variant-phenotype|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_DISEASE_PHENOTYPE_EDGES.txt
+variant-disease|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_DISEASE_PHENOTYPE_EDGES.txt
+variant-gene|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_GENE_EDGES.txt
+variant-phenotype|https://storage.googleapis.com/pheknowlator/current_build/data/processed_data/CLINVAR_VARIANT_DISEASE_PHENOTYPE_EDGES.txt
