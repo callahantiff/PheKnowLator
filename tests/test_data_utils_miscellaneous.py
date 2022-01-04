@@ -166,11 +166,23 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         return None
 
+    def tests_obtains_entity_url_obo(self):
+        """Tests the obtains_entity_url method when an obo identifier is passed."""
+
+        # set-up input
+        prefix = 'pr'; identifier = 'A5D8V7'
+
+        # test function
+        entity_uri = obtains_entity_url(prefix, identifier)
+        self.assertEqual(entity_uri, 'https://bioregistry.io/pr:A5D8V7')
+
+        return None
+
     def tests_obtains_entity_url_bad(self):
         """Tests the obtains_entity_url method when an invalid identifier is passed."""
 
         # set-up input
-        prefix = 'chebi'; identifier = 't'
+        prefix = 'hpo'; identifier = 't'
 
         # test function
         self.assertRaises(ValueError, obtains_entity_url, prefix, identifier)

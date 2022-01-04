@@ -501,11 +501,32 @@ def obtains_entity_url(prefix: str, identifier: Union[int, str]) -> str:
             prefix was provided.
     """
 
+    entity_url = None; default_bioregistry_url = 'https://bioregistry.io/'
+    obo_ont_prefixes = ['BFO', 'CHEBI', 'DOID', 'GO', 'OBI', 'PATO', 'PO', 'PR', 'XAO', 'ZFA', 'AEO', 'AGRO', 'AISM',
+                        'AMPHX', 'APO', 'APOLLO_SV', 'ARO', 'BCO', 'BSPO', 'BTO', 'CARO', 'CDAO', 'CDNO', 'CHEMINF',
+                        'CHIRO', 'CHMO', 'CIDO', 'CIO', 'CL', 'CLAO', 'CLO', 'CLYH', 'CMO', 'COB', 'COLAO', 'CRO',
+                        'CTENO', 'CTO', 'CVDO', 'DDANAT', 'DDPHENO', 'DIDEO', 'DISDRIV', 'DPO', 'DRON', 'DUO',
+                        'ECAO', 'ECO', 'ECOCORE', 'ECTO', 'EMAPA', 'ENVO', 'EUPATH', 'EXO', 'FAO', 'FBBI', 'FBBT',
+                        'FBCV', 'FBDV', 'FIDEO', 'FLOPO', 'FMA', 'FOBI', 'FOODON', 'FOVT', 'FYPO', 'GECKO',
+                        'GENEPIO', 'GENO', 'GEO', 'GNO', 'HANCESTRO', 'HAO', 'HOM', 'HSAPDV', 'HSO', 'HTN', 'IAO',
+                        'ICEO', 'ICO', 'IDO', 'INO', 'LABO', 'LEPAO', 'MA', 'MAXO', 'MCO', 'MF', 'MFMO', 'MFOEM',
+                        'MFOMD', 'MI', 'MIAPA', 'MICRO', 'MMO', 'MMUSDV', 'MOD', 'MONDO', 'MOP', 'MP', 'MPATH',
+                        'MPIO', 'MRO', 'MS', 'NBO', 'NCBITAXON', 'NCIT', 'NCRO', 'NOMEN', 'OAE', 'OARCS', 'OBA',
+                        'OBCS', 'OBIB', 'OGG', 'OGMS', 'OGSF', 'OHD', 'OHMI', 'OHPI', 'OLATDV', 'OMIT', 'OMO', 'OMP',
+                        'OMRSE', 'ONE', 'ONS', 'ONTOAVIDA', 'ONTONEO', 'OOSTT', 'OPL', 'OPMI', 'ORNASEQ', 'OVAE',
+                        'PCO', 'PDRO', 'PDUMDV', 'PECO', 'PHIPO', 'PLANA', 'PLANP', 'PORO', 'PPO', 'PSDO', 'PSO',
+                        'PW', 'RBO', 'RO', 'RS', 'RXNO', 'SEPIO', 'SO', 'SPD', 'STATO', 'SWO', 'SYMP', 'TAXRANK',
+                        'TO', 'TRANS', 'TTO', 'TXPO', 'UBERON', 'UO', 'UPHENO', 'VO', 'VT', 'VTO', 'WBBT', 'WBLS',
+                        'WBPHENOTYPE', 'XCO', 'XLMOD', 'XPO', 'ZECO', 'ZFS', 'ZP', 'EPIO', 'GSSO', 'HP', 'KISAO',
+                        'MAMO', 'SBO', 'SCDO', 'SIBO', 'FIX', 'VARIO', 'OGI', 'REX', 'CEPH', 'EHDAA2', 'GAZ', 'RNAO',
+                        'UPA', 'ERO', 'IDOMAL', 'MIRO', 'TADS', 'TGMA', ]
+
     try:
         res = requests.get('https://bioregistry.io/api/reference/' + prefix.lower() + ':' + str(identifier)).json()
     except JSONDecodeError:
-        raise ValueError('Error: Invalid prefix or identifier provided. Please check your input and try again.')
-    entity_url = res['providers']['bioregistry']
+        if prefix.upper() in obo_ont_prefixes: entity_url = default_bioregistry_url + prefix + ':' + str(identifier)
+        else: raise ValueError('Error: Invalid prefix or identifier provided. Please check your input and try again.')
+    if not isinstance(entity_url, str): entity_url = res['providers']['bioregistry']
 
     return entity_url
 
