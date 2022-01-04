@@ -174,11 +174,11 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         # test function
         entity_uri = obtains_entity_url(prefix, identifier)
-        self.assertEqual(entity_uri, 'https://bioregistry.io/pr:A5D8V7')
+        self.assertEqual(entity_uri, 'http://purl.obolibrary.org/obo/PR_A5D8V7')
 
         return None
 
-    def tests_obtains_entity_url_bad(self):
+    def tests_obtains_entity_url_bad1(self):
         """Tests the obtains_entity_url method when an invalid identifier is passed."""
 
         # set-up input
@@ -186,6 +186,18 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         # test function
         self.assertRaises(ValueError, obtains_entity_url, prefix, identifier)
+
+        return None
+
+    def tests_obtains_entity_url_bad2(self):
+        """Tests the obtains_entity_url method when an invalid identifier is passed, but a valid url is passed."""
+
+        # set-up input
+        prefix = 'swrl'; identifier = 'Variable'; url = 'http://www.w3.org/2003/11/swrl#Variable'
+
+        # test function
+        entity_uri = obtains_entity_url(prefix, identifier, url)
+        self.assertEqual(entity_uri, 'http://www.w3.org/2003/11/swrl#Variable')
 
         return None
 

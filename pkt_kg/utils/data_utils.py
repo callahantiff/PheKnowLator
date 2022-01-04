@@ -485,13 +485,14 @@ def sublist_creator(actors: Union[Dict, List], chunk_size: int) -> List:
     return updated_lists
 
 
-def obtains_entity_url(prefix: str, identifier: Union[int, str]) -> str:
+def obtains_entity_url(prefix: str, identifier: Union[int, str], url: Optional[str] = None) -> str:
     """Function takes a prefix and identifier for an entity, looks it up in the BioRegistry API and returns a
     resolvable URL. Information on the BioRegistry can be found here: https://bioregistry.io/.
 
     Args:
         prefix: A string containing the prefix or name of a resources (e.g., "chebi").
         identifier: A string or integer containing an entity identifier (e.g., "138488").
+        url: A string containing a url.
 
     Returns:
         entity_url: A string containing a valid BioRegistry URL (e.g., ).
@@ -501,7 +502,8 @@ def obtains_entity_url(prefix: str, identifier: Union[int, str]) -> str:
             prefix was provided.
     """
 
-    entity_url = None; default_bioregistry_url = 'https://bioregistry.io/'
+    prefix = prefix.lower(); identifier = str(identifier); res = None; entity_url = None
+    default_bioregistry_url = 'https://bioregistry.io/'; obo_url = 'http://purl.obolibrary.org/obo/'
     obo_ont_prefixes = ['BFO', 'CHEBI', 'DOID', 'GO', 'OBI', 'PATO', 'PO', 'PR', 'XAO', 'ZFA', 'AEO', 'AGRO', 'AISM',
                         'AMPHX', 'APO', 'APOLLO_SV', 'ARO', 'BCO', 'BSPO', 'BTO', 'CARO', 'CDAO', 'CDNO', 'CHEMINF',
                         'CHIRO', 'CHMO', 'CIDO', 'CIO', 'CL', 'CLAO', 'CLO', 'CLYH', 'CMO', 'COB', 'COLAO', 'CRO',
@@ -522,9 +524,10 @@ def obtains_entity_url(prefix: str, identifier: Union[int, str]) -> str:
                         'UPA', 'ERO', 'IDOMAL', 'MIRO', 'TADS', 'TGMA', ]
 
     try:
-        res = requests.get('https://bioregistry.io/api/reference/' + prefix.lower() + ':' + str(identifier)).json()
+        res = requests.get('https://bioregistry.io/api/reference/' + prefix + ':' + identifier).json()
     except JSONDecodeError:
-        if prefix.upper() in obo_ont_prefixes: entity_url = default_bioregistry_url + prefix + ':' + str(identifier)
+        if prefix.upper() in obo_ont_prefixes: entity_url = obo_url + prefix.upper() + '_' + identifier
+        elif url is not None: entity_url = url
         else: raise ValueError('Error: Invalid prefix or identifier provided. Please check your input and try again.')
     if not isinstance(entity_url, str): entity_url = res['providers']['bioregistry']
 
