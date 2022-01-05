@@ -26,8 +26,12 @@ Miscellaneous data Processing Methods
 * obtains_entity_url
 * gets_biolink_information
 
+Inputs data
+* load_jsonl
+
 Outputs data
 * outputs_dictionary_data
+* dump_jsonl
 """
 
 # import needed libraries
@@ -583,3 +587,42 @@ def gets_biolink_information(entity: str, entity_label: Optional[str] = None, bi
             else: biolink_type = 'biolink:Other'
 
     return biolink_type
+
+
+def dump_jsonl(data: List, output_path: str) -> None:
+    """Write list of objects to a JSON lines file. This function was modified from:
+    https://galea.medium.com/how-to-love-jsonl-using-json-line-format-in-your-workflow-b6884f65175b
+
+    Args:
+        data: A list of Dict objects.
+        output_path: A string containing a location to write data to.
+
+    Returns:
+        None.
+    """
+
+    with open(output_path, 'a+', encoding='utf-8') as f:
+        for line in data:
+            json_record = json.dumps(line, ensure_ascii=False)
+            f.write(json_record + '\n')
+
+    return None
+
+
+def load_jsonl(input_path: str) -> Dict:
+    """Read list of objects from a JSON lines file. This function was modified from:
+    https://galea.medium.com/how-to-love-jsonl-using-json-line-format-in-your-workflow-b6884f65175b
+
+    Args:
+        input_path: A string containing a location to a jsonl file.
+
+    Returns:
+        data_dict: A Dict object of the data contained in the object pointed to by input_path.
+    """
+
+    data_dict: Dict = dict()
+    with open(input_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            data_dict.update(**json.loads(line.rstrip('\n|\r')))
+
+    return data_dict

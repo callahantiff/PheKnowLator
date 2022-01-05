@@ -250,6 +250,41 @@ class TestDataUtilsMisc(unittest.TestCase):
 
         return None
 
+    def tests_dump_jsonl(self):
+        """Tests the dump_jsonl function."""
+
+        # set-up input
+        out_location = self.dir_loc + '/out.jsonl'
+
+        # test function
+        for url in ['https://chordanalytics.ca/', 'https://github.com/agalea91']:
+            webpage_data = {'page_url': url, 'status_code': 200}
+            dump_jsonl([webpage_data], out_location)
+
+        self.assertTrue(os.path.exists(out_location))
+        self.assertTrue(os.stat(out_location).st_size > 0)
+
+        return None
+
+    def tests_load_jsonl(self):
+        """Tests the load_jsonl function."""
+
+        # set-up input
+        out_location = self.dir_loc + '/out.jsonl'
+        for url in ['https://chordanalytics.ca/', 'https://github.com/agalea91']:
+            webpage_data = {url: {'status_code': 200}}
+            dump_jsonl([webpage_data], out_location)
+
+        # test function
+        data_dict = load_jsonl(out_location)
+        test_dict = {'https://chordanalytics.ca/': {'status_code': 200},
+                     'https://github.com/agalea91': {'status_code': 200}}
+
+        self.assertIsInstance(data_dict, dict)
+        self.assertEqual(data_dict, test_dict)
+
+        return None
+
     def tearDown(self):
 
         # remove temp directory
