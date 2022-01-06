@@ -2,7 +2,7 @@
 #### resource_info.txt (last updated: December 27, 2021)
 ### Each column is separated by a pipe (i.e., "|") and includes the following:
 # edge_type:                           A string label for an edge (node1-node2). The label matches what is used in the edge_source_list.txt and ontology_source_list.txt files.
-# identifier_prefixes:       		   A ";"-separated string where the first item is the final prefix for the subject node and the second is the final prefix for the object node. 
+# prefixes:       					   A ";"-separated string where the first item is the final prefix for the subject node and the second is the final prefix for the object node. 
 #									   All prefixes should be the preferred prefix from the BioRegistry (https://bioregistry.io/registry/).     
 # relation:                            An OBO Foundry ontology CURIE (e.g., RO_0000056).    
 # delimiter:                           A character used to split rows from an input data source into columns (e.g., "t" for tab-delimited data or "," for comma-delimited data).  
