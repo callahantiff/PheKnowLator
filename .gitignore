@@ -48,7 +48,7 @@ scratch*.py
 /resources/embeddings/*
 /resources/knowledge_graphs/
 /resources/kr_model/
-/resources/node_data/*
+/resources/metadata/*
 /resources/ontologies/*
 /resources/owl_decoding/*
 /resources/processed_data/*
@@ -60,7 +60,7 @@ scratch*.py
 !/resources/edge_data/README.md
 !/resources/embeddings/README.md
 !/resources/knowledge_graphs/README.md
-!/resources/node_data/README.md
+!/resources/metadata/README.md
 !/resources/ontologies/ontology_source_metadata.txt
 !/resources/ontologies/README.md
 !/resources/owl_decoding/README.md

@@ -26,7 +26,7 @@ def main():
     parser.add_argument('-b', '--kg', help='build type: "partial", "full", or "post-closure"', required=True)
     parser.add_argument('-r', '--rel', help='yes/no - adding inverse relations to knowledge graph', required=True)
     parser.add_argument('-s', '--owl', help='yes/no - removing OWL Semantics from knowledge graph', required=True)
-    parser.add_argument('-m', '--nde', help='yes/no - adding node metadata to knowledge graph', required=True)
+    parser.add_argument('-m', '--mta', help='yes/no - adding entity metadata to knowledge graph', required=True)
     parser.add_argument('-o', '--out', help='name/path to directory where to write knowledge graph', required=True)
     args = parser.parse_args()
 
@@ -85,21 +85,21 @@ def main():
 
     if args.kg == 'partial':
         kg = PartialBuild(construction=args.app,
-                          node_data=args.nde,
+                          node_data=args.mta,
                           inverse_relations=args.rel,
                           decode_owl=args.owl,
                           cpus=cpus,
                           write_location=args.out)
     elif args.kg == 'post-closure':
         kg = PostClosureBuild(construction=args.app,
-                              node_data=args.nde,
+                              node_data=args.mta,
                               inverse_relations=args.rel,
                               decode_owl=args.owl,
                               cpus=cpus,
                               write_location=args.out)
     else:
         kg = FullBuild(construction=args.app,
-                       node_data=args.nde,
+                       node_data=args.mta,
                        inverse_relations=args.rel,
                        decode_owl=args.owl,
                        cpus=cpus,

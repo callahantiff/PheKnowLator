@@ -129,7 +129,7 @@ The ``pkt_kg`` library requires a specific project directory structure.
         |         |
         |     knowledge_graphs/
         |         |
-        |     node_data/
+        |     metadata/
         |         |
         |     ontologies/
         |         |
@@ -165,7 +165,9 @@ The `KG Construction`_ Wiki page provides a detailed description of the knowledg
 
 * `resources/construction_approach/subclass_construction_map.pkl`_
 * `resources/Master_Edge_List_Dict.json`_ ➞ *automatically created after edge list construction*
-* `resources/node_data/node_metadata_dict.pkl <https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md>`__ ➞ *if adding metadata for new edges to the knowledge graph*
+* `resources/metadata/entity_metadata_dict.pkl <https://github
+.com/callahantiff/PheKnowLator/blob/master/resources/metadata/README.md>`__ ➞ *if adding metadata for new edges to the
+knowledge graph*
 * `resources/knowledge_graphs/PheKnowLator_MergedOntologies*.owl`_ ➞ *see* `ontology README`_ *for information*
 * `resources/relations_data/RELATIONS_LABELS.txt`_
 * `resources/relations_data/INVERSE_RELATIONS.txt`_ ➞ *if including inverse relations*
@@ -221,7 +223,7 @@ The program can be run locally using the `main.py`_ script or using the `main.ip
  kg = PartialBuild(kg_version='v2.0.0',
                    write_location='./resources/knowledge_graphs',
                    construction='subclass,
-                   node_data='yes,
+                   metadata='yes,
                    inverse_relations='yes',
                    cpus=available_cpus,
                    decode_owl='yes')
@@ -437,7 +439,8 @@ Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. `A Framework for Automated C
 
 .. _`resources/Master_Edge_List_Dict.json`: https://www.dropbox.com/s/t8sgzd847t1rof4/Master_Edge_List_Dict.json?dl=1
 
-.. _`resources/node_data/node_metadata_dict.pkl`: https://github.com/callahantiff/PheKnowLator/blob/master/resources/node_data/README.md
+.. _`resources/metadata/entity_metadata_dict.pkl`: https://github
+.com/callahantiff/PheKnowLator/blob/master/resources/metadata/README.md
 
 .. _`resources/knowledge_graphs/PheKnowLator_MergedOntologies*.owl`: https://www.dropbox.com/s/75lkod7vzpgjdaq/PheKnowLator_MergedOntologiesGeneID_Normalized_Cleaned.owl?dl=1
 
