@@ -288,9 +288,11 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
         results = content.query_ids(ids=','.join(request_ids))
         if results is not None and (isinstance(results, List) or results['code'] != 404):
             for row in results:
-                ids.append(row['stId']); labels.append(row['displayName']); desc.append('None')
+                ids.append(row['stId']); labels.append(row['displayName'])
                 if row['displayName'] != row['name']: synonyms.append('|'.join(row['name']))
                 else: synonyms.append('None')
+                if 'summation' in row.keys(): desc.append('|'.join([x['text'] for x in row['summation']]))
+                else: desc.append('None')
 
     # combine into new data frame
     metadata = pd.DataFrame(list(zip(ids, labels, desc, synonyms)), columns=['ID', 'Label', 'Description', 'Synonym'])
