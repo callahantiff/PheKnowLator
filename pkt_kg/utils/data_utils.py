@@ -291,7 +291,12 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
                 ids.append(row['stId']); labels.append(row['displayName'])
                 if row['displayName'] != row['name']: synonyms.append('|'.join(row['name']))
                 else: synonyms.append('None')
-                if 'summation' in row.keys(): desc.append('|'.join([x['text'] for x in row['summation']]))
+                if 'summation' in row.keys():
+                    definition = '|'.join([x['text'] for x in row['summation']])
+                    if 'literatureReference' in row.keys():
+                        lit_ev = '|'.join([x['url'] for x in row['literatureReference'] if 'url' in x.keys()])
+                    else: lit_ev = ''
+                    desc.append('{} Literature References: {}.'.format(definition, lit_ev))
                 else: desc.append('None')
 
     # combine into new data frame
