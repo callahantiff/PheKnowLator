@@ -33,7 +33,7 @@ xlsx`](https://github.com/callahantiff/PheKnowLator/blob/master/resources/phekno
             'Synonym': '10,11-Dihydro-10,11-dihydroxy-5H-dibenzazepine-5-carboxamide|10,11-Dihydroxycarbamazepine',
             'Dbxref': 'CAS:35079-97-1|KEGG:C07495',
             'CTD_chem_gene_ixns.tsv.gz': {  
-                'ChemicalID': {'MESH:C004822'},
+                'CTD_ChemicalID': {'MESH:C004822'},
                 'CTD_CasRN': {'35079-97-1'},
                 'CTD_ChemicalName': {'10,11-dihydro-10,11-dihydroxy-5H-dibenzazepine-5-carboxamide'}}, ... }, ... },
     'edges': {
