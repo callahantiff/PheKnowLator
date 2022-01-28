@@ -49,6 +49,7 @@ scratch*.py
 /resources/knowledge_graphs/
 /resources/kr_model/
 /resources/metadata/*
+!/resources/metadata/pheknowlator_source_metadata.xlsx
 /resources/ontologies/*
 /resources/owl_decoding/*
 /resources/processed_data/*
