@@ -688,7 +688,7 @@ def maps_ids_to_integers(graph: Union[Graph, Set], write_location: str, output_i
             s, p, o = s.encode('utf-8').decode(), p.encode('utf-8').decode(), o.encode('utf-8').decode()
             ids.write(s + '\t' + p + '\t' + o + '\n')
         output_triples += 1
-    ints.close(), ids.close()
+#     ints.close(), ids.close()
     # CHECK - verify we get the number of edges that we would expect to get
     if graph_len != output_triples: raise ValueError('ERROR: The number of triples is incorrect!')
     else:
