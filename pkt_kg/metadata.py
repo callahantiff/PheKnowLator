@@ -36,7 +36,6 @@ logging.config.fileConfig(log_config[0], disable_existing_loggers=False, default
 
 class Metadata(object):
     """Class helps manage knowledge graph metadata.
-
     Attributes:
         kg_version: A string that contains the version of the knowledge graph build.
         write_location: A filepath to the knowledge graph directory (e.g. './resources/knowledge_graphs).
@@ -71,7 +70,6 @@ class Metadata(object):
         """Loads a directory of node and relations data. The dictionary is nested with the outer keys corresponding
         to the metadata type (i.e. "nodes" or "relations") and the values containing dictionaries keyed by URI and
         values containing a dictionary of metadata.
-
         Returns:
             None.
         """
@@ -105,10 +103,8 @@ class Metadata(object):
         owl:ObjectProperty). Each metadata type is saved as a dictionary key with the actual string stored as the
         value. The metadata types are packaged as a dictionary which is stored as the value to the node identifier as
         the key.
-
         Args:
             graph: An rdflib graph object.
-
         Returns:
             None.
         """
@@ -160,12 +156,10 @@ class Metadata(object):
         """Given a node in the knowledge graph, if the node is not an ontology class and if it has metadata information,
         then new edges are created to add the metadata to the knowledge graph. Metadata that is added includes: labels,
         descriptions, and synonyms.
-
         Args:
             ent: A list of two node identifiers (e.g. ['http://example/3075', 'http://example/1080']).
             e_type: A list of types for each node in nodes (e.g. ['entity', 'entity']).
             key_type: A string indicating if the key should be 'nodes' or 'relations (default='nodes').
-
         Returns:
             edges: A list of tuples containing RDFLib objects used to add metadata to a knowledge graph.
         """
@@ -199,11 +193,9 @@ class Metadata(object):
 
     def adds_ontology_annotations(self, filename: str, graph: Graph) -> Graph:
         """Updates the ontology annotation information for an input knowledge graph or ontology.
-
         Args:
             filename: A string containing the name of a knowledge graph.
             graph: An rdflib graph object.
-
         Returns:
             graph: An rdflib graph object with edited ontology annotations.
         """
@@ -238,16 +230,13 @@ class Metadata(object):
         """Loops over the self.node_dict dictionary and writes out the data to a file locally. The data is stored as
         a tab-delimited '.txt' file with four columns: (1) node identifier; (2) node label; (3) node description or
         definition; and (4) node synonym.
-
         NOTE. Not every node in the knowledge class will have metadata. There are some non-ontology nodes that are
         added (e.g. Ensembl transcript identifiers) that at the time of adding did not include labels, synonyms,
         or definitions. While these nodes have valid metadata through their original provider, this data may not have
         been available for download and thus would not have been added to the node_dict.
-
         Args:
             node_integer_map: A dictionary where keys are integers and values are node and relation identifiers.
             graph: A set of RDFLib Graph object triples or an RDFLib Graph.
-
         Returns:
             None.
         """
