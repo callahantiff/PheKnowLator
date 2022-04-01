@@ -85,33 +85,33 @@ class TestMetadata(unittest.TestCase):
         self.metadata.extract_metadata(self.graph)
 
         # test when the node has metadata
-        updated_graph_1 = self.metadata.creates_entity_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
-                                                                     'http://www.ncbi.nlm.nih.gov/gene/2'],
-                                                                e_type=['entity', 'entity'])
+        updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['entity', 'entity'])
         self.assertTrue(len(updated_graph_1) == 16)
 
         # check that the correct info is returned if only one is an entity
-        updated_graph_2 = self.metadata.creates_entity_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
-                                                                     'http://www.ncbi.nlm.nih.gov/gene/2'],
-                                                                e_type=['entity', 'class'])
+        updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['entity', 'class'])
         self.assertTrue(len(updated_graph_2) == 8)
         # check that nothing is returned if the entities are classes
-        updated_graph_3 = self.metadata.creates_entity_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
-                                                                     'http://www.ncbi.nlm.nih.gov/gene/2'],
-                                                                e_type=['class', 'class'])
+        updated_graph_3 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['class', 'class'])
         self.assertTrue(updated_graph_3 is None)
 
         # test when the node does not have metadata
-        updated_graph_4 = self.metadata.creates_entity_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
-                                                                     'http://www.ncbi.nlm.nih.gov/gene/None'],
-                                                                e_type=['entity', 'entity'])
+        updated_graph_4 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              e_type=['entity', 'entity'])
         self.assertTrue(updated_graph_4 is None)
 
         # test when node_data is None
         self.metadata.node_data = None
-        updated_graph_5 = self.metadata.creates_entity_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
-                                                                     'http://www.ncbi.nlm.nih.gov/gene/None'],
-                                                                e_type=['entity', 'entity'])
+        updated_graph_5 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              e_type=['entity', 'entity'])
         self.assertTrue(updated_graph_5 is None)
 
         return None
@@ -123,18 +123,18 @@ class TestMetadata(unittest.TestCase):
         self.metadata.extract_metadata(self.graph)
 
         # test when the node has metadata
-        updated_graph_1 = self.metadata.creates_entity_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002310'],
-                                                                key_type='relations')
+        updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002310'],
+                                                              key_type='relations')
         self.assertTrue(len(updated_graph_1) == 2)
 
         # check that nothing is returned if the entities are classes
-        updated_graph_2 = self.metadata.creates_entity_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002597'],
-                                                                e_type=['class'], key_type='relations')
+        updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002597'],
+                                                              e_type=['class'], key_type='relations')
         self.assertTrue(len(updated_graph_2) == 2)
 
         # test when the node does not have metadata
-        updated_graph_3 = self.metadata.creates_entity_metadata(['http://www.ncbi.nlm.nih.gov/gene/None'],
-                                                                key_type='relations')
+        updated_graph_3 = self.metadata.creates_node_metadata(['http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              key_type='relations')
         self.assertTrue(updated_graph_3 is None)
 
         return None
@@ -147,25 +147,25 @@ class TestMetadata(unittest.TestCase):
         self.metadata.node_dict = None
 
         # relations -- with valid input
-        updated_graph_1 = self.metadata.creates_entity_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002597'],
-                                                                key_type='relations')
+        updated_graph_1 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/RO_0002597'],
+                                                              key_type='relations')
         self.assertTrue(updated_graph_1 is None)
 
         # relations -- without valid input
-        updated_graph_2 = self.metadata.creates_entity_metadata(ent=['http://purl.obolibrary.org/obo/None'],
-                                                                key_type='relations')
+        updated_graph_2 = self.metadata.creates_node_metadata(ent=['http://purl.obolibrary.org/obo/None'],
+                                                              key_type='relations')
         self.assertTrue(updated_graph_2 is None)
 
         # nodes -- with valid input
-        updated_graph_3 = self.metadata.creates_entity_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
-                                                                     'http://www.ncbi.nlm.nih.gov/gene/2'],
-                                                                e_type=['class', 'class'])
+        updated_graph_3 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/1',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/2'],
+                                                              e_type=['class', 'class'])
         self.assertTrue(updated_graph_3 is None)
 
         # nodes -- without valid input
-        updated_graph_4 = self.metadata.creates_entity_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
-                                                                     'http://www.ncbi.nlm.nih.gov/gene/None'],
-                                                                e_type=['entity', 'entity'])
+        updated_graph_4 = self.metadata.creates_node_metadata(ent=['http://www.ncbi.nlm.nih.gov/gene/None',
+                                                                   'http://www.ncbi.nlm.nih.gov/gene/None'],
+                                                              e_type=['entity', 'entity'])
         self.assertTrue(updated_graph_4 is None)
 
         return None
