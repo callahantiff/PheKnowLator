@@ -40,11 +40,9 @@ class DataSource(object):
           important information on each of the files that is downloaded.
         - The class has two subclasses which inherit its methods. Each subclass contains an altered version of the
            primary classes methods that are specialized for that specific data type.
-
     Attributes:
         data_path: A string file path/name to a text file storing URLs of different sources to download.
         resource_data: A string pointing to a data file that contains the contents of resource_info.
-
     Raises:
         TypeError: If the file pointed to by data_path is not type str.
         IOError: If the file pointed to by data_path does not exist.
@@ -80,8 +78,7 @@ class DataSource(object):
             raise TypeError(log_str)
         else:
             resource_data_file: TextIO = open(self.resource_data)
-            self.resource_info: List = [x for x in resource_data_file.read().splitlines() if not x.startswith('#')]
-            resource_data_file.close()
+            self.resource_info: List = resource_data_file.read().splitlines(); resource_data_file.close()
 
         self.resource_dict: Dict[str, List[str]] = {}
         self.source_list: Dict[str, str] = {}
@@ -91,12 +88,10 @@ class DataSource(object):
     def parses_resource_file(self) -> None:
         """Verifies that an input file contains data and then outputs a dictionary where each item is a line from the
         input file.
-
         Returns:
             source_list: A dictionary, where the key is the type of data and the value is the file path or url. For
                 example: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
                           'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
-
         Raises:
             ValueError: If the file does not contain data.
             ValueError: If there some of the input URLs were improperly formatted.
@@ -106,12 +101,10 @@ class DataSource(object):
 
     def downloads_data_from_url(self) -> None:
         """Downloads each data source from a list and writes the downloaded file to a directory.
-
         Returns:
             data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
                 For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
                               'phenotype': 'resources/ontologies/hp_with_imports.owl'}
-
         Raises:
             ValueError: If not all of the URLs returned valid data.
         """
@@ -122,10 +115,8 @@ class DataSource(object):
     def extracts_edge_metadata(edge) -> Tuple[str, str, str]:
         """Processes edge data metadata and returns a dictionary where the keys are the edge type and the values are a
         list containing mapping and filtering information.
-
         Args:
             edge: A pipe-delimited string containing information about the edge. For example,
-
         Returns:
             mapping: Identifier mapping information stored as a node and a filepath to perform identifier mapping on
                 (e.g. node1 - './filepath/mapping_data.txt).
@@ -136,7 +127,9 @@ class DataSource(object):
         """
 
         mapping = ['{} ({})'.format(edge.split('|')[0].split('-')[int(x.split(':')[0])], ''.join(x.split(':')[1]))
-                   if x != 'None' else 'None' for x in edge.split('|')[-3].strip('\n').split(';')]
+                   if x != 'None'
+                   else 'None'
+                   for x in edge.split('|')[-3].strip('\n').split(';')]
         filtering = ['None' if x == 'None'
                      else 'data[{}] {}'.format(x.split(';')[0], ' '.join(x.split(';')[1:]))
                      if ('in' in x.split(';')[1] and x != 'None')
@@ -152,7 +145,6 @@ class DataSource(object):
 
     def _writes_source_metadata_locally(self) -> None:
         """Writes metadata for each imported data source to a text file.
-
         Returns:
             None
         """
@@ -177,7 +169,6 @@ class DataSource(object):
                 sources that will be used to map identifiers or filter the data.
             3 - Data Information: information on the data including: downloaded url, download date, file size in
                 bytes, and the local file location it was downloaded to
-
         Example:
                 EDGE: chemical-gobp
                 DATA PROCESSING INFO
@@ -189,7 +180,6 @@ class DataSource(object):
                     - DOWNLOAD_DATE = 01/14/2020
                     - FILE_SIZE_IN_BYTES = 760612373
                     - DOWNLOADED_FILE_LOCATION = ./resources/edge_data/chemical-gobp_CTD_chem_go_enriched.tsv
-
         Returns:
             None.
         """
@@ -233,12 +223,10 @@ class OntData(DataSource):
 
     def parses_resource_file(self) -> None:
         """Parses data from a file and outputs a list where each item is a line from the input text file.
-
         Returns:
             source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
-                example below: {'chemical-gomf': 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
+                example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
                                 'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
-
         Raises:
             TypeError: If the file does not contain data.
             ValueError: If there some of the input URLs were improperly formatted.
@@ -249,23 +237,20 @@ class OntData(DataSource):
             raise TypeError('ERROR: ' + log_str)
         else:
             with open(self.data_path, 'r') as file_name:
-                self.source_list = {row.strip().split('|')[0]: row.strip().split('|')[1].strip()
-                                    for row in file_name.read().splitlines() if not row.startswith('#')}
+                self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
+                                    for row in file_name.read().splitlines()}
 
         return None
 
     def downloads_data_from_url(self, owltools_location: str = os.path.abspath('./pkt_kg/libs/owltools')) -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes
         that each item in the input file list is an URL to an OWL/OBO ontology.
-
         For each URL, the referenced ontology is downloaded, and used as input to an OWLTools command line argument (
         https://github.com/owlcollab/owltools/wiki/Extract-Properties-Command), which facilitates the downloading of
         ontologies that are imported by the primary ontology. The function will save the downloaded ontology + imported
         ontologies.
-
         Args:
             owltools_location: A string pointing to the location of the owl tools library.
-
         Returns:
             data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
                 For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
@@ -311,12 +296,10 @@ class LinkedData(DataSource):
 
     def parses_resource_file(self) -> None:
         """Verifies a file contains data and then outputs a list where each item is a line from the input text file.
-
         Returns:
             source_list: A dictionary, where the key is the type of data and the value is the file path or url. See
-                example below: {'chemical-gomf': 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
+                example below: {'chemical-gomf', 'http://ctdbase.org/reports/CTD_chem_go_enriched.tsv.gz',
                                 'phenotype': 'http://purl.obolibrary.org/obo/hp.owl'}
-
         Raises:
             TypeError: If the file does not contain data.
         """
@@ -326,15 +309,14 @@ class LinkedData(DataSource):
             raise TypeError('ERROR: ' + log_str)
         else:
             with open(self.data_path, 'r') as file_name:
-                self.source_list = {row.strip().split('|')[0]: row.strip().split('|')[1].strip()
-                                    for row in file_name.read().splitlines() if not row.startswith('#')}
+                self.source_list = {row.strip().split(',')[0]: row.strip().split(',')[1].strip()
+                                    for row in file_name.read().splitlines()}
 
         return None
 
     def downloads_data_from_url(self) -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes that
         each item in the input file list is a valid URL.
-
         Returns:
             data_files: A dictionary mapping each source identifier to the local location where it was downloaded.
                 For example: {'chemical-gomf', 'resources/edge_data/chemical-gomf_CTD_chem_go_enriched.tsv',
