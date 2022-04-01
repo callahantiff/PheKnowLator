@@ -1,7 +1,1 @@
-###################################################################################################################################################
-#### ontology_source_info.txt (last updated: December 27, 2021)
-### Each column is separated by a pipe (i.e., "|") and includes the following:
-# Ontology:    A string label for an edge (node1-node2). The label matches what is used in the resource_info.txt and edge_source_list.txt files.
-# URL:         A string containing a URL to the ontology file.
-####################################################################################################################################################
-phenotype|http://purl.obolibrary.org/obo/hp.owl
+phenotype, http://purl.obolibrary.org/obo/hp.owl
