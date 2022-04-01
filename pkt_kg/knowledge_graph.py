@@ -415,10 +415,11 @@ class PartialBuild(KGBuilder):
         actors = [ray.remote(self.EdgeConstructor).remote(args) for _ in range(self.cpus)]  # type: ignore
         for i in range(0, len(edges)): [actors[i].creates_new_edges.remote(j) for j in edges[i]]  # type: ignore
         # extract results, aggregate actor dictionaries into single dictionary, and write data to json file
-        _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
-        graph_res = ray.get([x.graph_getter.remote() for x in actors])
+        _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))  # type: ignore
+        graph_res = ray.get([x.graph_getter.remote() for x in actors])  # type: ignore
         graphs = [self.graph] + [x[0] for x in graph_res]  # ; clean_graphs = [x[1] for x in graph_res]
-        error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
+        error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors])))  # type: ignore
+        del actors
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
@@ -582,9 +583,11 @@ class FullBuild(KGBuilder):
         edges = sublist_creator({k: len(v['edge_list']) for k, v in self.edge_dict.items()}, self.cpus)
         actors = [ray.remote(self.EdgeConstructor).remote(args) for _ in range(self.cpus)]  # type: ignore
         for i in range(0, len(edges)): [actors[i].creates_new_edges.remote(j) for j in edges[i]]  # type: ignore
-        _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))
-        res = ray.get([x.graph_getter.remote() for x in actors]); g1 = [x[0] for x in res]; g2 = [x[1] for x in res]
-        error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors]))); del actors
+        _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))  # type: ignore
+        res = ray.get([x.graph_getter.remote() for x in actors]); g1 = [x[0] for x in res]  # type: ignore
+        g2 = [x[1] for x in res]
+        error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors])))  # type: ignore
+        del actors
         if len(error_dicts.keys()) > 0:  # output error logs
             log_file = glob.glob(self.res_dir + '/construction*')[0] + '/subclass_map_log.json'
             logger.info('See log: {}'.format(log_file)); outputs_dictionary_data(error_dicts, log_file)
