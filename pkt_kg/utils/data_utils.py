@@ -506,14 +506,15 @@ def obtains_entity_url(prefix: str, identifier: Union[int, str], url: Optional[s
         url: A string containing a url.
 
     Returns:
-        entity_url: A string containing a valid BioRegistry URL (e.g., ).
+        entity_url: A string containing a valid BioRegistry URL.
 
     Raises:
         ValueError: If a JSONDecodeError is thrown, a ValueError is raised to alert the user that a bad identifier or
             prefix was provided.
     """
 
-    prefix = prefix.lower(); identifier = str(identifier); res = None; entity_url = None
+    prefix = prefix.lower(); identifier = str(identifier)
+    entity_url: str = ''; res: Optional[Dict] = None
     obo_url = 'http://purl.obolibrary.org/obo/'
     obo_ont_prefixes = ['BFO', 'CHEBI', 'DOID', 'GO', 'OBI', 'PATO', 'PO', 'PR', 'XAO', 'ZFA', 'AEO', 'AGRO', 'AISM',
                         'AMPHX', 'APO', 'APOLLO_SV', 'ARO', 'BCO', 'BSPO', 'BTO', 'CARO', 'CDAO', 'CDNO', 'CHEMINF',
@@ -540,7 +541,7 @@ def obtains_entity_url(prefix: str, identifier: Union[int, str], url: Optional[s
         if prefix.upper() in obo_ont_prefixes: entity_url = obo_url + prefix.upper() + '_' + identifier
         elif url is not None: entity_url = url
         else: raise ValueError('Error: Invalid prefix or identifier provided. Please check your input and try again.')
-    if not isinstance(entity_url, str): entity_url = res['providers']['bioregistry']
+    if entity_url == '' and res is not None: entity_url = res['providers']['bioregistry']
 
     return entity_url
 
@@ -610,7 +611,12 @@ def dump_jsonl(data: List, output_path: str) -> None:
 
     with open(output_path, 'a+', encoding='utf-8') as f:
         for line in data:
-            json_record = json.dumps(line, ensure_ascii=False)
+            temp_dict = dict()
+            # check for nested dictionaries
+            for k, v in line.items():
+                if isinstance(v, dict): temp_dict[k] = str(v)
+                else: temp_dict[k] = v
+            json_record = json.dumps(temp_dict, ensure_ascii=False)
             f.write(json_record + '\n')
 
     return None
