@@ -35,6 +35,7 @@ builds/temp/*
 #### External Libraries
 pkt_kg/libs/deepwalk_c_master/*
 pkt_kg/libs/walking-rdf-and-owl-master/*
+pkt_kg/libs/pylucene*
 
 #### Scripts
 pkt_kg/kg_embedding_visualizer.py
