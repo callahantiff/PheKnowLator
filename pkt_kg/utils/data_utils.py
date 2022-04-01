@@ -46,7 +46,7 @@ import re
 import requests
 import shutil
 import urllib3  # type: ignore
-import yaml
+import yaml  # type: ignore
 
 from contextlib import closing
 from io import BytesIO
