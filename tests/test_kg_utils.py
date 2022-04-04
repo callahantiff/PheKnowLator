@@ -775,3 +775,47 @@ class TestKGUtils(unittest.TestCase):
                           RDFS.subClassOf, URIRef('http://www.ncbi.nlm.nih.gov/gene/4841'))) in result_graph)
 
         return None
+
+    def tests_nx_ancestor_search(self):
+        """Tests the nx_ancestor_search method."""
+
+        # create test data
+        graph = Graph().parse(self.dir_loc + '/so_with_imports.owl')
+        kg = nx.MultiDiGraph()
+        for s, p, o in graph:
+            kg.add_node(s, key=n3(s)); kg.add_node(o, key=n3(o))
+            kg.add_edge(s, o, **{'key': p, 'weight': 0.0})
+        nodes = [obo.SO_0001544]
+        prefix = 'SO'
+
+        # test method
+        result_list = nx_ancestor_search(kg, nodes, prefix)
+        self.assertIsInstance(result_list, List)
+        self.assertEqual(len(result_list), 5)
+        self.assertEqual(result_list, [['http://purl.obolibrary.org/obo/SO_0001543'],
+                                       ['http://purl.obolibrary.org/obo/SO_0001538'],
+                                       ['http://purl.obolibrary.org/obo/SO_0002218'],
+                                       ['http://purl.obolibrary.org/obo/SO_0001536'],
+                                       ['http://purl.obolibrary.org/obo/SO_0001060']])
+
+        return None
+
+    def test_processes_ancestor_path_list(self):
+        """Tests the processes_ancestor_path_list method."""
+
+        # create test data
+        path = [['http://purl.obolibrary.org/obo/SO_0001543'], ['http://purl.obolibrary.org/obo/SO_0001538'],
+                ['http://purl.obolibrary.org/obo/SO_0002218'], ['http://purl.obolibrary.org/obo/SO_0001536'],
+                ['http://purl.obolibrary.org/obo/SO_0001060']]
+
+        # test method
+        result = processes_ancestor_path_list(path)
+        self.assertIsInstance(result, Dict)
+        self.assertEqual(len(result.keys()), 5)
+        self.assertEqual(result['0'], {'http://purl.obolibrary.org/obo/SO_0001543'})
+        self.assertEqual(result['1'], {'http://purl.obolibrary.org/obo/SO_0001538'})
+        self.assertEqual(result['2'], {'http://purl.obolibrary.org/obo/SO_0002218'})
+        self.assertEqual(result['3'], {'http://purl.obolibrary.org/obo/SO_0001536'})
+        self.assertEqual(result['4'], {'http://purl.obolibrary.org/obo/SO_0001060'})
+
+        return None

@@ -16,7 +16,7 @@ __all__ = ['adds_edges_to_graph', 'adds_namespace_to_bnodes', 'appends_to_existi
            'gets_ontology_class_synonyms', 'gets_ontology_classes', 'gets_ontology_definitions',
            'gets_ontology_statistics', 'gzipped_ftp_url_download', 'gzipped_url_download', 'load_jsonl',
            'maps_ids_to_integers', 'merges_files', 'merges_ontologies', 'metadata_api_mapper',
-           'metadata_dictionary_mapper', 'n3', 'obtains_entity_url', 'ontology_file_formatter',
-           'outputs_dictionary_data', 'remove_edges_from_graph', 'removes_namespace_from_bnodes', 'removes_self_loops',
-           'splits_knowledge_graph', 'sublist_creator', 'updates_graph_namespace', 'updates_pkt_namespace_identifiers',
-           'url_download', 'zipped_url_download']
+           'metadata_dictionary_mapper', 'n3', 'nx_ancestor_search', 'obtains_entity_url', 'ontology_file_formatter',
+           'outputs_dictionary_data', 'processes_ancestor_path_list', 'remove_edges_from_graph',
+           'removes_namespace_from_bnodes', 'removes_self_loops', 'splits_knowledge_graph', 'sublist_creator',
+           'updates_graph_namespace', 'updates_pkt_namespace_identifiers', 'url_download', 'zipped_url_download']
