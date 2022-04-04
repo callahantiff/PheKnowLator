@@ -78,8 +78,8 @@ class TestMetadata(unittest.TestCase):
 
         return None
 
-    def test_creates_node_metadata_nodes(self):
-        """Tests the creates_node_metadata method."""
+    def test_creates_entity_metadata_nodes(self):
+        """Tests the creates_entity_metadata method."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
         self.metadata.extract_metadata(self.graph)
@@ -116,8 +116,8 @@ class TestMetadata(unittest.TestCase):
 
         return None
 
-    def test_creates_node_metadata_relations(self):
-        """Tests the creates_node_metadata method."""
+    def test_creates_entity_metadata_relations(self):
+        """Tests the creates_entity_metadata method."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
         self.metadata.extract_metadata(self.graph)
@@ -139,8 +139,8 @@ class TestMetadata(unittest.TestCase):
 
         return None
 
-    def test_creates_node_metadata_none(self):
-        """Tests the creates_node_metadata method when node_dict is None."""
+    def test_creates_entity_metadata_none(self):
+        """Tests the creates_entity_metadata method when node_dict is None."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
         self.metadata.extract_metadata(self.graph)

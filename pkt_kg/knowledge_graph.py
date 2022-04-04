@@ -48,7 +48,6 @@ class KGBuilder(object):
     build types. The current construction approaches are Instance-based and Subclass-based. The three build types are
     (1) Full (i.e. runs all build steps in the algorithm); (2) Partial (i.e. runs all of the build steps through
     adding new edges); and (3) Post-Closure: Runs the remaining build steps over a closed knowledge graph.
-
     Attributes:
         construction: A string indicating the construction approach (i.e. instance or subclass).
         node_data: A string ("yes" or "no") indicating whether or not to add node data to the knowledge graph.
@@ -56,7 +55,6 @@ class KGBuilder(object):
         decode_owl: A string containing "yes" or "no" indicating whether owl semantics should be removed.
         cpus: An integer indicating the number of workers to use.
         write_location: An optional string passed to specify the primary directory to write to.
-
     Raises:
         ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
         ValueError: If write_location, edge_data does not contain a valid filepath.
@@ -143,7 +141,6 @@ class KGBuilder(object):
         relation data or relation data identifiers and labels. Examples of each dictionary are provided below:
             relations_dict: {'RO_0002551': 'has skeleton', 'RO_0002442': 'mutualistically interacts with}
             inverse_relations_dict: {'RO_0000056': 'RO_0000057', 'RO_0000079': 'RO_0000085'}
-
         Returns:
             None.
         """
@@ -165,7 +162,6 @@ class KGBuilder(object):
         Create graph subsets; (4) Process node metadata; (5) Merge ontologies; (6) Add master edge list to merged
         ontologies; (7) Extract and write node metadata; (8) Decode OWL-encoded classes; and (8) Output knowledge
         graph files and create edge lists.
-
         Returns:
             None.
         """
@@ -180,7 +176,6 @@ class KGBuilder(object):
 
     class EdgeConstructor(object):
         """Inner class object used to facilitate ray parallelization.
-
         Attributes:
             construction: A string indicating the construction approach (i.e. instance or subclass).
             edge_data: A nested dictionary keyed by edge type that contains all information needed to construct an edge.
@@ -224,13 +219,10 @@ class KGBuilder(object):
 
         def verifies_object_property(self, object_property: URIRef) -> None:
             """Adds an object property to a knowledge graph.
-
             Args:
                 object_property: A string containing an obo ontology object property.
-
             Returns:
                 None.
-
             Raises:
                 TypeError: If the object_property is not type rdflib.term.URIRef
             """
@@ -247,13 +239,11 @@ class KGBuilder(object):
         def checks_classes(self, edge_info) -> bool:
             """Determines whether or not an edge is safe to add to the knowledge graph by making sure that any ontology
             class nodes are also present in the current list of classes from the merged ontologies graph.
-
             Args:
                 edge_info: A dict of information needed to add edge to graph, for example:
                     {'n1': 'class', 'n2': 'class','rel': 'RO_0002606', 'inv_rel': 'RO_0002615',
                      'uri': ['https://www.ncbi.nlm.nih.gov/gene/', 'http://purl.obolibrary.org/obo/'],
                      'edges': ['CHEBI_81395', 'DOID_12858']}
-
             Returns:
                 True - if the class node is already in the graph or nodes are both non-class entities.
                 False - if the edge contains at least 1 ontology class that is not present in the graph.
@@ -269,11 +259,9 @@ class KGBuilder(object):
             """Determines whether or not an inverse relation should be created and added to the graph and verifies
             that a
             relation and its inverse (if it exists) are both an existing owl:ObjectProperty in the graph.
-
             Args:
                 relation: A string that contains the relation assigned to edge in resource_info.txt (e.g. 'RO_0000056').
                 edge_list: A list or set of knowledge graph edges. For example: {["8837", "4283"], ["8837", "839"]}
-
             Returns:
                 A string containing an ontology identifier (e.g. "RO_0000056) or None. Value depends on:
                     - inverse relation, if the stored relation has an inverse relation
@@ -294,12 +282,10 @@ class KGBuilder(object):
         @staticmethod
         def gets_edge_statistics(edge_type: str, results: Set, entity_info: List) -> str:
             """Calculates the number of nodes and edges involved in constructing an edge type.
-
             Args:
                 edge_type: A string point to a specific edge type (e.g. 'chemical-disease).
                 results: A set of tuples representing the complete set of triples from the construction process.
                 entity_info: 3 items: 1-2 are sets of node tuples and 3 is the total count of non-OWL edges.
-
             Returns:
                 formatted_str: A string containing edge statistics.
             """
@@ -314,10 +300,8 @@ class KGBuilder(object):
 
         def creates_new_edges(self, edge_type: str) -> Graph:
             """Takes a dictionary of information needed to construct and edge creates the associated triples.
-
             Args:
                 edge_type: A list of strings representing the types of edges to build.
-
             Returns:
                 graph: An RDFLib Graph object.
             """
@@ -362,10 +346,8 @@ class PartialBuild(KGBuilder):
         knowledge graph and intends to run a reasoner over it. The partial build includes the following steps: (1)
         Process relation/inverse relations; (2) Merge ontologies; (3) Process node metadata; (4) Create graph subsets;
         and (5) Add master edge list to merged ontologies.
-
         Returns:
             None.
-
         Raises:
             TypeError: If the ontologies directory is empty.
         """
@@ -445,14 +427,11 @@ class PostClosureBuild(KGBuilder):
         """Builds a post-closure knowledge graph. This build is recommended when one has previously performed a
         "partial" knowledge graph build and then ran a reasoner over it. This build type inputs the closed partially
         built knowledge graph and completes the build process.
-
         The post-closure build utilizes the following steps: (1) Process relation and inverse relation data; (2)
         Load closed knowledge graph; (3) Process node metadata; (4) Create graph subsets; (5) Decode OWL-encoded
         classes; (6) Output knowledge graph files and create edge lists; and (7) Extract and write node metadata.
-
         Returns:
             None.
-
         Raises:
             OSError: If closed knowledge graph file does not exist.
             TypeError: If the closed knowledge graph file is empty.
@@ -535,7 +514,6 @@ class FullBuild(KGBuilder):
         relations; (2) Merge ontologies; (3) Process node metadata; (4) Create graph subsets; (5) Add master edge
         list to merged ontologies; (6) Decode OWL-encoded classes; (7) Output knowledge graphs and create edge lists
         and (8) Extract and write node metadata.
-
         Returns:
             None.
         """
@@ -584,8 +562,8 @@ class FullBuild(KGBuilder):
         actors = [ray.remote(self.EdgeConstructor).remote(args) for _ in range(self.cpus)]  # type: ignore
         for i in range(0, len(edges)): [actors[i].creates_new_edges.remote(j) for j in edges[i]]  # type: ignore
         _ = ray.wait([x.graph_getter.remote() for x in actors], num_returns=len(actors))  # type: ignore
-        res = ray.get([x.graph_getter.remote() for x in actors]); g1 = [x[0] for x in res]  # type: ignore
-        g2 = [x[1] for x in res]
+        res = ray.get([x.graph_getter.remote() for x in actors])  # type: ignore
+        g1 = [x[0] for x in res]; g2 = [x[1] for x in res]
         error_dicts = dict(ChainMap(*ray.get([x.error_dict_getter.remote() for x in actors])))  # type: ignore
         del actors
         if len(error_dicts.keys()) > 0:  # output error logs

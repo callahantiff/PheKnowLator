@@ -4,7 +4,6 @@ import random
 import shutil
 import unittest
 
-from tqdm import tqdm
 from typing import List
 
 from pkt_kg.utils import *
@@ -151,6 +150,137 @@ class TestDataUtilsMisc(unittest.TestCase):
         self.assertEqual(lists,
                          [[444974], [137926], [114807, 23525],
                           [75308, 30677, 24311, 1994], [64330, 35686, 28357, 16695]])
+
+        return None
+
+    def tests_obtains_entity_url_good(self):
+        """Tests the obtains_entity_url method when a valid prefix and identifier are passed."""
+
+        # set-up input
+        prefix = 'chebi'; identifier = '138488'
+
+        # test function
+        entity_uri = obtains_entity_url(prefix, identifier)
+        self.assertEqual(entity_uri, 'https://bioregistry.io/chebi:138488')
+
+        return None
+
+    def tests_obtains_entity_url_obo(self):
+        """Tests the obtains_entity_url method when an obo identifier is passed."""
+
+        # set-up input
+        prefix = 'pr'; identifier = 'A5D8V7'
+
+        # test function
+        entity_uri = obtains_entity_url(prefix, identifier)
+        self.assertEqual(entity_uri, 'http://purl.obolibrary.org/obo/PR_A5D8V7')
+
+        return None
+
+    def tests_obtains_entity_url_bad1(self):
+        """Tests the obtains_entity_url method when an invalid identifier is passed."""
+
+        # set-up input
+        prefix = 'hpo'; identifier = 't'
+
+        # test function
+        self.assertRaises(ValueError, obtains_entity_url, prefix, identifier)
+
+        return None
+
+    def tests_obtains_entity_url_bad2(self):
+        """Tests the obtains_entity_url method when an invalid identifier is passed, but a valid url is passed."""
+
+        # set-up input
+        prefix = 'swrl'; identifier = 'Variable'; url = 'http://www.w3.org/2003/11/swrl#Variable'
+
+        # test function
+        entity_uri = obtains_entity_url(prefix, identifier, url)
+        self.assertEqual(entity_uri, 'http://www.w3.org/2003/11/swrl#Variable')
+
+        return None
+
+    # def tests_gets_biolink_information_entity(self):
+    #     """Tests the gets_biolink_information function when provided a valid entity CURIE."""
+    #
+    #     # set-up input
+    #     entity = 'CHEBI:16753'; entity_label = None
+    #
+    #     # test function
+    #     res = gets_biolink_information(entity, entity_label, self.dir_loc + '/')
+    #     self.assertEqual(res, 'biolink:SmallMolecule')
+    #
+    #     return None
+    #
+    # def tests_gets_biolink_information_entitylabel(self):
+    #     """Tests the gets_biolink_information function when provided a valid entity CURIE and label are provided."""
+    #
+    #     # set-up input
+    #     entity = 'RO:0002436'; entity_label = 'molecularly interacts with'
+    #
+    #     # test function
+    #     res = gets_biolink_information(entity, entity_label, self.dir_loc + '/')
+    #     self.assertEqual(res, 'biolink:molecularly_interacts_with')
+    #
+    #     return None
+    #
+    # def tests_gets_biolink_information_entitylabel2(self):
+    #     """Tests the gets_biolink_information function when provided a valid entity CURIE and label are provided."""
+    #
+    #     # set-up input
+    #     entity = 'rdfs:subClassOf'; entity_label = 'subclass of'
+    #
+    #     # test function
+    #     res = gets_biolink_information(entity, entity_label, self.dir_loc + '/')
+    #     self.assertEqual(res, 'biolink:subclass_of')
+    #
+    #     return None
+    #
+    # def tests_gets_biolink_information_entitylabel3(self):
+    #     """Tests the gets_biolink_information function when provided a valid entity CURIE and label that cannot be
+    #     found in the model or API."""
+    #
+    #     # set-up input
+    #     entity = 'RO:0000000'; entity_label = None
+    #
+    #     # test function
+    #     res = gets_biolink_information(entity, entity_label, self.dir_loc + '/')
+    #     self.assertEqual(res, 'biolink:Other')
+    #
+    #     return None
+
+    def tests_dump_jsonl(self):
+        """Tests the dump_jsonl function."""
+
+        # set-up input
+        out_location = self.dir_loc + '/out.jsonl'
+
+        # test function
+        for url in ['https://chordanalytics.ca/', 'https://github.com/agalea91']:
+            webpage_data = {'page_url': url, 'status_code': 200}
+            dump_jsonl([webpage_data], out_location)
+
+        self.assertTrue(os.path.exists(out_location))
+        self.assertTrue(os.stat(out_location).st_size > 0)
+
+        return None
+
+    def tests_load_jsonl(self):
+        """Tests the load_jsonl function."""
+
+        # set-up input
+        out_location = self.dir_loc + '/out.jsonl'
+        for url in ['https://chordanalytics.ca/', 'https://github.com/agalea91']:
+            webpage_data = {url: {'status_code': 200}}
+            dump_jsonl([webpage_data], out_location)
+
+        # test function
+        data_dict = load_jsonl(out_location)
+        test_dict = {'https://chordanalytics.ca/': "{'status_code': 200}",
+                     'https://github.com/agalea91': "{'status_code': 200}"}
+
+        self.assertIsInstance(data_dict, dict)
+        self.assertEqual(data_dict, test_dict)
 
         return None
 

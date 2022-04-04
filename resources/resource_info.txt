@@ -1,33 +1,61 @@
-chemical-disease|:;MESH_;|class-class|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/DISEASE_MONDO_MAP.txt|5;!=;''|None
-chemical-gene|;MESH_;|class-entity|RO_0002434|http://purl.obolibrary.org/obo/|http://www.ncbi.nlm.nih.gov/gene/|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt|9;affects;not in x|6;==;Homo sapiens::5;.startswith('gene');
-chemical-gobp|:;MESH_;GO_|class-class|RO_0002436|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;5|0:./resources/processed_data/MESH_CHEBI_MAP.txt|8;<=;1.04e-47|3;==;Biological Process
-chemical-gocc|:;MESH_;GO_|class-class|RO_0002436|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;5|0:./resources/processed_data/MESH_CHEBI_MAP.txt|8;<=;1.04e-47|3;==;Cellular Component
-chemical-gomf|:;MESH_;GO_|class-class|RO_0002436|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;5|0:./resources/processed_data/MESH_CHEBI_MAP.txt|8;<=;1.04e-47|3;==;Molecular Function
-chemical-pathway|;CHEBI_;|class-entity|RO_0000056|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|t|0;1|None|None|5;==;Homo sapiens
-chemical-phenotype|:;MESH_;|class-class|RO_0002606|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|5;!=;''|None
-chemical-protein|;MESH_;|class-class|RO_0002434|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt|9;affects;not in x|6;==;Homo sapiens::5;.startswith('protein');
-disease-phenotype|:;;HP_|class-class|RO_0002200|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|0;3|0:./resources/processed_data/DISEASE_MONDO_MAP.txt|None|None|None
-gene-disease|;;|entity-class|RO_0003302|http://www.ncbi.nlm.nih.gov/gene/|http://purl.obolibrary.org/obo/|t|0;4|1:./resources/processed_data/DISEASE_MONDO_MAP.txt|10;>=;1.0|None
-gene-gene|;;|entity-entity|RO_0002435|http://www.ncbi.nlm.nih.gov/gene/|http://www.ncbi.nlm.nih.gov/gene/|t|0;1|0:./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt;1:./resources/processed_data/ENSEMBL_GENE_ENTREZ_GENE_MAP.txt|None|None
-gene-pathway|:;;|entity-entity|RO_0000056|http://www.ncbi.nlm.nih.gov/gene/|https://reactome.org/content/detail/|t|1;3|None|None|3;.startswith('REACT:R-HSA-');
-gene-phenotype|;;|entity-class|RO_0003302|http://www.ncbi.nlm.nih.gov/gene/|http://purl.obolibrary.org/obo/|t|0;4|1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|10;>=;1.0|None
-gene-protein|;;|entity-class|RO_0002205|http://www.ncbi.nlm.nih.gov/gene/|http://purl.obolibrary.org/obo/|t|0;1|None|None|4;==;protein-coding
-gene-rna|;;|entity-entity|RO_0002511|http://www.ncbi.nlm.nih.gov/gene/|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|t|0;1|None|None|None
-gobp-pathway|:;GO_;|class-entity|RO_0009501|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|t|4;5|None|None|8;==;P::12;==;taxon:9606::5;.startswith('REACTOME');
-pathway-gocc|:;;GO_|entity-class|RO_0002180|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|t|5;4|None|None|8;==;C::12;==;taxon:9606::5;.startswith('REACTOME');
-pathway-gomf|:;;GO_|entity-class|RO_0000085|https://reactome.org/content/detail/|http://purl.obolibrary.org/obo/|t|5;4|None|None|8;==;F::12;==;taxon:9606::5;.startswith('REACTOME');
-protein-anatomy|;;|class-class|RO_0001025|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|2;5|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt;1:./resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt|None|3;==;Evidence at protein level::4;==;anatomy
-protein-catalyst|;;|class-class|RO_0002436|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|0;1|None|None|None|None
-protein-cell|;;|class-class|RO_0001025|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|2;5|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt;1:./resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt|None|3;==;Evidence at protein level::4;==;cell line
-protein-cofactor|;;|class-class|RO_0002436|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|0;1|None|None|None|None
-protein-gobp|:;;GO_|class-class|RO_0000056|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;4|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|8;==;P::12;==;taxon:9606
-protein-gocc|:;;GO_|class-class|RO_0001025|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;4|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|8;==;C::12;==;taxon:9606
-protein-gomf|:;;GO_|class-class|RO_0000085|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|t|1;4|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|8;==;F::12;==;taxon:9606
-protein-pathway|;;|class-entity|RO_0000056|http://purl.obolibrary.org/obo/|https://reactome.org/content/detail/|t|0;1|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|5;==;Homo sapiens
-protein-protein|9606.;;|class-class|RO_0002436|http://purl.obolibrary.org/obo/|http://purl.obolibrary.org/obo/|''|0;1|0:./resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt;1:./resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt|2;>=;700|None
-rna-anatomy|;;|entity-class|RO_0001025|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|http://purl.obolibrary.org/obo/|t|1;5|0:./resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt;1:./resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt|None|3;==;Evidence at transcript level::4;==;anatomy
-rna-cell|;;|entity-class|RO_0001025|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|http://purl.obolibrary.org/obo/|t|1;5|0:./resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt;1:./resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt|None|3;==;Evidence at transcript level::4;==;cell line
-rna-protein|;;|entity-class|RO_0002513|https://uswest.ensembl.org/Homo_sapiens/Transcript/Summary?t=|http://purl.obolibrary.org/obo/|t|0;1|None|None|4;==;protein-coding
-variant-disease|:;rs;|entity-class|RO_0003302|https://www.ncbi.nlm.nih.gov/snp/|http://purl.obolibrary.org/obo/|t|9;12|1:./resources/processed_data/DISEASE_MONDO_MAP.txt|24;in;["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline"]::7;==;1|9;!=;-1::16;==;GRCh38::8-9;dedup;desc
-variant-gene|;rs;|entity-entity|RO_0002566|https://www.ncbi.nlm.nih.gov/snp/|http://www.ncbi.nlm.nih.gov/gene/|t|9;3|None|24;in;["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline"]|9;!=;-1::3;!=;-1::16;==;GRCh38::8-9;dedup;desc
-variant-phenotype|:;rs;|entity-class|RO_0003302|https://www.ncbi.nlm.nih.gov/snp/|http://purl.obolibrary.org/obo/|t|9;12|1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|24;in;["criteria provided, multiple submitters, no conflicts", "reviewed by expert panel", "practice guideline"]::7;==;1|9;!=;-1::16;==;GRCh38::8-9;dedup;desc
+######################################################################################################################################################################################
+#### resource_info.txt (last updated: December 27, 2021)
+### Each column is separated by a pipe (i.e., "|") and includes the following:
+# edge_type:                           A string label for an edge (node1-node2). The label matches what is used in the edge_source_list.txt and ontology_source_list.txt files.
+# prefixes:       					   A ";"-separated string where the first item is the final prefix for the subject node and the second is the final prefix for the object node. 
+#									   All prefixes should be the preferred prefix from the BioRegistry (https://bioregistry.io/registry/).     
+# relation:                            An OBO Foundry ontology CURIE (e.g., RO_0000056).    
+# delimiter:                           A character used to split rows from an input data source into columns (e.g., "t" for tab-delimited data or "," for comma-delimited data).  
+# column_indexes:                      Two-column indexes separated by ";" (e.g., "0;4" for the first and third columns in the input data source).  
+# identifier_maps:                     A string of mapping information for each node in an edge. For example, the string "2:mapping_file_1.txt;4:mapping_file_2.txt" means that  
+#                                      the first node requires data contained in the 2nd column of the "mapping_file_1.txt" and the second node requires data from the 4th column  
+#                                      in the "mapping_file_2.txt" file.        
+# evidence_criteria:                   Evidence criteria that can be used to filter an input data source (e.g., scores above a certain cut-off). An evidence set is composed of 3  
+#                                      pieces of ";"-separated information. Multiple evidence sets can be passed, where each set is separated by "::". Consider the following 
+#                                      example: "4;!=;IEA::8;<;0.0001":  
+#                                         1. The index of the column to apply the evidence criteria to (e.g., "4" and "8" in the example above).  
+#										  2. The operator (i.e., "==", "!=", "<", ">", "<=", ">=", "in", ".startswith()", ".endswith()") to use when filtering (e.g., "!=" and "<"  
+#                                            in the example above).           
+#										  3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "IEA" and "0.0001" in the example above).   
+# filter_criteria:                     Filtering criteria that can be used to filter an input data source (e.g., human proteins). An evidence set is composed of 3 pieces of ";"-  
+#                                      separated information. Multiple filtering sets can be passed, where each set is separated by "::". Consider the following example: 
+#                                      "5;==;P::7;==;9606"):  
+#                                         1. The index of the column to apply the evidence criteria to (e.g., "5" and "7" in the example above).  
+#										  2. The operator (i.e., "==", "!=", "<", ">", "<=", ">=", "in", ".startswith()", ".endswith()") to use when filtering (e.g., "==" and "=="  
+#                                            in the example above).           
+#										  3. The value (i.e., "int", "float", "str", "list") to filter on (e.g., "P" and "9606" in the example above).       
+######################################################################################################################################################################################
+chemical-disease|CHEBI;|RO_0002606|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/DISEASE_MONDO_MAP.txt|9;!=;''|None
+chemical-gene|CHEBI;NCBIGene|RO_0002434|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt|10;!=;''|6;==;Homo sapiens::5;.startswith('gene');
+chemical-gobp|CHEBI;GO|RO_0002436|t|1;5|0:./resources/processed_data/MESH_CHEBI_MAP.txt|None|3;==;Biological Process
+chemical-gocc|CHEBI;GO|RO_0002436|t|1;5|0:./resources/processed_data/MESH_CHEBI_MAP.txt|None|3;==;Cellular Component
+chemical-gomf|CHEBI;GO|RO_0002436|t|1;5|0:./resources/processed_data/MESH_CHEBI_MAP.txt|None|3;==;Molecular Function
+chemical-pathway|CHEBI;reactome|RO_0000056|t|0;1|None|None|5;==;Homo sapiens
+chemical-phenotype|CHEBI;HP|RO_0002606|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|9;!=;''|None
+chemical-protein|CHEBI;PR|RO_0002434|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/ENTREZ_GENE_PRO_ONTOLOGY_MAP.txt|10;!=;''|6;==;Homo sapiens::5;.startswith('protein');
+chemical-rna|CHEBI;ensembl|RO_0002434|t|1;4|0:./resources/processed_data/MESH_CHEBI_MAP.txt;1:./resources/processed_data/ENTREZ_GENE_ENSEMBL_TRANSCRIPT_MAP.txt|10;!=;''|6;==;Homo sapiens::5;.startswith('mRNA');
+disease-phenotype|MONDO;HP|RO_0002200|t|0;3|0:./resources/processed_data/DISEASE_MONDO_MAP.txt|None|None|2;!=;NOT
+gene-disease|NCBIGene;MONDO|RO_0003302|t|0;4|1:./resources/processed_data/DISEASE_MONDO_MAP.txt|None|6;==;disease
+gene-gene|NCBIGene;NCBIGene|RO_0002435|t|0;1|0:./resources/processed_data/UNIPROT_ACCESSION_ENTREZ_GENE_MAP.txt;1:./resources/processed_data/UNIPROT_ACCESSION_ENTREZ_GENE_MAP.txt|None|None
+gene-pathway|NCBIGene;reactome|RO_0000056|t|1;3|None|None|3;.startswith('REACT:R-HSA-');
+gene-phenotype|NCBIGene;HP|RO_0003302|t|0;4|1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|None|6;==;phenotype
+gene-protein|NCBIGene;PR|RO_0002205|t|4;1|None|None|3;==;protein-coding
+gene-rna|NCBIGene;ensembl|RO_0002511|t|6;1|None|None|None
+gobp-pathway|GO;reactome|RO_0009501|t|4;5|None|None|8;==;P::12;==;taxon:9606::5;.startswith('REACTOME');
+pathway-gocc|reactome;GO|RO_0002180|t|5;4|None|None|8;==;C::12;==;taxon:9606::5;.startswith('REACTOME');
+pathway-gomf|reactome;GO|RO_0000085|t|5;4|None|None|8;==;F::12;==;taxon:9606::5;.startswith('REACTOME');
+protein-anatomy|PR;UBERON|RO_0001025|t|2;6|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt;1:./resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt|None|3;==;Evidence at protein level::4;==;anatomy
+protein-catalyst|PR;CHEBI|RO_0002436|t|0;1|None|None|None|None
+protein-cell|PR;CL|RO_0001025|t|2;6|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt;1:./resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt|None|3;==;Evidence at protein level::4;==;cell line
+protein-cofactor|PR;CHEBI|RO_0002436|t|0;1|None|None|None|None
+protein-gobp|PR;GO|RO_0000056|t|1;4|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|8;==;P::12;==;taxon:9606::3;not in;["NOT"]::11;==;protein
+protein-gocc|PR;GO|RO_0001025|t|1;4|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|8;==;C::12;==;taxon:9606::3;not in;["NOT"]::11;==;protein
+protein-gomf|PR;GO|RO_0000085|t|1;4|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|8;==;F::12;==;taxon:9606::3;not in;["NOT"]::11;==;protein
+protein-pathway|PR;reactome|RO_0000056|t|0;1|0:./resources/processed_data/UNIPROT_ACCESSION_PRO_ONTOLOGY_MAP.txt|None|5;==;Homo sapiens
+protein-protein|PR;PR|RO_0002436|''|0;1|0:./resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt;1:./resources/processed_data/STRING_PRO_ONTOLOGY_MAP.txt|None|None
+rna-anatomy|ensembl;UBERON|RO_0001025|t|1;6|0:./resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt;1:./resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt|None|3;==;Evidence at transcript level::4;==;anatomy  
+rna-cell|ensembl;CL|RO_0001025|t|1;6|0:./resources/processed_data/GENE_SYMBOL_ENSEMBL_TRANSCRIPT_MAP.txt;1:./resources/processed_data/HPA_GTEx_TISSUE_CELL_MAP.txt|None|3;==;Evidence at transcript level::4;==;cell line. 
+rna-protein|ensembl;PR|RO_0002513|t|4;1|None|None|3;==;protein-coding   
+variant-disease|clinvar;MONDO|RO_0003302|t|0:18|1:./resources/processed_data/DISEASE_MONDO_MAP.txt|None|None 
+variant-gene|clinvar;NCBIGene|RO_0002566|t|0;6|None|None|None 
+variant-phenotype|clinvar;HP|RO_0003302|t|0;18|1:./resources/processed_data/PHENOTYPE_HPO_MAP.txt|None|None 
