@@ -633,7 +633,6 @@ def maps_ids_to_integers(graph: Union[Graph, Set], write_location: str, output_i
             ids.write(s + '\t' + p + '\t' + o + '\n')
         output_triples += 1
     # ints.close(), ids.close()
-
     # TODO: add an edge identifier and make sure that the output is zipped.
 
     # CHECK - verify we get the number of edges that we would expect to get
