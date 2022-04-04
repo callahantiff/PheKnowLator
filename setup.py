@@ -74,7 +74,7 @@ setup(
                       'Cython>=0.29.14',
                       'more-itertools',
                       'networkx',
-                      'numpy>=1.21.0',
+                      'numpy>=1.19.5',
                       'openpyxl>=3.0.3',
                       'pandas>=1.0.5',
                       'psutil',
