@@ -1,7 +1,7 @@
 name: KG Build - Part 2 (Construct Knowledge Graphs)
 on:
  schedule:
-   - cron: '0 0 23 * *'  # runs at 00:00:00 UTC on the second day of each month
+   - cron: '0 0 29 * *'  # runs at 00:00:00 UTC on the second day of each month
 env:
  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
  GCS_SERVICE_ACCOUNT: ${{ secrets.GCE_SA_KEY }}
