@@ -784,7 +784,7 @@ class OwlNets(object):
                 except RuntimeError: pass
                 acts = [ray.remote(OwlNets).remote(self.graph, loc, f, cons, ot) for _ in range(cpus)]  # type: ignore
                 for i in range(0, cpus): acts[i % cpus].cleans_owl_encoded_entities.remote(entities[i])  # type: ignore
-                _ = ray.wait([x.gets_owlnets_graph.remote() for x in acts], num_returns=len(acts))
+                _ = ray.wait([x.gets_owlnets_graph.remote() for x in acts], num_returns=len(acts))  # type: ignore
                 graph_res = ray.get([x.gets_owlnets_graph.remote() for x in acts])  # type: ignore
                 full_graph = adds_edges_to_graph(full_graph, set(x for y in set(graph_res) for x in y), False)
                 res2 += ray.get([x.gets_owlnets_dict.remote() for x in acts]); del acts  # type: ignore
