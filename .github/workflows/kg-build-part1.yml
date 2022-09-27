@@ -1,7 +1,7 @@
 name:  KG Build - Part 1 (Data Download and Preprocess)
-on:
- schedule:
-   - cron: '0 0 29 * *'  # runs at 00:00:00 UTC on the first day of each month
+on: paused
+#  schedule:
+#    - cron: '0 0 29 * *'  # runs at 00:00:00 UTC on the first day of each month
 env:
  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
  GCS_SERVICE_ACCOUNT: ${{ secrets.GCE_SA_KEY }}
