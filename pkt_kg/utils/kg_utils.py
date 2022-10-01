@@ -52,7 +52,7 @@ from rdflib.plugins.serializers.nt import _quoteLiteral  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 from pkt_kg.utils import *
 
 # set-up environment variables
