@@ -52,7 +52,7 @@ from rdflib.plugins.serializers.nt import _quoteLiteral  # type: ignore
 import subprocess
 
 from tqdm import tqdm  # type: ignore
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 from pkt_kg.utils import *
 
 # set-up environment variables
@@ -775,3 +775,52 @@ def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep:
     out.close()
 
     return None
+
+
+def nx_ancestor_search(kg: nx.multidigraph.MultiDiGraph, nodes: List, prefix: str, anc_list: Optional[List] = None) ->\
+        Union[Callable, List]:
+    """Returns all ancestors nodes reachable through a direct edge. The returned list is ordered by seniority.
+
+    Args:
+        kg: A networkx MultiDiGraph object.
+        nodes: A list of RDFLib URIRef objects or None.
+        prefix: A string containing an ontology prefix (e.g., MONDO).
+        anc_list: A list that is empty or that contains RDFLib URIRef objects.
+
+    Returns:
+        anc_list: A list of period-delimited strings, where each string represents a path
+    """
+
+    ancestor_list = [] if anc_list is None else anc_list
+
+    if len(nodes) == 0: return ancestor_list
+    else:
+        node = nodes.pop(); node_list = list(kg.neighbors(node))
+        neighborhood = [a for b in [[[i, n] for j in [kg.get_edge_data(*(node, n)).keys()]
+                                     for i in j] for n in node_list] for a in b]
+        ancestors = [x[1] for x in neighborhood if (prefix in str(x[1]) and x[0] == RDFS.subClassOf)]
+        if len(ancestors) > 0:
+            ancestor_list += [[str(x) for x in ancestors]]
+            nodes += ancestors
+        return nx_ancestor_search(kg, nodes, prefix, ancestor_list)
+
+
+def processes_ancestor_path_list(path_list: List) -> Dict:
+    """Processes a nested list of ancestor paths into a dictionary.
+
+    Args:
+        path_list: A nested list of ontology URLs, where each list represents a set of ancestors.
+
+    Returns:
+        ancestors: A dictionary where keys are ints formatted as strings and values are sets of URL strings for each
+            concept that was found at that level. The level is the distance in the hierarchy from the searched node.
+    """
+
+    anc_dict: Dict = dict()
+    for path in path_list:
+        for x in path:
+            idx = max([i for i, j in enumerate(path_list) if x in j])
+            if str(idx) in anc_dict.keys(): anc_dict[str(idx)] |= {x}
+            else: anc_dict[str(idx)] = {x}
+
+    return anc_dict
