@@ -9,7 +9,6 @@
 #######################################################################################################################
 
 # import needed libraries
-# import needed libraries
 import json
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -17,7 +16,8 @@ import random
 
 # from networkx.drawing.nx_pydot import graphviz_layout
 from rdflib import URIRef  # type: ignore
-from typing import Callable, Dict, List, Optional
+from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
+from typing import Callable, Dict, List, Optional, Union
 
 
 def format_path_ancestors(anc_dict: Dict, node_metadata: Dict) -> List:
@@ -255,55 +255,50 @@ def visualize_ancestor_tree(node_list: List) -> None:
     return None
 
 
-def chemical_disease_evidence(einfo: Dict):
-    """
+def nx_ancestor_search(kg: nx.multidigraph.MultiDiGraph, nodes: List, prefix: str, anc_list: Optional[List] = None) ->\
+        Union[Callable, List]:
+    """Returns all ancestors nodes reachable through a direct edge. The returned list is ordered by seniority.
 
     Args:
-        einfo: A dictionary of evidence.
+        kg: A networkx MultiDiGraph object.
+        nodes: A list of RDFLib URIRef objects or None.
+        prefix: A string containing an ontology prefix (e.g., MONDO).
+        anc_list: A list that is empty or that contains RDFLib URIRef objects.
 
     Returns:
-        f: A formatted string of evidence.
+        anc_list: A list of period-delimited strings, where each string represents a path
     """
 
-    ther_str = 'Therapeutic evidence (pmid(s): {})'
-    mark_str = 'This chemical is correlated with or plays a role in the etiology of this disease (pmid(s): {})'
-    inferred = []; dir_ther = []; dir_mark = []
-    if 'Evidence' in einfo:
-        for x in einfo['Evidence']:
-            if x['DirectEvidence'] == 'therapeutic':
-                pids = 'PMID(s):' + x['PubMedIDs']; dir_ther += [ther_str.format(pids)]
-            elif x['DirectEvidence'] == 'marker/mechanism':
-                pids = 'PMID(s):' + x['PubMedIDs']; dir_mark += [mark_str.format(pids)]
-            else:
-                scr = x['InferenceScore']
-                inferred += ['{} (pmid(s): {})'.format(x['InferenceGeneSymbol'], x['PubMedIDs'])]
-    # process evidence
-    if len(dir_ther) > 0 and len(dir_mark) > 0 and len(inferred) > 0:
-        ev_types = 'Direct (i.e., therapeutic and marker/mechanism) and Inferred'
-        s1 = 'EVIDENCE: {}'.format(ev_types)
-        i = '\n'.join(['\t-{}'.format(x) for x in inferred])
-        t = '\n'.join(['\t-{}'.format(x) for x in dir_ther])
-        m = '\n'.join(['\t-{}'.format(x) for x in dir_mark])
-        s2 = '-Direct:\n{}\n{}\n-Inferred (score: {}):\n{}'.format(t, m, str(scr), i)
-        return s1, s2
-    elif (len(dir_ther) > 0 and len(inferred) > 0) and len(dir_mark) == 0:
-        ev_types = 'Direct therapeutic and and Inferred'
-        s1 = 'EVIDENCE: {}'.format(ev_types)
-        i = '\n'.join(['\t-{}'.format(x) for x in inferred])
-        t = '\n'.join(['\t-{}'.format(x) for x in dir_ther])
-        s2 = '-Direct:\n{}\n-Inferred (score: {}):\n{}'.format(t, str(scr), i)
-        return s1, s2
-    elif (len(dir_mark) > 0 and len(inferred) > 0) and len(dir_ther) == 0:
-        ev_types = 'Direct marker/mechanism and Inferred'
-        s1 = 'EVIDENCE: {}'.format(ev_types)
-        i = '\n'.join(['\t-{}'.format(x) for x in inferred])
-        m = '\n'.join(['\t-{}'.format(x) for x in dir_mark])
-        s2 = '-Direct:\n{}\n-Inferred (score: {}):\n{}'.format(m, str(scr), i)
-        return s1, s2
-    # elif (len(dir_ther) == 0 and len(dir_mark) == 0) and len(inferred) > 0:
-    #     ev_types = 'Inferred'
-    #     s1 = 'EVIDENCE: {}'.format(ev_types)
-    #     i = '\n'.join(['\t-{}'.format(x) for x in dir_mark])
-    #     s2 = '-Inferred (score: {}):\n{}\n{}'.format(str(scr), i)
-    #     return s1, s2
-    else: return None
+    ancestor_list = [] if anc_list is None else anc_list
+
+    if len(nodes) == 0: return ancestor_list
+    else:
+        node = nodes.pop(); node_list = list(kg.neighbors(node))
+        neighborhood = [a for b in [[[i, n] for j in [kg.get_edge_data(*(node, n)).keys()]
+                                     for i in j] for n in node_list] for a in b]
+        ancestors = [x[1] for x in neighborhood if (prefix in str(x[1]) and x[0] == RDFS.subClassOf)]
+        if len(ancestors) > 0:
+            ancestor_list += [[str(x) for x in ancestors]]
+            nodes += ancestors
+        return nx_ancestor_search(kg, nodes, prefix, ancestor_list)
+
+
+def processes_ancestor_path_list(path_list: List) -> Dict:
+    """Processes a nested list of ancestor paths into a dictionary.
+
+    Args:
+        path_list: A nested list of ontology URLs, where each list represents a set of ancestors.
+
+    Returns:
+        ancestors: A dictionary where keys are ints formatted as strings and values are sets of URL strings for each
+            concept that was found at that level. The level is the distance in the hierarchy from the searched node.
+    """
+
+    anc_dict: Dict = dict()
+    for path in path_list:
+        for x in path:
+            idx = max([i for i, j in enumerate(path_list) if x in j])
+            if str(idx) in anc_dict.keys(): anc_dict[str(idx)] |= {x}
+            else: anc_dict[str(idx)] = {x}
+
+    return anc_dict
