@@ -37,6 +37,11 @@ How do I Learn More?
 Important Updates and Notifications
 ************************************
 
+- *October 2022:*  
+
+  - Monthly builds are temporatily delayed as we make repairs and implement new functionality. We apologize for any inconvenience this may cause and thank you for your patience and understanding.  
+
+
 - *July 2021:*
 
   - Public SPARQL Endpoint: `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
