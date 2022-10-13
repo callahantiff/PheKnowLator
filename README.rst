@@ -1,4 +1,4 @@
-|logo| 
+|logo|
 
 
 |pip| |downloads|
@@ -359,7 +359,7 @@ Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. `A Framework for Automated C
      url          = {https://doi.org/10.5281/zenodo.3401437}}
 
 
-.. |logo| image:: https://user-images.githubusercontent.com/8030363/106306246-01df9100-621b-11eb-81c3-d1f2c2e124a6.png
+.. |logo| image:: https://user-images.githubusercontent.com/8030363/195494933-d0faba60-5643-4cc6-8a48-41b4a94a7afe.png
    :target: https://github.com/callahantiff/PheKnowLator
    
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
