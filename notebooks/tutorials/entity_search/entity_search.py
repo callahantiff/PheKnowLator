@@ -15,9 +15,10 @@ import networkx as nx
 import random
 
 # from networkx.drawing.nx_pydot import graphviz_layout
+from pyvis.network import Network  # type: ignore
 from rdflib import URIRef  # type: ignore
 from rdflib.namespace import OWL, RDF, RDFS  # type: ignore
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 
 def format_path_ancestors(anc_dict: Dict, node_metadata: Dict) -> List:
@@ -163,6 +164,55 @@ def formats_path_information(kg: nx.multidigraph.MultiDiGraph, paths: List, path
     return None
 
 
+def nx_ancestor_search(kg: nx.multidigraph.MultiDiGraph, nodes: List, prefix: str, anc_list: Optional[List] = None) ->\
+        Union[Callable, List]:
+    """Returns all ancestors nodes reachable through a direct edge. The returned list is ordered by seniority.
+
+    Args:
+        kg: A networkx MultiDiGraph object.
+        nodes: A list of RDFLib URIRef objects or None.
+        prefix: A string containing an ontology prefix (e.g., MONDO).
+        anc_list: A list that is empty or that contains RDFLib URIRef objects.
+
+    Returns:
+        anc_list: A list of period-delimited strings, where each string represents a path
+    """
+
+    ancestor_list = [] if anc_list is None else anc_list
+
+    if len(nodes) == 0: return ancestor_list
+    else:
+        node = nodes.pop(); node_list = list(kg.neighbors(node))
+        neighborhood = [a for b in [[[i, n] for j in [kg.get_edge_data(*(node, n)).keys()]
+                                     for i in j] for n in node_list] for a in b]
+        ancestors = [x[1] for x in neighborhood if (prefix in str(x[1]) and x[0] == RDFS.subClassOf)]
+        if len(ancestors) > 0:
+            ancestor_list += [[str(x) for x in ancestors]]
+            nodes += [x for x in ancestors if x not in nodes]
+        return nx_ancestor_search(kg, nodes, prefix, ancestor_list)
+
+
+def processes_ancestor_path_list(path_list: List) -> Dict:
+    """Processes a nested list of ancestor paths into a dictionary.
+
+    Args:
+        path_list: A nested list of ontology URLs, where each list represents a set of ancestors.
+
+    Returns:
+        ancestors: A dictionary where keys are ints formatted as strings and values are sets of URL strings for each
+            concept that was found at that level. The level is the distance in the hierarchy from the searched node.
+    """
+
+    anc_dict: Dict = dict()
+    for path in path_list:
+        for x in path:
+            idx = max([i for i, j in enumerate(path_list) if x in j])
+            if str(idx) in anc_dict.keys(): anc_dict[str(idx)] |= {x}
+            else: anc_dict[str(idx)] = {x}
+
+    return anc_dict
+
+
 def nudge(pos: Dict, x_shift: int, y_shift: int) -> Dict:
     """Function just moves the node labels on the plot so they don't overlap the arrows.
 
@@ -207,8 +257,6 @@ def hierarchy_pos(g, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5)
         Args:
             pos: a dict saying where all nodes go if they have been assigned
             parent: parent of this branch. - only affects it if non-directed
-
-        :return:
         """
 
         if pos is None: pos = {root: (xcent, v_loc)}
@@ -255,50 +303,117 @@ def visualize_ancestor_tree(node_list: List) -> None:
     return None
 
 
-def nx_ancestor_search(kg: nx.multidigraph.MultiDiGraph, nodes: List, prefix: str, anc_list: Optional[List] = None) ->\
-        Union[Callable, List]:
-    """Returns all ancestors nodes reachable through a direct edge. The returned list is ordered by seniority.
+def pyvis_visualizer(node_info: list, edge_info: list) -> Network:
+    """Visualizes processed network data using pyvis.
+
+    Args:
+        node_info: A nested list of node information.
+        edge_info: A nested list of edge information.
+
+    Return:
+        None.
+    """
+
+    # process graph
+    ids, titles, labels, values = node_info
+    edge_list, edge_titles = edge_info
+
+    # create graph
+    g = Network(height="750px", width="100%", notebook=True, bgcolor="#222222", font_color="white")
+    g.add_nodes(ids, value=values, title=titles, label=labels)
+    for x in range(len(edge_list)):
+        g.add_edge(edge_list[x][0], edge_list[x][1], title=edge_titles[x])
+
+    return g
+
+
+def visualize_kg_output(kg: nx.multidigraph.MultiDiGraph, node_list: list, node_metadata: dict) -> Network:
+    """Processes a nested list of nodes in order to visualize them.
 
     Args:
         kg: A networkx MultiDiGraph object.
-        nodes: A list of RDFLib URIRef objects or None.
-        prefix: A string containing an ontology prefix (e.g., MONDO).
-        anc_list: A list that is empty or that contains RDFLib URIRef objects.
+        node_list: A nested list of ancestor information.
+        node_metadata: A nested dictionary containing node attributes.
 
-    Returns:
-        anc_list: A list of period-delimited strings, where each string represents a path
+    Return:
+        None.
     """
 
-    ancestor_list = [] if anc_list is None else anc_list
+    # process edges
+    edge_list = []; edge_titles = []
+    for x in range(len(node_list) - 1):
+        for i in node_list[x]:
+            for j in node_list[x + 1]:
+                edge_list.append([i, j])
+                s, o = URIRef(i.rpartition('(')[1].strip(')')), URIRef(j.rpartition('(')[1].strip(')'))
+                try:
+                    edges = list(kg.get_edge_data(*(s, o)).keys())[0]
+                    edge_titles.append(node_metadata[str(edges)]['label'])
+                except AttributeError:
+                    edge_titles.append('subClassOf')
+    # process nodes
+    ids = []; titles = []; labels = []; values = []
+    for x in node_list:
+        for i in x:
+            node = i.split('(')[0].rstrip(); uri = i.split('(')[1].strip(')'); ids.append(i)
+            titles += [uri]; labels.append(node); values.append(len(kg.in_edges(URIRef(uri))))
 
-    if len(nodes) == 0: return ancestor_list
-    else:
-        node = nodes.pop(); node_list = list(kg.neighbors(node))
-        neighborhood = [a for b in [[[i, n] for j in [kg.get_edge_data(*(node, n)).keys()]
-                                     for i in j] for n in node_list] for a in b]
-        ancestors = [x[1] for x in neighborhood if (prefix in str(x[1]) and x[0] == RDFS.subClassOf)]
-        if len(ancestors) > 0:
-            ancestor_list += [[str(x) for x in ancestors]]
-            nodes += ancestors
-        return nx_ancestor_search(kg, nodes, prefix, ancestor_list)
+    return pyvis_visualizer([ids, titles, labels, values], [edge_list, edge_titles])
 
 
-def processes_ancestor_path_list(path_list: List) -> Dict:
-    """Processes a nested list of ancestor paths into a dictionary.
-
-    Args:
-        path_list: A nested list of ontology URLs, where each list represents a set of ancestors.
+def visualize_pheknowlator_schema() -> Network:
+    """Visualizes the PheKnowLator v3.0.2 schema with node and edge count.
 
     Returns:
-        ancestors: A dictionary where keys are ints formatted as strings and values are sets of URL strings for each
-            concept that was found at that level. The level is the distance in the hierarchy from the searched node.
+         pyvis Network object.
     """
+    g = Network(height="750px", width="100%", notebook=True, bgcolor="#222222", font_color="white")
+    g.add_nodes(['Phenotypes', 'Diseases', 'Chemicals', 'Variants', 'Transcripts', 'Genes', 'Molecular Functions',
+                 'Biological Processes', 'Cellular Components', 'Cell Lines', 'Cells', 'Proteins',
+                 'Anatomical Entities', 'Cofactors', 'Catalysts', 'Pathways'],
+                title=['16,291', '22,334', '150,080', '145,156', '190,829', '26,532', '4,442', '12,329', '1,801',
+                       '41,791', '2,368', '96,197', '14,181', '44', '3,749', '13,794'],
+                label=['Phenotypes', 'Diseases', 'Chemicals', 'Variants', 'Transcripts', 'Genes', 'Molecular Functions',
+                       'Biological Processes', 'Cellular Components', 'Cell Lines', 'Cells', 'Proteins',
+                       'Anatomical Entities', 'Cofactors', 'Catalysts', 'Pathways'],
+                color=['#fbafd1ff', '#e06666ff', '#bc376aff', '#e2d3e7ff', '#88d8ffff', '#b7b7b7ff', '#8e7cc3ff',
+                       '#8e7cc3ff', '#8e7cc3ff', '#76a5afff', '#f6b26bff', '#6aa84fff', '#3d85c6ff', '#bc376aff',
+                       '#bc376aff', '#e7e6e6ff'])
+    g.add_edge('Chemicals', 'Diseases', title='causally related to (n=172,573)')
+    g.add_edge('Chemicals', 'Genes', title='interacts with (n=16,708)')
+    g.add_edge('Chemicals', 'Biological Processes', title='molecularly interacts with (n=288,873)')
+    g.add_edge('Chemicals', 'Cellular Components', title='molecularly interacts with (n=47,716)')
+    g.add_edge('Chemicals', 'Molecular Functions', title='molecularly interacts with (n=28,077)')
+    g.add_edge('Chemicals', 'Pathways', title='participates in (n=29,988)')
+    g.add_edge('Chemicals', 'Phenotypes', title='causally related to (n=110,898)')
+    g.add_edge('Chemicals', 'Proteins', title='interacts with (n=71,679)')
+    g.add_edge('Chemicals', 'Transcripts', title='interacts with (n=0)')
+    g.add_edge('Diseases', 'Phenotypes', title='has phenotype (n=435,102)')
+    g.add_edge('Genes', 'Diseases', title='causes or contributes to (n=12,842)')
+    g.add_edge('Genes', 'Genes', title='genetically interacts with (n=1,694)')
+    g.add_edge('Genes', 'Pathways', title='participates in (n=107,009)')
+    g.add_edge('Genes', 'Phenotypes', title='cause or contributes to (n=24,760)')
+    g.add_edge('Genes', 'Proteins', title='has gene product (n=19,521)')
+    g.add_edge('Genes', 'Transcripts', title='transcribed to (n=182,692)')
+    g.add_edge('Biological Processes', 'Pathways', title='realized in response to (n=672)')
+    g.add_edge('Pathways', 'Cellular Components', title='has component (n=16,014)')
+    g.add_edge('Pathways', 'Molecular Functions', title='has function (n=2,426)')
+    g.add_edge('Proteins', 'Anatomical Entities', title='located in (n=30,681)')
+    g.add_edge('Proteins', 'Catalysts', title='molecularly interacts with (n=25,136)')
+    g.add_edge('Proteins', 'Cells', title='located in (n=75,313)')
+    g.add_edge('Proteins', 'Cell Lines', title='located in (n=75,313)')
+    g.add_edge('Proteins', 'Cofactors', title='molecularly interacts with (n=1,998)')
+    g.add_edge('Proteins', 'Biological Processes', title='participates in (n=129,424)')
+    g.add_edge('Proteins', 'Cellular Components', title='located in (n=82,526)')
+    g.add_edge('Proteins', 'Molecular Functions', title='has function (n=69,801)')
+    g.add_edge('Proteins', 'Pathways', title='participates in (n=117,813)')
+    g.add_edge('Proteins', 'Proteins', title='molecularly interacts with (n=618,069)')
+    g.add_edge('Transcripts', 'Anatomical Entities', title='located in (n=444,974)')
+    g.add_edge('Transcripts', 'Cells', title='located in (n=65,180)')
+    g.add_edge('Transcripts', 'Cell Lines', title='located in (n=65,180)')
+    g.add_edge('Transcripts', 'Proteins', title='ribosomally translates to (n=44,205)')
+    g.add_edge('Variants', 'Diseases', title='causes or contributes to (n=43,439)')
+    g.add_edge('Variants', 'Genes', title='causally influences (n=145,129)')
+    g.add_edge('Variants', 'Phenotypes', title='causes or contributes to (n=3,081)')
 
-    anc_dict: Dict = dict()
-    for path in path_list:
-        for x in path:
-            idx = max([i for i, j in enumerate(path_list) if x in j])
-            if str(idx) in anc_dict.keys(): anc_dict[str(idx)] |= {x}
-            else: anc_dict[str(idx)] = {x}
-
-    return anc_dict
+    return g
