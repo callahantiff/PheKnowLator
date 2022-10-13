@@ -417,3 +417,52 @@ def visualize_pheknowlator_schema() -> Network:
     g.add_edge('Variants', 'Phenotypes', title='causes or contributes to (n=3,081)')
 
     return g
+
+
+def visualize_pheknowlator_ontologies() -> Network:
+
+    g = Network(height="750px", width="100%", notebook=True, bgcolor="#222222", font_color="white")
+    g.add_nodes(['CLO', 'Mondo', 'Uberon', 'CL', 'PRO', 'GO', 'PW', 'ChEBI', 'HPO', 'SO', 'RO', 'VO'],
+                title = ['Cell Line Ontology', 'Mondo Disease Ontology', 'Uber Anatomy Ontology', 'Cell Ontology',
+                         'Protein Ontology', 'Gene Ontology', 'Pathway Ontology', 'Chemical Entities of Biological Interest', 'Human Phenotype Ontology', 'Sequence Ontology',
+                         'Relations Ontology', 'Vaccine Ontology'],
+                label = ['CLO', 'Mondo', 'Uberon', 'CL', 'PRO', 'GO', 'PW', 'ChEBI', 'HPO', 'SO', 'RO', 'VO'],
+                color = ['#76a5afff', '#e06666ff', '#3d85c6ff', '#f6b26bff', '#6aa84fff', '#8e7cc3ff', '#ffe599ff',
+                         '#bc376aff', '#fbafd1ff', '#d9ead3ff', '#666666ff', '#b59e7dff'])
+    g.add_edge('HPO', 'Uberon', title='ontology import')
+    g.add_edge('HPO', 'CL', title='ontology import')
+    g.add_edge('HPO', 'GO', title='ontology import')
+    g.add_edge('HPO', 'ChEBI', title='ontology import')
+    g.add_edge('HPO', 'VO', title='ontology import')
+    g.add_edge('HPO', 'PRO', title='ontology import')
+    g.add_edge('CLO', 'PRO', title='ontology import')
+    g.add_edge('CLO', 'RO', title='ontology import')
+    g.add_edge('CLO', 'ChEBI', title='ontology import')
+    g.add_edge('CLO', 'GO', title='ontology import')
+    g.add_edge('CLO', 'CL', title='ontology import')
+    g.add_edge('Mondo', 'SO', title='ontology import')
+    g.add_edge('Mondo', 'RO', title='ontology import')
+    g.add_edge('Mondo', 'GO', title='ontology import')
+    g.add_edge('Mondo', 'ChEBI', title='ontology import')
+    g.add_edge('Mondo', 'CL', title='ontology import')
+    g.add_edge('Mondo', 'Uberon', title='ontology import')
+    g.add_edge('Uberon', 'PRO', title='ontology import')
+    g.add_edge('Uberon', 'ChEBI', title='ontology import')
+    g.add_edge('Uberon', 'GO', title='ontology import')
+    g.add_edge('Uberon', 'CL', title='ontology import')
+    g.add_edge('CL', 'RO', title='ontology import')
+    g.add_edge('CL', 'GO', title='ontology import')
+    g.add_edge('CL', 'ChEBI', title='ontology import')
+    g.add_edge('PRO', 'GO', title='ontology import')
+    g.add_edge('PRO', 'ChEBI', title='ontology import')
+    g.add_edge('GO', 'CL', title='ontology import')
+    g.add_edge('GO', 'RO', title='ontology import')
+    g.add_edge('GO', 'ChEBI', title='ontology import')
+    g.add_edge('GO', 'VO', title='ontology import')
+    g.add_edge('PW', 'GO', title='ontology import')
+    g.add_edge('VO', 'ChEBI', title='ontology import')
+    g.add_edge('VO', 'GO', title='ontology import')
+    g.add_edge('VO', 'Uberon', title='ontology import')
+    g.add_edge('VO', 'PRO', title='ontology import')
+
+    return g
