@@ -44,13 +44,13 @@ def main():
     # read in the data files -- assumes only condition occurrence (hp and mondo) and drug exposure (chebi)
     print('Reading in mapping data from OMOP2OBO')
     # condition occurrence mappings
-    print('Condition Occurrence Mappings')
+    print('\t- Condition Occurrence Mappings')
     cond = 'OMOP2OBO_V1_Condition_Occurrence_Mapping_Oct2020.xlsx'
     co_hp = pd.read_excel(write_location1 + cond, sep=',', header=0, sheet_name="OMOP2OBO_HPO_Mapping_Results")
     co_mondo = pd.read_excel(write_location1 + cond, sep=',', header=0,
                              sheet_name="OMOP2OBO_Mondo_Mapping_Results")
     # drug exposure mappings
-    print('Drug Exposure Mappings')
+    print('\t- Drug Exposure Mappings')
     drg = 'OMOP2OBO_V1_Drug_Exposure_Mapping_Oct2020.xlsx'
     de_chebi = pd.read_excel(write_location1 + drg, sep=',', header=0, sheet_name="OMOP2OBO_ChEBI_Mapping_Results")
 
