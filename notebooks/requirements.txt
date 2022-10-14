@@ -1,5 +1,6 @@
 Cython>=0.29.14
 ipywidgets>=7.7.0
+matplotlib==3.3.2
 more-itertools>=8.6.0
 networkx>=2.4
 numpy>=1.18.1
@@ -7,6 +8,7 @@ openpyxl>=3.0.3
 pandas>=1.0.5
 psutil>=5.6.3
 python-json-logger>=2.0.1
+pyvis==0.3.0
 ray>=1.1.0
 rdflib>=4.2.2
 reactome2py>=0.0.8

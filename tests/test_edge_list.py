@@ -79,7 +79,7 @@ class TestCreatesEdgeList(unittest.TestCase):
         # test gene-disease data (header)
         gene_dis_file = self.edge_data_files['gene-disease']
         delimiter2 = self.master_edge_list.source_info['gene-disease']['delimiter']
-        splitter = '\t' if 't' in delimiter2 else " " if ' ' in delimitir2 else delimiter2
+        splitter = '\t' if 't' in delimiter2 else " " if ' ' in delimiter2 else delimiter2
 
         self.assertEqual(0, self.master_edge_list.identify_header(gene_dis_file, splitter, []))
 

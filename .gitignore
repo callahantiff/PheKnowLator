@@ -36,6 +36,7 @@ builds/temp/*
 pkt_kg/libs/deepwalk_c_master/*
 pkt_kg/libs/walking-rdf-and-owl-master/*
 pkt_kg/libs/pylucene-8.11.0/*
+notebooks/tutorials/entity_search/lib/*
 
 #### Scripts
 pkt_kg/kg_embedding_visualizer.py
