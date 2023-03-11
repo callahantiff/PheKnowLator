@@ -544,7 +544,7 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
     both_fixed = {(BNode(str(s).split('/')[-1]), p, BNode(str(o).split('/')[-1])) for s, p, o in sub_and_obj_bnodes_ns}
     del sub_only_bnodes_ns, obj_only_bnodes_ns, sub_and_obj_bnodes_ns
     if verbose: print('Finalizing Updated Graph')
-    updated_graph = Graph()
+    updated_graph: Graph = Graph()
     for s, p, o in (graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
 
     return updated_graph

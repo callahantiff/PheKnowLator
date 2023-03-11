@@ -31,6 +31,7 @@ from pkt_kg.utils import *
 
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
+pkt_ns = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
 
 # logging
 log_dir, f_log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
@@ -632,9 +633,9 @@ class FullBuild(KGBuilder):
 
         # allow logic only and annotation only subsets to contain pkt-namespaced bnodes, but clean + write full graph
         s1 = 'Processing pkt-namespaced BNodes in Full (Logic + Annotation) graph'; logger.info(s1); print('\n' + s1)
-        graph = removes_namespace_from_bnodes(graph=removes_namespace_from_bnodes(graph), ns=pkt_ns)
-        graph.serialize(f + full, format='nt'); graph.serialize(f + full.replace('nt', 'owl'))
+        clean_graph: Graph = removes_namespace_from_bnodes(graph=removes_namespace_from_bnodes(graph), ns=pkt_ns)
+        clean_graph.serialize(f + full, format='nt'); clean_graph.serialize(f + full.replace('nt', 'owl'))
         ontology_file_formatter(f, full.replace('nt', 'owl'), self.owl_tools)
-        s2 = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s2); logger.info(s2)
+        s2 = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(clean_graph)); print('\n' + s2); logger.info(s2)
 
         return None
