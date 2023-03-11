@@ -523,14 +523,14 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
 
     Args:
         graph: An RDFLib Graph object.
-        ns: A string or RDFLib Namespace object (default='https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
+        ns: A string or RDFLib Namespace object (default='https://github.com/callahantiff/PheKnowLator/pkt/bnode/').
         verbose: A bool flag used to indicate whether to print method function (default=False).
 
     Returns:
         updated_graph: An RDFLib Graph object with bnode namespaces removed.
     """
 
-    if verbose: print('Removing Namespace from BNodes'); print('Processing Original Nodes')
+    if verbose: print('Identifying BNodes with Namespace: {}'.format(str(ns))); print('Identifying BNodes')
     ns_uri = str(ns) if isinstance(ns, Namespace) else ns
     all_triples = set(graph)
     sub_only_bnodes_ns = {(s, p, o) for s, p, o in graph if str(s).startswith(ns_uri) and not str(o).startswith(ns_uri)}
