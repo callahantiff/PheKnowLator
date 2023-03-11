@@ -183,7 +183,7 @@ def gzipped_url_download(url: str, write_location: str, filename: str) -> None:
 
 
 def data_downloader(url: str, write_location: str, filename: str = '') -> None:
-    """Downloads data from a URL and saves the file to the `/resources/processed_data/unprocessed_data' directory.
+    """Downloads data from a URL and saves the file to the '/resources/processed_data/unprocessed_data' directory.
 
     Args:
         url: A string that points to the location of a temp mapping file that needs to be processed.
@@ -300,10 +300,10 @@ def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: s
     treats the user-provided column list as a stack and recursively un-nests each column.
 
     Args:
-        df: A Pandas DataFrame containing nested columns
-        lst_cols: A list of columns to unnest
-        splitter: A character delimiter used in nested columns
-        fill_value: A string value to fill empty cell values with
+        df: A Pandas DataFrame containing nested columns.
+        lst_cols: A list of columns to unnest.
+        splitter: A character delimiter used in nested columns.
+        fill_value: A string value to fill empty cell values with.
         preserve_idx: Whether the original index should be preserved or reset.
 
     Returns:
@@ -450,14 +450,14 @@ def merges_files(filepath1: str, filepath2: str, merged_filepath: str) -> None:
 
 
 def sublist_creator(actors: Union[Dict, List], chunk_size: int) -> List:
-    """Takes a list of lists and returns sublists, where the sublists are balanced according to their length.
+    """Takes a list of lists and returns sub lists, where the sub lists are balanced according to their length.
 
     SOURCE: https://stackoverflow.com/questions/61648065
 
     Args:
         actors: A list or a dictionary keyed by edge identifier with the length of each associated edge list
             stored as the values.
-        chunk_size: An integer specifying the number of sublists that should be returned.
+        chunk_size: An integer specifying the number of sub lists that should be returned.
 
     Returns:
          updated_lists: A list of lists, where the inner lists have been balanced by their size.

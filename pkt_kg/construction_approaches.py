@@ -44,9 +44,9 @@ class KGConstructionApproach(object):
         write_location: A string pointing to the 'resources' directory.
 
     Raises:
-        TypeError: If graph is not an rdflib.graph object.
+        TypeError: If graph is not a rdflib.graph object.
         TypeError: If edge_info and edge_dict are not dictionary objects.
-        ValueError: If graph, edge_info, edge_dict, or subclass_dict files are empty.
+        ValueError: If a graph, edge_info, edge_dict, or subclass_dict files are empty.
         OSError: If there is no subclass_dict file in the resources/construction_approach directory.
     """
 
@@ -73,7 +73,7 @@ class KGConstructionApproach(object):
                 self.subclass_dict = pickle.load(filepath, encoding='bytes')
 
     def maps_node_to_class(self, edge_type: str, entity: str) -> Optional[List]:
-        """Takes an entity and checks whether or not it exists in a dictionary of subclass content, such that keys
+        """Takes an entity and checks whether it exists in a dictionary of subclass content, such that keys
         are non-class entity identifiers (e.g. Reactome identifiers) and values are sets of ontology class identifiers
         mapped to that non-class entity. For example:
             {'R-HSA-5601843': {'PW_0000001'}, 'R-HSA-77584': {'PW_0000001', 'GO_0008334'}}
@@ -113,7 +113,7 @@ class KGConstructionApproach(object):
 
         Args:
             node1: A URIRef or BNode object containing a subject node.
-            node2: A URIRef or BNode object containing a object node.
+            node2: A URIRef or BNode object containing an object node.
             relation: A URIRef object containing an owl:ObjectProperty.
             inv_relation: A string containing an inverse relation identifier (i.e. RO_0002200) or None (i.e.
                 indicating no inverse relation).
@@ -158,7 +158,7 @@ class KGConstructionApproach(object):
 
         Assumption: All ontology class nodes use the obo namespace.
 
-        Note. We explicitly type each node as a owl:Class and each relation/inverse relation as a owl:ObjectProperty.
+        Note. We explicitly type each node as an owl:Class and each relation/inverse relation as an owl:ObjectProperty.
         This may seem redundant, but it is needed in order to ensure consistency between the data after applying the
         OWL API to reformat the data.
 
@@ -209,7 +209,7 @@ class KGConstructionApproach(object):
 
         Args:
             node1: A URIRef or BNode object containing a subject node.
-            node2: A URIRef or BNode object containing a object node.
+            node2: A URIRef or BNode object containing an object node.
             relation: A URIRef object containing an owl:ObjectProperty.
             inv_relation: A string containing the identifier for an inverse relation (i.e. RO_0002200) or None
                 (i.e. indicator of no inverse relation).
