@@ -4,12 +4,17 @@ import os
 import os.path
 import pickle
 import unittest
+import warnings
 
 from rdflib import Graph, Namespace
 from rdflib.namespace import RDF, OWL
 from typing import Dict
 
 from pkt_kg.metadata import *
+
+
+# silence warning relating to closing file
+warnings.simplefilter('ignore', ResourceWarning)
 
 
 class TestMetadata(unittest.TestCase):
@@ -224,7 +229,9 @@ class TestMetadata(unittest.TestCase):
         os.remove(filename + 'SO_Triples_Integer_Identifier_Map.json')
 
         # write original data
-        pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
+        # pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
+        with open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb') as output_file:
+            pickle.dump(original_dict, output_file)
 
         return None
 
@@ -268,7 +275,9 @@ class TestMetadata(unittest.TestCase):
         os.remove(filename + 'SO_Triples_Integer_Identifier_Map.json')
 
         # write original data
-        pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
+        # pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
+        with open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb') as output_file:
+            pickle.dump(original_dict, output_file)
 
         return None
 

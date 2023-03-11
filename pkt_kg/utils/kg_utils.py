@@ -44,6 +44,7 @@ import networkx as nx  # type: ignore
 import os
 import os.path
 import pickle
+import warnings
 
 from collections import Counter  # type: ignore
 from more_itertools import unique_everseen  # type: ignore
@@ -62,6 +63,9 @@ oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 pkt = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
 pkt_bnode = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
 schema = Namespace('http://www.w3.org/2001/XMLSchema#')
+
+# silence warning relating to closing file
+warnings.simplefilter('ignore', ResourceWarning)
 
 
 def gets_ontology_classes(graph: Graph) -> Set:

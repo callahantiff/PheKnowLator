@@ -4,6 +4,7 @@ import os
 import os.path
 import shutil
 import unittest
+import warnings
 
 from mock import patch
 from typing import Dict, List, Set, Tuple
@@ -14,6 +15,9 @@ from pkt_kg.utils import *
 
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
+
+# silence warning relating to closing file
+warnings.simplefilter('ignore', ResourceWarning)
 
 
 class TestKGUtils(unittest.TestCase):
