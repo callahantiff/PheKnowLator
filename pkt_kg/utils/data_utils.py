@@ -86,7 +86,7 @@ def url_download(url: str, write_location: str, filename: str) -> None:
 
 
 def ftp_url_download(url: str, write_location: str, filename: str) -> None:
-    """Downloads a file from an ftp server.
+    """Downloads a file from a ftp server.
 
     Args:
         url: A string that points to the location of a temp mapping file that needs to be processed.
@@ -108,7 +108,7 @@ def ftp_url_download(url: str, write_location: str, filename: str) -> None:
 
 
 def gzipped_ftp_url_download(url: str, write_location: str, filename: str) -> None:
-    """Downloads a gzipped file from an ftp server.
+    """Downloads a gzipped file from a ftp server.
 
     Args:
         url: A string that points to the location of a temp mapping file that needs to be processed.
@@ -153,9 +153,9 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
     print('Downloading Zipped Data from {}'.format(url))
 
     with requests.get(url, allow_redirects=True) as zip_data:
-        with ZipFile(BytesIO(zip_data.content)) as zip_file:
+        with ZipFile(BytesIO(zip_data.content)) as zip_file:    # type: ignore
             zip_file.extractall(write_location[:-1])
-    zip_data.close()
+    zip_data.close()    # type: ignore
     if filename != '': os.rename(write_location + re.sub(zip_pat, '', url.split('/')[-1]), write_location + filename)
 
     return None
@@ -213,7 +213,7 @@ def chunks(lst: List[str], chunk_size: int) -> Generator:
 
     Args:
         lst: A list of objects, can be strings or integers.
-        chunk_size: An integer which specifies the how big each chunk should be.
+        chunk_size: An integer which specifies how big each chunk should be.
 
     Returns:
         A nested list, where the length of each nested list is the size of the integer passed by the user.
@@ -304,7 +304,7 @@ def explodes_data(df: pd.DataFrame, lst_cols: list, splitter: str, fill_value: s
         lst_cols: A list of columns to unnest
         splitter: A character delimiter used in nested columns
         fill_value: A string value to fill empty cell values with
-        preserve_idx: Whether or not thee original index should be preserved or reset.
+        preserve_idx: Whether the original index should be preserved or reset.
 
     Returns:
         An exploded Pandas DataFrame.
