@@ -303,7 +303,7 @@ class OwlNets(object):
             node: An RDFLib URIRef object.
 
         Returns:
-            matches: A set of tuples, where each tuple contains a triple that consists of three RDFLib objects of
+            matches: A set of tuples, where each tuple contains a triple comprised of three RDFLib objects of
                 type URIRef, BNode, and/or Literal.
         """
 
@@ -425,14 +425,23 @@ class OwlNets(object):
         else: return False
 
     @staticmethod
-    def returns_object_property(sub: URIRef, obj: URIRef, prop: URIRef = None) -> URIRef:
+    def returns_object_property(sub: URIRef, obj: URIRef, prop: Optional[URIRef] = None) -> URIRef:
         """Checks the subject and object node types in order to determine the correct type of owl:ObjectProperty.
 
         The following ObjectProperties are returned for each of the following subject-object types:
             - if sub + obj are PATO terms + prop is None --> rdfs:subClassOf
+            - if sub + obj are not PATO terms + prop is None --> rdfs:subClassOf
             - elif sub is not a PATO term, but obj is a PATO term --> obo:RO_000086
             - elif prop is not None --> prop
             - else --> rdfs:subClassOf
+
+            - if sub + obj are PATO terms and property is none --> rdfs:subClassOf
+            - if sub + obj are NOT PATO terms and property is none --> rdfs:subClassOf
+            - obj is PATO term and property is none --> obo:RO_000086
+            - obj is PATO term and property is NOT none --> obo:RO_000086
+            - subj is a PATO term and property is none -->  RDFS.subClassOf
+            - subj is a PATO term and property is NOT none --> prop
+
 
         Args:
             sub: An rdflib.term object.
@@ -443,10 +452,18 @@ class OwlNets(object):
             An rdflib.term object that represents an owl:ObjectProperty.
         """
 
-        if ('PATO' in sub and 'PATO' in obj) and not prop: return RDFS.subClassOf
-        elif 'PATO' not in sub and 'PATO' in obj: return obo.RO_0000086
-        elif not prop: return RDFS.subClassOf
-        else: return prop
+        # if ('PATO' in sub and 'PATO' in obj) and prop is None: return RDFS.subClassOf
+        # elif 'PATO' not in sub and 'PATO' in obj: return obo.RO_0000086
+        # elif prop is None: return RDFS.subClassOf
+        # else: return prop
+
+        if ('PATO' in sub and 'PATO' in obj) and prop is None: return RDFS.subClassOf
+        elif ('PATO' not in sub and 'PATO' not in obj) and prop is None: return RDFS.subClassOf
+        elif 'PATO' in obj and prop is None: return obo.RO_0000086
+        elif 'PATO' in obj and prop is not None: return obo.RO_0000086
+        elif 'PATO' in sub and prop is None: return RDFS.subClassOf
+        elif 'PATO' in sub and prop is not None: return prop
+        elif prop is None: return RDFS.subClassOf
 
     @staticmethod
     def parses_anonymous_axioms(edges: Dict, class_dict: Dict) -> Dict:
@@ -522,7 +539,8 @@ class OwlNets(object):
                 if isinstance(batch['first'], URIRef) and isinstance(batch['rest'], BNode):
                     obj_property = self.returns_object_property(node, batch['first'], relation)
                     if node != batch['first']:
-                        cleaned |= {(node, obj_property, batch['first'])}
+                        if keyword == 'union': cleaned |= {(batch['first'], obj_property, node)}
+                        else: cleaned |= {(node, obj_property, batch['first'])}
                         batch = class_dict[batch['rest']] if 'rest' in batch.keys() else None
                     else: batch = class_dict[batch['rest']]
                 elif isinstance(batch['first'], URIRef) and isinstance(batch['rest'], URIRef):
@@ -589,8 +607,10 @@ class OwlNets(object):
         """Verifies a set of cleaned tuples to ensure that there are not duplicate triples (i.e., subject-object
         pairs with different properties). The function assumes that a duplicate tuple will include RDFS.subClassOf,
         which should be removed.
+
         Args:
             cleaned_classes: A set of tuples, where each tuple contains three URIRef objects.
+
         Returns:
              A set of tuples, where each tuple contains a cleaned triple comprised of three URIRef objects.
         """
@@ -686,7 +706,6 @@ class OwlNets(object):
             log_str = 'Obtaining node list'; print(log_str); logger.info(log_str)
             anc_node, roots = common_ancestor if isinstance(common_ancestor, URIRef) else URIRef(common_ancestor), set()
             nodes = set([x for x in tqdm(list(graph.subjects()) + list(graph.objects())) if isinstance(x, URIRef)])
-
             print('Identifying root nodes')
             for x in tqdm(nodes):
                 ancs = gets_entity_ancestors(graph, [x], RDFS.subClassOf)
@@ -698,7 +717,6 @@ class OwlNets(object):
                         try: ancs = [mode(ancs)]
                         except StatisticsError: ancs = sample(ancs, 1) if not any(x for x in ancs if x in roots) else []
                 roots |= {ancs[0]} if len(ancs) > 0 else {x}
-
             log_str = 'Updating graph connectivity'; print(log_str); logger.info(log_str)
             rel = RDF.type if self.kg_construct_approach == 'instance' else RDFS.subClassOf
             needed_triples = set((URIRef(x), rel, anc_node) for x in roots if x != anc_node)
@@ -720,13 +738,10 @@ class OwlNets(object):
         """
 
         log_str = 'Purifying Graph Based on Construction Approach'; logger.info(log_str); print(log_str)
-
         org_rel = RDF.type if self.kg_construct_approach == 'subclass' else RDFS.subClassOf
         pure_rel = RDFS.subClassOf if org_rel == RDF.type else RDF.type
-
         log_str = 'Determining what triples need purification'; print(log_str); logger.info(log_str)
         triples = list(graph.triples((None, org_rel, None)))
-
         log_str = 'Processing {} {} triples'.format(len(triples), org_rel); print(log_str); logger.info(log_str)
         for edge in tqdm(triples):
             graph.add((edge[0], pure_rel, edge[2])); graph.remove(edge)
@@ -803,7 +818,7 @@ class OwlNets(object):
                 except RuntimeError: pass
                 acts = [ray.remote(OwlNets).remote(self.graph, loc, f, cons, ot) for _ in range(cpus)]  # type: ignore
                 for i in range(0, cpus): acts[i % cpus].cleans_owl_encoded_entities.remote(entities[i])  # type: ignore
-                _ = ray.wait([x.gets_owlnets_graph.remote() for x in acts], num_returns=len(acts))  # type: ignore
+                _ = ray.wait([x.gets_owlnets_graph.remote() for x in acts], num_returns=len(acts))
                 graph_res = ray.get([x.gets_owlnets_graph.remote() for x in acts])  # type: ignore
                 full_graph = adds_edges_to_graph(full_graph, set(x for y in set(graph_res) for x in y), False)
                 res2 += ray.get([x.gets_owlnets_dict.remote() for x in acts]); del acts  # type: ignore
