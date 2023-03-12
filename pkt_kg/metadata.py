@@ -3,15 +3,11 @@
 
 # import needed libraries
 import glob
-# import json
 import logging.config
-# import os
 import os.path
 import pandas  # type: ignore
 import pickle
 import re
-# import subprocess
-import warnings
 
 from datetime import datetime
 from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
@@ -24,9 +20,6 @@ from pkt_kg.utils import *
 # set environmental variables
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 obo = Namespace('http://purl.obolibrary.org/obo/')
-
-# silence warning related to closing file
-warnings.simplefilter('ignore', ResourceWarning)
 
 # logging
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
@@ -83,9 +76,9 @@ class Metadata(object):
 
         if self.node_data:
             log_str = 'Loading and Processing Node Metadata'; print(log_str); logger.info(log_str)
-            # self.node_dict = pickle.load(open(self.node_data[0], 'rb'), encoding="utf8")
-            with open(self.node_data[0], 'rb') as input_file:
-                self.node_dict = pickle.load(input_file, encoding="utf8")
+            self.node_dict = pickle.load(open(self.node_data[0], 'rb'), encoding="utf8")
+            # with open(self.node_data[0], 'rb') as input_file:
+            #     self.node_dict = pickle.load(input_file, encoding="utf8")
 
         return None
 
@@ -155,10 +148,9 @@ class Metadata(object):
                     'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': {
                         'Label': 'type', 'Description': 'The subject is an instance of a class.', 'Synonym': 'None'}}}
 
-            if self.node_data:
-                # pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))
-                with open(self.node_data[0], 'wb') as output_file:
-                    pickle.dump(self.node_dict, output_file)
+            if self.node_data: pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))
+            # with open(self.node_data[0], 'wb') as output_file:
+            #     pickle.dump(self.node_dict, output_file)
 
         return None
 
@@ -263,9 +255,9 @@ class Metadata(object):
 
             # make sure that the metadata dict contains valid entries
             self._tidy_metadata()
-            # pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))
-            with open(self.node_data[0], 'wb') as output_file:
-                pickle.dump(self.node_dict, output_file)
+            pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))
+            # with open(self.node_data[0], 'wb') as output_file:
+            #     pickle.dump(self.node_dict, output_file)
 
             # write metadata in flat-file
             entities = set([i for j in tqdm(graph) for i in j]); filename = self.full_kg[:-4] + '_NodeLabels.txt'

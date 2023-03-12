@@ -4,17 +4,12 @@ import os
 import os.path
 import pickle
 import unittest
-import warnings
 
 from rdflib import Graph, Namespace
 from rdflib.namespace import RDF, OWL
 from typing import Dict
 
 from pkt_kg.metadata import *
-
-
-# silence warning relating to closing file
-warnings.simplefilter('ignore', ResourceWarning)
 
 
 class TestMetadata(unittest.TestCase):
@@ -34,9 +29,6 @@ class TestMetadata(unittest.TestCase):
         # pointer to owltools
         dir_loc2 = os.path.join(current_directory, 'utils/owltools')
         self.owltools_location = os.path.abspath(dir_loc2)
-
-        # create graph data
-        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
 
         # set-up input arguments
         self.metadata = Metadata(kg_version='v2.0.0',
@@ -87,6 +79,7 @@ class TestMetadata(unittest.TestCase):
         """Tests the creates_node_metadata method."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.metadata.extract_metadata(self.graph)
 
         # test when the node has metadata
@@ -125,6 +118,7 @@ class TestMetadata(unittest.TestCase):
         """Tests the creates_node_metadata method."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.metadata.extract_metadata(self.graph)
 
         # test when the node has metadata
@@ -148,6 +142,7 @@ class TestMetadata(unittest.TestCase):
         """Tests the creates_node_metadata method when node_dict is None."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.metadata.extract_metadata(self.graph)
         self.metadata.node_dict = None
 
@@ -182,6 +177,7 @@ class TestMetadata(unittest.TestCase):
 
         # extract metadata
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.metadata.extract_metadata(graph=self.graph)
 
         # check that it worked
