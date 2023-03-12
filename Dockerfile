@@ -4,15 +4,15 @@
 ############################################
 ## MULTI-STAGE CONTAINER CONFIGURATION ##
 FROM python:3.6.2
-RUN sudo apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
     apt-transport-https \
     software-properties-common \
     unzip \
     curl
 RUN wget -O- https://apt.corretto.aws/corretto.key | apt-key add - && \
     add-apt-repository 'deb https://apt.corretto.aws stable main' && \
-    sudo apt-get update && \
-    sudo apt-get install -y java-1.8.0-amazon-corretto-jdk
+    apt-get update && \
+    apt-get install -y java-1.8.0-amazon-corretto-jdk
 
 
 ############################################
