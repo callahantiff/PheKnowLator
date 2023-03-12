@@ -98,7 +98,7 @@ class DataSource(object):
 
         Raises:
             ValueError: If the file does not contain data.
-            ValueError: If there some of the input URLs were improperly formatted.
+            ValueError: If ome input URLs were improperly formatted.
         """
 
         pass
@@ -112,7 +112,7 @@ class DataSource(object):
                               'phenotype': 'resources/ontologies/hp_with_imports.owl'}
 
         Raises:
-            ValueError: If not all of the URLs returned valid data.
+            ValueError: If not all the URLs returned valid data.
         """
 
         pass
@@ -220,7 +220,7 @@ class DataSource(object):
 
     @abstractmethod
     def gets_data_type(self) -> str:
-        """"A string representing the type of data being processed."""
+        """A string representing the type of data being processed."""
 
         pass
 
@@ -228,7 +228,7 @@ class DataSource(object):
 class OntData(DataSource):
 
     def gets_data_type(self) -> str:
-        """"A string representing the type of data being processed."""
+        """A string representing the type of data being processed."""
 
         return 'Ontology Data'
 
@@ -242,7 +242,7 @@ class OntData(DataSource):
 
         Raises:
             TypeError: If the file does not contain data.
-            ValueError: If there some of the input URLs were improperly formatted.
+            ValueError: If some input URLs were improperly formatted.
         """
 
         if os.stat(self.data_path).st_size == 0:
@@ -257,7 +257,7 @@ class OntData(DataSource):
 
     def downloads_data_from_url(self, owltools_location: str = os.path.abspath('./pkt_kg/libs/owltools')) -> None:
         """Takes a string representing a file path/name to a text file as an argument. The function assumes
-        that each item in the input file list is an URL to an OWL/OBO ontology.
+        that each item in the input file list is a URL to an OWL/OBO ontology.
 
         For each URL, the referenced ontology is downloaded, and used as input to an OWLTools command line argument (
         https://github.com/owlcollab/owltools/wiki/Extract-Properties-Command), which facilitates the downloading of
@@ -306,7 +306,7 @@ class OntData(DataSource):
 class LinkedData(DataSource):
 
     def gets_data_type(self) -> str:
-        """"A string representing the type of data being processed."""
+        """A string representing the type of data being processed."""
 
         return 'Edge Data'
 

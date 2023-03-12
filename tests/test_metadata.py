@@ -30,9 +30,6 @@ class TestMetadata(unittest.TestCase):
         dir_loc2 = os.path.join(current_directory, 'utils/owltools')
         self.owltools_location = os.path.abspath(dir_loc2)
 
-        # create graph data
-        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
-
         # set-up input arguments
         self.metadata = Metadata(kg_version='v2.0.0',
                                  write_location=self.dir_loc,
@@ -82,6 +79,7 @@ class TestMetadata(unittest.TestCase):
         """Tests the creates_node_metadata method."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.metadata.extract_metadata(self.graph)
 
         # test when the node has metadata
@@ -120,6 +118,7 @@ class TestMetadata(unittest.TestCase):
         """Tests the creates_node_metadata method."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.metadata.extract_metadata(self.graph)
 
         # test when the node has metadata
@@ -143,6 +142,7 @@ class TestMetadata(unittest.TestCase):
         """Tests the creates_node_metadata method when node_dict is None."""
 
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.metadata.extract_metadata(self.graph)
         self.metadata.node_dict = None
 
@@ -177,6 +177,7 @@ class TestMetadata(unittest.TestCase):
 
         # extract metadata
         self.metadata.node_data = [self.metadata.node_data[0].replace('.pkl', '_test.pkl')]
+        self.graph = Graph().parse(self.dir_loc + '/ontologies/so_with_imports.owl')
         self.metadata.extract_metadata(graph=self.graph)
 
         # check that it worked
@@ -224,7 +225,9 @@ class TestMetadata(unittest.TestCase):
         os.remove(filename + 'SO_Triples_Integer_Identifier_Map.json')
 
         # write original data
-        pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
+        # pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
+        with open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb') as output_file:
+            pickle.dump(original_dict, output_file)
 
         return None
 
@@ -268,7 +271,9 @@ class TestMetadata(unittest.TestCase):
         os.remove(filename + 'SO_Triples_Integer_Identifier_Map.json')
 
         # write original data
-        pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
+        # pickle.dump(original_dict, open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb'))
+        with open(self.dir_loc + '/node_data/node_metadata_dict.pkl', 'wb') as output_file:
+            pickle.dump(original_dict, output_file)
 
         return None
 

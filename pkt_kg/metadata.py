@@ -3,14 +3,11 @@
 
 # import needed libraries
 import glob
-# import json
 import logging.config
-# import os
 import os.path
 import pandas  # type: ignore
 import pickle
 import re
-# import subprocess
 
 from datetime import datetime
 from rdflib import Graph, Literal, Namespace, URIRef   # type: ignore
@@ -23,6 +20,7 @@ from pkt_kg.utils import *
 # set environmental variables
 oboinowl = Namespace('http://www.geneontology.org/formats/oboInOwl#')
 obo = Namespace('http://purl.obolibrary.org/obo/')
+
 # logging
 log_dir, log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
 try:
@@ -79,6 +77,8 @@ class Metadata(object):
         if self.node_data:
             log_str = 'Loading and Processing Node Metadata'; print(log_str); logger.info(log_str)
             self.node_dict = pickle.load(open(self.node_data[0], 'rb'), encoding="utf8")
+            # with open(self.node_data[0], 'rb') as input_file:
+            #     self.node_dict = pickle.load(input_file, encoding="utf8")
 
         return None
 
@@ -149,6 +149,8 @@ class Metadata(object):
                         'Label': 'type', 'Description': 'The subject is an instance of a class.', 'Synonym': 'None'}}}
 
             if self.node_data: pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))
+            # with open(self.node_data[0], 'wb') as output_file:
+            #     pickle.dump(self.node_dict, output_file)
 
         return None
 
@@ -252,7 +254,11 @@ class Metadata(object):
             log_str = 'Writing Class Metadata'; print(log_str); logger.info(log_str)
 
             # make sure that the metadata dict contains valid entries
-            self._tidy_metadata(); pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))
+            self._tidy_metadata()
+            pickle.dump(self.node_dict, open(self.node_data[0], 'wb'))
+            # with open(self.node_data[0], 'wb') as output_file:
+            #     pickle.dump(self.node_dict, output_file)
+
             # write metadata in flat-file
             entities = set([i for j in tqdm(graph) for i in j]); filename = self.full_kg[:-4] + '_NodeLabels.txt'
             with open(self.write_location + filename, 'w', encoding='utf-8') as out:

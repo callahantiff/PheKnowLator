@@ -9,7 +9,6 @@ import os
 import os.path
 import pickle
 import ray  # type: ignore
-# import re
 
 from collections import ChainMap  # type: ignore
 from random import sample, shuffle
@@ -74,7 +73,7 @@ class OwlNets(object):
         default list ['RO']).
 
     Raises:
-        TypeError: If graph is not an rdflib.graph object.
+        TypeError: If graph is not a rdflib.graph object.
         ValueError: If graph is an empty rdflib.graph object.
         TypeError: If the file containing owl object properties is not a txt file.
         TypeError: If the file containing owl object properties is empty.
@@ -139,7 +138,7 @@ class OwlNets(object):
         return None
 
     def removes_edges_with_owl_semantics(self, verbose: bool = True) -> Graph:
-        """Creates a filtered knowledge graph, such that only nodes that are owl:Class/owl:Individual connected via a
+        """Creates a filtered knowledge graph, such that only nodes that are owl:Class/owl:Individual connected via an
         owl:ObjectProperty and not an owl:AnnotationProperty. For example:
             REMOVE - edges needed to support owl semantics (not biologically meaningful):
                 subject: obo:CLO_0037294; predicate: owl:AnnotationProperty; object: rdf:about=obo.CLO_0037294
@@ -148,7 +147,7 @@ class OwlNets(object):
                 subject: obo:CHEBI_16130; predicate: obo:RO_0002606; object: obo:HP_0000832
 
         Args:
-            verbose: A bool indicating whether or not to print/log method use.
+            verbose: A bool indicating whether to print/log method use.
 
         Returns:
             filtered_graph: An RDFLib graph that contains only clinically and biologically meaningful triples.
@@ -192,12 +191,12 @@ class OwlNets(object):
         return filtered_graph
 
     def cleans_decoded_graph(self, verbose: bool = True) -> Graph:
-        """Creates a filtered knowledge graph, such that only nodes that are owl:Class/owl:Individual connected via a
+        """Creates a filtered knowledge graph, such that only nodes that are owl:Class/owl:Individual connected via an
         owl:ObjectProperty and not an owl:AnnotationProperty. This method is a reduced version of the
         removes_edges_with_owl_semantics method, which is meant to be applied to a graph after it's been decoded.
 
         Args:
-            verbose: A bool indicating whether or not to print/log progress.
+            verbose: A bool indicating whether to print/log progress.
 
         Returns:
              filtered_graph: An RDFLib graph that contains only clinically and biologically meaningful triples.
@@ -303,7 +302,7 @@ class OwlNets(object):
             node: An RDFLib URIRef object.
 
         Returns:
-            matches: A set of tuples, where each tuple contains a triple that is comprised of three RDFLib objects of
+            matches: A set of tuples, where each tuple contains a triple comprised of three RDFLib objects of
                 type URIRef, BNode, and/or Literal.
         """
 
@@ -387,7 +386,7 @@ class OwlNets(object):
 
     def detects_negation_axioms(self, node_info: Dict, node: URIRef) -> bool:
         """Removes axioms from an RDFLib Graph object that convey or contain negation. The method currently checks
-        for negation by searching for any occurrence of the following key words: "not", "lacks".
+        for negation by searching for any occurrence of the following keywords: "not", "lacks".
 
         Args:
             node_info: A nested dictionary. The outer dictionary keys are anonymous nodes and the inner keys are
@@ -416,8 +415,8 @@ class OwlNets(object):
             node: An RDFLib URIRef object containing node information.
 
         Returns:
-            True if the class is detected to contain a owl:ComplementOf constructor.
-            False if the class is not detected to contain a owl:ComplementOf constructor.
+            True if the class is detected to contain an owl:ComplementOf constructor.
+            False if the class is not detected to contain an owl:ComplementOf constructor.
         """
 
         comp_res = {k: v for k, v in node_info.items() if 'complementOf' in v.keys()}
@@ -425,14 +424,23 @@ class OwlNets(object):
         else: return False
 
     @staticmethod
-    def returns_object_property(sub: URIRef, obj: URIRef, prop: URIRef = None) -> URIRef:
+    def returns_object_property(sub: URIRef, obj: URIRef, prop: Optional[URIRef] = None) -> URIRef:
         """Checks the subject and object node types in order to determine the correct type of owl:ObjectProperty.
 
         The following ObjectProperties are returned for each of the following subject-object types:
-            - subject + object are not PATO terms + prop is None --> rdfs:subClassOf
-            - sub + obj are PATO terms + prop is None --> rdfs:subClassOf
-            - sub is not a PATO term, but obj is a PATO term --> owl:RO_000086
-            - sub is a PATO term + obj is a PATO term + prop is not None --> prop
+            - if sub + obj are PATO terms + prop is None --> rdfs:subClassOf
+            - if sub + obj are not PATO terms + prop is None --> rdfs:subClassOf
+            - elif sub is not a PATO term, but obj is a PATO term --> obo:RO_000086
+            - elif prop is not None --> prop
+            - else --> rdfs:subClassOf
+
+            - if sub + obj are PATO terms and property is none --> rdfs:subClassOf
+            - if sub + obj are NOT PATO terms and property is none --> rdfs:subClassOf
+            - obj is PATO term and property is none --> obo:RO_000086
+            - obj is PATO term and property is NOT none --> obo:RO_000086
+            - subj is a PATO term and property is none -->  RDFS.subClassOf
+            - subj is a PATO term and property is NOT none --> prop
+
 
         Args:
             sub: An rdflib.term object.
@@ -443,10 +451,18 @@ class OwlNets(object):
             An rdflib.term object that represents an owl:ObjectProperty.
         """
 
-        if ('PATO' in sub and 'PATO' in obj) and not prop: return RDFS.subClassOf
-        elif ('PATO' not in sub and 'PATO' not in obj) and not prop: return RDFS.subClassOf
-        elif 'PATO' not in sub and 'PATO' in obj: return URIRef(obo + 'RO_0000086')
-        else: return prop
+        # if ('PATO' in sub and 'PATO' in obj) and prop is None: return RDFS.subClassOf
+        # elif 'PATO' not in sub and 'PATO' in obj: return obo.RO_0000086
+        # elif prop is None: return RDFS.subClassOf
+        # else: return prop
+
+        if ('PATO' in sub and 'PATO' in obj) and prop is None: return RDFS.subClassOf
+        elif ('PATO' not in sub and 'PATO' not in obj) and prop is None: return RDFS.subClassOf
+        elif 'PATO' in obj and prop is None: return obo.RO_0000086
+        elif 'PATO' in obj and prop is not None: return obo.RO_0000086
+        elif 'PATO' in sub and prop is None: return RDFS.subClassOf
+        elif 'PATO' in sub and prop is not None: return prop
+        elif prop is None: return RDFS.subClassOf
 
     @staticmethod
     def parses_anonymous_axioms(edges: Dict, class_dict: Dict) -> Dict:
@@ -499,20 +515,7 @@ class OwlNets(object):
             -> Tuple[Set, Optional[Dict]]:
         """Traverses a dictionary of rdflib objects used in the owl:unionOf or owl:intersectionOf constructors, from
         which the original set of edges used to the construct the class_node are edited, such that all owl-encoded
-        information is removed. For example:
-            INPUT: <!-- http://purl.obolibrary.org/obo/CL_0000995 -->
-                        <owl:Class rdf:about="http://purl.obolibrary.org/obo/CL_0000995">
-                            <owl:equivalentClass>
-                                <owl:Class>
-                                    <owl:unionOf rdf:parseType="Collection">
-                                        <rdf:Description rdf:about="http://purl.obolibrary.org/obo/CL_0001021"/>
-                                        <rdf:Description rdf:about="http://purl.obolibrary.org/obo/CL_0001026"/>
-                                    </owl:unionOf>
-                                </owl:Class>
-                            </owl:equivalentClass>
-                            <rdfs:subClassOf rdf:resource="http://purl.obolibrary.org/obo/CL_0001060"/>
-                        </owl:Class>
-            OUTPUT: [(CL_0000995, rdfs:subClassOf, CL_0001021), (CL_0000995, rdfs:subClassOf, CL_0001026)]
+        information is removed. See examples here: https://github.com/callahantiff/PheKnowLator/wiki/OWL-NETS-2.0.
 
         Args:
             node: An rdflib term of type URIRef or BNode that references an OWL-encoded class.
@@ -526,21 +529,24 @@ class OwlNets(object):
         """
 
         cleaned: Set = set()
-        if 'unionOf' in edges.keys() or 'intersectionOf' in edges.keys():
-            batch = class_dict[edges['unionOf' if 'unionOf' in edges.keys() else 'intersectionOf']]
-        else: batch = edges
+        if 'unionOf' in edges.keys(): batch = class_dict[edges['unionOf']]; keyword = 'union'
+        elif 'intersectionOf' in edges.keys(): batch = class_dict[edges['intersectionOf']]; keyword = 'intersection'
+        else: batch = edges; keyword = 'other'
 
         while batch:
             if ('first' in batch.keys() and 'rest' in batch.keys()) and 'type' not in batch.keys():
                 if isinstance(batch['first'], URIRef) and isinstance(batch['rest'], BNode):
                     obj_property = self.returns_object_property(node, batch['first'], relation)
                     if node != batch['first']:
-                        cleaned |= {(node, obj_property, batch['first'])}
+                        if keyword == 'union': cleaned |= {(batch['first'], obj_property, node)}
+                        else: cleaned |= {(node, obj_property, batch['first'])}
                         batch = class_dict[batch['rest']] if 'rest' in batch.keys() else None
                     else: batch = class_dict[batch['rest']]
                 elif isinstance(batch['first'], URIRef) and isinstance(batch['rest'], URIRef):
                     obj_property = self.returns_object_property(node, batch['first'], relation)
-                    cleaned |= {(node, obj_property, batch['first'])}; batch = None
+                    if keyword == 'union': cleaned |= {(batch['first'], obj_property, node)}
+                    else: cleaned |= {(node, obj_property, batch['first'])}
+                    batch = None
                 else: batch = self.parses_anonymous_axioms(batch, class_dict)
             else: break
 
@@ -595,13 +601,43 @@ class OwlNets(object):
                 return cleaned, results[1]
             else: return cleaned, axioms
 
+    @staticmethod
+    def verifies_cleaned_classes(cleaned_classes: Set) -> Set:
+        """Verifies a set of cleaned tuples to ensure that there are not duplicate triples (i.e., subject-object
+        pairs with different properties). The function assumes that a duplicate tuple will include RDFS.subClassOf,
+        which should be removed.
+
+        Args:
+            cleaned_classes: A set of tuples, where each tuple contains three URIRef objects.
+
+        Returns:
+             A set of tuples, where each tuple contains a cleaned triple comprised of three URIRef objects.
+        """
+
+        org = len([x[0::2] for x in list(cleaned_classes)])
+        unq = len(set([x[0::2] for x in list(cleaned_classes)]))
+
+        if org == unq: return cleaned_classes
+        else:
+            cleaned_dict: Dict = dict(); verified_classes: Set = set()
+            for s, p, o in cleaned_classes:
+                key = '{}--{}'.format(str(s), str(o))
+                if key in cleaned_dict.keys(): cleaned_dict[key] += [str(p)]
+                else: cleaned_dict[key] = [str(p)]
+            for k, v in cleaned_dict.items():
+                s = URIRef(k.split('--')[0]); o = URIRef(k.split('--')[1])
+                if len(v) > 1 and str(RDFS.subClassOf) in v: p = URIRef([x for x in v if x != str(RDFS.subClassOf)][0])
+                else: p = URIRef(v[0])
+                verified_classes |= {(s, p, o)}
+            return verified_classes
+
     def cleans_owl_encoded_entities(self, node_list: List, verbose: bool = True) -> None:
-        """Loops over a all owl:Class and owl: Axiom objects and decodes the OWL semantics returning the corresponding
+        """Loops over an all owl:Class and owl: Axiom objects and decodes the OWL semantics returning the corresponding
         triples for each type without OWL semantics.
 
         Args:
             node_list: A list of owl:Class and owl:Axiom entities to decode.
-            verbose: A bool indicating whether or not to print/log progress.
+            verbose: A bool indicating whether to print/log progress.
 
         Returns:
              None.
@@ -620,8 +656,9 @@ class OwlNets(object):
                 if not neg and not comp:
                     node, org = (node_info[0], node) if isinstance(node, BNode) else (node, node)
                     cleaned_entities |= {org}; cleaned_classes: Set = set()
-                    bnodes = set(x for x in self.graph.objects(org) if isinstance(x, BNode))
-                    for element in (bnodes if len(bnodes) > 0 else node_info[1].keys()):
+                    # bnodes = set(x for x in self.graph.objects(org) if isinstance(x, BNode))
+                    # for element in (bnodes if len(bnodes) > 1 else node_info[1].keys()):
+                    for element in node_info[1].keys():
                         edges = node_info[1][element]
                         while edges:
                             if 'subClassOf' in edges.keys():
@@ -636,11 +673,12 @@ class OwlNets(object):
                                 results = self.parses_restrictions(node, edges, node_info[1])
                                 if results is not None: cleaned_classes |= results[0]; edges = results[1]
                                 else: edges = None
-                            else:  # catch all other axioms -- only catching owl:onProperty
+                            else:  # catch all other axioms -- currently only catching owl:onProperty
                                 misc = [x for x in edges.keys() if x not in ['type', 'first', 'rest', 'onProperty']]
                                 edges = None; self.owl_nets_dict['misc'][n3(node)] = {tuple(misc)}
-                    decoded_graph = adds_edges_to_graph(decoded_graph, list(cleaned_classes), False)
-                    self.owl_nets_dict['decoded_entities'][n3(node)] = cleaned_classes
+                    verified_classes = self.verifies_cleaned_classes(cleaned_classes)
+                    decoded_graph = adds_edges_to_graph(decoded_graph, list(verified_classes), False)
+                    self.owl_nets_dict['decoded_entities'][n3(node)] = verified_classes
         self.graph = decoded_graph; self.graph = self.cleans_decoded_graph(verbose)  # ; pbar.close()
 
         return None
@@ -667,7 +705,6 @@ class OwlNets(object):
             log_str = 'Obtaining node list'; print(log_str); logger.info(log_str)
             anc_node, roots = common_ancestor if isinstance(common_ancestor, URIRef) else URIRef(common_ancestor), set()
             nodes = set([x for x in tqdm(list(graph.subjects()) + list(graph.objects())) if isinstance(x, URIRef)])
-
             print('Identifying root nodes')
             for x in tqdm(nodes):
                 ancs = gets_entity_ancestors(graph, [x], RDFS.subClassOf)
@@ -679,7 +716,6 @@ class OwlNets(object):
                         try: ancs = [mode(ancs)]
                         except StatisticsError: ancs = sample(ancs, 1) if not any(x for x in ancs if x in roots) else []
                 roots |= {ancs[0]} if len(ancs) > 0 else {x}
-
             log_str = 'Updating graph connectivity'; print(log_str); logger.info(log_str)
             rel = RDF.type if self.kg_construct_approach == 'instance' else RDFS.subClassOf
             needed_triples = set((URIRef(x), rel, anc_node) for x in roots if x != anc_node)
@@ -701,13 +737,10 @@ class OwlNets(object):
         """
 
         log_str = 'Purifying Graph Based on Construction Approach'; logger.info(log_str); print(log_str)
-
         org_rel = RDF.type if self.kg_construct_approach == 'subclass' else RDFS.subClassOf
         pure_rel = RDFS.subClassOf if org_rel == RDF.type else RDF.type
-
         log_str = 'Determining what triples need purification'; print(log_str); logger.info(log_str)
         triples = list(graph.triples((None, org_rel, None)))
-
         log_str = 'Processing {} {} triples'.format(len(triples), org_rel); print(log_str); logger.info(log_str)
         for edge in tqdm(triples):
             graph.add((edge[0], pure_rel, edge[2])); graph.remove(edge)

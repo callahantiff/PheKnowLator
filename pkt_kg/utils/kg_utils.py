@@ -43,6 +43,7 @@ import json
 import networkx as nx  # type: ignore
 import os
 import os.path
+import pickle
 
 from collections import Counter  # type: ignore
 from more_itertools import unique_everseen  # type: ignore
@@ -70,7 +71,7 @@ def gets_ontology_classes(graph: Graph) -> Set:
         graph: An rdflib Graph object.
 
     Returns:
-        class_list: A list of all of the classes in the graph.
+        class_list: A list of all the classes in the graph.
 
     Raises:
         ValueError: If the query returns zero nodes with type owl:ObjectProperty.
@@ -108,7 +109,7 @@ def gets_deprecated_ontology_classes(graph: Graph) -> Set:
         graph: An rdflib Graph object.
 
     Returns:
-        class_list: A list of all of the deprecated OWL classes in the graph.
+        class_list: A list of all the deprecated OWL classes in the graph.
     """
 
     class_list = {x for x in graph.subjects(OWL.deprecated, Literal('true', datatype=URIRef(schema + 'boolean')))}
@@ -123,7 +124,7 @@ def gets_object_properties(graph: Graph) -> Set:
         graph: An rdflib Graph object.
 
     Returns:
-        object_property_list: A list of all of the object properties in the graph.
+        object_property_list: A list of all the object properties in the graph.
 
     Raises:
         ValueError: If the query returns zero nodes with type owl:ObjectProperty.
@@ -162,7 +163,7 @@ def gets_ontology_class_synonyms(graph: Graph) -> Tuple:
 
 def gets_ontology_class_dbxrefs(graph: Graph) -> Tuple:
     """Queries a knowledge graph and returns a dictionary containing all owl:Class objects and their database
-    cross references (dbxref). Function also includes exact matches. A tuple of dictionaries: (1) contains dbxref and
+    cross-references (dbxref). Function also includes exact matches. A tuple of dictionaries: (1) contains dbxref and
     exact matches (URIs and labels); and (2) contains dbxref/exactmatch uris and a string indicating the type (i.e.
     dbxref or exact match).
 
@@ -224,7 +225,7 @@ def gets_ontology_statistics(file_location: str, owltools_location: str = './pkt
 
 def merges_ontologies(onts: List[str], loc: str, merged: str,
                       owltools: str = os.path.abspath('./pkt_kg/libs/owltools')) -> Graph:
-    """Using the OWLTools API, each ontology listed in in the ontologies attribute is recursively merged with into a
+    """Using the OWLTools API, each ontology listed in the ontologies attribute is recursively merged with into a
     master merged ontology file and saved locally to the provided file path via the merged_ontology attribute. The
     function assumes that the file is written to the directory specified by the write_location attribute.
 
@@ -256,7 +257,7 @@ def ontology_file_formatter(loc: str, full_kg: str, owltools: str = os.path.absp
 
     Args:
         loc: A string pointing to a local directory for writing data.
-        full_kg: A string containing the subdirectory and name of the the knowledge graph file.
+        full_kg: A string containing the subdirectory and name of the knowledge graph file.
         owltools: A string pointing to the location of the owl tools library.
 
     Returns:
@@ -286,7 +287,7 @@ def adds_edges_to_graph(graph: Graph, edge_list: Union[List, Set], progress_bar:
     Args:
         graph: An RDFLib Graph object.
         edge_list: A list or set of tuples, where each tuple contains a triple.
-        progress_bar: A boolean indicating whether or not the progress bar should be used.
+        progress_bar: A boolean indicating whether the progress bar should be used.
 
     Returns:
         graph: An updated RDFLib graph.
@@ -401,7 +402,7 @@ def gets_entity_ancestors(graph: Graph, uris: List[Union[URIRef, str]], rel: Uni
 def connected_components(graph: Union[Graph, Set]) -> List:
     """Creates a dictionary where the keys are integers representing a component number and the values are sets
     containing the nodes for a given component. This method works by first converting the RDFLib graph into a
-    NetworkX multi-directed graph, which is converted to a undirected graph prior to calculating the connected
+    NetworkX multi-directed graph, which is converted to an undirected graph prior to calculating the connected
     components.
 
     Args:
@@ -440,7 +441,7 @@ def removes_self_loops(graph: Graph) -> List:
 def derives_graph_statistics(graph: Union[Graph, Set, nx.MultiDiGraph]) -> str:
     """Derives statistics from an input knowledge graph and prints them to the console. Note that we are not
     converting each node to a string before deriving our counts. This is purposeful as the number of unique nodes is
-    altered when you it converted to a string. For example, in the HPO when honoring the RDF type of each node
+    altered when you converted it to a string. For example, in the HPO when honoring the RDF type of each node
     there are 406,717 unique nodes versus 406,331 unique nodes when ignoring the RDF type of each node.
 
     Args:
@@ -522,14 +523,14 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
 
     Args:
         graph: An RDFLib Graph object.
-        ns: A string or RDFLib Namespace object (default='https://github.com/callahantiff/PheKnowLator/pkt/bnode/')
-        verbose: A bool flag used to indicate whether or not to print method function (default=False).
+        ns: A string or RDFLib Namespace object (default='https://github.com/callahantiff/PheKnowLator/pkt/bnode/').
+        verbose: A bool flag used to indicate whether to print method function (default=False).
 
     Returns:
         updated_graph: An RDFLib Graph object with bnode namespaces removed.
     """
 
-    if verbose: print('Removing Namespace from BNodes'); print('Processing Original Nodes')
+    if verbose: print('Identifying BNodes with Namespace: {}'.format(str(ns))); print('Identifying BNodes')
     ns_uri = str(ns) if isinstance(ns, Namespace) else ns
     all_triples = set(graph)
     sub_only_bnodes_ns = {(s, p, o) for s, p, o in graph if str(s).startswith(ns_uri) and not str(o).startswith(ns_uri)}
@@ -543,7 +544,7 @@ def removes_namespace_from_bnodes(graph: Graph, ns: Union[str, Namespace] = pkt_
     both_fixed = {(BNode(str(s).split('/')[-1]), p, BNode(str(o).split('/')[-1])) for s, p, o in sub_and_obj_bnodes_ns}
     del sub_only_bnodes_ns, obj_only_bnodes_ns, sub_and_obj_bnodes_ns
     if verbose: print('Finalizing Updated Graph')
-    updated_graph = Graph()
+    updated_graph: Graph = Graph()
     for s, p, o in (graph_no_bnodes | sub_fixed | obj_fixed | both_fixed): updated_graph.add((s, p, o))
 
     return updated_graph
@@ -561,7 +562,7 @@ def updates_pkt_namespace_identifiers(graph: Union[Graph, Set], const: str, verb
     Args:
         graph: An RDFLib Graph object containing pkt-namespacing.
         const: A string containing the type of construction approach used to build the knowledge graph.
-        verbose: A bool flag used to indicate whether or not to print method function (default=False).
+        verbose: A bool flag used to indicate whether to print method function (default=False).
 
     Returns:
          graph: An RDFLib Graph object or set of RDFLib triples updated to remove bnode namespacing.
@@ -599,7 +600,7 @@ def updates_pkt_namespace_identifiers(graph: Union[Graph, Set], const: str, verb
 def splits_knowledge_graph(graph: Graph, graph_output: bool = False) -> Tuple[Graph, Union[Graph, Set]]:
     """Method takes an input RDFLib Graph object and splits it into two new graphs where the first graph contains
     only those triples needed to maintain a base logical subset and the second contains only annotation assertions.
-    Please note that the code below processes both entities (i.e. owl:Class and owl:ObjectProperties
+    Please note that the code below processes both entities (i.e. owl:Class and owl:ObjectProperties).
 
     Source: https://www.w3.org/TR/owl2-syntax/#Annotation_Assertion
 
@@ -719,7 +720,7 @@ def n3(node: Union[URIRef, BNode, Literal]) -> str:
 
 def convert_to_networkx(write_loc: str, filename: str, graph: Union[Graph, Set], stats: bool = False) -> Optional[str]:
     """Converts an RDFLib.Graph object into a Networkx MultiDiGraph and pickles a copy locally. Each node is provided a
-    key that is the URI identifier and each edge is given a key which is an md5 hash of the triple and a weight of
+    key that is the URI identifier and each edge is given a key which is a md5 hash of the triple and a weight of
     0.0. An example of the output is shown below. The md5 hash is meant to store a unique key that represents that
     predicate with respect to the triples it occurs with.
 
@@ -735,9 +736,9 @@ def convert_to_networkx(write_loc: str, filename: str, graph: Union[Graph, Set],
 
     Args:
         write_loc: A string pointing to a local directory for writing data.
-        filename: A string containing the subdirectory and name of the the knowledge graph file.
+        filename: A string containing the subdirectory and name of the knowledge graph file.
         graph: An RDFLib Graph object or set of RDFLib Graph triples.
-        stats: A bool indicating whether or not to derive network statistics after writing networkx file to disk.
+        stats: A bool indicating whether to derive network statistics after writing networkx file to disk.
 
     Returns:
         network_stats: A string containing network statistics information.
@@ -751,13 +752,15 @@ def convert_to_networkx(write_loc: str, filename: str, graph: Union[Graph, Set],
         nx_mdg.add_node(s, key=n3(s)); nx_mdg.add_node(o, key=n3(o))
         nx_mdg.add_edge(s, o, **{'key': p, 'predicate_key': pred_key, 'weight': 0.0})
     print('Pickling MultiDiGraph')
-    nx.write_gpickle(nx_mdg, write_loc + filename + '_NetworkxMultiDiGraph.gpickle')
+    with open(write_loc + filename + '_NetworkxMultiDiGraph.gpickle', 'wb') as f:
+        pickle.dump(nx_mdg, f, pickle.HIGHEST_PROTOCOL)
+
     if stats: print('Generating Network Statistics'); return derives_graph_statistics(nx_mdg)
     else: return None
 
 
 def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep: str = ' ') -> None:
-    """Method adds data to the end of an existing file. Assumes that it is adding data to the end of a n-triples file.
+    """Method adds data to the end of an existing file. Assumes that it is adding data to the end of an n-triples file.
 
     Args:
         edges: A list or set of tuple, where each tuple is a triple. Or an RDFLib Graph object.
@@ -775,4 +778,3 @@ def appends_to_existing_file(edges: Union[List, Set, Graph], filepath: str, sep:
     out.close()
 
     return None
-

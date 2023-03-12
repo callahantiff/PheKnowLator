@@ -47,18 +47,9 @@ class TestOwlNets(unittest.TestCase):
         # set-up input arguments
         self.write_location = self.dir_loc_resources + '/knowledge_graphs'
         self.kg_filename = '/so_with_imports.owl'
-        # read in knowledge graph
-        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
-        # initialize class
-        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
-                                write_location=self.write_location, filename=self.kg_filename)
-        self.owl_nets2 = OwlNets(kg_construct_approach='instance', graph=self.graph,
-                                 write_location=self.write_location, filename=self.kg_filename)
-
+        self.kg_filename2 = '/clo_with_imports.owl'
         # update class attributes
-        dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
-        self.owl_nets.owl_tools = os.path.abspath(dir_loc_owltools)
-        self.owl_nets2.owl_tools = os.path.abspath(dir_loc_owltools)
+        self.dir_loc_owltools = os.path.join(current_directory, 'utils/owltools')
 
         return None
 
@@ -76,6 +67,11 @@ class TestOwlNets(unittest.TestCase):
     def test_initialization_owltools_default(self):
         """Tests the class initialization state for the owl_tools parameter when no default argument is passed."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         owl_nets = OwlNets(kg_construct_approach='subclass',
                            graph=self.graph,
                            write_location=self.write_location,
@@ -88,6 +84,11 @@ class TestOwlNets(unittest.TestCase):
     def test_initialization_owltools(self):
         """Tests the class initialization state for the owl_tools parameter when an argument is passed."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         owl_nets = OwlNets(kg_construct_approach='subclass',
                            graph=self.graph,
                            write_location=self.write_location,
@@ -100,6 +101,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_initialization_support(self):
         """Tests the class initialization state for the support parameter."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # when no list is passed
         owl_nets = OwlNets(kg_construct_approach='subclass',
@@ -120,6 +127,12 @@ class TestOwlNets(unittest.TestCase):
     def test_initialization_top_level(self):
         """Tests the class initialization state for the top_level parameter."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # when no list is passed
         owl_nets = OwlNets(kg_construct_approach='subclass',
                            graph=self.graph,
@@ -138,6 +151,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_initialization_relations(self):
         """Tests the class initialization state for the relations parameter."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # when no list is passed
         owl_nets = OwlNets(kg_construct_approach='subclass',
@@ -180,6 +199,12 @@ class TestOwlNets(unittest.TestCase):
     def test_graph_input_types(self):
         """Tests different graph input types."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # when graph is provided
         owl_nets = OwlNets(kg_construct_approach='subclass',
                            graph=self.graph,
@@ -201,6 +226,11 @@ class TestOwlNets(unittest.TestCase):
     def test_initialization_state_construction_approach(self):
         """Tests the class initialization state for construction approach type."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         self.assertIsInstance(self.owl_nets.kg_construct_approach, str)
         self.assertTrue(self.owl_nets.kg_construct_approach == 'subclass')
         self.assertFalse(self.owl_nets.kg_construct_approach == 'instance')
@@ -210,6 +240,11 @@ class TestOwlNets(unittest.TestCase):
     def test_initialization_owl_nets_dict(self):
         """Tests the class initialization state for owl_nets_dict."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         self.assertIsInstance(self.owl_nets.owl_nets_dict, Dict)
         self.assertIn('decoded_entities', self.owl_nets.owl_nets_dict.keys())
         self.assertIn('cardinality', self.owl_nets.owl_nets_dict.keys())
@@ -223,6 +258,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_removes_disjoint_with_axioms(self):
         """Tests the removes_disjoint_with_axioms method."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # create test data
         triples = [(BNode('N9f94b'), URIRef('http://www.geneontology.org/formats/oboInOwl#source'),
@@ -242,8 +283,14 @@ class TestOwlNets(unittest.TestCase):
     def test_removes_edges_with_owl_semantics(self):
         """Tests the removes_edges_with_owl_semantics method."""
 
-        filtered_graph = self.owl_nets.removes_edges_with_owl_semantics()
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
+        # run method
+        filtered_graph = self.owl_nets.removes_edges_with_owl_semantics()
         self.assertIsInstance(filtered_graph, Graph)
         self.assertEqual(len(filtered_graph), 2328)
 
@@ -252,6 +299,11 @@ class TestOwlNets(unittest.TestCase):
     def test_cleans_decoded_graph(self):
         """Tests the cleans_decoded_graph method when owl has been decoded."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         self.owl_nets.owl_nets_dict['decoded_classes'] = [1, 2, 3, 4, 5]
 
         # run method
@@ -263,6 +315,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_recurses_axioms(self):
         """Tests the recurses_axioms method."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # run method when passing axioms that include BNodes
         seen_nodes = []
@@ -284,6 +342,12 @@ class TestOwlNets(unittest.TestCase):
     def test_finds_uri(self):
         """Tests the finds_bnode_uri method."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # set-up testing data
         triples = [(BNode('N31fefc6d'), RDF.type, OWL.Axiom),
                    (BNode('N31fefc6d'), OWL.annotatedProperty, RDFS.subClassOf),
@@ -303,6 +367,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_reconciles_axioms(self):
         """Tests the reconciles_axioms method."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # set-up testing data
         triples = [(BNode('N31fefc6d'), RDF.type, OWL.Axiom),
@@ -329,6 +399,12 @@ class TestOwlNets(unittest.TestCase):
     def test_reconciles_classes(self):
         """Tests the reconciles_classes method."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # set-up testing data
         triples = [(obo.UBERON_0002374, RDFS.subClassOf, BNode('N41c7c5fd')),
                    (BNode('N41c7c5fd'), RDF.type, OWL.Restriction),
@@ -349,6 +425,11 @@ class TestOwlNets(unittest.TestCase):
     def test_creates_edge_dictionary(self):
         """Tests the creates_edge_dictionary method."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         node, edge_dict, cardinality = self.owl_nets.creates_edge_dictionary(obo.SO_0000822)
         self.assertIsInstance(node, URIRef)
         self.assertIsInstance(edge_dict, Dict)
@@ -362,6 +443,12 @@ class TestOwlNets(unittest.TestCase):
     def test_detects_complement_of_constructed_classes_true(self):
         """Tests the detects_complement_of_constructed_classes method when complementOf is present."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # set-up test data
         node_info = {BNode('N6ebac4ecc22240cdafe506f43d240733'): {'complementOf': OWL.Restriction}}
 
@@ -372,6 +459,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_detects_complement_of_constructed_classes_false(self):
         """Tests the detects_complement_of_constructed_classes method when complementOf is not present."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # set-up test data
         node_info = {BNode('N6ebac4ecc22240cdafe506f43d240733'): {
@@ -384,6 +477,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_detects_negation_axioms_true(self):
         """Tests the detects_negation_axioms method for negation axioms when one is present"""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # set-up test data
         node_info = {BNode('N6ebac4ecc22240cdafe506f43d240733'): {
@@ -398,6 +497,12 @@ class TestOwlNets(unittest.TestCase):
     def test_detects_negation_axioms_false(self):
         """Tests the detects_negation_axioms method for negation axioms when none present"""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # set-up test data
         node = obo.UBERON_0000061
         node_info = {BNode('N6ebac4ecc22240cdafe506f43d240733'): {
@@ -410,6 +515,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_captures_cardinality_axioms(self):
         """Tests the captures_cardinality_axioms method for a cardinality object."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # set-up input
         triples = [
@@ -432,18 +543,24 @@ class TestOwlNets(unittest.TestCase):
     def test_returns_object_property(self):
         """Tests the returns_object_property method."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # when sub and obj are PATO terms and property is none
-        res1 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.PATO_0000402, None)
+        res1 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.PATO_0000402)
         self.assertIsInstance(res1, URIRef)
         self.assertEqual(res1, RDFS.subClassOf)
 
         # when sub and obj are NOT PATO terms and property is none
-        res2 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.GO_2000380, None)
+        res2 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.GO_2000380)
         self.assertIsInstance(res2, URIRef)
         self.assertEqual(res2, RDFS.subClassOf)
 
         # when the obj is a PATO term and property is none
-        res3 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.PATO_0001199, None)
+        res3 = self.owl_nets.returns_object_property(obo.SO_0000784, obo.PATO_0001199)
         self.assertIsInstance(res3, URIRef)
         self.assertEqual(res3, obo.RO_0000086)
 
@@ -458,13 +575,19 @@ class TestOwlNets(unittest.TestCase):
         self.assertEqual(res5, obo.RO_0002202)
 
         # when sub is a PATO term and property is none
-        res6 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.SO_0000784, None)
-        self.assertEqual(res6, None)
+        res6 = self.owl_nets.returns_object_property(obo.PATO_0001199, obo.SO_0000784)
+        self.assertEqual(res6, RDFS.subClassOf)
 
         return None
 
     def test_parses_subclasses(self):
         """Tests the parses_subclasses method."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # set-up input data
         node = obo.UBERON_0010757
@@ -486,6 +609,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_parses_anonymous_axioms(self):
         """Tests the parses_anonymous_axioms method."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # set-up input variables
         class_dict = {
@@ -523,10 +652,16 @@ class TestOwlNets(unittest.TestCase):
     def test_parses_constructors_intersection(self):
         """Tests the parses_constructors method for the intersectionOf class constructor"""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # set-up inputs
         node = obo.SO_0000034
         node_info = self.owl_nets.creates_edge_dictionary(node)
-        bnodes = set(x for x in self.owl_nets.graph.objects(node, None) if isinstance(x, BNode))
+        bnodes = set(x for x in self.owl_nets.graph.objects(node) if isinstance(x, BNode))
         edges = {k: v for k, v in node_info[1].items() if 'intersectionOf' in v.keys() and k in bnodes}
         edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
 
@@ -539,12 +674,18 @@ class TestOwlNets(unittest.TestCase):
         return None
 
     def test_parses_constructors_intersection2(self):
-        """Tests the parses_constructors method for the UnionOf class constructor"""
+        """Tests the parses_constructors method for the intersectionOf class constructor"""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # set-up inputs
         node = obo.SO_0000078
         node_info = self.owl_nets.creates_edge_dictionary(node)
-        bnodes = set(x for x in self.owl_nets.graph.objects(node, None) if isinstance(x, BNode))
+        bnodes = set(x for x in self.owl_nets.graph.objects(node) if isinstance(x, BNode))
         edges = {k: v for k, v in node_info[1].items() if 'intersectionOf' in v.keys() and k in bnodes}
         edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
 
@@ -556,13 +697,59 @@ class TestOwlNets(unittest.TestCase):
 
         return None
 
+    def test_parses_constructors_union(self):
+        """Tests the parses_constructors method for the unionOf class constructor and testing the
+        verifies_cleaned_classes function. Putting in a single test to reduce processing time."""
+
+        # set-up test fata
+        self.graph2 = Graph().parse('http://purl.obolibrary.org/obo/clo.owl', format='xml')
+        self.owl_nets3 = OwlNets(kg_construct_approach='subclass', graph=self.graph2,
+                                 write_location=self.write_location, filename=self.kg_filename2)
+        self.owl_nets3.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
+        ## parses_constructors_union
+        # set-up inputs
+        node = obo.CL_0000995
+        node_info = self.owl_nets3.creates_edge_dictionary(node)
+        bnodes = set(x for x in self.owl_nets3.graph.objects(node) if isinstance(x, BNode))
+        edges = {k: v for k, v in node_info[1].items() if 'unionOf' in v.keys() and k in bnodes}
+        edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
+        # test method
+        res = self.owl_nets3.parses_constructors(node, edges, node_info[1])
+        self.assertIsInstance(res, Tuple)
+        self.assertEqual(sorted(list(res[0])),
+                         [(obo.CL_0001021, RDFS.subClassOf, obo.CL_0000995),
+                          (obo.CL_0001026, RDFS.subClassOf, obo.CL_0000995)])
+        self.assertEqual(res[1], None)
+
+        ## verifies_cleaned_classes
+        # create input data
+        cleaned_classes = {(obo.HP_0000602, obo.BFO_0000051, obo.HP_0000597),
+                           (obo.HP_0000602, RDFS.subClassOf, obo.HP_0000597),
+                           (obo.HP_0007715, RDFS.subClassOf, obo.HP_0000597),
+                           (obo.HP_0007715, obo.BFO_0000051, obo.HP_0000597)}
+        cleaned_result = sorted(list({(obo.HP_0000602, obo.BFO_0000051, obo.HP_0000597),
+                                      (obo.HP_0007715, obo.BFO_0000051, obo.HP_0000597)}))
+        # test method
+        verified_classes = self.owl_nets3.verifies_cleaned_classes(cleaned_classes)
+        self.assertIsInstance(verified_classes, Set)
+        self.assertEqual(sorted(list(verified_classes)), cleaned_result)
+
+        return None
+
     def test_parses_restrictions(self):
         """Tests the parses_restrictions method."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # set-up inputs
         node = obo.SO_0000078
         node_info = self.owl_nets.creates_edge_dictionary(node)
-        bnodes = set(x for x in self.owl_nets.graph.objects(node, None) if isinstance(x, BNode))
+        bnodes = set(x for x in self.owl_nets.graph.objects(node) if isinstance(x, BNode))
         edges = {k: v for k, v in node_info[1].items()
                  if ('type' in v.keys() and v['type'] == OWL.Restriction) and k in bnodes}
         edges = node_info[1][list(x for x in bnodes if x in edges.keys())[0]]
@@ -579,6 +766,12 @@ class TestOwlNets(unittest.TestCase):
     def test_cleans_owl_encoded_entities(self):
         """Tests the cleans_owl_encoded_entities method"""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # test method
         self.owl_nets.cleans_owl_encoded_entities([obo.SO_0000822])
         self.assertIsInstance(self.owl_nets.graph, Graph)
@@ -594,6 +787,11 @@ class TestOwlNets(unittest.TestCase):
     def test_makes_graph_connected_default(self):
         """Tests the makes_graph_connected method using the default argument for common_ancestor."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         starting_size = len(self.owl_nets.graph)
         connected_graph = self.owl_nets.makes_graph_connected(self.owl_nets.graph)
         self.assertTrue(len(connected_graph) > starting_size)
@@ -603,6 +801,11 @@ class TestOwlNets(unittest.TestCase):
     def test_makes_graph_connected_other(self):
         """Tests the makes_graph_connected method using something other than the default arg for common_ancestor."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         starting_size = len(self.owl_nets.graph)
 
         # test when bad node is passed
@@ -618,6 +821,12 @@ class TestOwlNets(unittest.TestCase):
     def test_purifies_graph_build_none(self):
         """Tests the purifies_graph_build method when kg_construction is None."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # initialize method
         owl_nets = OwlNets(graph=self.graph, write_location=self.write_location, filename=self.kg_filename)
 
@@ -629,6 +838,12 @@ class TestOwlNets(unittest.TestCase):
 
     def test_purifies_graph_build_instance(self):
         """Tests the purifies_graph_build method when kg_construction is instance."""
+
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
 
         # initialize method
         owl_nets = OwlNets(kg_construct_approach='instance', graph=self.graph,
@@ -643,6 +858,12 @@ class TestOwlNets(unittest.TestCase):
     def test_purifies_graph_build_subclass(self):
         """Tests the purifies_graph_build method when kg_construction is subclass."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
+
         # initialize method
         owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
                            write_location=self.write_location, filename=self.kg_filename)
@@ -656,6 +877,11 @@ class TestOwlNets(unittest.TestCase):
     def test_write_out_results_regular(self):
         """Tests the write_out_results method."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         self.owl_nets.kg_construct_approach = None
         graph1, graph2 = self.owl_nets.runs_owlnets(); ray.shutdown()
 
@@ -675,6 +901,11 @@ class TestOwlNets(unittest.TestCase):
     def test_write_out_results_subclass_purified(self):
         """Tests the owl_nets method."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         self.owl_nets.kg_construct_approach = 'subclass'
         graph1, graph2 = self.owl_nets.runs_owlnets(); ray.shutdown()
 
@@ -703,6 +934,11 @@ class TestOwlNets(unittest.TestCase):
     def test_write_out_results_instance_purified(self):
         """Tests the owl_nets method."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets2 = OwlNets(kg_construct_approach='instance', graph=self.graph,
+                                 write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets2.owl_tools = os.path.abspath(self.dir_loc_owltools)
         graph1, graph2 = self.owl_nets2.runs_owlnets(); ray.shutdown()
 
         # test graph output
@@ -730,6 +966,11 @@ class TestOwlNets(unittest.TestCase):
     def tests_gets_owlnets_dict(self):
         """Tests gets_owlnets_dict method."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         results = self.owl_nets.gets_owlnets_dict()
 
         # verify results
@@ -740,6 +981,11 @@ class TestOwlNets(unittest.TestCase):
     def tests_gets_owlnets_graph(self):
         """Tests gets_owlnets_graphs method."""
 
+        # set up structures needed for testing
+        self.graph = Graph().parse(self.dir_loc_resources + '/knowledge_graphs/so_with_imports.owl', format='xml')
+        self.owl_nets = OwlNets(kg_construct_approach='subclass', graph=self.graph,
+                                write_location=self.write_location, filename=self.kg_filename)
+        self.owl_nets.owl_tools = os.path.abspath(self.dir_loc_owltools)
         graphs = self.owl_nets.gets_owlnets_graph()
 
         # verify results

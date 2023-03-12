@@ -31,6 +31,7 @@ from pkt_kg.utils import *
 
 # set global attributes
 obo = Namespace('http://purl.obolibrary.org/obo/')
+pkt_ns = Namespace('https://github.com/callahantiff/PheKnowLator/pkt/')
 
 # logging
 log_dir, f_log, log_config = 'builds/logs', 'pkt_build_log.log', glob.glob('**/logging.ini', recursive=True)
@@ -46,13 +47,13 @@ logging.config.fileConfig(log_config[0], disable_existing_loggers=False, default
 class KGBuilder(object):
     """Class creates a semantic knowledge graph. The class currently facilitates two construction approaches and three
     build types. The current construction approaches are Instance-based and Subclass-based. The three build types are
-    (1) Full (i.e. runs all build steps in the algorithm); (2) Partial (i.e. runs all of the build steps through
+    (1) Full (i.e. runs all build steps in the algorithm); (2) Partial (i.e. runs all the build steps through
     adding new edges); and (3) Post-Closure: Runs the remaining build steps over a closed knowledge graph.
 
     Attributes:
         construction: A string indicating the construction approach (i.e. instance or subclass).
-        node_data: A string ("yes" or "no") indicating whether or not to add node data to the knowledge graph.
-        inverse_relations: A string ("yes" or "no") indicating whether or not to add inverse edge relations.
+        node_data: A string ("yes" or "no") indicating whether to add node data to the knowledge graph.
+        inverse_relations: A string ("yes" or "no") indicating whether to add inverse edge relations.
         decode_owl: A string containing "yes" or "no" indicating whether owl semantics should be removed.
         cpus: An integer indicating the number of workers to use.
         write_location: An optional string passed to specify the primary directory to write to.
@@ -60,7 +61,7 @@ class KGBuilder(object):
     Raises:
         ValueError: If the formatting of kg_version is incorrect (i.e. not "v.#.#.#").
         ValueError: If write_location, edge_data does not contain a valid filepath.
-        OSError: If the ontologies, edge_data, subclass_dict files don't not exist.
+        OSError: If the ontologies, edge_data, subclass_dict files don't exist.
         TypeError: If the edge_data and subclass_dict files contains no data.
         TypeError: If the relations_data, node_data, ontologies directories do not contain any data.
         TypeError: If construction, inverse_relations, node_data, and decode_owl are not strings.
@@ -174,7 +175,7 @@ class KGBuilder(object):
 
     @abstractmethod
     def gets_build_type(self) -> str:
-        """"A string representing the type of knowledge graph build."""
+        """A string representing the type of knowledge graph build."""
 
         pass
 
@@ -187,7 +188,7 @@ class KGBuilder(object):
             kg_owl: A string containing a filename.
             rel_dict: A dictionary keyed by URI containing all relations for constructing an edge set.
             inverse_dict: A dictionary keyed by URI containing all relations and their inverse relation.
-            node_data: A string ("yes" or "no") indicating whether or not to add node data to the knowledge graph.
+            node_data: A string ("yes" or "no") indicating whether to add node data to the knowledge graph.
             metadata: An instance of the metadata class with bound method needed for created edge metadata.
             ont_cls: A set of RDFLib URIRef terms representing all classes in the core merged ontologies.
             obj_props: A set of RDFLib URIRef terms representing all object properties in the core merged ontologies.
@@ -245,7 +246,7 @@ class KGBuilder(object):
             return None
 
         def checks_classes(self, edge_info) -> bool:
-            """Determines whether or not an edge is safe to add to the knowledge graph by making sure that any ontology
+            """Determines whether an edge is safe to add to the knowledge graph by making sure that any ontology
             class nodes are also present in the current list of classes from the merged ontologies graph.
 
             Args:
@@ -266,7 +267,7 @@ class KGBuilder(object):
             else: return URIRef(finds_node_type(edge_info)['cls1']) in self.ont_classes
 
         def checks_relations(self, relation: str, edge_list: Union[List, Set]) -> Optional[str]:
-            """Determines whether or not an inverse relation should be created and added to the graph and verifies
+            """Determines whether an inverse relation should be created and added to the graph and verifies
             that a
             relation and its inverse (if it exists) are both an existing owl:ObjectProperty in the graph.
 
@@ -353,7 +354,7 @@ class KGBuilder(object):
 class PartialBuild(KGBuilder):
 
     def gets_build_type(self) -> str:
-        """"A string representing the type of knowledge graph build."""
+        """A string representing the type of knowledge graph build."""
 
         return 'Partial Build'
 
@@ -428,8 +429,15 @@ class PartialBuild(KGBuilder):
 
         # deduplicate logic and annotation files, merge them, and print final stats
         deduplicates_file(f + annot); deduplicates_file(f + logic); merges_files(f + annot, f + logic, f + full)
-        graph = Graph().parse(f + full, format='nt')
-        s = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s); logger.info(s)
+        str1 = '\nLoading Full (Logic + Annotation) Graph'; print('\n' + str1); logger.info(str1)
+        graph = Graph().parse(f + full, format='nt'); str2 = 'Deriving Stats'; print('\n' + str2); logger.info(str2)
+
+        # allow logic only and annotation only subsets to contain pkt-namespaced bnodes, but clean + write full graph
+        s1 = 'Processing pkt-namespaced BNodes in Full (Logic + Annotation) graph'; logger.info(s1); print('\n' + s1)
+        graph = removes_namespace_from_bnodes(graph=removes_namespace_from_bnodes(graph), ns=pkt_ns)
+        graph.serialize(f + full, format='nt'); graph.serialize(f + full.replace('nt', 'owl'))
+        ontology_file_formatter(f, full.replace('nt', 'owl'), self.owl_tools)
+        s2 = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s2); logger.info(s2)
 
         return None
 
@@ -437,7 +445,7 @@ class PartialBuild(KGBuilder):
 class PostClosureBuild(KGBuilder):
 
     def gets_build_type(self) -> str:
-        """"A string representing the type of knowledge graph being built."""
+        """A string representing the type of knowledge graph being built."""
 
         return 'Post-Closure Build'
 
@@ -525,7 +533,7 @@ class PostClosureBuild(KGBuilder):
 class FullBuild(KGBuilder):
 
     def gets_build_type(self) -> str:
-        """"A string representing the type of knowledge graph being built."""
+        """A string representing the type of knowledge graph being built."""
 
         return 'Full Build'
 
@@ -622,6 +630,12 @@ class FullBuild(KGBuilder):
         deduplicates_file(f + annot); deduplicates_file(f + logic); merges_files(f + annot, f + logic, f + full)
         str1 = '\nLoading Full (Logic + Annotation) Graph'; print('\n' + str1); logger.info(str1)
         graph = Graph().parse(f + full, format='nt'); str2 = 'Deriving Stats'; print('\n' + str2); logger.info(str2)
-        s = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(graph)); print('\n' + s); logger.info(s)
+
+        # allow logic only and annotation only subsets to contain pkt-namespaced bnodes, but clean + write full graph
+        s1 = 'Processing pkt-namespaced BNodes in Full (Logic + Annotation) graph'; logger.info(s1); print('\n' + s1)
+        clean_graph: Graph = removes_namespace_from_bnodes(graph=removes_namespace_from_bnodes(graph), ns=pkt_ns)
+        clean_graph.serialize(f + full, format='nt'); clean_graph.serialize(f + full.replace('nt', 'owl'))
+        ontology_file_formatter(f, full.replace('nt', 'owl'), self.owl_tools)
+        s2 = 'Full (Logic + Annotation) {}'.format(derives_graph_statistics(clean_graph)); print('\n' + s2); logger.info(s2)
 
         return None

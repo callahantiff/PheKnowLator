@@ -12,6 +12,7 @@ __pycache__/
 pkt_kg.egg*
 build/*
 dist/*
+venv/*
 
 #### Testing
 .single_run

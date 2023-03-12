@@ -74,7 +74,7 @@ class CreatesEdgeList(object):
     @staticmethod
     def identify_header(file_path: str, delimiter: str, skip_rows: List[int]) -> Optional[int]:
         """Compares the similarity of the first line of a Pandas DataFrame to the column headers when read in with and
-        without a header to determine whether or not the data frame should be built with a header or not. This
+        without a header to determine whether the data frame should be built with a header or not. This
         function was modified from a Stack Overflow post: https://stackoverflow.com/a/40193509
 
         Args:
@@ -209,7 +209,7 @@ class CreatesEdgeList(object):
 
         edge_data = edge_data[[list(edge_data)[int(cols.split(';')[0])], list(edge_data)[int(cols.split(';')[1])]]]
         edge_data = edge_data.drop_duplicates(subset=None, keep='first', inplace=False)
-        # make sure neither column is float
+        # make sure neither column is a float
         for x in list(edge_data):
             if 'float' in str(edge_data[x].dtype): edge_data[x] = edge_data[x].astype(int)
 
@@ -246,7 +246,7 @@ class CreatesEdgeList(object):
 
     def data_merger(self, node: int, mapping_data: str, edge_data: pd.DataFrame) -> List[Union[str, pd.DataFrame]]:
         """Processes a string that contains instructions for mapping a column in the edge_data Pandas DataFrame. This
-        function assumes that the mapping data pointed to contains two columns: (1) identifier in edge_data to be
+        function assumes that the mapping data contains two columns: (1) identifier in edge_data to be
         mapped and (2) the desired identifier to map to. If one of the columns does not need to be mapped to an
         identifier then the original node's column is used for the final merge.
 
@@ -288,7 +288,7 @@ class CreatesEdgeList(object):
 
     def process_mapping_data(self, mapping_data: str, edge_data: pd.DataFrame) -> Tuple[Tuple[Any, Any], ...]:
         """Merges two mapped Pandas DataFrames into a single DataFrame. After merging the DataFrames, the function
-        removes all columns except the the mapped columns and removes any duplicate rows.
+        removes all columns except the mapped columns and removes any duplicate rows.
 
         Args:
             mapping_data: A ';' delimited string containing information on identifier mapping data. Each item
@@ -354,7 +354,7 @@ class CreatesEdgeList(object):
             x: A string containing an edge type (e.g. "gene-gene").
 
         Returns:
-            source_info: A dictionary that contains all of the master information for each edge type resource. For
+            source_info: A dictionary that contains all the master information for each edge type resource. For
                 example: {'chemical-complex': {'source_labels': ';;', 'data_type': 'class-entity',
                                                'edge_relation': 'RO_0002436', 'uri': ['https://ex/', 'https://ex/'],
                                                'delimiter': 't', 'column_idx': '0;1', 'identifier_maps': 'None',
