@@ -21,7 +21,7 @@ RUN apt-get update -y \
     && apt-get purge -y imagemagick imagemagick-6-common
 # install python 3.6.2
 RUN cd /usr/src \
-    && wget https://www.python.org/ftp/python/3.11.0/Python-3.6.2.tgz \
+    && wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tgz \
     && tar -xzf Python-3.6.2.tgz \
     && cd Python-3.6.2 \
     && ./configure --enable-optimizations \
