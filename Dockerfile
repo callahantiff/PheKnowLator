@@ -3,6 +3,11 @@
 
 ############################################
 ## MULTI-STAGE CONTAINER CONFIGURATION ##
+# env variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHON_VERSION="3.6.2"
+
+# configure container
 FROM debian:bullseye
 RUN apt-get update -y \
     && apt-get upgrade -y \
@@ -17,16 +22,18 @@ RUN apt-get update -y \
         libsqlite3-dev \
         libbz2-dev \
         wget \
-    && export DEBIAN_FRONTEND=noninteractive \
+    && export DEBIAN_FRONTEND=${DEBIAN_FRONTEND} \
     && apt-get purge -y imagemagick imagemagick-6-common
 # install python 3.6.2
-RUN cd /usr/src \
-    && wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tgz \
-    && tar -xzf Python-3.6.2.tgz \
-    && cd Python-3.6.2 \
-    && ./configure --enable-optimizations \
-    && make altinstall
-RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.6.2
+
+RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz \
+    && tar xvf Python-${PYTHON_VERSION}.tar.xz \
+    && rm Python-${PYTHON_VERSION}.tar.xz \
+    && cd Python-${PYTHON_VERSION} \
+    && ./configure \
+    && make altinstall \
+    && cd / \
+    && rm -rf Python-${PYTHON_VERSION}
 # install java
 RUN wget -O- https://apt.corretto.aws/corretto.key | apt-key add - && \
     add-apt-repository 'deb https://apt.corretto.aws stable main' && \
