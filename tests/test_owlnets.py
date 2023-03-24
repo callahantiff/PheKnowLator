@@ -702,7 +702,11 @@ class TestOwlNets(unittest.TestCase):
         verifies_cleaned_classes function. Putting in a single test to reduce processing time."""
 
         # set-up test fata
-        self.graph2 = Graph().parse('http://purl.obolibrary.org/obo/clo.owl', format='xml')
+        url = 'https://storage.googleapis.com/pheknowlator/current_build/data/original_data/clo_with_imports.owl'
+        filepath = self.dir_loc_resources + '/knowledge_graphs/clo_with_imports.owl'
+        command_string = 'wget -O {} {}'
+        os.system(command_string.format(filepath, url))
+        self.graph2 = Graph().parse(filepath, format='xml')
         self.owl_nets3 = OwlNets(kg_construct_approach='subclass', graph=self.graph2,
                                  write_location=self.write_location, filename=self.kg_filename2)
         self.owl_nets3.owl_tools = os.path.abspath(self.dir_loc_owltools)
