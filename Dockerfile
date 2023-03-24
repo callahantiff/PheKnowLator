@@ -3,10 +3,6 @@
 
 ############################################
 ## MULTI-STAGE CONTAINER CONFIGURATION ##
-# env variables
-ENV PYTHON_VERSION="3.6.2"
-
-# configure container
 FROM debian:bullseye
 RUN apt-get update -y \
     && apt-get upgrade -y \
@@ -24,14 +20,14 @@ RUN apt-get update -y \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get purge -y imagemagick imagemagick-6-common
 # install python 3.6.2
-RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz \
-    && tar xvf Python-${PYTHON_VERSION}.tar.xz \
-    && rm Python-${PYTHON_VERSION}.tar.xz \
-    && cd Python-${PYTHON_VERSION} \
+RUN wget https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tar.xz \
+    && tar xvf Python-3.6.2.tar.xz \
+    && rm Python-3.6.2.tar.xz \
+    && cd Python-3.6.2 \
     && ./configure \
     && make altinstall \
     && cd / \
-    && rm -rf Python-${PYTHON_VERSION}
+    && rm -rf Python-3.6.2
 # install java
 RUN wget -O- https://apt.corretto.aws/corretto.key | apt-key add - && \
     add-apt-repository 'deb https://apt.corretto.aws stable main' && \
