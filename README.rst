@@ -15,6 +15,8 @@ What is PheKnowLator?
 
 PheKnowLator (Phenotype Knowledge Translator) or ``pkt_kg`` is the first fully customizable knowledge graph (KG) construction framework enabling users to build complex KGs that are Semantic Web compliant and amenable to automatic Web Ontology Language (OWL) reasoning, generate contemporary property graphs, and are importable by today’s popular graph toolkits. Please see the project `Wiki <https://github.com/callahantiff/PheKnowLator/wiki>`__ for additional information.
 
+📢 Please see our preprint 👉 https://arxiv.org/abs/2307.05727
+
 What Does This Repository Provide?
 ===================================
 1. **A Knowledge Graph Sharing Hub:** Prebuilt KGs and associated metadata. Each KG is provided as triple edge lists, OWL API-formatted ``RDF/XML`` and NetworkX graph-pickled MultiDiGraphs. We also make text files available containing node and relation metadata.
