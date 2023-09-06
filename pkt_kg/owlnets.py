@@ -429,18 +429,9 @@ class OwlNets(object):
 
         The following ObjectProperties are returned for each of the following subject-object types:
             - if sub + obj are PATO terms + prop is None --> rdfs:subClassOf
-            - if sub + obj are not PATO terms + prop is None --> rdfs:subClassOf
             - elif sub is not a PATO term, but obj is a PATO term --> obo:RO_000086
             - elif prop is not None --> prop
             - else --> rdfs:subClassOf
-
-            - if sub + obj are PATO terms and property is none --> rdfs:subClassOf
-            - if sub + obj are NOT PATO terms and property is none --> rdfs:subClassOf
-            - obj is PATO term and property is none --> obo:RO_000086
-            - obj is PATO term and property is NOT none --> obo:RO_000086
-            - subj is a PATO term and property is none -->  RDFS.subClassOf
-            - subj is a PATO term and property is NOT none --> prop
-
 
         Args:
             sub: An rdflib.term object.
@@ -451,18 +442,14 @@ class OwlNets(object):
             An rdflib.term object that represents an owl:ObjectProperty.
         """
 
-        # if ('PATO' in sub and 'PATO' in obj) and prop is None: return RDFS.subClassOf
-        # elif 'PATO' not in sub and 'PATO' in obj: return obo.RO_0000086
-        # elif prop is None: return RDFS.subClassOf
-        # else: return prop
+        # extra verification to ensure None is properly caught (not needed but makes me feel better :P)
+        prop = None if prop is None or (prop is not None and prop.lower() == 'none') else prop
 
         if ('PATO' in sub and 'PATO' in obj) and prop is None: return RDFS.subClassOf
-        elif ('PATO' not in sub and 'PATO' not in obj) and prop is None: return RDFS.subClassOf
-        elif 'PATO' in obj and prop is None: return obo.RO_0000086
-        elif 'PATO' in obj and prop is not None: return obo.RO_0000086
-        elif 'PATO' in sub and prop is None: return RDFS.subClassOf
-        elif 'PATO' in sub and prop is not None: return prop
-        elif prop is None: return RDFS.subClassOf
+        elif 'PATO' not in sub and 'PATO' in obj: return obo.RO_0000086
+        elif prop is not None: return prop
+        else: return RDFS.subClassOf
+
 
     @staticmethod
     def parses_anonymous_axioms(edges: Dict, class_dict: Dict) -> Dict:
