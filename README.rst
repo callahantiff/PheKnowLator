@@ -35,52 +35,11 @@ How do I Learn More?
 
 --------------------------------------------
 
-************************************
-Important Updates and Notifications
-************************************
-
-- *October 2022:*  
-
-  - Monthly builds are temporatily delayed as we make repairs and implement new functionality. We apologize for any inconvenience this may cause and thank you for your patience and understanding.  
-
-
-- *July 2021:*
-
-  - Public SPARQL Endpoint: `http://sparql.pheknowlator.com/ <http://sparql.pheknowlator.com/>`__
-
-    - Current Build: ``July 2021``  
-
-    - Build Type: ``OWL-NETS``  instance-based + inverse relations and no metadata
-
-  - Access build data via a dedicated Google Cloud Storage bucket (see details under ``Releases``)
-  
-  - New Jupyter Notebooks:
-
-    - Applying ``OWL-NETS``: `OWLNETS_Example_Application.ipynb <https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/OWLNETS_Example_Application.ipynb>`__
-
-    - Exploring ``pkt_kg`` knowledge graphs and other ontologies: `RDF_Graph_Processing_Example.ipynb <https://github.com/callahantiff/PheKnowLator/blob/master/notebooks/RDF_Graph_Processing_Example.ipynb>`__
 
 Releases
 =========
-All data and output for each release are free to download from our dedicated Google Cloud Storage Bucket (GCS). All
-data can be downloaded from the `PheKnowLator GCS Bucket <https://console.cloud.google
-.com/storage/browser/pheknowlator?project=pheknowlator>`__, which is organized by release and build. See `full_pheknowlator_build_files.json
-<https://storage.googleapis.com/pheknowlator/full_pheknowlator_build_files.json>`__ for a list of
-all of the knowledge graph and data file URLs for all builds.
-
-Current Release
-----------------
-- ``v2``
-
-  - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__
-  - `Data Access <https://console.cloud.google.com/storage/browser/pheknowlator/release_v2.0.0?project=pheknowlator>`__
-
-Prior Releases
------------------
-- ``v1.0.0``
-
-  - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/v1.0.0>`__
-  - `Data Access <https://console.cloud.google.com/storage/browser/pheknowlator/release_v1.0.0?project=pheknowlator>`__
+  - `Data Access <https://github.com/callahantiff/PheKnowLator/wiki/Archived-Builds>`__
+  - `Build Documentation <https://github.com/callahantiff/PheKnowLator/wiki/Benchmarks-and-Builds>`__
 
 |
 
@@ -162,7 +121,7 @@ For assistance in creating these documents, please run the following from the ro
 
     python3 generates_dependency_documents.py
 
-Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created or downloaded for an existing build from the `PheKnowLator GCS Bucket <https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator>`__. To generate these data yourself, please see the `Data_Preparation.ipynb`_ Jupyter Notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
+Prior to running this step, make sure that all mapping and filtering data referenced in `resources/resource_info.txt`_ have been created. To generate these data yourself, please see the `Data_Preparation.ipynb`_ Jupyter Notebook for detailed examples of the steps used to build the `v2.0.0 knowledge graph <https://github.com/callahantiff/PheKnowLator/wiki/v2.0.0>`__.
 
 *Note.* To ensure reproducibility, after downloading data, a metadata file is output for the ontologies (`ontology_source_metadata.txt`_) and edge data sources (`edge_source_metadata.txt`_).
 
