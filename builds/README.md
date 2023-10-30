@@ -7,7 +7,7 @@ This directory stores the scripts and files needed for the automatic monthly bui
 2. Data Processing and Quality Control   
 3. Knowledge Graph Construction  
 
-*NOTE.* Build Progress can be monitored (during the build) via the `pkt_builder_logs.log` file in the `current_build` directory of the current release in the dedicated project [Google Cloud Storage Bucket](https://console.cloud.google.com/storage/browser/pheknowlator?project=pheknowlator). Once a build is complete, the log is moved to the dataed build directory under the `archived_builds` sub-directory.  
+*NOTE.* Build Progress can be monitored (during the build) via the `pkt_builder_logs.log` file in the `current_build` directory of the current release in the dedicated project Google Cloud Storage Bucket (NO LONGER ACTIVE -- see Zenodod for archived data [here](https://zenodo.org/doi/10.5281/zenodo.7030039)). Once a build is complete, the log is moved to the dataed build directory under the `archived_builds` sub-directory.  
 
 <br>
 
