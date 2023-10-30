@@ -1,5 +1,5 @@
 # PheKnowLator Builds  
-**List of PheKnowLator Builds:** [`pheknowlator_builds.json`](https://storage.googleapis.com/pheknowlator/pheknowlator_builds.json)     
+**List of PheKnowLator Builds:** https://zenodo.org/doi/10.5281/zenodo.7030039     
 
 This directory stores the scripts and files needed for the automatic monthly builds. Our continuous integration (CI)
 /Continuous deployment (CD) pipeline is managed entirely using [GitHub Actions](https://github.com/actions) and [Google's AI-Platform](https://cloud.google.com/ai-platform). Builds are triggered on the first of each month and consist of three separate asynchronous phases (each phase is briefly described below):  
