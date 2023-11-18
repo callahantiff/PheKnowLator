@@ -69,6 +69,7 @@ def main():
     start = time.time()
     combined_edges = dict(ent.data_files, **ont.data_files)
     # master_edges = CreatesEdgeList(data_files=combined_edges, source_file='resources/resource_info.txt')
+    # master_edges.runs_creates_knowledge_graph_edges(source_file='resources/resource_info.txt', data_files=combined_edges, cpus=cpus)
     master_edges = CreatesEdgeList(data_files=combined_edges, source_file=args.res)
     master_edges.runs_creates_knowledge_graph_edges(source_file=args.res, data_files=combined_edges, cpus=cpus)
     end = time.time(); timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

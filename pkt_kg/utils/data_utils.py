@@ -471,10 +471,13 @@ def sublist_creator(actors: Union[Dict, List], chunk_size: int) -> List:
 
     # update list to return string identifier associated with each list length
     if isinstance(actors, Dict):
-        updated_lists = []; used_ids = set()
+        updated_lists = []
         for sub in lists:
-            sub_list = [[k for k, v in actors.items() if v == x and k not in used_ids][0] for x in sub]
-            updated_lists += [sub_list]; used_ids |= set(x for y in sub_list for x in y)
+            sub_list = []
+            for x in sub:
+                temp_list = [k for k, v in actors.items() if v == x][0]
+                sub_list.append(temp_list); del actors[temp_list]
+            updated_lists += [sub_list]
     else: updated_lists = lists
 
     return updated_lists

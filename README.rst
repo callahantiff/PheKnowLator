@@ -308,22 +308,7 @@ This project is licensed under Apache License 2.0 - see the `LICENSE.md`_ file f
 Citing this Work
 =================
 
-**ISMB Conference Pre-print:**  
-
-Callahan TJ, Tripodi IJ, Hunter LE, Baumgartner WA. `A Framework for Automated Construction of Heterogeneous Large-Scale Biomedical Knowledge Graphs <https://www.biorxiv.org/content/10.1101/2020.04.30.071407v1.abstract>`_. bioRxiv. 2020 Jan 1.
-
-
-**Zenodo**
-
-.. code:: bash
-
-   @misc{callahan_tj_2019_3401437,
-     author       = {Callahan, TJ},  
-     title        = {PheKnowLator},  
-     year         = 2019,      
-     doi          = {10.5281/zenodo.3401437},  
-     url          = {https://doi.org/10.5281/zenodo.3401437}}
-
+Please see our preprint: https://arxiv.org/abs/2307.05727
 
 .. |logo| image:: https://user-images.githubusercontent.com/8030363/195494933-d0faba60-5643-4cc6-8a48-41b4a94a7afe.png
    :target: https://github.com/callahantiff/PheKnowLator

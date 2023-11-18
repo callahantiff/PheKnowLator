@@ -384,7 +384,7 @@ class PartialBuild(KGBuilder):
             self.graph = Graph().parse(self.merged_ont_kg, format='xml')
         else:
             log_str = '*** Merging Ontology Data ***'; print(log_str); logger.info(log_str)
-            merges_ontologies(self.ontologies, self.merged_ont_kg.split('/')[-1], self.owl_tools)
+            merges_ontologies(self.ontologies, self.write_location + '/', self.merged_ont_kg.split('/')[-1], self.owl_tools)
             self.graph.parse(self.merged_ont_kg, format='xml')
         stats = 'Merged Ontologies {}'.format(derives_graph_statistics(self.graph)); print(stats); logger.info(stats)
 
@@ -561,7 +561,7 @@ class FullBuild(KGBuilder):
             self.graph = Graph().parse(self.merged_ont_kg, format='xml')
         else:
             log_str = '*** Merging Ontology Data ***'; print(log_str); logger.info(log_str)
-            merges_ontologies(self.ontologies, self.merged_ont_kg.split('/')[-1], self.owl_tools)
+            merges_ontologies(self.ontologies, self.write_location + '/', self.merged_ont_kg.split('/')[-1], self.owl_tools)
             self.graph.parse(self.merged_ont_kg, format='xml')
         stats = 'Merged Ontologies {}'.format(derives_graph_statistics(self.graph)); print(stats); logger.info(stats)
 

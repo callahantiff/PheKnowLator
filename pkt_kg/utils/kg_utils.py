@@ -239,7 +239,7 @@ def merges_ontologies(onts: List[str], loc: str, merged: str,
         None.
     """
 
-    if not onts: return None
+    if not onts or len(onts) == 0: return None
     else:
         if loc + merged in glob.glob(loc + '/*.owl'): o1, o2 = onts.pop(), loc + merged
         else: o1, o2 = onts.pop(), onts.pop()
