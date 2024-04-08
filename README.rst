@@ -1,7 +1,7 @@
 |logo|
 
 
-|pip|
+|pip|  |downloads|
 
 |github_action|  |ABRA|
 
@@ -312,6 +312,10 @@ Please see our preprint: https://arxiv.org/abs/2307.05727
 
 .. |logo| image:: https://user-images.githubusercontent.com/8030363/195494933-d0faba60-5643-4cc6-8a48-41b4a94a7afe.png
    :target: https://github.com/callahantiff/PheKnowLator
+
+.. |downloads| image:: https://static.pepy.tech/badge/pkt-kg
+    :target: https://static.pepy.tech/badge/pkt-kg
+    :alt: Pypi total project downloads
    
 .. |ABRA| image:: https://img.shields.io/badge/ReproducibleResearch-AbraCollaboratory-magenta.svg
    :target: https://github.com/callahantiff/Abra-Collaboratory
