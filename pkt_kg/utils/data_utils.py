@@ -40,6 +40,7 @@ import re
 import requests
 import shutil
 import urllib3  # type: ignore
+from urllib.parse import urlparse
 
 from contextlib import closing
 from io import BytesIO
@@ -156,7 +157,7 @@ def zipped_url_download(url: str, write_location: str, filename: str = '') -> No
         with ZipFile(BytesIO(zip_data.content)) as zip_file:    # type: ignore
             zip_file.extractall(write_location[:-1])
     zip_data.close()    # type: ignore
-    if filename != '': os.rename(write_location + re.sub(zip_pat, '', url.split('/')[-1]), write_location + filename)
+    if filename != '': os.rename(write_location + re.sub(zip_pat, '', os.path.basename(urlparse(url).path)), write_location + filename)
 
     return None
 
@@ -194,7 +195,7 @@ def data_downloader(url: str, write_location: str, filename: str = '') -> None:
         None.
     """
 
-    file = re.sub(zip_pat, '', filename) if filename != '' else re.sub(zip_pat, '', url.split('/')[-1])
+    file = re.sub(zip_pat, '', filename) if filename != '' else re.sub(zip_pat, '', os.path.basename(urlparse(url).path))
     if '.zip' in url: zipped_url_download(url, write_location, file)
     elif '.gz' in url or '.gz' in filename:
         if url.startswith('ftp'): gzipped_ftp_url_download(url, write_location, file)
@@ -279,6 +280,9 @@ def metadata_api_mapper(nodes: List[str]) -> pd.DataFrame:
         results = content.query_ids(ids=','.join(request_ids))
         if results is not None and (isinstance(results, List) or results['code'] != 404):
             for row in results:
+                if not isinstance(row, dict) or "stId" not in row:
+                    print(f"Warning: result is missing 'stId': {row}")
+                    continue
                 ids.append(row['stId']); labels.append(row['displayName']); desc.append('None')
                 if row['displayName'] != row['name']: synonyms.append('|'.join(row['name']))
                 else: synonyms.append('None')
